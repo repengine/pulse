@@ -36,7 +36,7 @@ class CapitalExposure:
     nvda: float = 0.0
     msft: float = 0.0
     ibit: float = 0.0
-    spy: float = 0.0
+    oklo: float = 0.0
     cash: float = 100000.0  # Default initial liquidity
 
     def as_dict(self):
@@ -44,7 +44,7 @@ class CapitalExposure:
             "nvda": self.nvda,
             "msft": self.msft,
             "ibit": self.ibit,
-            "spy": self.spy,
+            "oklo": self.oklo,
             "cash": self.cash,
         }
 
