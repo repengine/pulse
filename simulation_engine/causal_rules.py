@@ -11,8 +11,8 @@ and placeholder logic for signal integration.
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
-from state_mutation import adjust_overlay, update_numeric_variable, adjust_capital
+from simulation_engine.worldstate import WorldState
+from simulation_engine.state_mutation import adjust_overlay, update_numeric_variable, adjust_capital
 
 
 def apply_causal_rules(state: WorldState):

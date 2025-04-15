@@ -1,8 +1,8 @@
 """
 strategos_digest.py
 
-Generates a strategic digest summary composed of recent Strategos Forecast Tiles.
-Intended for daily/weekly foresight reporting and operator review.
+Generates a foresight digest containing recent Strategos Forecast Tiles.
+Used to summarize recent simulations for operator review or export.
 
 Author: Pulse v3.5
 """
@@ -18,15 +18,15 @@ def generate_strategos_digest(
     title: Optional[str] = None
 ) -> str:
     """
-    Returns a human-readable foresight digest composed of recent forecast tiles.
+    Formats a multi-tile digest of recent forecasts.
 
     Parameters:
-        memory (ForecastMemory): forecast memory instance
-        n (int): number of forecasts to include
-        title (str): optional digest title/header
+        memory (ForecastMemory): forecast storage object
+        n (int): number of tiles to include
+        title (str): optional header for the digest
 
     Returns:
-        str: formatted digest string
+        str: formatted digest output
     """
     recent_forecasts = memory.get_recent(n)
     header = title or "Strategos Forecast Digest"

@@ -11,8 +11,8 @@ enabling coherent symbolic behavior across modules.
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
-from state_mutation import adjust_overlay
+from simulation_engine.worldstate import WorldState
+from simulation_engine.state_mutation import adjust_overlay
 from typing import List
 
 

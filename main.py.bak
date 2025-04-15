@@ -8,9 +8,9 @@ Author: Pulse v3.5
 """
 print("🧠 Starting Pulse v3.5...")
 
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn
-from simulation_engine.causal_rules import apply_causal_rules
+from worldstate import WorldState
+from turn_engine import run_turn
+from causal_rules import apply_causal_rules
 from forecast_output.forecast_generator import generate_forecast
 from forecast_output.pfpa_logger import log_forecast_to_pfpa
 from memory.forecast_memory import ForecastMemory

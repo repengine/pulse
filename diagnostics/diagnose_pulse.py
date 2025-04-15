@@ -1,24 +1,24 @@
 """
 diagnose_pulse.py
 
-Runs basic diagnostic checks on core Pulse components to ensure system health,
-symbolic consistency, and capital exposure validity before simulation export.
+Prints a diagnostic summary of symbolic overlays, fragility score, and capital exposure state.
+Useful for validating Pulse readiness and simulation stability.
 
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
-from portfolio_state import summarize_exposure, exposure_percentages
-from symbolic_utils import get_overlay_snapshot, symbolic_fragility_index
+from simulation_engine.worldstate import WorldState
+from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_fragility_index
+from capital_engine.portfolio_state import summarize_exposure, exposure_percentages
 from typing import Dict
 
 
 def run_diagnostics() -> Dict[str, any]:
     """
-    Runs core system diagnostics and returns a summary report.
+    Performs basic symbolic and capital diagnostic checks.
 
     Returns:
-        Dict: diagnostic report containing key symbolic and capital values
+        Dict[str, any]: summary of key simulation state
     """
     report = {}
     state = WorldState()
@@ -31,6 +31,7 @@ def run_diagnostics() -> Dict[str, any]:
 
     print("\n📋 PULSE SYSTEM DIAGNOSTICS\n")
     print(f"Turn: {report['turn']}")
+
     print("\nSymbolic Overlays:")
     for k, v in report["symbolic_overlays"].items():
         print(f"  {k.capitalize():<8}: {v:.3f}")

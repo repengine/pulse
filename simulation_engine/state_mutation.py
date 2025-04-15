@@ -7,7 +7,7 @@ Supports safe, bounded updates from causal rules, decay logic, and external sign
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
+from simulation_engine.worldstate import WorldState
 from typing import Any
 
 

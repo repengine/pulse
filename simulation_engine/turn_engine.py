@@ -10,8 +10,8 @@ Controls the simulation loop at the turn level. Each turn includes:
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
-from state_mutation import decay_overlay
+from simulation_engine.worldstate import WorldState
+from simulation_engine.state_mutation import decay_overlay
 from typing import Callable, Optional
 
 

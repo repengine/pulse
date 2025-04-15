@@ -1,27 +1,27 @@
 """
 plia_stub.py
 
-PLIA = Pulse Logic Integrity Audit (Stub Mode)
-This lightweight diagnostic checks symbolic tension and capital deployment for coherence.
+Pulse Logic Integrity Audit (PLIA) - Stub Module
+
+Scaffolds logic integrity tracing and modular consistency checks.
+To be expanded in v4.0+ with full logic path audits, symbolic truth-chain scoring,
+and simulation loop self-validation.
 
 Author: Pulse v3.5
 """
 
-from simulation_engine.worldstate import WorldState
-from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score
-from capital_engine.portfolio_state import total_exposure
+from worldstate import WorldState
+from symbolic_utils import get_overlay_snapshot, symbolic_tension_score
+from portfolio_state import total_exposure
 from typing import Dict
 
 
 def run_plia_stub(state: WorldState) -> Dict[str, any]:
     """
-    Basic integrity snapshot for symbolic overlays and capital totals.
-
-    Parameters:
-        state (WorldState): active WorldState instance
+    Runs basic integrity checks across symbolic and capital domains.
 
     Returns:
-        Dict[str, any]: audit results
+        Dict: diagnostic snapshot
     """
     symbolic_state = get_overlay_snapshot(state)
     symbolic_tension = symbolic_tension_score(symbolic_state)

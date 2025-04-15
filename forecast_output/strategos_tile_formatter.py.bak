@@ -1,8 +1,9 @@
 """
 strategos_tile_formatter.py
 
-Formats a structured forecast object into a Strategos Forecast Tile —
-a compact, human-readable foresight unit with symbolic + capital outcomes.
+Formats a forecast object into a Strategos Forecast Tile:
+a compact, readable foresight unit that combines symbolic drift, capital movement,
+confidence, fragility, and alignment into a clear scenario snapshot.
 
 Author: Pulse v3.5
 """
@@ -12,13 +13,13 @@ from typing import Dict
 
 def format_strategos_tile(forecast_obj: Dict) -> str:
     """
-    Formats a foresight forecast object into a displayable Strategos Tile.
+    Formats a forecast into a Strategos Forecast Tile.
 
     Parameters:
-        forecast_obj (Dict): structured object from forecast_generator
+        forecast_obj (Dict): structured forecast from forecast_generator.py
 
     Returns:
-        str: formatted foresight output string
+        str: formatted tile string
     """
     f = forecast_obj
     fc = f.get("forecast", {})
@@ -41,7 +42,7 @@ Exposure Delta:
   SPY   → {fc['end_capital']['spy'] - fc['start_capital']['spy']:.2f}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Symbolic Drift:
-  {fc.get("symbolic_change")}
+  {fc.get('symbolic_change')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fragility     : {fragility}
 Confidence    : {confidence}

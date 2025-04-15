@@ -8,8 +8,8 @@ that may signal narrative collapse, forecast instability, or emotional incoheren
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
-from symbolic_utils import get_overlay_snapshot, symbolic_tension_score
+from simulation_engine.worldstate import WorldState
+from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score
 from typing import Dict
 
 

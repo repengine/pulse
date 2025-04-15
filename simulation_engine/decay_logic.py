@@ -8,7 +8,7 @@ future support for conditional symbolic erosion.
 Author: Pulse v3.5
 """
 
-from worldstate import WorldState
+from simulation_engine.worldstate import WorldState
 
 
 def linear_decay(value: float, rate: float = 0.01) -> float:
