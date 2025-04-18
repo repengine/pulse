@@ -2,7 +2,7 @@
 reverse_rule_mapper.py
 
 Provides mapping between observed state changes (deltas) and candidate rules.
-Supports partial/approximate matching and schema validation.
+Supports partial/approximate matching, schema validation, and CLI.
 
 Author: Pulse AI Engine
 """

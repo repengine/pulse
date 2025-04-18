@@ -53,7 +53,7 @@ except ImportError:
 
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path
-from simulation_engine.rules.reverse_rule_mapper import match_reverse_rule       # updated path
+from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta       # updated path
 
 from typing import Dict, List, Any, Literal, Optional, Callable
 from datetime import datetime
