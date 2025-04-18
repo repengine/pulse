@@ -41,7 +41,13 @@ logger = get_logger(__name__)
 TAG_LOG_PATH = PATHS.get("SYMBOLIC_TAG_LOG", PATHS["WORLDSTATE_LOG_DIR"])
 
 def ensure_log_dir(path: str):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+    except PermissionError:
+        # Silently skip if we can't create the directory (prevents repeated error logs)
+        return
+    except Exception:
+        return
 
 def normalize_overlays(overlays: Dict[str, float]) -> Dict[str, float]:
     base = {"hope": 0.5, "despair": 0.5, "rage": 0.5, "fatigue": 0.5}
