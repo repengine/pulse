@@ -15,7 +15,7 @@ Author: Pulse AI Engine
 """
 
 import tkinter as tk
-from tkinter import ttk, filedialog, scrolledtext, messagebox
+from tkinter import ttk, filedialog, scrolledtext, messagebox, simpledialog
 import matplotlib.pyplot as plt
 import sys, os, json, csv
 from collections import Counter
@@ -82,6 +82,8 @@ class PulseControlApp:
         ttk.Button(self.root, text="Show Symbolic Arc", command=self.show_symbolic_arc).pack(pady=5)
         ttk.Button(self.root, text="Backtrace + Graph", command=self.backtrace_and_graph).pack(pady=5)
         ttk.Button(self.root, text="Load & Replay Trace", command=self.load_and_replay_trace).pack(pady=5)
+        ttk.Button(self.root, text="Load & Visualize Trace", command=self.load_and_visualize_trace).pack(pady=5)
+        ttk.Button(self.root, text="Prune Memory", command=self.prune_memory).pack(pady=2)
         ttk.Button(self.root, text="Memory Audit", command=self.run_memory_audit).pack(pady=5)
         ttk.Button(self.root, text="Export Memory Audit", command=self.export_memory_audit).pack(pady=2)
         ttk.Button(self.root, text="Plot Memory Stats", command=self.plot_memory_stats).pack(pady=2)
@@ -288,9 +290,74 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Trace replay error: {e}")
 
+    def load_and_visualize_trace(self):
+        """
+        Load a .jsonl simulation trace and interactively plot overlays, variables, or tags.
+        """
+        file = filedialog.askopenfilename(filetypes=[("JSONL", "*.jsonl")])
+        if not file:
+            return
+        try:
+            with open(file, "r") as f:
+                trace = [json.loads(line) for line in f]
+            self.log(f"Loaded {len(trace)} events from {file}")
+            # Ask user what to plot
+            choice = messagebox.askquestion("Plot", "Plot overlays? (Yes)\nPlot variables? (No)\nCancel for tags.")
+            if choice == "yes":
+                overlays = ["hope", "despair", "rage", "fatigue"]
+                data = {k: [e.get("overlays", {}).get(k, 0.5) for e in trace] for k in overlays}
+                plt.figure(figsize=(8, 4))
+                for k in overlays:
+                    plt.plot(data[k], label=k)
+                plt.title("Symbolic Overlays Over Time")
+                plt.xlabel("Step")
+                plt.ylabel("Value")
+                plt.legend()
+                plt.tight_layout()
+                plt.show()
+            elif choice == "no":
+                # Plot variables (ask user for variable name)
+                var = simpledialog.askstring("Variable", "Enter variable name to plot:")
+                if var:
+                    vals = [e.get("variables", {}).get(var, None) for e in trace]
+                    plt.plot(vals)
+                    plt.title(f"Variable '{var}' Over Time")
+                    plt.xlabel("Step")
+                    plt.ylabel(var)
+                    plt.tight_layout()
+                    plt.show()
+            else:
+                # Plot tags
+                tags = [e.get("symbolic_tag", "N/A") for e in trace]
+                plt.plot(tags)
+                plt.title("Symbolic Tags Over Time")
+                plt.xlabel("Step")
+                plt.ylabel("Tag")
+                plt.tight_layout()
+                plt.show()
+        except Exception as e:
+            self.log(f"❌ Trace visualization error: {e}")
+
+    def prune_memory(self):
+        """
+        Prune memory forecasts below a user-specified confidence threshold.
+        """
+        try:
+            memory = ForecastMemory()
+            threshold = simpledialog.askfloat("Prune Memory", "Delete forecasts below confidence:")
+            if threshold is None:
+                return
+            before = len(memory._memory)
+            memory._memory = [f for f in memory._memory if float(f.get("confidence", 0)) >= threshold]
+            after = len(memory._memory)
+            memory.save()
+            self.log(f"🧹 Pruned memory: {before-after} forecasts removed (kept {after})")
+        except Exception as e:
+            self.log(f"❌ Prune error: {e}")
+
     def run_memory_audit(self):
         """
-        Runs a memory audit and displays summary statistics.
+        Runs a memory audit and displays summary statistics, with user feedback dialog.
         """
         try:
             memory = ForecastMemory()
@@ -319,6 +386,8 @@ class PulseControlApp:
             if confidences:
                 import statistics
                 self.log(f"Confidence: min={min(confidences):.2f} max={max(confidences):.2f} avg={statistics.mean(confidences):.2f}")
+            # User feedback dialog
+            messagebox.showinfo("Memory Audit Complete", f"Audit complete.\nTotal: {total}\nDomains: {domains}")
         except Exception as e:
             self.log(f"❌ Memory audit error: {e}")
 
@@ -374,7 +443,7 @@ class PulseControlApp:
 
     def run_coherence_check(self):
         """
-        Runs a coherence check on the last batch and displays warnings or success.
+        Runs a coherence check on the last batch and displays warnings or success, with user feedback dialog.
         """
         if not self.last_batch:
             self.log("⚠️ No forecasts to check.")
@@ -386,8 +455,10 @@ class PulseControlApp:
                 self.log("⚠️ Coherence Warnings:")
                 for w in warnings:
                     self.log(f" - {w}")
+                messagebox.showwarning("Coherence Check", f"{len(warnings)} warnings found.")
             else:
                 self.log("✅ All forecasts are coherent.")
+                messagebox.showinfo("Coherence Check", "All forecasts are coherent.")
         except Exception as e:
             self.log(f"❌ Coherence check error: {e}")
 
