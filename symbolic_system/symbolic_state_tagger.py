@@ -34,6 +34,7 @@ from datetime import datetime
 from typing import Dict, Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from forecast_output.forecast_tags import ForecastTag, get_tag_label
 
 logger = get_logger(__name__)
 
@@ -63,26 +64,29 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
 
     # Decision rules (ordered by intensity and priority)
     if hope > 0.7 and despair < 0.3 and rage < 0.4:
-        label = "Hope Rising"
+        tag = ForecastTag.HOPE
     elif despair > 0.7 and hope < 0.3:
-        label = "Despair Dominant"
+        tag = ForecastTag.DESPAIR
     elif fatigue > 0.7 and rage < 0.4:
-        label = "Fatigue Plateau"
+        tag = ForecastTag.FATIGUE
     elif rage > 0.65 and fatigue > 0.55:
-        label = "Collapse Risk"
+        tag = ForecastTag.COLLAPSE_RISK
     elif all(v < 0.25 for v in [hope, despair, rage]):
-        label = "Symbolic Drain"
+        tag = ForecastTag.SYMBOLIC_DRAIN
     elif hope > 0.6 and rage > 0.6:
-        label = "Hope-Rage Conflict"
+        tag = ForecastTag.HOPE_RAGE_CONFLICT
     elif fatigue > 0.6 and despair > 0.6:
-        label = "Symbolic Exhaustion"
+        tag = ForecastTag.SYMBOLIC_EXHAUSTION
     else:
-        label = "Neutral"
+        tag = ForecastTag.NEUTRAL
+
+    label = get_tag_label(tag)
 
     result = {
         "simulation_id": sim_id,
         "turn": turn,
         "symbolic_tag": label,
+        "symbolic_tag_enum": tag.name,
         "symbolic_overlays": overlays,
         "timestamp": datetime.utcnow().isoformat(),
         "metadata": {

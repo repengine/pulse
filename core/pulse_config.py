@@ -16,9 +16,12 @@ MODULES_ENABLED = {
     "forecast_tracker": True,
     "rule_engine": True,
     "memory_guardian": False,
+    "estimate_missing_variables": False,  # Safe by default
 }
 
-# Add new config constants here as needed
+# Trust and despair weights for capital/symbolic calculations
+TRUST_WEIGHT = 1.0
+DESPAIR_WEIGHT = 1.0
 
 # Startup banner
 STARTUP_BANNER = "🧠 Starting Pulse v0.4..."

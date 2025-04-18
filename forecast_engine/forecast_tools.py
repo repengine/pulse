@@ -1,6 +1,6 @@
 import argparse
-from simulation_engine.forecasting.forecast_log_viewer import load_and_display_forecasts
-from simulation_engine.forecasting.forecast_exporter import export_forecast_csv, export_forecast_markdown
+from forecast_engine.forecast_log_viewer import load_and_display_forecasts
+from forecast_engine.forecast_exporter import export_forecast_csv, export_forecast_markdown
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Forecast Tools CLI")

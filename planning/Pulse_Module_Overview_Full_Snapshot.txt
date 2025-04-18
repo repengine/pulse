@@ -1,0 +1,49 @@
+PULSE SYSTEM MODULE OVERVIEW – COMPLETE SNAPSHOT
+Timestamp: 2025-04-14 01:07:58
+====================================================================================================
+
+Module: PulseShortViewCapital
+Status: Active
+Purpose: Short-term capital foresight using symbolic overlays, confidence scoring, and PFPA.
+ETA (if queued): 6 days
+----------------------------------------------------------------------------------------------------
+Module: PulseMirror Core
+Status: Active
+Purpose: Forecast reflection, symbolic bias auditing, and trust reasoning.
+ETA (if queued): 1 week
+----------------------------------------------------------------------------------------------------
+Module: PulseGrow
+Status: Active
+Purpose: Self-expanding variable engine with symbolic utility validation.
+ETA (if queued): 6 weeks
+----------------------------------------------------------------------------------------------------
+Module: Forecast Summary Synthesizer
+Status: Active
+Purpose: Human-readable foresight output layer from simulation metadata.
+ETA (if queued): 2.5 weeks
+----------------------------------------------------------------------------------------------------
+Module: Forecast Confidence Gate MonteX
+Status: Active
+Purpose: 100k+ fork simulation enforcement for high-trust forecasts.
+ETA (if queued): Live
+----------------------------------------------------------------------------------------------------
+Module: System Trust Engine
+Status: Queued
+Purpose: Trust-weighted governance of all modules and simulation flows.
+ETA (if queued): 8 weeks
+----------------------------------------------------------------------------------------------------
+Module: Symbolic Utility Score (SUS)
+Status: Queued
+Purpose: Quantifies symbolic overlay value in simulation outcomes.
+ETA (if queued): 8 weeks
+----------------------------------------------------------------------------------------------------
+Module: PulseMemoryGuardian
+Status: Active
+Purpose: Categorizes and audits memory importance, suggesting retention or rotation.
+ETA (if queued): Ongoing
+----------------------------------------------------------------------------------------------------
+Module: PulseDiagnosticRunner
+Status: Active
+Purpose: Performs system-wide forecast audits, module health checks, drift tracking.
+ETA (if queued): Live
+----------------------------------------------------------------------------------------------------

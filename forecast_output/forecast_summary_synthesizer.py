@@ -31,6 +31,7 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from core.path_registry import PATHS
+from forecast_output.forecast_tags import is_valid_tag
 
 SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.jsonl")
 
@@ -52,6 +53,8 @@ def summarize_forecasts(forecasts: List[Dict], method: str = "default", log_path
     for i, f in enumerate(forecasts):
         conf = f.get("confidence", 0.5)
         tag = f.get("symbolic_tag", "unlabeled")
+        if not is_valid_tag(tag):
+            tag = "unlabeled"
         drivers = f.get("drivers", ["unknown"])
         scenario = {
             "summary": f"Scenario {i+1}: {tag} scenario driven by {', '.join(drivers)}.",
