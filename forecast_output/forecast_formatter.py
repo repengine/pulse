@@ -8,6 +8,9 @@ Author: Pulse v3.5
 """
 
 from typing import Dict
+from memory.forecast_memory import ForecastMemory
+
+forecast_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
 
 
 def format_forecast_tile(forecast_obj: Dict) -> str:
@@ -35,17 +38,21 @@ Turn          : {f['origin_turn']}
 Trace ID      : {f['trace_id']}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Exposure Delta:
-  NVDA  → {fc['end_capital']['nvda'] - fc['start_capital']['nvda']:.2f}
-  MSFT  → {fc['end_capital']['msft'] - fc['start_capital']['msft']:.2f}
-  IBIT  → {fc['end_capital']['ibit'] - fc['start_capital']['ibit']:.2f}
-  SPY   → {fc['end_capital']['spy'] - fc['start_capital']['spy']:.2f}
+  NVDA  → {fc.get('end_capital', {}).get('nvda', 0) - fc.get('start_capital', {}).get('nvda', 0):.2f}
+  MSFT  → {fc.get('end_capital', {}).get('msft', 0) - fc.get('start_capital', {}).get('msft', 0):.2f}
+  IBIT  → {fc.get('end_capital', {}).get('ibit', 0) - fc.get('start_capital', {}).get('ibit', 0):.2f}
+  SPY   → {fc.get('end_capital', {}).get('spy', 0) - fc.get('start_capital', {}).get('spy', 0):.2f}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fragility     : {fragility}
 Confidence    : {confidence}
-Symbolic Drift: {fc['symbolic_change']}
+Symbolic Drift: {fc.get('symbolic_change')}
 Alignment     : {alignment.get('bias', 'N/A')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Status        : {f.get('status', 'unlabeled')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
     return formatted.strip()
+
+
+def save_forecast(forecast_obj: Dict):
+    forecast_memory.store(forecast_obj)

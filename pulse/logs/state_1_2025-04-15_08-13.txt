@@ -1,0 +1,5 @@
+Turn 1 Worldstate Snapshot
+Overlays: {'hope': 0.49, 'despair': 0.49, 'rage': 0.49, 'fatigue': 0.49, 'trust': 0.49}
+Capital : {'nvda': 0.0, 'msft': 0.0, 'ibit': 0.0, 'spy': 0.0, 'cash': 100000.0}
+Vars    : {'fed_funds_rate': 0.05, 'inflation_index': 0.03, 'unemployment_rate': 0.05, 'ai_policy_risk': 0.2, 'geopolitical_stability': 0.7, 'media_sentiment_score': 0.4, 'market_volatility_index': 0.2, 'public_trust_level': 0.6, 'energy_price_index': 0.5, 'crypto_instability': 0.3}
+

@@ -11,6 +11,9 @@ from simulation_engine.worldstate import WorldState
 from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score
 from capital_engine.portfolio_state import total_exposure
 from typing import Dict
+from utils.log_utils import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_plia_stub(state: WorldState) -> Dict[str, any]:
@@ -34,13 +37,14 @@ def run_plia_stub(state: WorldState) -> Dict[str, any]:
         "status": "pass (stub mode)"
     }
 
-    print("\n🧠 [PLIA STUB] Logic Integrity Check:")
-    print(f"Symbolic Tension Score : {symbolic_tension:.3f}")
-    print(f"Total Capital Deployed: ${capital_total:,.2f}")
-    print(f"Overlay Snapshot       : {symbolic_state}")
+    logger.info("\n🧠 [PLIA STUB] Logic Integrity Check:")
+    logger.info(f"Symbolic Tension Score : {symbolic_tension:.3f}")
+    logger.info(f"Total Capital Deployed: ${capital_total:,.2f}")
+    logger.info(f"Overlay Snapshot       : {symbolic_state}")
 
     return results
 
 
 if __name__ == "__main__":
-    run_plia_stub(WorldState())
+    result = run_plia_stub(WorldState())
+    logger.info(result)

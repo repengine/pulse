@@ -1,41 +1,58 @@
 """
 main.py
 
-Pulse v3.5 execution shell. Initializes simulation state, runs a short simulation loop,
+Pulse v0.2 execution shell. Initializes simulation state, runs a short simulation loop,
 generates foresight forecasts, and prints Strategos Digest summaries.
 
-Author: Pulse v3.5
+Author: Pulse v0.2
 """
-print("🧠 Starting Pulse v3.5...")
+from utils.log_utils import get_logger
+logger = get_logger(__name__)
 
+logger.info("🧠 Starting Pulse v0.2...")
+
+from foresight_architecture.digest_logger import save_digest_to_file
+from operator_interface.strategos_digest import generate_strategos_digest
+from memory.forecast_memory import ForecastMemory
 from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
 from simulation_engine.causal_rules import apply_causal_rules
 from forecast_output.forecast_generator import generate_forecast
 from forecast_output.pfpa_logger import log_forecast_to_pfpa
-from memory.forecast_memory import ForecastMemory
-from operator_interface.strategos_digest import generate_strategos_digest
 
 
 def run_pulse_simulation(turns: int = 5):
-    """
-    Initializes Pulse and runs a simulation loop with forecast generation.
-    """
-    print("\n🌐 Initializing Pulse v3.5...\n")
+    logger.info("\n🌐 Initializing Pulse v0.2...\n")
     state = WorldState()
     memory = ForecastMemory()
 
     for _ in range(turns):
-        print(f"\n🔄 Running Turn {state.turn + 1}...")
+        logger.info(f"\n🔄 Running Turn {state.turn + 1}...")
         run_turn(state, rule_fn=apply_causal_rules)
-        forecast = generate_forecast(state, horizon_days=2)
-        memory.store(forecast)
-        log_forecast_to_pfpa(forecast)
+        try:
+            forecast = generate_forecast(state)
+            memory.store(forecast)
+            log_forecast_to_pfpa(forecast)
+        except Exception as e:
+            logger.error(f"❌ Forecast error: {e}")
+            continue
 
-    print("\n📘 Generating Strategos Digest...\n")
     digest = generate_strategos_digest(memory, n=min(turns, 5))
-    print(digest)
+    logger.info(digest)
+    save_digest_to_file(digest)
 
+# Run post-simulation retrodiction test
+try:
+    from trust_system.retrodiction_engine import simulate_retrodiction_test
+    simulate_retrodiction_test()
+except Exception as e:
+    logger.warning(f"⚠️ Retrodiction failed: {e}")
+# Strategic trust audit
+try:
+    from diagnostics.trust_audit import audit_forecasts
+    audit_forecasts()
+except Exception as e:
+    logger.warning(f"⚠️ Audit failed: {e}")
 
 if __name__ == "__main__":
     run_pulse_simulation(turns=5)

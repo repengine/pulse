@@ -1,0 +1,39 @@
+"""
+worldstate_variables.py
+
+Provides the base WorldstateVariables class, used to store and manipulate
+variable key-value pairs inside the Pulse simulation.
+
+Author: Pulse v0.4
+"""
+
+class WorldstateVariables(dict):
+    """
+    Dict-like container for simulation variables.
+    Allows for flexible access and snapshotting of evolving variable states.
+    """
+    pass
+
+class WorldstateVariables:
+    fed_funds_rate: float = 0.05           # Federal interest rate
+    inflation_index: float = 0.03          # Annualized CPI
+    unemployment_rate: float = 0.05        # National job stress
+    ai_policy_risk: float = 0.2            # Regulatory pressure on AI
+    geopolitical_stability: float = 0.7    # 0 = crisis, 1 = peace
+    media_sentiment_score: float = 0.4     # Tone of mainstream narrative
+    market_volatility_index: float = 0.2   # Proxy for VIX or panic
+    public_trust_level: float = 0.6        # Populace trust in institutions
+    energy_price_index: float = 0.5        # Energy cost stress
+    crypto_instability: float = 0.3        # Symbolic + market volatility
+
+    def as_dict(self):
+        return self.__dict__
+
+    def update_variable(self, name: str, value: float):
+        if hasattr(self, name):
+            setattr(self, name, value)
+
+    def decay_variable(self, name: str, rate: float = 0.01):
+        if hasattr(self, name):
+            current = getattr(self, name)
+            setattr(self, name, max(0.0, current - rate))

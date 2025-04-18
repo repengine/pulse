@@ -1,0 +1,26 @@
+"""
+PATCHED: pulse_interactive_shell.py
+Pulse Version: v0.22.4
+Adds: run-batch [N] — runs N forecasts via forecast_batch_runner
+"""
+
+from forecast_output.forecast_batch_runner import run_forecast_batch
+from simulation_engine.worldstate import WorldState
+
+def cmd_run_batch(args: List[str]):
+    """Run a batch of N forecasts and summarize"""
+    if len(args) != 1 or not args[0].isdigit():
+        print("Usage: run-batch [N]")
+        return
+    batch_size = int(args[0])
+    try:
+        dummy_state = WorldState()
+        batch = run_forecast_batch(dummy_state, batch_size=batch_size)
+        print(f"✅ Batch complete. {len(batch)} forecasts generated.")
+        log_interaction(f"run-batch {batch_size}", f"{len(batch)} forecasts")
+    except Exception as e:
+        print(f"[Shell] Batch error: {e}")
+        log_interaction("run-batch", f"error: {e}")
+
+# To register, add this to COMMANDS dict:
+# "run-batch": cmd_run_batch

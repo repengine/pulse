@@ -1,0 +1,77 @@
+[
+  {
+    "trace_id": "fcast_turn_16",
+    "retrodiction_score": 0.0,
+    "symbolic_score": 0.0,
+    "asset_hits": {
+      "nvda": false,
+      "msft": false,
+      "ibit": false,
+      "spy": false
+    },
+    "symbolic_hits": {},
+    "forecast_confidence": 0.669,
+    "trust_label": "\ud83d\udfe1 Unlabeled",
+    "fragility_score": null
+  },
+  {
+    "trace_id": "fcast_turn_17",
+    "retrodiction_score": 0.0,
+    "symbolic_score": 0.0,
+    "asset_hits": {
+      "nvda": false,
+      "msft": false,
+      "ibit": false,
+      "spy": false
+    },
+    "symbolic_hits": {},
+    "forecast_confidence": 0.68,
+    "trust_label": "\ud83d\udfe1 Unlabeled",
+    "fragility_score": null
+  },
+  {
+    "trace_id": "fcast_turn_18",
+    "retrodiction_score": 0.0,
+    "symbolic_score": 0.0,
+    "asset_hits": {
+      "nvda": false,
+      "msft": false,
+      "ibit": false,
+      "spy": false
+    },
+    "symbolic_hits": {},
+    "forecast_confidence": 0.692,
+    "trust_label": "\ud83d\udfe1 Unlabeled",
+    "fragility_score": null
+  },
+  {
+    "trace_id": "fcast_turn_19",
+    "retrodiction_score": 0.0,
+    "symbolic_score": 0.0,
+    "asset_hits": {
+      "nvda": false,
+      "msft": false,
+      "ibit": false,
+      "spy": false
+    },
+    "symbolic_hits": {},
+    "forecast_confidence": 0.702,
+    "trust_label": "\ud83d\udfe1 Unlabeled",
+    "fragility_score": null
+  },
+  {
+    "trace_id": "fcast_turn_20",
+    "retrodiction_score": 0.0,
+    "symbolic_score": 0.0,
+    "asset_hits": {
+      "nvda": false,
+      "msft": false,
+      "ibit": false,
+      "spy": false
+    },
+    "symbolic_hits": {},
+    "forecast_confidence": 0.713,
+    "trust_label": "\ud83d\udfe1 Unlabeled",
+    "fragility_score": null
+  }
+]

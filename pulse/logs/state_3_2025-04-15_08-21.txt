@@ -1,0 +1,5 @@
+Turn 3 Worldstate Snapshot
+Overlays: {'hope': 0.47, 'despair': 0.47, 'rage': 0.47, 'fatigue': 0.47, 'trust': 0.47}
+Capital : {'nvda': 0.0, 'msft': 0.0, 'ibit': 0.0, 'spy': 0.0, 'cash': 100000.0}
+Vars    : {}
+
