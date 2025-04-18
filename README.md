@@ -7,6 +7,14 @@ It's goal is to ingest real-time market, social, political, ecological, etc. dat
 
 ---
 
+## 🧬 Project Identity
+
+Pulse is a modular simulation intelligence engine designed for recursive forecasting, retrodiction, and capital/narrative strategy synthesis.  
+It operates by combining emotional-symbolic overlays, trust scoring, and adaptive rule evolution to generate and validate optimal timelines.  
+Memory and trace persistence are core: all simulation cycles are scored, pruned, and iteratively improved.
+
+---
+
 ## 🔧 Features
 
 - Emotional overlays: Hope, Despair, Rage, Fatigue, Trust
