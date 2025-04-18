@@ -23,7 +23,7 @@ from core.path_registry import PATHS
 logger = get_logger(__name__)
 
 SEARCH_PATHS = ["dev_tools", "simulation_engine/forecasting"]
-HOOKS_JSON = "dev_tools/pulse_hooks_config.json"
+HOOKS_JSON = PATHS.get("HOOKS_JSON", "dev_tools/pulse_hooks_config.json")
 SHELL_TEMPLATE_DIR = PATHS.get("SHELL_TEMPLATE_DIR", "dev_tools/shell_templates")
 
 def write_hook_summary(modules):

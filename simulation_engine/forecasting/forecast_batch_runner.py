@@ -48,7 +48,7 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
     """
     min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD
     if not MODULE_REGISTRY.get("forecast_batch_runner", {}).get("enabled", True):
-        logger.warning("Forecast batch runner is disabled in module registry.")
+        logger.warning("Forecast tracker is disabled in module registry.")
         return
 
     tracker = ForecastTracker()
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Batch Forecast Runner")
     parser.add_argument("--count", type=int, default=5, help="Number of forecasts to run")
     parser.add_argument("--domain", type=str, default="capital", help="Forecast domain tag")
-    parser.add_argument("--min_conf", type=float, default=0.5, help="Minimum required confidence")
+    parser.add_argument("--min_conf", type=float, default=CONFIDENCE_THRESHOLD, help="Minimum required confidence")
     parser.add_argument("--block", nargs='*', default=None, help="Symbolic drivers to block (e.g. despair)")
     parser.add_argument("--quiet", action="store_true", help="Suppress verbose output")
     args = parser.parse_args()

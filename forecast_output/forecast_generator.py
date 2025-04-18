@@ -15,6 +15,7 @@ from trust_system.trust_engine import score_forecast
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from typing import Dict, Any
 from utils.log_utils import get_logger
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
 
 logger = get_logger(__name__)
 
@@ -55,9 +56,10 @@ def generate_forecast(
     # 🔐 Add trust score + status label
     output["confidence"] = score_forecast(output)
 
-    if output["confidence"] >= 0.75:
+    # Use config thresholds for status
+    if output["confidence"] >= CONFIDENCE_THRESHOLD:
         output["status"] = "🟢 Trusted"
-    elif output["confidence"] >= 0.5:
+    elif output["confidence"] >= DEFAULT_FRAGILITY_THRESHOLD:
         output["status"] = "⚠️ Moderate"
     else:
         output["status"] = "🔴 Fragile"
