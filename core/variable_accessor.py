@@ -11,7 +11,7 @@ def set_variable(state, name, value):
     state.variables[name] = value
 
 def get_overlay(state, name, default=0.0):
-    return state.overlays.get(name, default)
+    return getattr(state.overlays, name, default)
 
 def set_overlay(state, name, value):
-    state.overlays[name] = value
+    setattr(state.overlays, name, value)

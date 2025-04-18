@@ -8,24 +8,17 @@ attribute-style access, and utility methods for controlled updates and decay.
 Author: Pulse v0.4
 """
 
+from core.variable_registry import get_default_variable_state
+
 class WorldstateVariables:
     def __init__(self, **kwargs):
-        # Default values
-        self.fed_funds_rate: float = 0.05
-        self.inflation_index: float = 0.03
-        self.unemployment_rate: float = 0.05
-        self.ai_policy_risk: float = 0.2
-        self.geopolitical_stability: float = 0.7
-        self.media_sentiment_score: float = 0.4
-        self.market_volatility_index: float = 0.2
-        self.public_trust_level: float = 0.6
-        self.energy_price_index: float = 0.5
-        self.crypto_instability: float = 0.3
-
-        # Overwrite defaults with any provided init values
+        # Start with registry defaults
+        defaults = get_default_variable_state()
+        for k, v in defaults.items():
+            setattr(self, k, v)
+        # Overwrite with any provided values
         for k, v in kwargs.items():
-            if hasattr(self, k):
-                setattr(self, k, v)
+            setattr(self, k, v)
 
     # -------- Dict Emulation --------
     def __getitem__(self, key):

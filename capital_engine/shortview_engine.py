@@ -10,6 +10,7 @@ Author: Pulse v3.5
 from simulation_engine.worldstate import WorldState
 from capital_engine.asset_forks import run_capital_forks
 from symbolic_system.symbolic_utils import symbolic_fragility_index
+from core.pulse_config import MODULES_ENABLED, CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, TRUST_WEIGHT, DESPAIR_WEIGHT
 from typing import Dict, Any, List
 
 

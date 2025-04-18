@@ -15,7 +15,7 @@ from trust_system.trust_engine import score_forecast
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from typing import Dict, Any
 from utils.log_utils import get_logger
-from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, TRUST_WEIGHT, DESPAIR_WEIGHT
 
 logger = get_logger(__name__)
 

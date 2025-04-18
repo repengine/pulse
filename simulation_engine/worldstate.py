@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 import copy
 import json
 from core.path_registry import PATHS
+from core.variable_registry import get_default_variable_state
 
 WORLDSTATE_LOG_PATH = PATHS.get("WORLDSTATE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 # ...use WORLDSTATE_LOG_PATH for worldstate logs...

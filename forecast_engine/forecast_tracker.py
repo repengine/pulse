@@ -11,9 +11,9 @@ Author: Pulse v0.20
 import os
 import json
 from datetime import datetime
-from simulation_engine.forecasting.forecast_scoring import score_forecast
-from simulation_engine.forecasting.forecast_memory import save_forecast_to_memory
-from simulation_engine.forecasting.forecast_integrity_engine import validate_forecast
+from forecast_engine.forecast_scoring import score_forecast
+from forecast_engine.forecast_memory import save_forecast_to_memory
+from forecast_engine.forecast_integrity_engine import validate_forecast
 from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
 from memory.forecast_memory import ForecastMemory

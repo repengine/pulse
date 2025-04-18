@@ -18,6 +18,8 @@ import os
 import importlib
 from simulation_engine.turn_engine import run_turn
 from simulation_engine.worldstate import WorldState
+from simulation_engine.utils.worldstate_io import load_worldstate_from_file as load_worldstate, save_worldstate_to_file as save_worldstate
+from core.variable_registry import validate_variables
 from dev_tools.rule_dev_shell import test_rules
 from simulation_engine.forecasting.forecast_log_viewer import load_and_display_forecasts
 from dev_tools.pulse_test_suite import test_symbolic_shift, test_capital_shift
@@ -25,6 +27,8 @@ from dev_tools.pulse_forecast_test_suite import run_forecast_validation
 from simulation_engine.forecasting.forecast_batch_runner import run_batch_forecasts
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from core.pulse_config import MODULES_ENABLED
+from core.variable_registry import VARIABLE_REGISTRY
 
 logger = get_logger(__name__)
 
@@ -107,8 +111,34 @@ def main():
         safe_hook_import(args.mode)
         return
 
+    # --- Expanded: Load, Validate, Run, Save ---
     # Default: simulation
-    state = WorldState()
+    input_path = PATHS.get("WORLDSTATE_INPUT", "simulation_engine/worldstate_input.json")
+    output_path = PATHS.get("WORLDSTATE_OUTPUT", "simulation_engine/worldstate_output.json")
+    print(f"🧠 Loading worldstate from {input_path}")
+    state = load_worldstate(input_path)
+
+    # Validate worldstate variables
+    ESTIMATE_MISSING = MODULES_ENABLED.get("estimate_missing_variables", False)
+
+    valid, missing, unexpected = validate_variables(state.variables)
+    if not valid:
+        print("⚠️ Invalid WorldState variables.")
+        if missing:
+            print("Missing variables:", missing)
+        if unexpected:
+            print("Unexpected variables:", unexpected)
+
+        if ESTIMATE_MISSING:
+            print("🧪 Estimating missing variables from defaults.")
+            for var in missing:
+                default = VARIABLE_REGISTRY[var]["default"]
+                state.variables[var] = default
+                print(f"  → {var} set to default {default}")
+            # Optionally re-validate here
+        else:
+            return
+
     for _ in range(args.turns):
         rule_log = run_turn(state)
         print(f"Turn {state.turn} complete. Rules triggered: {len(rule_log)}")
@@ -118,6 +148,10 @@ def main():
     print("\nRecent log:")
     for line in state.get_log():
         print(f" - {line}")
+
+    print(f"\n💾 Saving worldstate to {output_path}")
+    save_worldstate(state, output_path)
+    print("✅ Simulation complete.")
 
 if __name__ == "__main__":
     main()
