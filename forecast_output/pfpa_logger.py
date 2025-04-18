@@ -13,17 +13,24 @@ from memory.forecast_memory import ForecastMemory
 from typing import Dict, List
 import datetime
 from utils.log_utils import get_logger
+from core.pulse_config import CONFIDENCE_THRESHOLD
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
 # Persistent archive layer
-pfpa_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
+pfpa_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+
+PFPA_ARCHIVE = []  # or your actual archive object
 
 
-def log_forecast_to_pfpa(forecast_obj: Dict, outcome: Dict = None, status: str = "open"):
+def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str = "open") -> None:
     """
-    Logs forecast to PFPA with optional actual outcome scoring
+    Logs a forecast to the PFPA archive, tagging if below confidence threshold.
     """
+    if forecast_obj.get("confidence", 0) < CONFIDENCE_THRESHOLD:
+        forecast_obj["trust_label"] = "🔴 Below threshold"
+
     # Optional: simulate actual exposure for retrodiction
     simulated_actual = {
         "nvda": 10100,

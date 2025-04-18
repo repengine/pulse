@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-04-18T01:53:10.415348",
+  "trace_id": "fcast_turn_5",
+  "origin_turn": 5,
+  "horizon_days": 2,
+  "fragility": 0.506,
+  "confidence": 0.558,
+  "status": "\u26a0\ufe0f Moderate",
+  "trust_label": "\ud83d\udd34 Below threshold",
+  "alignment": {
+    "bias": "neutral"
+  },
+  "symbolic_snapshot": {
+    "hope": 0.0,
+    "despair": 0.0,
+    "rage": 0.0,
+    "fatigue": 0.0,
+    "trust": 0.0
+  },
+  "exposure_start": {
+    "nvda": 570.0,
+    "msft": 152.0,
+    "ibit": -456.0,
+    "spy": 513.0,
+    "cash": 100000.0
+  },
+  "exposure_end": {
+    "nvda": 705.0,
+    "msft": 188.0,
+    "ibit": -564.0,
+    "spy": 634.5,
+    "cash": 100000.0
+  },
+  "retrodiction_score": 0.0,
+  "symbolic_score": null,
+  "retrodiction_hits": {
+    "nvda": false,
+    "msft": false,
+    "ibit": false,
+    "spy": false
+  },
+  "symbolic_hits": {},
+  "outcome": {},
+  "status_tag": "open"
+}

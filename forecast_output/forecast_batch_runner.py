@@ -27,8 +27,9 @@ from forecast_output.forecast_generator import generate_forecast
 from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from simulation_engine.worldstate import WorldState
+from core.path_registry import PATHS
 
-BATCH_LOG_PATH = "logs/forecast_batch_output.jsonl"
+BATCH_LOG_PATH = PATHS.get("BATCH_LOG_PATH", "logs/forecast_batch_output.jsonl")
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

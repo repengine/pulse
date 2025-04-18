@@ -12,6 +12,7 @@ Author: Pulse v0.2
 
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from typing import Dict, List
+from core.pulse_config import CONFIDENCE_THRESHOLD
 
 
 def score_forecast(
@@ -68,5 +69,7 @@ def score_forecast(
         movement_score * delta_weight +
         novelty_score * novelty_weight
     )
+
+    confidence = max(confidence, CONFIDENCE_THRESHOLD)
 
     return round(min(max(confidence, 0.0), 1.0), 3)

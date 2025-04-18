@@ -24,10 +24,11 @@ from dev_tools.pulse_test_suite import test_symbolic_shift, test_capital_shift
 from dev_tools.pulse_forecast_test_suite import run_forecast_validation
 from simulation_engine.forecasting.forecast_batch_runner import run_batch_forecasts
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-HOOK_CONFIG = "dev_tools/pulse_hooks_config.json"
+HOOK_CONFIG = PATHS.get("HOOK_CONFIG", "dev_tools/pulse_hooks_config.json")
 hook_data = {"active_hooks": {}, "metadata": {}}
 if os.path.exists(HOOK_CONFIG):
     with open(HOOK_CONFIG, "r") as f:

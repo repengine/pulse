@@ -9,7 +9,13 @@ Author: Pulse v0.2
 from utils.log_utils import get_logger
 logger = get_logger(__name__)
 
-logger.info("🧠 Starting Pulse v0.2...")
+logger.info("🧠 Starting Pulse...")
+
+from core.module_registry import MODULE_REGISTRY
+from core.pulse_config import STARTUP_BANNER
+
+print(STARTUP_BANNER)
+print(f"Pulse version: {MODULE_REGISTRY['turn_engine']['version']}")
 
 from foresight_architecture.digest_logger import save_digest_to_file
 from operator_interface.strategos_digest import generate_strategos_digest
@@ -22,7 +28,7 @@ from forecast_output.pfpa_logger import log_forecast_to_pfpa
 
 
 def run_pulse_simulation(turns: int = 5):
-    logger.info("\n🌐 Initializing Pulse v0.2...\n")
+    logger.info("\n🌐 Initializing Pulse...\n")
     state = WorldState()
     memory = ForecastMemory()
 

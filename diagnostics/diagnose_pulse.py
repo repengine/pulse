@@ -12,6 +12,9 @@ from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_fragil
 from capital_engine.portfolio_state import summarize_exposure, exposure_percentages
 from typing import Dict
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
+
+LOG_PATH = PATHS["DIAGNOSTICS_LOG"]
 
 logger = get_logger(__name__)
 
@@ -32,26 +35,26 @@ def run_diagnostics() -> Dict[str, any]:
     report["capital_exposure"] = summarize_exposure(state)
     report["capital_percentages"] = exposure_percentages(state)
 
-    logger.info("\n📋 PULSE SYSTEM DIAGNOSTICS\n")
-    logger.info(f"Turn: {report['turn']}")
+    print("\n📋 PULSE SYSTEM DIAGNOSTICS\n")
+    print(f"Turn: {report['turn']}")
 
-    logger.info("\nSymbolic Overlays:")
+    print("\nSymbolic Overlays:")
     for k, v in report["symbolic_overlays"].items():
-        logger.info(f"  {k.capitalize():<8}: {v:.3f}")
+        print(f"  {k.capitalize():<8}: {v:.3f}")
 
-    logger.info(f"\nSymbolic Fragility Index: {report['symbolic_fragility']:.3f}")
+    print(f"\nSymbolic Fragility Index: {report['symbolic_fragility']:.3f}")
 
-    logger.info("\nCapital Exposure:")
+    print("\nCapital Exposure:")
     for asset, val in report["capital_exposure"].items():
-        logger.info(f"  {asset.upper():<5} : ${val:,.2f}")
+        print(f"  {asset.upper():<5} : ${val:,.2f}")
 
-    logger.info("\nExposure % Breakdown:")
+    print("\nExposure % Breakdown:")
     for asset, pct in report["capital_percentages"].items():
-        logger.info(f"  {asset.upper():<5} : {pct*100:.2f}%")
+        print(f"  {asset.upper():<5} : {pct*100:.2f}%")
 
     return report
 
 
 if __name__ == "__main__":
     result = run_diagnostics()
-    logger.info(result)
+    print(result)

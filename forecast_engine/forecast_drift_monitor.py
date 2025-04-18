@@ -34,10 +34,11 @@ import json
 import os
 from typing import List, Dict, Optional
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-DRIFT_LOG_PATH = "logs/forecast_drift_log.jsonl"
+DRIFT_LOG_PATH = PATHS.get("DRIFT_LOG_PATH", os.path.join(PATHS["WORLDSTATE_LOG_DIR"], "forecast_drift_log.jsonl"))
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

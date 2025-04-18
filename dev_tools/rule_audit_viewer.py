@@ -9,6 +9,7 @@ Author: Pulse v0.20
 import json
 import argparse
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 

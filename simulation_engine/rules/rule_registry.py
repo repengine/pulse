@@ -12,6 +12,12 @@ This module will allow rule lookup, grouping, versioning, and validation.
 Author: Pulse v0.20 (scaffolded at v0.10)
 """
 
+from core.path_registry import PATHS
+from core.pulse_config import MODULES_ENABLED
+from core.module_registry import MODULE_REGISTRY
+
+RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
+
 # Placeholder schema
 class RuleRegistry:
     def __init__(self):

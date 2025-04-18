@@ -38,6 +38,8 @@ Module {module_num:04d}: [Short description of module purpose]
 """
 
 {utils_import}
+from core.pulse_config import MODULES_ENABLED
+from core.module_registry import MODULE_REGISTRY
 
 logger = get_logger(__name__)
 
@@ -58,6 +60,11 @@ def main_function(input_data: list[int]) -> int:
     Raises:
         Module{module_num:04d}Error: [When/why this is raised]
     """
+    # Gating logic using module registry and config
+    module_key = __name__.split('.')[-1]
+    if not MODULE_REGISTRY.get(module_key, {}).get("enabled", MODULES_ENABLED.get(module_key, True)):
+        logger.warning(f"{{module_key}} is disabled in module registry.")
+        raise Module{module_num:04d}Error(f"{{module_key}} is disabled in module registry.")
     logger.info("Starting main_function in Module {module_num:04d}")
     if not isinstance(input_data, list):
         logger.error("Input data must be a list of integers.")

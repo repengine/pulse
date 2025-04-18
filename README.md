@@ -75,6 +75,19 @@ This is an interpretability-first build: every module is readable, auditable, an
 
 ---
 
+## Centralized Configuration
+
+All file paths and key configuration values are now managed in `core/path_registry.py` and `core/pulse_config.py`.  
+Modules should import from these files instead of hardcoding paths or constants.
+
+Example:
+```python
+from core.path_registry import PATHS
+from core.pulse_config import CONFIDENCE_THRESHOLD
+```
+
+---
+
 ## Coding Standards
 
 - Use type annotations and docstrings in all new code.

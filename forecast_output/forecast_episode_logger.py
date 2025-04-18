@@ -23,8 +23,9 @@ import json
 import os
 from datetime import datetime
 from typing import Dict, Optional
+from core.path_registry import PATHS
 
-EPISODE_LOG_PATH = "logs/forecast_episodes.jsonl"
+EPISODE_LOG_PATH = PATHS.get("EPISODE_LOG_PATH", "logs/forecast_episodes.jsonl")
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

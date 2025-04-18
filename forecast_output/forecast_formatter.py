@@ -9,8 +9,9 @@ Author: Pulse v3.5
 
 from typing import Dict
 from memory.forecast_memory import ForecastMemory
+from core.path_registry import PATHS
 
-forecast_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
+forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
 
 
 def format_forecast_tile(forecast_obj: Dict) -> str:

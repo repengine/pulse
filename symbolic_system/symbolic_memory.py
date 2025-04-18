@@ -24,10 +24,11 @@ import os
 from datetime import datetime
 from typing import Dict, Optional
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-SYMBOLIC_LOG_PATH = "logs/symbolic_memory_log.jsonl"
+SYMBOLIC_LOG_PATH = PATHS.get("SYMBOLIC_LOG_PATH", "logs/symbolic_memory_log.jsonl")
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -38,7 +39,7 @@ def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "
     if not isinstance(overlays, dict) or not all(isinstance(v, (int, float)) for v in overlays.values()):
         raise ValueError("Overlays must be a dictionary of floats.")
 
-    path = log_path or SYMBOLIC_LOG_PATH
+    path = log_path or PATHS["WORLDSTATE_LOG_DIR"]
     ensure_log_dir(path)
 
     entry = {

@@ -14,6 +14,11 @@ Author: Pulse v0.2
 from forecast_output.pfpa_logger import PFPA_ARCHIVE
 from statistics import mean
 from utils.log_utils import get_logger
+from core.pulse_config import CONFIDENCE_THRESHOLD, MODULES_ENABLED
+from core.module_registry import MODULE_REGISTRY
+
+if not MODULE_REGISTRY.get("trust_audit", {}).get("enabled", MODULES_ENABLED.get("trust_audit", True)):
+    raise RuntimeError("Trust audit module is disabled in config.")
 
 logger = get_logger(__name__)
 
@@ -32,7 +37,10 @@ def audit_trust():
     logger.info("Starting trust audit...")
 
 
-def audit_forecasts(memory=None, recent_n=10):
+def audit_forecasts(memory=None, recent_n: int = 10) -> None:
+    """
+    Runs a trust audit on recent forecasts.
+    """
     logger.info("\n🧭 TRUST AUDIT REPORT\n")
 
     forecasts = memory or PFPA_ARCHIVE[-recent_n:]
@@ -52,11 +60,18 @@ def audit_forecasts(memory=None, recent_n=10):
     logger.info(f"⚠️ Moderate: {bands['⚠️ Moderate']}")
     logger.info(f"🔴 Fragile : {bands['🔴 Fragile']}")
 
-    logger.info(f"\nAvg Confidence : {round(mean(confidences), 3) if confidences else 'N/A'}")
-    logger.info(f"Avg Fragility  : {round(mean(fragilities), 3) if fragilities else 'N/A'}")
-    logger.info(f"Avg Retrodict  : {round(mean(retros), 3) if retros else 'N/A'}")
-    logger.info(f"Avg Priority   : {round(mean(priorities), 3) if priorities else 'N/A'}")
-    logger.info(f"Avg Age        : {round(mean(ages), 2)}h | Max: {round(max(ages or [0]), 2)}h")
+    avg_conf = round(mean(confidences), 3) if confidences else "N/A"
+    avg_frag = round(mean(fragilities), 3) if fragilities else "N/A"
+    avg_retros = round(mean(retros), 3) if retros else "N/A"
+    avg_priority = round(mean(priorities), 3) if priorities else "N/A"
+    avg_age = round(mean(ages), 2) if ages else "N/A"
+    max_age = round(max(ages), 2) if ages else "N/A"
+
+    logger.info(f"\nAvg Confidence : {avg_conf}")
+    logger.info(f"Avg Fragility  : {avg_frag}")
+    logger.info(f"Avg Retrodict  : {avg_retros}")
+    logger.info(f"Avg Priority   : {avg_priority}")
+    logger.info(f"Avg Age        : {avg_age}h | Max: {max_age}h")
 
 
 if __name__ == "__main__":

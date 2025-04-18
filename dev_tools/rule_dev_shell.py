@@ -12,6 +12,9 @@ from simulation_engine.worldstate import WorldState
 from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
+
+RULE_LOG_PATH = PATHS.get("RULE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 logger = get_logger(__name__)
 

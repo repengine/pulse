@@ -8,6 +8,9 @@ Author: Pulse v3.5
 """
 
 from typing import Dict
+from core.path_registry import PATHS
+
+TILE_LOG_PATH = PATHS.get("TILE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 
 def format_strategos_tile(forecast_obj: Dict) -> str:

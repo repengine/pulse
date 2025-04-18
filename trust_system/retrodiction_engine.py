@@ -16,10 +16,11 @@ import datetime
 from typing import Dict, List
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-forecast_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
+forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
 retrodiction_memory = ForecastMemory()
 
 
@@ -143,7 +144,7 @@ def save_forecast(forecast_obj: Dict):
 def simulate_retrodiction_test():
     from forecast_output.pfpa_logger import PFPA_ARCHIVE
     if not PFPA_ARCHIVE:
-        logger.error("❌ No PFPA memory to replay.")
+        logger.info("No forecasts in PFPA archive; skipping retrodiction.")
         return
 
     # Simulate truth

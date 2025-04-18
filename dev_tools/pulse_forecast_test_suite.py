@@ -14,12 +14,13 @@ import json
 import argparse
 from datetime import datetime
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-FORECAST_DIR = "forecast_output"
-OUTPUT_DIR = os.path.join(FORECAST_DIR, "tests")
-SUMMARY_FILE = os.path.join(OUTPUT_DIR, "forecast_audit_summary.json")
+FORECAST_DIR = PATHS["FORECAST_HISTORY"]
+SUMMARY_FILE = PATHS["BATCH_FORECAST_SUMMARY"]
+OUTPUT_DIR = PATHS["FORECAST_TEST_OUTPUT"]
 
 
 def validate_forecast(file_path):
@@ -72,8 +73,8 @@ def run_forecast_validation(log_dir=FORECAST_DIR):
     with open(SUMMARY_FILE, 'w') as f:
         json.dump(summary, f, indent=2)
 
-    logger.info(f"✅ Forecast audit complete: {summary['valid_forecasts']} valid / {summary['total_checked']} total")
-    logger.info(f"📝 Summary written to {SUMMARY_FILE}")
+    print(f"✅ Forecast audit complete: {summary['valid_forecasts']} valid / {summary['total_checked']} total")
+    print(f"📝 Summary written to {SUMMARY_FILE}")
 
 
 if __name__ == "__main__":

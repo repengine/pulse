@@ -25,13 +25,16 @@ from simulation_engine.forecasting.forecast_scoring import score_forecast
 from simulation_engine.forecasting.forecast_integrity_engine import validate_forecast
 from simulation_engine.forecasting.forecast_memory import save_forecast_to_memory
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
+from core.pulse_config import CONFIDENCE_THRESHOLD
+from core.module_registry import MODULE_REGISTRY
 
 logger = get_logger(__name__)
 
-SUMMARY_PATH = "forecast_output/batch_run_summary.json"
+SUMMARY_PATH = PATHS["BATCH_FORECAST_SUMMARY"]
 
 
-def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=None, verbose=True, export_summary=True):
+def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block=None, verbose=True, export_summary=True):
     """
     Runs batch of forecast simulations and outputs results.
 
@@ -43,6 +46,11 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=
         verbose (bool): Print status
         export_summary (bool): Write summary to disk
     """
+    min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD
+    if not MODULE_REGISTRY.get("forecast_batch_runner", {}).get("enabled", True):
+        logger.warning("Forecast batch runner is disabled in module registry.")
+        return
+
     tracker = ForecastTracker()
     accepted = 0
     rejected = 0
@@ -73,7 +81,7 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=
                 print(f"⛔ Rejected [{forecast_id}] ({reason}) | Metadata: {metadata}")
 
     if export_summary:
-        os.makedirs("forecast_output", exist_ok=True)
+        os.makedirs(os.path.dirname(SUMMARY_PATH), exist_ok=True)
         with open(SUMMARY_PATH, 'w') as f:
             json.dump({
                 "timestamp": datetime.now().isoformat(),

@@ -32,10 +32,11 @@ import os
 from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-INTERACTIVE_LOG_PATH = "logs/interactive_shell_log.jsonl"
+INTERACTIVE_LOG_PATH = PATHS.get("INTERACTIVE_LOG_PATH", "logs/interactive_shell_log.jsonl")
 
 symbolic_overlays = {
     "hope": 0.5,

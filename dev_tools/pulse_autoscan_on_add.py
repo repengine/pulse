@@ -12,10 +12,12 @@ import os
 import subprocess
 import logging
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-WATCH_PATHS = ["dev_tools", "simulation_engine/forecasting"]
+WATCH_DIR = PATHS.get("WATCH_DIR", "src")
+WATCH_PATHS = [WATCH_DIR, "simulation_engine/forecasting"]
 CHECKPOINT_FILE = "dev_tools/.last_hook_scan_time"
 
 def get_all_files(paths):

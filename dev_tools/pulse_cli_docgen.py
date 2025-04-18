@@ -8,9 +8,10 @@ Author: Pulse v0.10
 
 import json
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 CONFIG = "dev_tools/pulse_hooks_config.json"
-OUTFILE = "pulse_cli_reference.md"
+OUTFILE = PATHS["CLI_DOC"]
 
 logger = get_logger(__name__)
 

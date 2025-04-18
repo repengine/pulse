@@ -15,7 +15,10 @@ from typing import Dict, Any, List
 from dataclasses import dataclass, field
 import copy
 import json
+from core.path_registry import PATHS
 
+WORLDSTATE_LOG_PATH = PATHS.get("WORLDSTATE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
+# ...use WORLDSTATE_LOG_PATH for worldstate logs...
 
 SCHEMA_VERSION = "1.0.0"  # Used to validate replay compatibility
 

@@ -3,6 +3,9 @@ from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from memory.forecast_memory import ForecastMemory
 from typing import Optional, List, Dict
+from core.path_registry import PATHS
+
+DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
 
 def group_by_confidence(forecasts: List[Dict]) -> Dict[str, List[Dict]]:
     groups = {"🟢 Trusted": [], "⚠️ Moderate": [], "🔴 Fragile": [], "🔘 Unscored": []}

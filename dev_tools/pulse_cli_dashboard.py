@@ -9,8 +9,10 @@ Author: Pulse v0.10
 
 import json
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
-HOOK_CONFIG = "dev_tools/pulse_hooks_config.json"
+DASHBOARD_CONFIG = PATHS.get("DASHBOARD_CONFIG", "dev_tools/dashboard_config.json")
+HOOK_CONFIG = PATHS.get("HOOK_CONFIG", "dev_tools/pulse_hooks_config.json")
 logger = get_logger(__name__)
 
 def show_cli_dashboard():

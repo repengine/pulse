@@ -21,6 +21,7 @@ from datetime import datetime
 from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
@@ -30,7 +31,7 @@ class ReplayerConfig:
     mode: str = "audit"  # 'audit', 'diagnostic', 'retrodiction'
     step_limit: Optional[int] = None
     log_to_file: bool = False
-    log_path: str = "replay_logs"
+    log_path: str = PATHS.get("REPLAY_LOG_PATH", "replay_logs")
     verbose: bool = True
     show_symbolic: bool = True
     decay_rate: float = 0.01  # For retrodiction reruns

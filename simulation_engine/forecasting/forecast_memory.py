@@ -19,11 +19,16 @@ import os
 import json
 from datetime import datetime
 from typing import Dict
+from core.pulse_config import MODULES_ENABLED
+from core.path_registry import PATHS
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
 
+if not MODULES_ENABLED.get("memory_guardian", True):
+    raise RuntimeError("Forecast memory module is disabled in config.")
+
+forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
 logger = get_logger(__name__)
-forecast_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
 
 
 def save_forecast_to_memory(forecast_id: str, metadata: dict, domain: str = None):

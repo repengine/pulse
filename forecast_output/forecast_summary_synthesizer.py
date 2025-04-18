@@ -30,8 +30,9 @@ import json
 import os
 from typing import List, Dict, Optional
 from datetime import datetime
+from core.path_registry import PATHS
 
-SUMMARY_LOG_PATH = "logs/forecast_summary_log.jsonl"
+SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.jsonl")
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

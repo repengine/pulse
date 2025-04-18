@@ -17,14 +17,15 @@ from simulation_engine.forecasting.forecast_integrity_engine import validate_for
 from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
 from memory.forecast_memory import ForecastMemory
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-forecast_memory = ForecastMemory(persist_dir="forecast_output/forecast_history")
+forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
 
 class ForecastTracker:
-    def __init__(self, log_dir="forecast_output"):
-        self.log_dir = log_dir
+    def __init__(self, log_dir=None):
+        self.log_dir = log_dir or None
         os.makedirs(self.log_dir, exist_ok=True)
 
     def _generate_filename(self, forecast_id: str) -> str:
@@ -59,7 +60,6 @@ class ForecastTracker:
             "metadata": metadata,
             "domain": domain
         }
-
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
 

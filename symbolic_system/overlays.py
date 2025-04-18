@@ -14,9 +14,9 @@ Author: Pulse v3.5
 from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import adjust_overlay
 from typing import List
+from core.pulse_config import MODULES_ENABLED
 
-
-OVERLAY_NAMES = ["hope", "despair", "rage", "fatigue", "trust"]
+OVERLAY_NAMES = getattr(__import__('core.pulse_config'), 'OVERLAY_NAMES', ["hope", "despair", "rage", "fatigue", "trust"])
 
 
 def get_overlay_value(state: WorldState, name: str) -> float:

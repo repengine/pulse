@@ -18,6 +18,9 @@ from simulation_engine.state_mutation import decay_overlay
 from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
 from typing import Callable, Optional
+from core.path_registry import PATHS
+
+TURN_LOG_PATH = PATHS.get("TURN_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 
 def run_turn(

@@ -4,10 +4,11 @@ import csv
 from datetime import datetime
 from simulation_engine.forecasting.forecast_tracker import ForecastTracker
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-def export_forecast_csv(output_file="forecast_summary.csv", log_dir="forecast_output", domain_filter=None):
+def export_forecast_csv(output_file, log_dir=PATHS["FORECAST_HISTORY"], domain_filter=None):
     tracker = ForecastTracker(log_dir)
     files = tracker.list_forecasts()
 
@@ -33,7 +34,7 @@ def export_forecast_csv(output_file="forecast_summary.csv", log_dir="forecast_ou
             except Exception as e:
                 logger.error(f"Failed to export {file}: {e}")
 
-def export_forecast_markdown(output_file="forecast_summary.md", log_dir="forecast_output", domain_filter=None):
+def export_forecast_markdown(output_file, log_dir=PATHS["FORECAST_HISTORY"], domain_filter=None):
     tracker = ForecastTracker(log_dir)
     files = tracker.list_forecasts()
 

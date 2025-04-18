@@ -13,38 +13,46 @@ Author: Pulse v0.4
 
 from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
+from core.variable_accessor import get_variable, set_variable, get_overlay, set_overlay
+from core.path_registry import PATHS
 import datetime
 import os
+from typing import Optional
 
 logger = get_logger(__name__)
 
-def display_overlay_state(state: WorldState):
+def display_overlay_state(state: WorldState) -> None:
+    """Prints symbolic overlays to the CLI."""
     print("\n🔮 Symbolic Overlays:")
-    for name, val in state.overlays.as_dict().items():
+    for name in state.overlays:
+        val = get_overlay(state, name)
         print(f"  {name.capitalize():<8} → {val:.3f}")
 
-
-def display_capital_exposure(state: WorldState):
+def display_capital_exposure(state: WorldState) -> None:
+    """Prints capital exposure to the CLI."""
     print("\n💰 Capital Exposure:")
     for asset, val in state.capital.as_dict().items():
         print(f"  {asset.upper():<6} → ${val:,.2f}")
 
-
-def display_variable_state(state: WorldState):
+def display_variable_state(state: WorldState) -> None:
+    """Prints worldstate variables to the CLI using variable accessor."""
     print("\n🌐 Worldstate Variables:")
-    for name, val in state.variables.as_dict().items():
+    for name in state.variables:
+        val = get_variable(state, name)
         print(f"  {name:<24} : {val:.3f}")
 
-
-def display_deltas(state: WorldState, prev_state: WorldState):
+def display_deltas(state: WorldState, prev_state: WorldState) -> None:
+    """Prints overlay deltas vs previous state."""
     print("\n🔁 Overlay Change (Δ vs last turn):")
     for name, current in state.overlays.as_dict().items():
         prev = prev_state.overlays.as_dict().get(name, 0)
         delta = current - prev
         print(f"  {name:<8} → Δ {delta:+.3f}")
 
-
-def display_all(state: WorldState, prev_state: WorldState = None, log: bool = False):
+def display_all(state: WorldState, prev_state: Optional[WorldState] = None, log: bool = False) -> None:
+    """
+    Displays all worldstate info and optionally logs to file.
+    """
     stamp = f"TURN {state.turn}"
     print(f"\n=== {stamp} STATE ===")
     display_overlay_state(state)
@@ -55,7 +63,7 @@ def display_all(state: WorldState, prev_state: WorldState = None, log: bool = Fa
     print("=" * 35)
 
     if log:
-        folder = os.path.join("pulse", "logs")
+        folder = PATHS["WORLDSTATE_LOG_DIR"]
         os.makedirs(folder, exist_ok=True)
         ts = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H-%M")
         file = os.path.join(folder, f"state_{state.turn}_{ts}.txt")
@@ -67,8 +75,10 @@ def display_all(state: WorldState, prev_state: WorldState = None, log: bool = Fa
             f.write("\n")
         print(f"📁 State saved to {file}")
 
-
 def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=None, verbose=True, export_summary=True):
+    """
+    Runs a batch of forecasts and logs summary to centralized path.
+    """
     logs = []
     rejected = 0
     for i in range(count):
@@ -86,7 +96,7 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=
             if verbose:
                 logger.warning(f"⛔ Rejected [{forecast_id}] ({reason}) | Metadata: {metadata}")
     if export_summary:
-        summary_file = os.path.join("pulse", "logs", "forecast_summary.txt")
+        summary_file = PATHS["BATCH_FORECAST_SUMMARY"]
         os.makedirs(os.path.dirname(summary_file), exist_ok=True)
         with open(summary_file, "w", encoding="utf-8") as f:
             f.write(f"Batch Forecast Summary\n")

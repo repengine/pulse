@@ -22,8 +22,9 @@ import json
 import os
 from typing import List, Dict, Tuple
 from datetime import datetime
+from core.path_registry import PATHS
 
-CONTRADICTION_LOG_PATH = "logs/forecast_contradiction_log.jsonl"
+CONTRADICTION_LOG_PATH = PATHS.get("CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl")
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

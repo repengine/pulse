@@ -33,10 +33,11 @@ import json
 from datetime import datetime
 from typing import Dict, Optional
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-TAG_LOG_PATH = "logs/symbolic_state_tags.jsonl"
+TAG_LOG_PATH = PATHS.get("SYMBOLIC_TAG_LOG", PATHS["WORLDSTATE_LOG_DIR"])
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)

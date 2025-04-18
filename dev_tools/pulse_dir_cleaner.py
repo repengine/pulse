@@ -15,6 +15,7 @@ import os
 import shutil
 from collections import defaultdict
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
@@ -32,6 +33,7 @@ CANONICAL_PATHS = {
 }
 
 QUARANTINE_DIR = "quarantine"
+CLEAN_DIR = PATHS["FORECAST_HISTORY"]
 
 def find_files():
     found = defaultdict(list)

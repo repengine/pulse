@@ -19,6 +19,7 @@ Example usage:
 from symbolic_system.symbolic_utils import symbolic_tension_score
 from typing import Dict
 from utils.log_utils import get_logger
+from core.pulse_config import FRAGILITY_THRESHOLD
 
 logger = get_logger(__name__)
 
@@ -46,7 +47,7 @@ def compute_fragility(
     tension = symbolic_tension_score(symbolic_overlay)
     volatility = min(sum(abs(v) for v in symbolic_change.values()) / 5.0, 1.0)
     fragility = (tension * tension_weight) + (volatility * volatility_weight)
-    fragility = round(min(fragility, 1.0), 3)
+    fragility = round(min(fragility, FRAGILITY_THRESHOLD), 3)
 
     if debug:
         logger.info(f"[FRAGILITY] Tension={tension:.3f} | Volatility={volatility:.3f} → Fragility={fragility:.3f}")

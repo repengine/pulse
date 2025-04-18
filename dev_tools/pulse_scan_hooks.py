@@ -11,10 +11,12 @@ import json
 import os
 import ast
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-SEARCH_PATHS = ["dev_tools", "simulation_engine/forecasting"]
+HOOKS_DIR = PATHS.get("HOOKS_DIR", "hooks")
+SEARCH_PATHS = ["dev_tools", "simulation_engine/forecasting", HOOKS_DIR]
 HOOKS_JSON = "dev_tools/pulse_hooks_config.json"
 
 def scan_for_hooks():
@@ -56,7 +58,7 @@ def scan_for_hooks():
     with open(HOOKS_JSON, 'w') as f:
         json.dump(full_data, f, indent=2)
 
-    logger.info(f"🔁 Updated hook config written to {HOOKS_JSON")
+    logger.info(f"🔁 Updated hook config written to {HOOKS_JSON}")
 
 if __name__ == "__main__":
     scan_for_hooks()

@@ -3,10 +3,14 @@ import json
 from tabulate import tabulate
 from simulation_engine.forecasting.forecast_tracker import ForecastTracker
 from utils.log_utils import get_logger
+from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-def load_and_display_forecasts(log_dir="forecast_output", top_n=5, sort_by="confidence", domain_filter=None):
+LOG_DIR = PATHS["FORECAST_HISTORY"]
+
+def load_and_display_forecasts(log_dir=None, top_n=5, sort_by="confidence", domain_filter=None):
+    log_dir = log_dir or LOG_DIR
     tracker = ForecastTracker(log_dir=log_dir)
     files = tracker.list_forecasts()
 
