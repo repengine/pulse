@@ -43,7 +43,7 @@ Author: Pulse AI Engine
 
 from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import decay_overlay
-from simulation_engine.rule_engine import apply_rules
+from simulation_engine.rule_engine import run_rules
 from forecast_output.forecast_episode_logger import log_episode_event  # optional
 # Use relative import if possible, fallback to absolute
 try:
@@ -118,7 +118,7 @@ def simulate_turn(
         if logger: logger(msg)
         state.log_event(msg)
     try:
-        apply_rules(state)
+        run_rules(state)
     except Exception as e:
         msg = f"[SIM] Rule engine error: {e}"
         if logger: logger(msg)

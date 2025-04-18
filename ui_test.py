@@ -77,6 +77,7 @@ class PulseControlApp:
         ttk.Button(self.root, text="Score Trace from File", command=self.score_trace_from_file).pack(pady=5)
         ttk.Button(self.root, text="Show Symbolic Arc", command=self.show_symbolic_arc).pack(pady=5)
         ttk.Button(self.root, text="Backtrace + Graph", command=self.backtrace_and_graph).pack(pady=5)
+        ttk.Button(self.root, text="Load & Replay Trace", command=self.load_and_replay_trace).pack(pady=5)
 
         # Log + clear
         log_frame = ttk.Frame(self.root)
@@ -263,6 +264,20 @@ class PulseControlApp:
             plt.show()
         except Exception as e:
             self.log(f"❌ Backtrace error: {e}")
+
+    def load_and_replay_trace(self):
+        file = filedialog.askopenfilename(filetypes=[("JSONL", "*.jsonl")])
+        if not file:
+            return
+        try:
+            with open(file, "r") as f:
+                trace = [json.loads(line) for line in f]
+            self.log(f"Loaded {len(trace)} events from {file}")
+            for i, entry in enumerate(trace):
+                overlays = entry.get("overlays") or entry
+                self.log(f"Step {i}: overlays={overlays}")
+        except Exception as e:
+            self.log(f"❌ Trace replay error: {e}")
 
     def log(self, text):
         self.output.insert("end", text + "\n")
