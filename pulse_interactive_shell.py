@@ -14,6 +14,9 @@ Supports:
   - load-worldstate [file]
   - show-forecast
   - compare-drift [file1 file2]
+  - memory-audit
+  - coherence-check
+  - view-trace [trace.jsonl]
   - help
   - exit
 
@@ -36,6 +39,9 @@ from core.path_registry import PATHS
 from core.module_registry import MODULE_REGISTRY
 from core.pulse_config import DEFAULT_DECAY_RATE
 from core.pulse_config import OVERLAY_NAMES
+from memory.pulse_memory_audit_report import audit_memory
+from memory.forecast_memory import ForecastMemory
+from trust_system.pulse_mirror_core import check_coherence
 
 logger = get_logger(__name__)
 
@@ -68,9 +74,13 @@ def log_interaction(command: str, result: str):
 
 # Command handlers
 def cmd_help(args: List[str]):
-    print("Pulse CLI Commands:")
-    for name in sorted(COMMANDS):
-        print(f"  {name:<20} - {COMMANDS[name].__doc__}")
+    """
+    Lists all available commands and their usage.
+    """
+    print("Available commands:")
+    for name, fn in COMMANDS.items():
+        doc = fn.__doc__ or ""
+        print(f"  {name:<16} {doc.strip().splitlines()[0] if doc else ''}")
     log_interaction("help", "displayed")
 
 def cmd_show_overlays(args: List[str]):
@@ -127,6 +137,41 @@ def cmd_compare_drift(args: List[str]):
     print(f"[Stub] Compared {args[0]} vs {args[1]}")
     log_interaction("compare-drift", f"{args[0]} vs {args[1]}")
 
+def cmd_memory_audit(args: List[str]):
+    """
+    Run memory audit and print results.
+    """
+    memory = ForecastMemory()
+    audit_memory(memory)
+
+def cmd_coherence_check(args: List[str]):
+    """
+    Check coherence of recent forecasts.
+    """
+    memory = ForecastMemory()
+    warnings = check_coherence(memory._memory)
+    if warnings:
+        print("⚠️ Coherence Warnings:")
+        for w in warnings:
+            print(f" - {w}")
+    else:
+        print("✅ All forecasts are coherent.")
+
+def cmd_view_trace(args: List[str]):
+    """
+    View a simulation trace file.
+    Usage: view-trace <trace.jsonl>
+    """
+    if not args:
+        print("Usage: view-trace [trace.jsonl]")
+        return
+    from simulation_engine.utils.simulation_trace_viewer import load_trace
+    try:
+        for i, event in enumerate(load_trace(args[0])):
+            print(f"Event {i}: {event}")
+    except Exception as e:
+        print(f"Trace load error: {e}")
+
 def cmd_exit(args: List[str]):
     """Exit the strategist shell"""
     log_interaction("exit", "shutdown")
@@ -143,6 +188,9 @@ COMMANDS: Dict[str, Callable[[List[str]], None]] = {
     "load-worldstate": cmd_load_worldstate,
     "show-forecast": cmd_show_forecast,
     "compare-drift": cmd_compare_drift,
+    "memory-audit": cmd_memory_audit,
+    "coherence-check": cmd_coherence_check,
+    "view-trace": cmd_view_trace,
 }
 
 def run_shell():

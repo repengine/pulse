@@ -17,7 +17,8 @@ Author: Pulse AI Engine
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext, messagebox
 import matplotlib.pyplot as plt
-import sys, os, json
+import sys, os, json, csv
+from collections import Counter
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -27,6 +28,9 @@ from simulation_engine.worldstate import WorldState
 from forecast_output.forecast_batch_runner import run_forecast_batch
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
+from memory.pulse_memory_audit_report import audit_memory
+from memory.forecast_memory import ForecastMemory
+from trust_system.pulse_mirror_core import check_coherence
 
 
 class PulseControlApp:
@@ -78,6 +82,11 @@ class PulseControlApp:
         ttk.Button(self.root, text="Show Symbolic Arc", command=self.show_symbolic_arc).pack(pady=5)
         ttk.Button(self.root, text="Backtrace + Graph", command=self.backtrace_and_graph).pack(pady=5)
         ttk.Button(self.root, text="Load & Replay Trace", command=self.load_and_replay_trace).pack(pady=5)
+        ttk.Button(self.root, text="Memory Audit", command=self.run_memory_audit).pack(pady=5)
+        ttk.Button(self.root, text="Export Memory Audit", command=self.export_memory_audit).pack(pady=2)
+        ttk.Button(self.root, text="Plot Memory Stats", command=self.plot_memory_stats).pack(pady=2)
+        ttk.Button(self.root, text="Coherence Check", command=self.run_coherence_check).pack(pady=5)
+        ttk.Button(self.root, text="Export Coherence Warnings", command=self.export_coherence_warnings).pack(pady=2)
 
         # Log + clear
         log_frame = ttk.Frame(self.root)
@@ -279,13 +288,134 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Trace replay error: {e}")
 
-    def log(self, text):
-        self.output.insert("end", text + "\n")
-        self.output.see("end")
+    def run_memory_audit(self):
+        """
+        Runs a memory audit and displays summary statistics.
+        """
+        try:
+            memory = ForecastMemory()
+            import io
+            import contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                audit_memory(memory)
+            # Add summary statistics
+            total = len(memory._memory)
+            domains = {}
+            confidences = []
+            for f in memory._memory:
+                d = f.get("domain", "unspecified")
+                domains[d] = domains.get(d, 0) + 1
+                c = f.get("confidence")
+                if c is not None:
+                    confidences.append(float(c))
+            self.memory_audit_last = {
+                "domains": domains,
+                "confidences": confidences,
+                "raw": list(memory._memory)
+            }
+            self.log(buf.getvalue())
+            self.log(f"Domains: {domains}")
+            if confidences:
+                import statistics
+                self.log(f"Confidence: min={min(confidences):.2f} max={max(confidences):.2f} avg={statistics.mean(confidences):.2f}")
+        except Exception as e:
+            self.log(f"❌ Memory audit error: {e}")
+
+    def export_memory_audit(self):
+        """
+        Export the last memory audit to CSV.
+        """
+        try:
+            if not hasattr(self, "memory_audit_last") or not self.memory_audit_last.get("raw"):
+                self.log("⚠️ Run memory audit first.")
+                return
+            file = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")])
+            if not file:
+                return
+            with open(file, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["forecast_id", "domain", "confidence"])
+                for entry in self.memory_audit_last["raw"]:
+                    writer.writerow([
+                        entry.get("forecast_id"),
+                        entry.get("domain", "unspecified"),
+                        entry.get("confidence", "")
+                    ])
+            self.log(f"✅ Memory audit exported to {file}")
+        except Exception as e:
+            self.log(f"❌ Export error: {e}")
+
+    def plot_memory_stats(self):
+        """
+        Plot memory audit statistics (domain distribution, confidence histogram).
+        """
+        try:
+            if not hasattr(self, "memory_audit_last") or not self.memory_audit_last.get("raw"):
+                self.log("⚠️ Run memory audit first.")
+                return
+            domains = self.memory_audit_last["domains"]
+            confidences = self.memory_audit_last["confidences"]
+            fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+            # Domain distribution
+            axs[0].bar(domains.keys(), domains.values())
+            axs[0].set_title("Forecasts by Domain")
+            axs[0].set_xlabel("Domain")
+            axs[0].set_ylabel("Count")
+            # Confidence histogram
+            axs[1].hist(confidences, bins=10, color="skyblue", edgecolor="black")
+            axs[1].set_title("Confidence Distribution")
+            axs[1].set_xlabel("Confidence")
+            axs[1].set_ylabel("Count")
+            plt.tight_layout()
+            plt.show()
+        except Exception as e:
+            self.log(f"❌ Plot error: {e}")
+
+    def run_coherence_check(self):
+        """
+        Runs a coherence check on the last batch and displays warnings or success.
+        """
+        if not self.last_batch:
+            self.log("⚠️ No forecasts to check.")
+            return
+        try:
+            warnings = check_coherence(self.last_batch)
+            self.coherence_warnings_last = warnings
+            if warnings:
+                self.log("⚠️ Coherence Warnings:")
+                for w in warnings:
+                    self.log(f" - {w}")
+            else:
+                self.log("✅ All forecasts are coherent.")
+        except Exception as e:
+            self.log(f"❌ Coherence check error: {e}")
+
+    def export_coherence_warnings(self):
+        """
+        Export the last coherence warnings to a text file.
+        """
+        try:
+            if not hasattr(self, "coherence_warnings_last"):
+                self.log("⚠️ Run coherence check first.")
+                return
+            file = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text", "*.txt")])
+            if not file:
+                return
+            with open(file, "w") as f:
+                for w in self.coherence_warnings_last:
+                    f.write(w + "\n")
+            self.log(f"✅ Coherence warnings exported to {file}")
+        except Exception as e:
+            self.log(f"❌ Export error: {e}")
 
     def clear_log(self):
         self.output.delete("1.0", "end")
         self.log("🧹 Log cleared.")
+
+    def log(self, text):
+        self.output.insert("end", text + "\n")
+        self.output.see("end")
 
 
 if __name__ == "__main__":

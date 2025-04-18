@@ -56,6 +56,20 @@ Memory and trace persistence are core: all simulation cycles are scored, pruned,
 
 ---
 
+## 🆕 New Features
+
+- **Rule Fingerprinting:**  
+  - See `simulation_engine/rules/reverse_rule_mapper.py` and `rules/rule_fingerprints.json`.
+  - CLI: `python simulation_engine/rules/reverse_rule_mapper.py --validate` or `--match key1=val1 key2=val2`
+- **Simulation Trace Viewer:**  
+  - CLI: `python simulation_engine/utils/simulation_trace_viewer.py <trace.jsonl> [--summary] [--plot] [--plot-var var] [--plot-tags] [--export-summary out.txt]`
+- **Memory Audit & Coherence Check:**  
+  - Available in UI and interactive shell (`memory-audit`, `coherence-check`).
+- **Interactive Shell Help:**  
+  - Type `help` for a list of commands and usage.
+
+---
+
 ## 🛣 Roadmap
 
 - **v0.3** → Input signal horizon, retrodiction engine
