@@ -371,6 +371,8 @@ class PulseControlApp:
             domains = {}
             confidences = []
             for f in memory._memory:
+                if not isinstance(f, dict):
+                    continue  # skip if not a dict
                 d = f.get("domain", "unspecified")
                 domains[d] = domains.get(d, 0) + 1
                 c = f.get("confidence")
@@ -379,7 +381,7 @@ class PulseControlApp:
             self.memory_audit_last = {
                 "domains": domains,
                 "confidences": confidences,
-                "raw": list(memory._memory)
+                "raw": [f for f in memory._memory if isinstance(f, dict)]
             }
             self.log(buf.getvalue())
             self.log(f"Domains: {domains}")
