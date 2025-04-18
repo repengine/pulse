@@ -9,9 +9,10 @@ Author: Pulse v3.5
 """
 
 from simulation_engine.worldstate import WorldState
+from core.pulse_config import DEFAULT_DECAY_RATE
 
 
-def linear_decay(value: float, rate: float = 0.01) -> float:
+def linear_decay(value: float, rate: float = DEFAULT_DECAY_RATE) -> float:
     """
     Reduces a value by a fixed rate, bounded at zero.
 
@@ -25,7 +26,7 @@ def linear_decay(value: float, rate: float = 0.01) -> float:
     return max(0.0, value - rate)
 
 
-def apply_overlay_decay(state: WorldState, decay_rate: float = 0.01):
+def apply_overlay_decay(state: WorldState, decay_rate: float = DEFAULT_DECAY_RATE):
     """
     Applies linear decay to all symbolic overlays.
     Use this when not running via `turn_engine.py`.
@@ -38,7 +39,7 @@ def apply_overlay_decay(state: WorldState, decay_rate: float = 0.01):
             state.log_event(f"[DECAY] {overlay_name}: {current_value:.3f} → {decayed:.3f}")
 
 
-def decay_variable(state: WorldState, name: str, rate: float = 0.01, floor: float = 0.0):
+def decay_variable(state: WorldState, name: str, rate: float = DEFAULT_DECAY_RATE, floor: float = 0.0):
     """
     Applies decay to a numeric variable in state.variables.
 

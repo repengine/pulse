@@ -28,10 +28,10 @@ from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-HOOK_CONFIG = PATHS.get("HOOK_CONFIG", "dev_tools/pulse_hooks_config.json")
+HOOKS_JSON = PATHS.get("HOOKS_JSON", "dev_tools/pulse_hooks_config.json")
 hook_data = {"active_hooks": {}, "metadata": {}}
-if os.path.exists(HOOK_CONFIG):
-    with open(HOOK_CONFIG, "r") as f:
+if os.path.exists(HOOKS_JSON):
+    with open(HOOKS_JSON, "r", encoding="utf-8") as f:
         hook_data = json.load(f)
 
 def safe_hook_import(hook_name):

@@ -14,6 +14,7 @@ Author: Pulse v0.20
 import os
 import shutil
 from collections import defaultdict
+from core.path_registry import PATHS
 
 CANONICAL_PATHS = {
     "rule_engine.py": "simulation_engine/",
@@ -28,7 +29,7 @@ CANONICAL_PATHS = {
     "pulse_forecast_test_suite.py": "dev_tools/"
 }
 
-QUARANTINE_DIR = "quarantine"
+QUARANTINE_DIR = PATHS.get("QUARANTINE_DIR", "quarantine")
 
 def find_files():
     found = defaultdict(list)

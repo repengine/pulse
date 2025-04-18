@@ -33,17 +33,16 @@ from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from core.module_registry import MODULE_REGISTRY
+from core.pulse_config import DEFAULT_DECAY_RATE
+from core.pulse_config import OVERLAY_NAMES
 
 logger = get_logger(__name__)
 
 INTERACTIVE_LOG_PATH = PATHS.get("INTERACTIVE_LOG_PATH", "logs/interactive_shell_log.jsonl")
 
-symbolic_overlays = {
-    "hope": 0.5,
-    "despair": 0.5,
-    "rage": 0.5,
-    "fatigue": 0.5
-}
+# Use overlays from config if available
+symbolic_overlays = {name: 0.5 for name in getattr(__import__('core.pulse_config'), 'OVERLAY_NAMES', ["hope", "despair", "rage", "fatigue", "trust"])}
 
 # Ensure log dir exists
 def ensure_log_dir(path: str):

@@ -9,14 +9,15 @@ Author: Pulse v0.2
 
 from typing import List, Dict
 from utils.log_utils import get_logger
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
 
 logger = get_logger(__name__)
 
 
 def license_forecast(
     forecast: Dict,
-    confidence_threshold: float = 0.6,
-    fragility_threshold: float = 0.7
+    confidence_threshold: float = CONFIDENCE_THRESHOLD,
+    fragility_threshold: float = DEFAULT_FRAGILITY_THRESHOLD
 ) -> Dict:
     """
     Assigns a license tag to a forecast based on trustworthiness.

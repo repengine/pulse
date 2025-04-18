@@ -32,7 +32,8 @@ def validate_forecast(metadata: dict, min_conf=None, max_frag=None, blocked_tags
     Returns:
         bool: True if forecast is valid
     """
-    if not MODULE_REGISTRY.get("forecast_tracker", {}).get("enabled", True):
+    # If the forecast_integrity_engine module is disabled, forecasts are considered invalid.
+    if not MODULE_REGISTRY.get("forecast_integrity_engine", {}).get("enabled", True):
         return False
 
     min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD

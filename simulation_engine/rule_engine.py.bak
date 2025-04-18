@@ -9,18 +9,19 @@ Author: Pulse v0.10
 """
 
 from simulation_engine.worldstate import WorldState
+from core.pulse_config import CONFIDENCE_THRESHOLD
 
 # Sample rule definitions (these would be loaded dynamically in future)
 RULES = [
     {
         "id": "R001_EnergySpike",
-        "condition": lambda state: state.get_variable("energy_price_index") > 0.7,
+        "condition": lambda state: state.get_variable("energy_price_index") > CONFIDENCE_THRESHOLD,
         "effects": lambda state: state.update_variable("inflation_index", state.get_variable("inflation_index") + 0.01),
         "symbolic_tags": ["fear", "despair"]
     },
     {
         "id": "R002_TrustRebound",
-        "condition": lambda state: state.get_variable("public_trust_level") > 0.65,
+        "condition": lambda state: state.get_variable("public_trust_level") > 0.65,  # Could add to config if reused
         "effects": lambda state: state.update_variable("ai_policy_risk", max(0, state.get_variable("ai_policy_risk") - 0.02)),
         "symbolic_tags": ["hope", "stability"]
     }
