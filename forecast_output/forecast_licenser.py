@@ -53,7 +53,16 @@ def filter_licensed_forecasts(
     Returns:
         List: filtered or labeled forecasts
     """
-    labeled = [license_forecast(f) for f in forecasts]
+    # Flatten any nested lists and filter out non-dict items
+    flat = []
+    for f in forecasts:
+        if isinstance(f, dict):
+            flat.append(f)
+        elif isinstance(f, list):
+            flat.extend([x for x in f if isinstance(x, dict)])
+        # else: ignore non-dict, non-list items
+
+    labeled = [license_forecast(f) for f in flat]
     if strict:
         return [f for f in labeled if f.get("license_status") == "✅ Licensed"]
     return labeled

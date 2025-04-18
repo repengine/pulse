@@ -1,0 +1,1 @@
+{"symbolic_score": 0.988, "arc_certainty": 0.98, "arc_label": "Neutral", "volatility_score": 0.01, "turns": 5, "timestamp": "2025-04-18T07:24:20.683760", "metadata": {"version": "v0.022.1", "source": "symbolic_trace_scorer.py"}}
