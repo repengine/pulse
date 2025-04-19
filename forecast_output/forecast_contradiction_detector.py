@@ -8,6 +8,7 @@ Author: Pulse AI Engine
 Description:
 Detects logical contradictions across multiple foresight forecasts.
 Flags paradoxes in symbolic state, capital movement, or forecast metadata.
+Flags divergence forks for operator review.
 
 Used by:
 - PulseMirror
@@ -32,6 +33,7 @@ def ensure_log_dir(path: str):
 def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str, str]]:
     """
     Detects contradictions across a set of forecasts.
+    Flags divergence forks for operator review.
 
     Returns:
         List of (trace_id_1, trace_id_2, reason) tuples
@@ -64,6 +66,10 @@ def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str
                 despair_gap = abs(sym1.get("despair", 0.5) - sym2.get("despair", 0.5))
                 if hope_gap > 0.6 and despair_gap > 0.6:
                     contradictions.append((id1, id2, "Symbolic paradox: Hope vs Despair divergence"))
+
+            # Divergence fork flag
+            if f1.get("parent_id") == f2.get("parent_id") and id1 != id2:
+                contradictions.append((id1, id2, "Divergence fork from same parent"))
 
     # Log contradictions
     try:

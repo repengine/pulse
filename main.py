@@ -6,6 +6,10 @@ generates foresight forecasts, and prints Strategos Digest summaries.
 
 Author: Pulse v0.2
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from utils.log_utils import get_logger
 logger = get_logger(__name__)
 
@@ -25,6 +29,9 @@ from simulation_engine.turn_engine import run_turn
 from simulation_engine.causal_rules import apply_causal_rules
 from forecast_output.forecast_generator import generate_forecast
 from forecast_output.pfpa_logger import log_forecast_to_pfpa
+from foresight_architecture.digest_exporter import export_digest, export_digest_json
+from forecast_output.strategos_digest_builder import build_digest
+from operator_interface.pulse_prompt_logger import log_prompt
 
 
 def run_pulse_simulation(turns: int = 5):
@@ -49,13 +56,13 @@ def run_pulse_simulation(turns: int = 5):
 
 # Run post-simulation retrodiction test
 try:
-    from trust_system.retrodiction_engine import simulate_retrodiction_test
+    from retrodiction_engine import simulate_retrodiction_test
     simulate_retrodiction_test()
 except Exception as e:
     logger.warning(f"⚠️ Retrodiction failed: {e}")
 # Strategic trust audit
 try:
-    from diagnostics.trust_audit import audit_forecasts
+    from trust_audit import audit_forecasts
     audit_forecasts()
 except Exception as e:
     logger.warning(f"⚠️ Audit failed: {e}")

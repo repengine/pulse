@@ -91,6 +91,38 @@ class SimulationReplayer:
             if self.config.verbose:
                 logger.info(f"\nReplay log written to {log_file}")
 
+    def replay_last_run(self):
+        """
+        Replay the most recent forecast run.
+        """
+        files = sorted(f for f in os.listdir(self.log_dir) if f.endswith(".json"))
+        if not files:
+            logger.info("No runs to replay.")
+            return
+        last_file = files[-1]
+        state = self.load_state(os.path.join(self.log_dir, last_file))
+        logger.info(f"Replaying last run: {last_file}")
+        print(state.snapshot())
+
+    def compare_base_vs_counterfactual(self, base_trace, fork_trace):
+        """
+        Print side-by-side digest of base vs counterfactual.
+        """
+        for i, (b, f) in enumerate(zip(base_trace, fork_trace)):
+            print(f"Turn {i}:")
+            print(f"  Base: {b}")
+            print(f"  Fork: {f}")
+            print("----")
+
+    def show_lineage(self, forecast_history):
+        """
+        Visualize ancestry/lineage of forecasts (stub).
+        """
+        # Placeholder: print parent/child relationships if present
+        for f in forecast_history:
+            parent = f.get("parent_id")
+            print(f"Forecast {f.get('trace_id')} <- Parent: {parent}")
+
     def _diff_states(self, old: WorldState, new: WorldState):
         var_changes = {}
         overlay_changes = {}

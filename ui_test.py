@@ -31,6 +31,7 @@ from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
 from trust_system.pulse_mirror_core import check_coherence
+from simulation_engine.turn_engine import run_turn
 
 
 class PulseControlApp:
@@ -47,9 +48,13 @@ class PulseControlApp:
         }
 
         self.batch_size = tk.IntVar(value=3)
+        self.turns = tk.IntVar(value=5)  # Add turns variable
         self.last_batch = []
 
+        self.summary_var = tk.StringVar(value="")  # For overlay interpretation
+
         self.setup_ui()
+        self.update_overlay_summary()  # Initialize summary
 
     def setup_ui(self):
         ttk.Label(self.root, text="Symbolic Overlays", font=("Arial", 12, "bold")).pack(pady=5)
@@ -60,6 +65,8 @@ class PulseControlApp:
             scale = ttk.Scale(frame, from_=0.0, to=1.0, variable=var, length=200, orient="horizontal")
             scale.pack(side="left")
             ttk.Label(frame, textvariable=var).pack(side="left")
+            # Update summary when overlays change
+            var.trace_add("write", lambda *_: self.update_overlay_summary())
 
         # Overlay control buttons
         btn_frame = ttk.Frame(self.root)
@@ -69,7 +76,17 @@ class PulseControlApp:
         ttk.Button(btn_frame, text="Save Overlays", command=self.save_overlays).pack(side="left", padx=2)
         ttk.Button(btn_frame, text="Show Overlay JSON", command=self.show_overlay_json).pack(side="left", padx=2)
 
+        # Overlay summary/interpretation
+        ttk.Label(self.root, textvariable=self.summary_var, font=("Arial", 10, "italic"), foreground="blue").pack(pady=4)
+
         ttk.Separator(self.root, orient="horizontal").pack(fill="x", pady=5)
+        # Simulation turn controls
+        turns_frame = ttk.Frame(self.root)
+        turns_frame.pack(pady=2)
+        ttk.Label(turns_frame, text="Sim Turns:").pack(side="left")
+        ttk.Entry(turns_frame, textvariable=self.turns, width=5).pack(side="left", padx=2)
+        ttk.Button(turns_frame, text="Run N Turns", command=self.run_n_turns).pack(side="left", padx=2)
+
         ttk.Label(self.root, text="Batch Size").pack()
         ttk.Entry(self.root, textvariable=self.batch_size, width=5).pack()
 
@@ -98,6 +115,43 @@ class PulseControlApp:
         ttk.Button(log_frame, text="Clear Log", command=self.clear_log).pack(side="left", padx=5)
 
         self.log("Pulse Dev UI Ready.")
+
+    def update_overlay_summary(self):
+        """Update the summary label with a human-readable interpretation of overlays."""
+        overlay = {k: v.get() for k, v in self.overlay_vars.items()}
+        # Simple interpretation logic
+        dominant = max(overlay, key=overlay.get)
+        val = overlay[dominant]
+        if val > 0.8:
+            mood = f"Very high {dominant}"
+        elif val > 0.6:
+            mood = f"High {dominant}"
+        elif val < 0.2:
+            mood = f"Very low {dominant}"
+        elif val < 0.4:
+            mood = f"Low {dominant}"
+        else:
+            mood = "Balanced"
+        # Add more nuance if needed
+        self.summary_var.set(f"Interpretation: {mood} ({dominant.capitalize()}={val:.2f})")
+
+    def run_n_turns(self):
+        """Run N simulation turns and update overlays accordingly."""
+        try:
+            n = self.turns.get()
+            if n <= 0:
+                self.log("⚠️ Number of turns must be positive.")
+                return
+            for _ in range(n):
+                run_turn(self.state)
+            # Update overlay_vars from state
+            overlays = self.state.overlays.as_dict() if hasattr(self.state.overlays, "as_dict") else dict(self.state.overlays)
+            for k, var in self.overlay_vars.items():
+                var.set(overlays.get(k, 0.5))
+            self.update_overlay_summary()
+            self.log(f"✅ Ran {n} simulation turns.")
+        except Exception as e:
+            self.log(f"❌ Error running turns: {e}")
 
     def apply_overlays(self):
         overlay = {k: round(v.get(), 3) for k, v in self.overlay_vars.items()}

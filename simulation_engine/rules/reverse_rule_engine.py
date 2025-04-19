@@ -4,6 +4,7 @@ reverse_rule_engine.py
 Builds a reverse causal graph from rule fingerprints.
 Given observed deltas, traces possible rule chains that could have produced them.
 Supports fuzzy matching for approximate rule identification.
+Ranks rules by trust/frequency and suggests new rules if no match is found.
 
 Usage:
     python reverse_rule_engine.py --delta key1=val1 key2=val2 --max-depth 3 --fuzzy
@@ -57,6 +58,26 @@ def fuzzy_match_rule_by_delta(
                     break
     return list(set(results))
 
+def rank_rules_by_trust(matches: List[tuple], fingerprints: List[Dict]) -> List[tuple]:
+    """
+    Rank matched rules by trust/frequency if available.
+    """
+    def get_trust(rule_id):
+        for fp in fingerprints:
+            if fp.get("rule_id") == rule_id:
+                return fp.get("trust", 0) + fp.get("frequency", 0)
+        return 0
+    return sorted(matches, key=lambda x: get_trust(x[0]), reverse=True)
+
+def suggest_new_rule_if_no_match(delta: Dict[str, float], fingerprints: List[Dict]) -> Dict:
+    """
+    Suggest a new rule fingerprint if no match is found.
+    """
+    if not fingerprints or not delta:
+        return {}
+    from simulation_engine.rules.rule_fingerprint_expander import suggest_fingerprint_from_delta
+    return suggest_fingerprint_from_delta(delta)
+
 def trace_causal_paths(
     delta: Dict[str, float],
     fingerprints: Optional[List[Dict]] = None,
@@ -69,6 +90,7 @@ def trace_causal_paths(
     Given a delta, return possible rule chains (as lists of rule_ids) that could explain it.
     Recursively subtracts effects and searches for multi-step chains.
     Supports fuzzy matching if enabled.
+    Ranks by trust/frequency if available. Suggests new rule if no match.
 
     Args:
         delta: Observed overlay/variable changes.
@@ -91,6 +113,7 @@ def trace_causal_paths(
         matches = [(rid, 1.0) for rid in fuzzy_match_rule_by_delta(delta, fingerprints)]
     else:
         matches = match_rule_by_delta(delta, fingerprints, min_match=min_match)
+    matches = rank_rules_by_trust(matches, fingerprints)
     chains = []
     for rule_id, *_ in matches:
         rule = next((r for r in fingerprints if r["rule_id"] == rule_id), None)
@@ -103,6 +126,11 @@ def trace_causal_paths(
         else:
             subchains = trace_causal_paths(new_delta, fingerprints, max_depth-1, min_match, path + [rule_id], fuzzy=fuzzy)
             chains.extend(subchains)
+    if not chains and delta:
+        # No match found, suggest new rule
+        suggestion = suggest_new_rule_if_no_match(delta, fingerprints)
+        if suggestion:
+            chains.append(["SUGGEST_NEW_RULE", suggestion])
     return chains
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ import json
 from utils.log_utils import get_logger
 from hook_utils import scan_for_hooks
 from core.path_registry import PATHS
+from operator_interface.pulse_prompt_logger import log_prompt
 
 logger = get_logger(__name__)
 

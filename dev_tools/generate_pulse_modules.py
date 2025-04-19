@@ -9,6 +9,7 @@ import json
 import logging
 import sys
 from hook_utils import scan_for_hooks
+from operator_interface.pulse_prompt_logger import log_prompt
 
 logging.basicConfig(level=logging.INFO)
 

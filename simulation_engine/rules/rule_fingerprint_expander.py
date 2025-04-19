@@ -12,7 +12,7 @@ Author: Pulse AI Engine
 """
 
 import json
-from .reverse_rule_mapper import load_rule_fingerprints, validate_fingerprint_schema
+from simulation_engine.rules.reverse_rule_mapper import load_rule_fingerprints, validate_fingerprint_schema
 
 def suggest_fingerprint_from_delta(delta: dict, rule_id: str = None) -> dict:
     """

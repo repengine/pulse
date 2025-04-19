@@ -2,7 +2,6 @@
 pulse_prompt_logger.py
 
 Logs prompts, config, and overlays used to generate digests or batch forecasts.
-Supports log rotation for archival.
 
 Usage:
     log_prompt("Forecast batch run", config, overlays)
@@ -13,24 +12,13 @@ Author: Pulse AI Engine
 import json
 from datetime import datetime
 import logging
-from logging.handlers import RotatingFileHandler
+from core.path_registry import PATHS
 
 logger = logging.getLogger("pulse_prompt_logger")
-if not logger.handlers:
-    handler = RotatingFileHandler("logs/prompt_log.jsonl", maxBytes=1024*1024, backupCount=5)
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
 
-def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"):
-    """
-    Log a prompt and associated metadata to a rotating log file.
-
-    Args:
-        prompt: Description or prompt string.
-        config: Configuration dict.
-        overlays: Overlay values dict.
-        path: Log file path.
-    """
+def log_prompt(prompt: str, config: dict, overlays: dict, path: str = None):
+    if path is None:
+        path = PATHS.get("PROMPT_LOG", "logs/prompt_log.jsonl")
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "prompt": prompt,
@@ -38,9 +26,15 @@ def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prom
         "overlays": overlays
     }
     try:
-        logger.info(json.dumps(entry))
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+        logger.info(f"Prompt logged to {path}")
     except Exception as e:
         logger.error(f"Prompt log error: {e}")
 
-# Example usage:
-# log_prompt("Batch run", {"param": 1}, {"hope": 0.5})
+def get_prompt_hash(trace_id: str) -> Optional[str]:
+    """
+    Retrieve prompt hash for a given trace_id.
+    Stub: Replace with actual lookup from prompt log if available.
+    """
+    return f"hash_{trace_id}"
