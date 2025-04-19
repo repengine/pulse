@@ -43,7 +43,7 @@
     "trace_id": "fcast_turn_0",
     "origin_turn": 0,
     "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:41:24.700827"
+    "timestamp": "2025-04-18T17:56:23.256171"
   },
   {
     "horizon_days": 2,
@@ -89,7 +89,7 @@
     "trace_id": "fcast_turn_0",
     "origin_turn": 0,
     "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:41:24.700863"
+    "timestamp": "2025-04-18T17:56:23.256210"
   },
   {
     "horizon_days": 2,
@@ -135,6 +135,98 @@
     "trace_id": "fcast_turn_0",
     "origin_turn": 0,
     "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:41:24.700892"
+    "timestamp": "2025-04-18T17:56:23.256236"
+  },
+  {
+    "horizon_days": 2,
+    "forecast": {
+      "duration_days": 2,
+      "symbolic_fragility": 0.625,
+      "start_capital": {
+        "nvda": 375.0,
+        "msft": -60.0,
+        "ibit": -360.0,
+        "spy": 337.5,
+        "cash": 100000.0
+      },
+      "end_capital": {
+        "nvda": 500.0,
+        "msft": -80.0,
+        "ibit": -480.0,
+        "spy": 450.0,
+        "cash": 100000.0
+      },
+      "symbolic_change": {
+        "hope": 0.0,
+        "despair": 0.0,
+        "rage": 0.0,
+        "fatigue": 0.0,
+        "trust": 0.0
+      },
+      "tags": [],
+      "confidence": null
+    },
+    "fragility": 0.625,
+    "exposure": {
+      "nvda": 500.0,
+      "msft": -80.0,
+      "ibit": -480.0,
+      "spy": 450.0,
+      "cash": 100000.0
+    },
+    "alignment": {
+      "bias": "neutral"
+    },
+    "confidence": 0.95,
+    "trace_id": "fcast_turn_0",
+    "origin_turn": 0,
+    "status": "\ud83d\udfe2 Trusted",
+    "timestamp": "2025-04-18T17:56:23.256257"
+  },
+  {
+    "horizon_days": 2,
+    "forecast": {
+      "duration_days": 2,
+      "symbolic_fragility": 0.625,
+      "start_capital": {
+        "nvda": 500.0,
+        "msft": -80.0,
+        "ibit": -480.0,
+        "spy": 450.0,
+        "cash": 100000.0
+      },
+      "end_capital": {
+        "nvda": 625.0,
+        "msft": -100.0,
+        "ibit": -600.0,
+        "spy": 562.5,
+        "cash": 100000.0
+      },
+      "symbolic_change": {
+        "hope": 0.0,
+        "despair": 0.0,
+        "rage": 0.0,
+        "fatigue": 0.0,
+        "trust": 0.0
+      },
+      "tags": [],
+      "confidence": null
+    },
+    "fragility": 0.625,
+    "exposure": {
+      "nvda": 625.0,
+      "msft": -100.0,
+      "ibit": -600.0,
+      "spy": 562.5,
+      "cash": 100000.0
+    },
+    "alignment": {
+      "bias": "neutral"
+    },
+    "confidence": 0.95,
+    "trace_id": "fcast_turn_0",
+    "origin_turn": 0,
+    "status": "\ud83d\udfe2 Trusted",
+    "timestamp": "2025-04-18T17:56:23.256279"
   }
 ]
