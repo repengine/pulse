@@ -32,6 +32,7 @@ from forecast_output.pfpa_logger import log_forecast_to_pfpa
 from foresight_architecture.digest_exporter import export_digest, export_digest_json
 from forecast_output.strategos_digest_builder import build_digest
 from operator_interface.pulse_prompt_logger import log_prompt
+from diagnostics.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
 
 
 def run_pulse_simulation(turns: int = 5):

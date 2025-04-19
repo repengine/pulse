@@ -1,6 +1,7 @@
 from forecast_output.forecast_licenser import filter_licensed_forecasts
 from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.strategos_tile_formatter import format_strategos_tile
+from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
 from typing import Optional, List, Dict
 from core.path_registry import PATHS
@@ -74,3 +75,16 @@ def generate_strategos_digest(
     sections.append(f"Total Forecasts: {len(forecasts)}")
 
     return "\n".join(sections)
+
+def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, export_fmt: str = "markdown"):
+    """
+    Live UI hook: Build and display strategos digest, optionally filtered by prompt.
+    """
+    raw = memory.get_recent(n + 10)
+    if prompt:
+        # Use digest builder's filter for prompt
+        from forecast_output.strategos_digest_builder import filter_forecasts_by_prompt
+        raw = filter_forecasts_by_prompt(raw, prompt)
+    digest = build_digest(raw, fmt=export_fmt, config={"top_n": 3, "actionable_only": False})
+    print(digest)
+    return digest

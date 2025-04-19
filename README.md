@@ -146,6 +146,18 @@ Pulse/
 
 ---
 
+## 🆕 Strategos Digest CLI & Live UI
+
+- **CLI:**  
+  Build a digest from compressed forecasts or prompt filter:
+  ```
+  python -m forecast_output.strategos_digest_builder --from-prompt "AI" --export markdown --output digest.md
+  ```
+- **Live UI:**  
+  Call `live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown")` to generate and display digest interactively.
+
+---
+
 ## 🛣 Roadmap & Module Status
 
 | Area                    | Status      | Gaps/Recommendations                                 |

@@ -228,6 +228,68 @@ def build_digest(
         logger.error(f"Digest build error: {e}")
         return f"⚠️ Digest build error: {e}"
 
-# Example usage:
-# batch = [...]  # List of forecast dicts
-# digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"], "cluster_key": "trust_label"})
+def filter_forecasts_by_prompt(forecasts: List[Dict], prompt: str) -> List[Dict]:
+    """
+    Filter forecasts by prompt substring match (in prompt_hash or tags).
+    """
+    result = []
+    for f in forecasts:
+        if prompt.lower() in (str(f.get("prompt_hash", "")).lower() or ""):
+            result.append(f)
+        elif any(prompt.lower() in str(tag).lower() for tag in f.get("tags", [])):
+            result.append(f)
+    return result
+
+if __name__ == "__main__":
+    import argparse
+    from core.path_registry import PATHS
+    parser = argparse.ArgumentParser(description="Strategos Digest Builder CLI")
+    parser.add_argument("--from-prompt", type=str, default=None, help="Filter forecasts by prompt substring")
+    parser.add_argument("--input", type=str, default=PATHS.get("FORECAST_COMPRESSED", "logs/forecast_output_compressed.jsonl"), help="Input JSON file (compressed forecasts)")
+    parser.add_argument("--export", type=str, default="markdown", choices=["markdown", "json", "html"], help="Export format")
+    parser.add_argument("--output", type=str, default="digest.md", help="Output file")
+    parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
+    parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
+    parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
+    args = parser.parse_args()
+
+    # Load compressed forecasts
+    import json
+    with open(args.input, "r", encoding="utf-8") as f:
+        try:
+            forecasts = json.load(f)
+        except Exception:
+            # Try JSONL fallback
+            forecasts = [json.loads(line) for line in f if line.strip()]
+
+    # If input is cluster summary, flatten examples
+    if forecasts and isinstance(forecasts[0], dict) and "examples" in forecasts[0]:
+        batch = []
+        for c in forecasts:
+            batch.extend(c.get("examples", []))
+        forecasts = batch
+
+    # Prompt filter
+    if args.from_prompt:
+        forecasts = filter_forecasts_by_prompt(forecasts, args.from_prompt)
+
+    config = {
+        "top_n": args.top_n,
+        "cluster_key": args.cluster_key,
+        "actionable_only": args.actionable_only,
+    }
+    digest = build_digest(forecasts, fmt=args.export, config=config)
+
+    # Export
+    if args.export == "markdown":
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(digest)
+        print(f"Digest exported to {args.output}")
+    elif args.export == "json":
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(digest)
+        print(f"Digest JSON exported to {args.output}")
+    elif args.export == "html":
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(digest)
+        print(f"Digest HTML exported to {args.output}")

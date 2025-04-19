@@ -24,3 +24,24 @@ def check_coherence(forecasts: List[Dict], custom_checks: List[Callable[[Dict], 
                 if msg:
                     warnings.append(msg)
     return warnings
+
+def check_trust_loop_integrity(forecasts: List[Dict]) -> List[str]:
+    """
+    Checks for trust loop integrity failures:
+    - Trusted but low retrodiction or high fragility.
+    - Fragile but high confidence.
+    """
+    issues = []
+    for f in forecasts:
+        conf = f.get("confidence", 0)
+        frag = f.get("fragility", f.get("fragility_score", 0))
+        retro = f.get("retrodiction_score", 1.0)
+        label = f.get("trust_label", "")
+        tid = f.get("trace_id", "unknown")
+        if label == "🟢 Trusted" and retro < 0.5:
+            issues.append(f"Trusted forecast {tid} has low retrodiction ({retro})")
+        if label == "🟢 Trusted" and frag > 0.7:
+            issues.append(f"Trusted forecast {tid} is fragile ({frag})")
+        if label == "🔴 Fragile" and conf > 0.7:
+            issues.append(f"Fragile forecast {tid} has high confidence ({conf})")
+    return issues

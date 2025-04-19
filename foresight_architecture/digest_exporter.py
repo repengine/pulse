@@ -30,3 +30,14 @@ def export_digest_json(forecast_batch, path: str):
         logger.info(f"Digest JSON exported to {path}")
     except Exception as e:
         logger.error(f"Export error: {e}")
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Digest Exporter CLI")
+    parser.add_argument("--input", type=str, required=True, help="Input digest file or string")
+    parser.add_argument("--output", type=str, required=True, help="Output file")
+    parser.add_argument("--fmt", type=str, default="markdown", choices=["markdown", "json", "html"], help="Export format")
+    args = parser.parse_args()
+    with open(args.input, "r", encoding="utf-8") as f:
+        digest_str = f.read()
+    export_digest(digest_str, args.output, fmt=args.fmt)
