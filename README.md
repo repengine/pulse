@@ -153,6 +153,21 @@ Pulse/
   ```
   python -m forecast_output.strategos_digest_builder --from-prompt "AI" --export markdown --output digest.md
   ```
+  Use digest templates:
+  ```
+  python -m forecast_output.strategos_digest_builder --from-prompt "AI" --export markdown --output digest.md --template short
+  ```
+- **Prompt Log CLI:**  
+  View recent prompts:
+  ```
+  python -m operator_interface.pulse_prompt_logger --recent 5
+  python -m operator_interface.pulse_prompt_logger --search "macro"
+  python -m operator_interface.pulse_prompt_logger --hash <prompt_hash>
+  ```
+- **Rule Fingerprint Review CLI:**  
+  ```
+  python -m simulation_engine.rules.rule_fingerprint_expander --input forecasts.json --min-conf 0.8
+  ```
 - **Live UI:**  
   Call `live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown")` to generate and display digest interactively.
 
@@ -215,6 +230,22 @@ from core.pulse_config import CONFIDENCE_THRESHOLD
 - Use type annotations and docstrings in all new code.
 - Shared logic must go in `utils/`.
 - Add/maintain tests for each module in `tests/`.
+- Use `@profile` from `utils/performance_utils.py` for performance-critical code.
+
+---
+
+## 🧪 Testing & Profiling
+
+- Unit tests for all modules are in `tests/`.
+- Use `pytest` to run tests.
+- Example:  
+  ```
+  pytest tests/test_strategos_digest_builder.py
+  pytest tests/test_digest_exporter.py
+  pytest tests/test_pulse_prompt_logger.py
+  pytest tests/test_reverse_rule_engine.py
+  pytest tests/test_rule_fingerprint_expander.py
+  ```
 - Use `@profile` from `utils/performance_utils.py` for performance-critical code.
 
 ---

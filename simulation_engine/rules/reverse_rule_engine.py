@@ -8,6 +8,7 @@ Ranks rules by trust/frequency and suggests new rules if no match is found.
 
 Usage:
     python reverse_rule_engine.py --delta key1=val1 key2=val2 --max-depth 3 --fuzzy
+    python reverse_rule_engine.py --delta key1=val1 key2=val2 --fingerprints path/to/fingerprints.json --tol 0.05
 
 Related:
     - simulation_engine.rules.reverse_rule_mapper
@@ -39,24 +40,23 @@ def levenshtein(a: str, b: str) -> int:
     return prev[-1]
 
 def fuzzy_match_rule_by_delta(
-    delta: Dict[str, float],
-    fingerprints: List[Dict],
-    min_match: float = 0.5,
-    key_fuzz: int = 1
-) -> List[str]:
+    delta: dict, fingerprints: list, tol: float = 0.05
+) -> list:
     """
-    Fuzzy match delta keys to rule effect keys using Levenshtein distance.
-    Returns rule_ids with at least one fuzzy-matched key.
+    Fuzzy match: allow numeric differences up to tol (absolute).
+    Returns list of (rule_id, confidence_score).
+
+    Example:
+        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1)
     """
-    results = []
+    matches = []
     for rule in fingerprints:
-        effects = rule.get("effects", {})
-        for dk in delta:
-            for ek in effects:
-                if levenshtein(dk, ek) <= key_fuzz:
-                    results.append(rule["rule_id"])
-                    break
-    return list(set(results))
+        diffs = [abs(delta.get(k, 0) - rule.get("effects", {}).get(k, 0)) for k in delta]
+        max_diff = max(diffs) if diffs else 0
+        if all(d <= tol for d in diffs):
+            confidence = 1 - max_diff
+            matches.append((rule.get("rule_id", "unknown"), confidence))
+    return sorted(matches, key=lambda x: -x[1])
 
 def rank_rules_by_trust(matches: List[tuple], fingerprints: List[Dict]) -> List[tuple]:
     """
@@ -110,7 +110,7 @@ def trace_causal_paths(
     if max_depth <= 0 or not delta:
         return []
     if fuzzy:
-        matches = [(rid, 1.0) for rid in fuzzy_match_rule_by_delta(delta, fingerprints)]
+        matches = fuzzy_match_rule_by_delta(delta, fingerprints)
     else:
         matches = match_rule_by_delta(delta, fingerprints, min_match=min_match)
     matches = rank_rules_by_trust(matches, fingerprints)
@@ -141,6 +141,8 @@ if __name__ == "__main__":
     parser.add_argument("--min-match", type=float, default=0.5)
     parser.add_argument("--fuzzy", action="store_true", help="Enable fuzzy key matching")
     parser.add_argument("--log", action="store_true", help="Enable debug logging")
+    parser.add_argument("--fingerprints", type=str, help="Path to fingerprints JSON")
+    parser.add_argument("--tol", type=float, default=0.05, help="Tolerance for fuzzy match")
     args = parser.parse_args()
     if args.log:
         logging.basicConfig(level=logging.DEBUG)
@@ -150,8 +152,17 @@ if __name__ == "__main__":
             for kv in args.delta:
                 k, v = kv.split("=")
                 delta[k] = float(v)
-            chains = trace_causal_paths(delta, max_depth=args.max_depth, min_match=args.min_match, fuzzy=args.fuzzy)
-            print("Possible rule chains:", json.dumps(chains, indent=2))
+            if args.fingerprints:
+                with open(args.fingerprints, "r", encoding="utf-8") as f:
+                    fingerprints = json.load(f)
+                matches = fuzzy_match_rule_by_delta(delta, fingerprints, tol=args.tol)
+                for rule_id, conf in matches:
+                    print(f"{rule_id}: confidence={conf:.3f}")
+                if not matches:
+                    print("No matches found.")
+            else:
+                chains = trace_causal_paths(delta, max_depth=args.max_depth, min_match=args.min_match, fuzzy=args.fuzzy)
+                print("Possible rule chains:", json.dumps(chains, indent=2))
         except Exception as e:
             logger.error(f"Error: {e}")
     else:
@@ -159,3 +170,4 @@ if __name__ == "__main__":
 
 # Example usage:
 # python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fuzzy
+# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05

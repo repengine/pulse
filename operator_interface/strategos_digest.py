@@ -9,6 +9,15 @@ from core.path_registry import PATHS
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
 
 def group_by_confidence(forecasts: List[Dict]) -> Dict[str, List[Dict]]:
+    """
+    Group forecasts by confidence levels.
+
+    Args:
+        forecasts (List[Dict]): List of forecast dictionaries.
+
+    Returns:
+        Dict[str, List[Dict]]: Grouped forecasts by confidence levels.
+    """
     groups = {"🟢 Trusted": [], "⚠️ Moderate": [], "🔴 Fragile": [], "🔘 Unscored": []}
     for f in forecasts:
         score = f.get("confidence", "unscored")
@@ -31,6 +40,17 @@ def generate_strategos_digest(
     n: int = 5,
     title: Optional[str] = None
 ) -> str:
+    """
+    Generate a Strategos digest from forecast memory.
+
+    Args:
+        memory (ForecastMemory): Forecast memory instance.
+        n (int, optional): Number of recent forecasts to include. Defaults to 5.
+        title (Optional[str], optional): Title for the digest. Defaults to None.
+
+    Returns:
+        str: Strategos digest as a formatted string.
+    """
     raw = memory.get_recent(n + 5)
     forecasts = filter_licensed_forecasts(raw, strict=True)
     groups = group_by_confidence(forecasts)
@@ -79,6 +99,9 @@ def generate_strategos_digest(
 def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, export_fmt: str = "markdown"):
     """
     Live UI hook: Build and display strategos digest, optionally filtered by prompt.
+
+    Example:
+        live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown")
     """
     raw = memory.get_recent(n + 10)
     if prompt:
