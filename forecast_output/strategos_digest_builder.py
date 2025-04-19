@@ -9,6 +9,8 @@ Available digest templates:
     - "short": Minimal fields (trace_id, confidence, symbolic_tag)
     - "symbolic_only": Symbolic tag and overlays only
 
+UI integration: The digest builder supports template selection via the `template` argument in both CLI and UI (see live_digest_ui in strategos_digest.py).
+
 Usage:
     from strategos_digest_builder import build_digest
     digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
@@ -270,7 +272,7 @@ if __name__ == "__main__":
     parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
     parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
     parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
-    parser.add_argument("--template", type=str, default="full", choices=["full", "short", "symbolic_only"], help="Digest template")
+    parser.add_argument("--template", type=str, default="full", choices=["full", "short", "symbolic_only"], help="Digest template (UI/CLI parity)")
     args = parser.parse_args()
 
     # Load compressed forecasts

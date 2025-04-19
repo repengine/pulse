@@ -40,14 +40,14 @@ def levenshtein(a: str, b: str) -> int:
     return prev[-1]
 
 def fuzzy_match_rule_by_delta(
-    delta: dict, fingerprints: list, tol: float = 0.05, min_conf: float = 0.0
+    delta: dict, fingerprints: list, tol: float = 0.05, min_conf: float = 0.0, confidence_threshold: float = 0.0
 ) -> list:
     """
     Fuzzy match: allow numeric differences up to tol (absolute).
-    Returns list of (rule_id, confidence_score) above min_conf.
+    Returns list of (rule_id, confidence_score) above min_conf and confidence_threshold.
 
     Example:
-        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1, min_conf=0.7)
+        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1, min_conf=0.7, confidence_threshold=0.5)
     """
     matches = []
     for rule in fingerprints:
@@ -55,7 +55,7 @@ def fuzzy_match_rule_by_delta(
         max_diff = max(diffs) if diffs else 0
         if all(d <= tol for d in diffs):
             confidence = 1 - max_diff
-            if confidence >= min_conf:
+            if confidence >= min_conf and confidence >= confidence_threshold:
                 matches.append((rule.get("rule_id", "unknown"), confidence))
     return sorted(matches, key=lambda x: -x[1])
 
@@ -85,7 +85,8 @@ def trace_causal_paths(
     max_depth: int = 3,
     min_match: float = 0.5,
     path: Optional[List[str]] = None,
-    fuzzy: bool = False
+    fuzzy: bool = False,
+    confidence_threshold: float = 0.0
 ) -> List[List[str]]:
     """
     Given a delta, return possible rule chains (as lists of rule_ids) that could explain it.
@@ -100,6 +101,7 @@ def trace_causal_paths(
         min_match: Minimum match ratio for candidate rules.
         path: Internal use for recursion.
         fuzzy: Use fuzzy key matching.
+        confidence_threshold: Minimum confidence score for rule matches.
 
     Returns:
         List of rule_id chains (each a list of rule_ids).
@@ -111,7 +113,7 @@ def trace_causal_paths(
     if max_depth <= 0 or not delta:
         return []
     if fuzzy:
-        matches = fuzzy_match_rule_by_delta(delta, fingerprints)
+        matches = fuzzy_match_rule_by_delta(delta, fingerprints, confidence_threshold=confidence_threshold)
     else:
         matches = match_rule_by_delta(delta, fingerprints, min_match=min_match)
     matches = rank_rules_by_trust(matches, fingerprints)
@@ -125,7 +127,7 @@ def trace_causal_paths(
         if not new_delta:
             chains.append(path + [rule_id])
         else:
-            subchains = trace_causal_paths(new_delta, fingerprints, max_depth-1, min_match, path + [rule_id], fuzzy=fuzzy)
+            subchains = trace_causal_paths(new_delta, fingerprints, max_depth-1, min_match, path + [rule_id], fuzzy=fuzzy, confidence_threshold=confidence_threshold)
             chains.extend(subchains)
     if not chains and delta:
         # No match found, suggest new rule
@@ -133,6 +135,16 @@ def trace_causal_paths(
         if suggestion:
             chains.append(["SUGGEST_NEW_RULE", suggestion])
     return chains
+
+def match_rules(input_data, rules, confidence_threshold: float = 0.0):
+    """Match input data to rules, returning only those above the confidence threshold."""
+    matches = []
+    for rule in rules:
+        score = compute_match_score(input_data, rule)
+        if score >= confidence_threshold:
+            matches.append((rule, score))
+    matches.sort(key=lambda x: x[1], reverse=True)
+    return matches
 
 if __name__ == "__main__":
     import argparse, json
@@ -145,6 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--fingerprints", type=str, help="Path to fingerprints JSON")
     parser.add_argument("--tol", type=float, default=0.05, help="Tolerance for fuzzy match")
     parser.add_argument("--min-conf", type=float, default=0.0, help="Minimum confidence score")
+    parser.add_argument("--confidence-threshold", type=float, default=0.0, help="Confidence threshold for rule matches")
     args = parser.parse_args()
     if args.log:
         logging.basicConfig(level=logging.DEBUG)
@@ -157,13 +170,13 @@ if __name__ == "__main__":
             if args.fingerprints:
                 with open(args.fingerprints, "r", encoding="utf-8") as f:
                     fingerprints = json.load(f)
-                matches = fuzzy_match_rule_by_delta(delta, fingerprints, tol=args.tol, min_conf=args.min_conf)
+                matches = fuzzy_match_rule_by_delta(delta, fingerprints, tol=args.tol, min_conf=args.min_conf, confidence_threshold=args.confidence_threshold)
                 for rule_id, conf in matches:
                     print(f"{rule_id}: confidence={conf:.3f}")
                 if not matches:
                     print("No matches found.")
             else:
-                chains = trace_causal_paths(delta, max_depth=args.max_depth, min_match=args.min_match, fuzzy=args.fuzzy)
+                chains = trace_causal_paths(delta, max_depth=args.max_depth, min_match=args.min_match, fuzzy=args.fuzzy, confidence_threshold=args.confidence_threshold)
                 print("Possible rule chains:", json.dumps(chains, indent=2))
         except Exception as e:
             logger.error(f"Error: {e}")
@@ -172,4 +185,4 @@ if __name__ == "__main__":
 
 # Example usage:
 # python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fuzzy
-# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05 --min-conf 0.7
+# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05 --min-conf 0.7 --confidence-threshold 0.5

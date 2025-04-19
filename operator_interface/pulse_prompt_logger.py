@@ -2,9 +2,12 @@
 pulse_prompt_logger.py
 
 Logs prompts, config, and overlays used to generate digests or batch forecasts.
+Supports prompt hash linking and search/display utilities.
 
 Usage:
     log_prompt("Forecast batch run", config, overlays)
+    search_prompts(query)  # New: search prompt log for a substring
+    display_prompt_by_hash(prompt_hash)  # New: display prompt by hash
 
 Author: Pulse AI Engine
 """
@@ -51,6 +54,31 @@ def get_prompt_hash(trace_id: str) -> Optional[str]:
     Stub: Replace with actual lookup from prompt log if available.
     """
     return f"hash_{trace_id}"
+
+def search_prompts(query: str, path: str = "logs/prompt_log.jsonl"):
+    """Search prompt log for entries containing the query string."""
+    results = []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                if query.lower() in line.lower():
+                    results.append(json.loads(line))
+    except Exception as e:
+        logger.error(f"Prompt search error: {e}")
+    return results
+
+def display_prompt_by_hash(prompt_hash: str, path: str = "logs/prompt_log.jsonl"):
+    """Display prompt entry by its hash."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                entry = json.loads(line)
+                if entry.get("prompt_hash") == prompt_hash:
+                    print(json.dumps(entry, indent=2))
+                    return entry
+    except Exception as e:
+        logger.error(f"Prompt display error: {e}")
+    return None
 
 if __name__ == "__main__":
     import argparse

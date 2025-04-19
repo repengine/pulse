@@ -9,6 +9,8 @@ Usage:
     export_digest(digest_str, "out.pdf", fmt="pdf")
     export_digest(digest_str, "out.html", fmt="html", sanitize_html=True)
 
+    # If exporting HTML, set sanitize_html=True to clean output (requires bleach)
+
 Author: Pulse AI Engine
 """
 
@@ -39,11 +41,11 @@ def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_ht
                         logger.warning("bleach not installed, HTML not sanitized.")
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(html)
-                logger.info(f"Digest exported to {path} (HTML)")
+                logger.info(f"Digest HTML exported to {path}")
             except ImportError:
                 with open(path, "w", encoding="utf-8") as f:
                     f.write("<pre>\n" + digest_str + "\n</pre>")
-                logger.warning("markdown2 not installed, exported as preformatted text. Run `pip install markdown2` for better HTML output.")
+                logger.info(f"Digest HTML exported to {path} (preformatted, markdown2 not installed)")
         else:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(digest_str)
