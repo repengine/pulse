@@ -4,9 +4,14 @@ strategos_digest_builder.py
 Combines symbolic arc, capital deltas, and confidence into a foresight digest report.
 Supports user configuration for included fields.
 
+Available digest templates:
+    - "full": All default fields (trace_id, turn, confidence, fragility, trust_label, symbolic_tag, overlays, exposure_delta)
+    - "short": Minimal fields (trace_id, confidence, symbolic_tag)
+    - "symbolic_only": Symbolic tag and overlays only
+
 Usage:
     from strategos_digest_builder import build_digest
-    digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]})
+    digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
 
 Author: Pulse AI Engine
 """
@@ -124,12 +129,17 @@ def build_digest(
         forecast_batch: List of forecast dicts.
         fmt: Output format ("markdown", "json", "html").
         config: Dict with customization options.
-        template: Template type ("full", "short", "symbolic_only").
+        template: Digest template ("full", "short", "symbolic_only").
     Returns:
         Digest string in requested format.
 
     Example:
         build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
+
+    Available templates for UI:
+        - "full"
+        - "short"
+        - "symbolic_only"
     """
     if not forecast_batch:
         if fmt == "json":

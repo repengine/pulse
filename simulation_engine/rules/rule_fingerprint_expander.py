@@ -74,13 +74,15 @@ def validate_new_rule(rule: dict, test_data: list) -> float:
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Rule Fingerprint Expander")
+    parser = argparse.ArgumentParser(description="Rule Fingerprint Suggestion Review CLI")
     parser.add_argument("--delta", nargs="+", help="Delta: key1=val1 key2=val2 ...")
     parser.add_argument("--rule-id", type=str, default=None)
     parser.add_argument("--validate", type=str, help="Validate fingerprints file")
     parser.add_argument("--test-data", type=str, help="Path to test data (JSON list of deltas)")
-    parser.add_argument("--input", type=str, required=False, help="Forecasts JSON file")
+    parser.add_argument("--input", type=str, required=True, help="Forecasts JSON file")
     parser.add_argument("--min-conf", type=float, default=0.7, help="Minimum confidence")
+    parser.add_argument("--approve", action="store_true", help="Interactive approval workflow")
+    parser.add_argument("--output", type=str, default=None, help="Output file for approved suggestions")
     args = parser.parse_args()
     if args.delta:
         try:
@@ -99,16 +101,30 @@ if __name__ == "__main__":
             print(f"Error: {e}")
     elif args.validate:
         validate_fingerprints_file(args.validate)
-    elif args.input:
+    else:
         with open(args.input, "r", encoding="utf-8") as f:
             forecasts = json.load(f)
         suggestions = suggest_fingerprints(forecasts, min_conf=args.min_conf)
-        for s in suggestions:
-            print(json.dumps(s, indent=2))
-        print(f"Total suggestions: {len(suggestions)}")
-    else:
-        parser.print_help()
+        approved = []
+        if args.approve:
+            for s in suggestions:
+                print(json.dumps(s, indent=2))
+                resp = input("Approve this suggestion? [y/N]: ").strip().lower()
+                if resp == "y":
+                    s["approved"] = True
+                    approved.append(s)
+                else:
+                    s["approved"] = False
+            print(f"Approved {len([s for s in approved if s['approved']])} of {len(suggestions)} suggestions.")
+            if args.output:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    json.dump([s for s in approved if s["approved"]], f, indent=2)
+                print(f"Approved suggestions written to {args.output}")
+        else:
+            for s in suggestions:
+                print(json.dumps(s, indent=2))
+            print(f"Total suggestions: {len(suggestions)}")
 
 # Example usage:
 # python rule_fingerprint_expander.py --delta hope=0.1 despair=-0.05 --test-data test_deltas.json
-# python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7
+# python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7 --approve --output approved_suggestions.json
