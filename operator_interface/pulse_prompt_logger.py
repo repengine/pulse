@@ -13,6 +13,7 @@ import json
 from datetime import datetime
 import logging
 from core.path_registry import PATHS
+from typing import Optional
 
 logger = logging.getLogger("pulse_prompt_logger")
 
