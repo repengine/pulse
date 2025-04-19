@@ -7,6 +7,7 @@ Validates new rules against test data before integration.
 Usage:
     python rule_fingerprint_expander.py --delta key1=val1 key2=val2 --rule-id NEW_RULE
     python rule_fingerprint_expander.py --validate rules/rule_fingerprints.json
+    python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7
 
 Author: Pulse AI Engine
 """
@@ -24,6 +25,25 @@ def suggest_fingerprint_from_delta(delta: dict, rule_id: str = None) -> dict:
         "rule_id": rule_id or "NEW_RULE",
         "effects": {k: float(v) for k, v in delta.items()}
     }
+
+def suggest_fingerprints(forecasts: list, min_conf: float = 0.7) -> list:
+    """
+    Suggest new rule fingerprints, weighted by forecast trust/confidence.
+
+    Args:
+        forecasts: List of forecast dicts.
+        min_conf: Minimum confidence to consider.
+
+    Returns:
+        List of suggestions sorted by weight.
+    """
+    suggestions = []
+    for f in forecasts:
+        conf = f.get("confidence", 0)
+        if conf >= min_conf:
+            suggestions.append({"trace_id": f["trace_id"], "weight": conf, "effects": f.get("effects", {})})
+    # Sort by weight
+    return sorted(suggestions, key=lambda x: -x["weight"])
 
 def validate_fingerprints_file(path: str):
     try:
@@ -59,6 +79,8 @@ if __name__ == "__main__":
     parser.add_argument("--rule-id", type=str, default=None)
     parser.add_argument("--validate", type=str, help="Validate fingerprints file")
     parser.add_argument("--test-data", type=str, help="Path to test data (JSON list of deltas)")
+    parser.add_argument("--input", type=str, required=False, help="Forecasts JSON file")
+    parser.add_argument("--min-conf", type=float, default=0.7, help="Minimum confidence")
     args = parser.parse_args()
     if args.delta:
         try:
@@ -77,8 +99,16 @@ if __name__ == "__main__":
             print(f"Error: {e}")
     elif args.validate:
         validate_fingerprints_file(args.validate)
+    elif args.input:
+        with open(args.input, "r", encoding="utf-8") as f:
+            forecasts = json.load(f)
+        suggestions = suggest_fingerprints(forecasts, min_conf=args.min_conf)
+        for s in suggestions:
+            print(json.dumps(s, indent=2))
+        print(f"Total suggestions: {len(suggestions)}")
     else:
         parser.print_help()
 
 # Example usage:
 # python rule_fingerprint_expander.py --delta hope=0.1 despair=-0.05 --test-data test_deltas.json
+# python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7

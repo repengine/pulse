@@ -11,7 +11,7 @@ Usage:
 Author: Pulse AI Engine
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import json
 from collections import defaultdict
 import logging
@@ -103,10 +103,19 @@ def summarize_drivers(cluster: List[Dict], top_k: int = 3) -> List[str]:
     counter = Counter(drivers)
     return [d for d, _ in counter.most_common(top_k)]
 
+def render_fields(f: Dict[str, Any], fields: List[str]) -> List[str]:
+    """Render a forecast dict as lines for the digest."""
+    lines = []
+    for k in fields:
+        v = f.get(k, "N/A")
+        lines.append(f"{k.capitalize():<14}: {v}")
+    return lines
+
 def build_digest(
     forecast_batch: List[Dict[str, Any]],
     fmt: str = "markdown",
-    config: dict = None
+    config: Optional[dict] = None,
+    template: str = "full"
 ) -> str:
     """
     Build a strategos digest from a batch of forecasts.
@@ -114,18 +123,13 @@ def build_digest(
     Args:
         forecast_batch: List of forecast dicts.
         fmt: Output format ("markdown", "json", "html").
-        config: Dict with customization options:
-            - fields: list of fields to include
-            - tag_filter: only include forecasts with this tag
-            - consensus_overlay: overlay key for consensus scoring
-            - cluster_key: key to cluster/group by (default: "symbolic_tag" or "narrative_theme")
-            - top_n: only show top N clusters (default: all)
-            - actionable_only: if True, only include forecasts marked "✅ Actionable"
-            - sort_clusters_by: "count" or "confidence"
-            - show_drivers: if True, summarize top drivers per cluster
-
+        config: Dict with customization options.
+        template: Template type ("full", "short", "symbolic_only").
     Returns:
         Digest string in requested format.
+
+    Example:
+        build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
     """
     if not forecast_batch:
         if fmt == "json":
@@ -134,7 +138,14 @@ def build_digest(
             return "<h1>Strategos Digest</h1><i>No forecasts available.</i>"
         return "# Strategos Digest\n\n_No forecasts available._"
 
-    fields = config.get("fields") if config and "fields" in config else DEFAULT_FIELDS
+    # Template support
+    if template == "short":
+        fields = ["trace_id", "confidence", "symbolic_tag"]
+    elif template == "symbolic_only":
+        fields = ["trace_id", "symbolic_tag", "overlays"]
+    else:
+        fields = config.get("fields") if config and "fields" in config else DEFAULT_FIELDS
+
     tag_filter = config.get("tag_filter") if config else None
     overlay_key = config.get("consensus_overlay", "hope") if config else "hope"
     cluster_key = config.get("cluster_key", "symbolic_tag") if config else "symbolic_tag"
@@ -212,9 +223,7 @@ def build_digest(
             for f in cluster:
                 prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
                 f["prompt_hash"] = prompt_hash
-                for k in fields:
-                    v = f.get(k, "N/A")
-                    lines.append(f"{k.capitalize():<14}: {v}")
+                lines.extend(render_fields(f, fields))
                 lines.append("")
         if not clusters:
             lines.append("_No forecasts available._")
@@ -251,16 +260,21 @@ if __name__ == "__main__":
     parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
     parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
     parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
+    parser.add_argument("--template", type=str, default="full", choices=["full", "short", "symbolic_only"], help="Digest template")
     args = parser.parse_args()
 
     # Load compressed forecasts
     import json
-    with open(args.input, "r", encoding="utf-8") as f:
-        try:
-            forecasts = json.load(f)
-        except Exception:
-            # Try JSONL fallback
-            forecasts = [json.loads(line) for line in f if line.strip()]
+    try:
+        with open(args.input, "r", encoding="utf-8") as f:
+            try:
+                forecasts = json.load(f)
+            except Exception:
+                # Try JSONL fallback
+                forecasts = [json.loads(line) for line in f if line.strip()]
+    except Exception as e:
+        print(f"Failed to load input file: {e}")
+        exit(1)
 
     # If input is cluster summary, flatten examples
     if forecasts and isinstance(forecasts[0], dict) and "examples" in forecasts[0]:
@@ -278,7 +292,7 @@ if __name__ == "__main__":
         "cluster_key": args.cluster_key,
         "actionable_only": args.actionable_only,
     }
-    digest = build_digest(forecasts, fmt=args.export, config=config)
+    digest = build_digest(forecasts, fmt=args.export, config=config, template=args.template)
 
     # Export
     if args.export == "markdown":
@@ -290,6 +304,15 @@ if __name__ == "__main__":
             f.write(digest)
         print(f"Digest JSON exported to {args.output}")
     elif args.export == "html":
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(digest)
-        print(f"Digest HTML exported to {args.output}")
+        try:
+            import markdown2
+            html = markdown2.markdown(digest)
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(html)
+            print(f"Digest HTML exported to {args.output}")
+        except ImportError:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write("<pre>\n" + digest + "\n</pre>")
+            print(f"Digest HTML exported to {args.output} (preformatted, markdown2 not installed)")
+    else:
+        print("Unknown export format.")
