@@ -96,18 +96,18 @@ def generate_strategos_digest(
 
     return "\n".join(sections)
 
-def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, export_fmt: str = "markdown"):
+def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, export_fmt: str = "markdown", template: str = "full"):
     """
-    Live UI hook: Build and display strategos digest, optionally filtered by prompt.
+    Live UI hook: Build and display strategos digest, optionally filtered by prompt and template.
 
     Example:
-        live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown")
+        live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown", template="short")
     """
     raw = memory.get_recent(n + 10)
     if prompt:
         # Use digest builder's filter for prompt
         from forecast_output.strategos_digest_builder import filter_forecasts_by_prompt
         raw = filter_forecasts_by_prompt(raw, prompt)
-    digest = build_digest(raw, fmt=export_fmt, config={"top_n": 3, "actionable_only": False})
+    digest = build_digest(raw, fmt=export_fmt, config={"top_n": 3, "actionable_only": False}, template=template)
     print(digest)
     return digest

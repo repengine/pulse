@@ -6,6 +6,9 @@ Runs past simulations through a regret lens, analyzes missed/wrong forecasts, bu
 Author: Pulse AI Engine
 """
 
+# Moved from project root for better organization
+from diagnostics import forecast_regret_engine
+
 from typing import List, Dict
 
 def analyze_regret(forecasts: List[Dict], actuals: Dict) -> List[Dict]:
