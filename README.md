@@ -46,77 +46,77 @@ Pulse/
 │
 ├── core/                  # Central config, registry, and path management
 │   ├── __init__.py
-│   ├── pulse_config.py
-│   ├── path_registry.py
-│   └── module_registry.py
+│   ├── pulse_config.py   # ✅ Built
+│   ├── path_registry.py  # ✅ Built
+│   └── module_registry.py # ✅ Built
 │
 ├── simulation_engine/     # Core simulation modules
 │   ├── __init__.py
-│   ├── worldstate.py
-│   ├── turn_engine.py
-│   ├── state_mutation.py
+│   ├── worldstate.py     # ✅ Built
+│   ├── turn_engine.py    # ✅ Built
+│   ├── state_mutation.py # ✅ Built
 │   └── rules/
 │       ├── __init__.py
-│       ├── rule_fingerprint_expander.py
-│       └── reverse_rule_engine.py
+│       ├── rule_fingerprint_expander.py # ✅ Built
+│       └── reverse_rule_engine.py       # ✅ Built
 │
 ├── forecast_engine/       # Forecasting logic, batch, and export
 │   ├── __init__.py
-│   ├── forecast_exporter.py
-│   ├── forecast_log_viewer.py
+│   ├── forecast_exporter.py # ✅ Built
+│   ├── forecast_log_viewer.py # ✅ Built
 │   └── ...
 │
 ├── forecast_output/       # Output formatting, digest, and logging
 │   ├── __init__.py
-│   ├── forecast_licenser.py
-│   ├── pfpa_logger.py
+│   ├── forecast_licenser.py # ✅ Built
+│   ├── pfpa_logger.py      # ✅ Built
 │   └── ...
 │
 ├── foresight_architecture/  # Digest, compression, and related tools
 │   ├── __init__.py
-│   ├── digest_exporter.py
-│   ├── digest_logger.py
-│   └── strategos_digest_builder.py
+│   ├── digest_exporter.py   # ✅ Built
+│   ├── digest_logger.py     # ✅ Built
+│   └── strategos_digest_builder.py # ✅ Built
 │
 ├── memory/                # Forecast memory and audit
 │   ├── __init__.py
-│   ├── forecast_memory.py
-│   └── pulse_memory_audit_report.py
+│   ├── forecast_memory.py        # ✅ Built
+│   └── pulse_memory_audit_report.py # ✅ Built
 │
 ├── symbolic_system/       # Symbolic overlays, drift, scoring
 │   ├── __init__.py
-│   └── symbolic_memory.py
+│   └── symbolic_memory.py # ✅ Built
 │
 ├── capital_engine/        # Capital fork logic
 │   ├── __init__.py
-│   └── asset_forks.py
+│   └── asset_forks.py     # ✅ Built
 │
 ├── diagnostics/           # Self-checks, audits, and stubs
 │   ├── __init__.py
-│   └── plia_stub.py
+│   └── plia_stub.py       # ✅ Built
 │
 ├── operator_interface/    # CLI, UI, dashboards, prompt logger
 │   ├── __init__.py
-│   ├── pulse_prompt_logger.py
-│   └── strategos_digest.py
+│   ├── pulse_prompt_logger.py # ✅ Built
+│   └── strategos_digest.py    # ✅ Built
 │
 ├── utils/                 # Shared utilities
 │   ├── __init__.py
-│   ├── log_utils.py
-│   ├── error_utils.py
-│   └── performance_utils.py
+│   ├── log_utils.py           # ✅ Built
+│   ├── error_utils.py         # ✅ Built
+│   └── performance_utils.py   # ✅ Built
 │
 ├── dev_tools/             # Dev scripts, code analysis, migration
 │   ├── __init__.py
-│   ├── generate_pulse_modules.py
-│   ├── pulse_shell_autohook.py
-│   ├── pulse_scan_hooks.py
-│   ├── hook_utils.py
-│   └── module_dependency_map.py
+│   ├── generate_pulse_modules.py # ✅ Built
+│   ├── pulse_shell_autohook.py   # ✅ Built
+│   ├── pulse_scan_hooks.py       # ✅ Built
+│   ├── hook_utils.py             # ✅ Built
+│   └── module_dependency_map.py  # ✅ Built
 │
 ├── tests/                 # Unit tests and fixtures
 │   ├── __init__.py
-│   └── test_forecast_memory.py
+│   └── test_forecast_memory.py # ✅ Built
 │
 ├── quarantine/            # Quarantined/legacy files for review
 │   └── ...
@@ -124,8 +124,8 @@ Pulse/
 ├── docs/                  # Documentation, API reference, deprecation policy
 │   └── ...
 │
-├── main.py                # Main entry point
-├── pulse_ui_shell.py      # UI shell entry point
+├── main.py                # Main entry point # ✅ Built
+├── pulse_ui_shell.py      # UI shell entry point # ✅ Built
 ├── README.md
 ├── README.txt
 └── .gitignore
@@ -181,7 +181,7 @@ Pulse/
 | Forecast Belief Chain   | Missing     | Implement ancestry, drift, tree, divergence          |
 | Reverse Rule Evolution  | Partial     | Add ranking, rule suggestion, robust scoring         |
 | Regret Engine           | Missing     | Implement regret analysis, feedback loop             |
-| Utility Add-ons         | Missing     | Add replay, lineage viewer, digest comparison        |
+| Utility Add-ons         | Partial     | Add replay, lineage viewer, digest comparison        |
 
 ---
 
