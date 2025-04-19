@@ -317,6 +317,11 @@ if __name__ == "__main__":
         try:
             import markdown2
             html = markdown2.markdown(digest)
+            try:
+                import bleach
+                html = bleach.clean(html, tags=bleach.sanitizer.ALLOWED_TAGS + ["h1", "h2", "h3"], strip=True)
+            except ImportError:
+                print("Warning: bleach not installed, HTML not sanitized.")
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(html)
             print(f"Digest HTML exported to {args.output}")
