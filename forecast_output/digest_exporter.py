@@ -7,7 +7,7 @@ Usage:
     from digest_exporter import export_digest
     export_digest(digest_str, "out.md", fmt="markdown")
     export_digest(digest_str, "out.pdf", fmt="pdf")
-    export_digest(digest_str, "out.html", fmt="html")
+    export_digest(digest_str, "out.html", fmt="html", sanitize_html=True)
 
 Author: Pulse AI Engine
 """
@@ -17,11 +17,12 @@ import logging
 
 logger = logging.getLogger("digest_exporter")
 
-def export_digest(digest_str: str, path: str, fmt: str = "markdown") -> None:
+def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_html: bool = False) -> None:
     """
     Export digest string to file in the specified format.
     Supported formats: markdown, html, pdf (stub).
     If exporting as HTML and markdown2 is available, will convert Markdown to HTML.
+    If sanitize_html is True, will sanitize HTML output using bleach (if installed).
     """
     try:
         if fmt == "pdf":
@@ -30,6 +31,12 @@ def export_digest(digest_str: str, path: str, fmt: str = "markdown") -> None:
             try:
                 import markdown2
                 html = markdown2.markdown(digest_str)
+                if sanitize_html:
+                    try:
+                        import bleach
+                        html = bleach.clean(html, tags=bleach.sanitizer.ALLOWED_TAGS + ["h1", "h2", "h3"], strip=True)
+                    except ImportError:
+                        logger.warning("bleach not installed, HTML not sanitized.")
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(html)
                 logger.info(f"Digest exported to {path} (HTML)")
@@ -71,4 +78,4 @@ def export_digest_pdf(digest_str: str, path: str):
 # Example usage:
 # export_digest("# Digest\n...", "digest.md", fmt="markdown")
 # export_digest_json([{"trace_id": "t1"}], "digest.json")
-# export_digest("# Digest\n...", "digest.html", fmt="html")
+# export_digest("# Digest\n...", "digest.html", fmt="html", sanitize_html=True)

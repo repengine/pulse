@@ -40,14 +40,14 @@ def levenshtein(a: str, b: str) -> int:
     return prev[-1]
 
 def fuzzy_match_rule_by_delta(
-    delta: dict, fingerprints: list, tol: float = 0.05
+    delta: dict, fingerprints: list, tol: float = 0.05, min_conf: float = 0.0
 ) -> list:
     """
     Fuzzy match: allow numeric differences up to tol (absolute).
-    Returns list of (rule_id, confidence_score).
+    Returns list of (rule_id, confidence_score) above min_conf.
 
     Example:
-        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1)
+        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1, min_conf=0.7)
     """
     matches = []
     for rule in fingerprints:
@@ -55,7 +55,8 @@ def fuzzy_match_rule_by_delta(
         max_diff = max(diffs) if diffs else 0
         if all(d <= tol for d in diffs):
             confidence = 1 - max_diff
-            matches.append((rule.get("rule_id", "unknown"), confidence))
+            if confidence >= min_conf:
+                matches.append((rule.get("rule_id", "unknown"), confidence))
     return sorted(matches, key=lambda x: -x[1])
 
 def rank_rules_by_trust(matches: List[tuple], fingerprints: List[Dict]) -> List[tuple]:
@@ -143,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--log", action="store_true", help="Enable debug logging")
     parser.add_argument("--fingerprints", type=str, help="Path to fingerprints JSON")
     parser.add_argument("--tol", type=float, default=0.05, help="Tolerance for fuzzy match")
+    parser.add_argument("--min-conf", type=float, default=0.0, help="Minimum confidence score")
     args = parser.parse_args()
     if args.log:
         logging.basicConfig(level=logging.DEBUG)
@@ -155,7 +157,7 @@ if __name__ == "__main__":
             if args.fingerprints:
                 with open(args.fingerprints, "r", encoding="utf-8") as f:
                     fingerprints = json.load(f)
-                matches = fuzzy_match_rule_by_delta(delta, fingerprints, tol=args.tol)
+                matches = fuzzy_match_rule_by_delta(delta, fingerprints, tol=args.tol, min_conf=args.min_conf)
                 for rule_id, conf in matches:
                     print(f"{rule_id}: confidence={conf:.3f}")
                 if not matches:
@@ -170,4 +172,4 @@ if __name__ == "__main__":
 
 # Example usage:
 # python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fuzzy
-# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05
+# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05 --min-conf 0.7

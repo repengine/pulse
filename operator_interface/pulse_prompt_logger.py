@@ -54,11 +54,15 @@ def get_prompt_hash(trace_id: str) -> Optional[str]:
 
 if __name__ == "__main__":
     import argparse
+    from datetime import datetime
     parser = argparse.ArgumentParser(description="Prompt Log Viewer CLI")
     parser.add_argument("--recent", type=int, default=10, help="Show N most recent prompts")
     parser.add_argument("--search", type=str, default=None, help="Search for prompt substring")
     parser.add_argument("--logfile", type=str, default="logs/prompt_log.jsonl", help="Prompt log file")
     parser.add_argument("--hash", type=str, default=None, help="Show prompt by hash")
+    parser.add_argument("--export", type=str, default=None, help="Export filtered prompts to JSON/CSV")
+    parser.add_argument("--from-date", type=str, default=None, help="Filter prompts from this ISO date (YYYY-MM-DD)")
+    parser.add_argument("--to-date", type=str, default=None, help="Filter prompts up to this ISO date (YYYY-MM-DD)")
     args = parser.parse_args()
     try:
         with open(args.logfile, "r", encoding="utf-8") as f:
@@ -69,6 +73,12 @@ if __name__ == "__main__":
                 entries.append(json.loads(line))
             except Exception:
                 continue
+        # Date filtering
+        if args.from_date:
+            entries = [e for e in entries if e.get("timestamp") and e["timestamp"] >= args.from_date]
+        if args.to_date:
+            entries = [e for e in entries if e.get("timestamp") and e["timestamp"] <= args.to_date]
+        # Hash search
         if args.hash:
             found = [e for e in entries if e.get("prompt_hash") == args.hash]
             for e in found:
@@ -80,5 +90,20 @@ if __name__ == "__main__":
                 entries = [e for e in entries if args.search.lower() in e.get("prompt", "").lower()]
             for e in entries[-args.recent:]:
                 print(f"[{e['timestamp']}] {e['prompt_hash']} | {e['prompt']}")
+        # Export
+        if args.export:
+            if args.export.endswith(".json"):
+                with open(args.export, "w", encoding="utf-8") as f:
+                    json.dump(entries, f, indent=2)
+                print(f"Exported {len(entries)} prompts to {args.export}")
+            elif args.export.endswith(".csv"):
+                import csv
+                with open(args.export, "w", encoding="utf-8", newline="") as f:
+                    writer = csv.DictWriter(f, fieldnames=entries[0].keys())
+                    writer.writeheader()
+                    writer.writerows(entries)
+                print(f"Exported {len(entries)} prompts to {args.export}")
+            else:
+                print("Export format not recognized (use .json or .csv)")
     except Exception as e:
         print(f"Prompt log error: {e}")
