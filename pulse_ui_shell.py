@@ -43,6 +43,8 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from core.pulse_config import MODULES_ENABLED
 from core.variable_registry import VARIABLE_REGISTRY
+from trust_system.forecast_retrospector import retrospective_analysis_batch
+from trust_system.trust_engine import TrustEngine
 
 logger = get_logger(__name__)
 
@@ -92,6 +94,12 @@ def try_load_worldstate(path: str) -> Any:
         print(f"❌ Failed to load worldstate from {path}: {e}")
         return None
 
+def compress_forecasts(forecasts, top_k=10):
+    """
+    Return the top_k most confident forecasts (after trust filtering).
+    """
+    return sorted(forecasts, key=lambda f: f.get("confidence", 0), reverse=True)[:top_k]
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Pulse CLI Shell")
     parser.add_argument("--mode", type=str, default="run", help="Choose a mode: run, test, suite, batch, view, or hook name")
@@ -104,6 +112,15 @@ def main() -> None:
     parser.add_argument("--list_domains", action="store_true", help="List all available simulation domains")
     parser.add_argument("--help", action="store_true", help="Show help for all available UI commands")
 
+    # Retrodiction/trust CLI options
+    parser.add_argument("--retrodict", type=str, help="Path to forecasts (.jsonl) for retrodiction scoring")
+    parser.add_argument("--state", type=str, help="Path to current_state.json")
+    parser.add_argument("--retrodict-output", type=str, default="retrodicted_output.jsonl", help="Where to save retrodicted forecasts")
+    parser.add_argument("--retrodict-threshold", type=float, default=1.5, help="Threshold for flagging symbolic misalignment")
+    parser.add_argument("--filter-trusted", action="store_true", help="Output only \U0001F7E2 Trusted forecasts")
+    parser.add_argument("--trust-summary", action="store_true", help="Print trust audit summary to CLI")
+    parser.add_argument("--compress-topk", type=int, default=None, help="If set, compress to top-K most confident forecasts")
+
     # Dynamically add hook args
     for hook, active in hook_data["active_hooks"].items():
         if active:
@@ -115,6 +132,45 @@ def main() -> None:
 
     if args.help:
         parser.print_help()
+        return
+
+    # --- Retrodiction/Trust pipeline ---
+    if args.retrodict and args.state:
+        try:
+            print("\U0001F501 Loading forecast batch and current state...")
+            with open(args.retrodict, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            with open(args.state, "r") as f:
+                current_state = json.load(f)
+
+            # Retrodiction scoring
+            scored = retrospective_analysis_batch(forecasts, current_state, threshold=args.retrodict_threshold)
+
+            # Trust tagging/scoring/gating
+            TrustEngine.apply_all(scored, current_state=current_state)
+
+            # Optional: filter only trusted
+            if args.filter_trusted:
+                scored = [f for f in scored if f.get("trust_label") == "\U0001F7E2 Trusted"]
+
+            # Optional: trust audit summary
+            if args.trust_summary:
+                summary = TrustEngine.run_trust_audit(scored)
+                print("\n\U0001F4CA Trust Audit Summary:")
+                print(json.dumps(summary, indent=2))
+
+            # Optional: compression
+            if args.compress_topk:
+                scored = compress_forecasts(scored, top_k=args.compress_topk)
+
+            # Write output
+            with open(args.retrodict_output, "w") as f:
+                for fc in scored:
+                    f.write(json.dumps(fc) + "\n")
+
+            print(f"\u2705 Retrodiction + trust tagging complete. Output saved to {args.retrodict_output}")
+        except Exception as e:
+            print(f"\u274C Error during retrodiction pipeline: {e}")
         return
 
     # Print available domains if requested
