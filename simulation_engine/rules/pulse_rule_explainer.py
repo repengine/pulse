@@ -1,7 +1,7 @@
 """
 Module: pulse_rule_explainer.py
 Pulse Version: v0.100.8
-Location: pulse/rules/
+Location: simulation_engine/rules/
 
 Purpose:
 Explains which rule fingerprints contributed to a forecast.

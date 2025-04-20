@@ -12,6 +12,7 @@ Author: Pulse AI Engine
 
 from typing import List, Dict, Any
 import json
+from trust_system.pulse_mirror_core import check_forecast_coherence
 
 def build_digest(forecast_batch: List[Dict[str, Any]], fmt: str = "markdown") -> str:
     """
@@ -25,6 +26,18 @@ def build_digest(forecast_batch: List[Dict[str, Any]], fmt: str = "markdown") ->
     Returns:
         Digest string.
     """
+    # Add trust coherence gate
+    status, issues = check_forecast_coherence(forecast_batch)
+    if status == "fail":
+        return json.dumps({
+            "digest_status": "rejected",
+            "reason": "Forecast batch failed coherence check",
+            "issues": issues
+        }, indent=2) if fmt == "json" else (
+            "# Strategos Digest\n\n❌ Forecast batch failed coherence check.\n" +
+            "\n".join(f"- {i}" for i in issues)
+        )
+
     if not forecast_batch:
         return "# Strategos Digest\n\n_No forecasts available._" if fmt == "markdown" else "[]"
     if fmt == "json":

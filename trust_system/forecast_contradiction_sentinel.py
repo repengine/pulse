@@ -1,7 +1,7 @@
 """
 Module: forecast_contradiction_sentinel.py
 Pulse Version: v0.100.6
-Location: pulse/trust/
+Location: trust_system/
 
 Purpose:
 Detect contradictions and symbolic drift in a batch of forecasts.

@@ -4,7 +4,7 @@ Adds:
 - PulseMirror trust coherence gate before digest is finalized.
 """
 
-from trust.pulse_mirror_core import check_forecast_coherence
+from trust_system.pulse_mirror_core import check_forecast_coherence
 
 def build_digest_from_forecasts(forecast_batch, mode="full"):
     """

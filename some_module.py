@@ -1,7 +1,7 @@
 """
 Module: pulse_lineage_tracker.py
 Pulse Version: v0.100.9
-Location: pulse/trust/
+Location: trust_system/
 
 Purpose:
 Traces how symbolic arcs and rule-based logic evolve across forecast ancestry.

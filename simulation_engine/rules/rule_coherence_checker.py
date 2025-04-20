@@ -1,7 +1,7 @@
 """
 Module: rule_coherence_checker.py
 Pulse Version: v0.100.3
-Location: pulse/rules/
+Location: simulation_engine/rules/
 
 Purpose:
 Scans rule_fingerprints.json to detect logical inconsistencies, loops, or contradictory effects.

@@ -4,7 +4,7 @@ Adds:
 - PulseMirror coherence gate before logging forecast to memory archive.
 """
 
-from trust.pulse_mirror_core import check_forecast_coherence
+from trust_system.pulse_mirror_core import check_forecast_coherence
 
 PFPA_ARCHIVE = []
 

@@ -8,6 +8,7 @@ Usage:
 """
 
 from typing import List, Dict, Callable
+from trust_system.forecast_contradiction_sentinel import scan_forecast_batch
 
 def check_coherence(forecasts: List[Dict], custom_checks: List[Callable[[Dict], str]] = None) -> List[str]:
     """
@@ -45,3 +46,27 @@ def check_trust_loop_integrity(forecasts: List[Dict]) -> List[str]:
         if label == "🔴 Fragile" and conf > 0.7:
             issues.append(f"Fragile forecast {tid} has high confidence ({conf})")
     return issues
+
+def check_forecast_coherence(forecast_batch):
+    """
+    Perform PulseMirror coherence scan on forecast batch.
+
+    Returns:
+        - 'pass' or 'fail'
+        - List of contradiction flags or summary
+    """
+    results = scan_forecast_batch(forecast_batch)
+    symbolic = results["symbolic_conflicts"]
+    capital = results["capital_conflicts"]
+    trust = results["confidence_flags"]
+
+    issues = []
+    if symbolic:
+        issues.extend([f"Symbolic: {x[0]} ⟷ {x[1]} – {x[2]}" for x in symbolic])
+    if capital:
+        issues.extend([f"Capital: {x[0]} ⟷ {x[1]} – {x[2]}" for x in capital])
+    if trust:
+        issues.extend([f"Trust mismatch: {t}" for t in trust])
+
+    status = "fail" if issues else "pass"
+    return status, issues

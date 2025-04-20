@@ -1,7 +1,7 @@
 """
 Module: pulse_rule_expander.py
 Pulse Version: v0.101.0
-Location: pulse/rules/
+Location: simulation_engine/rules/
 
 Purpose:
 Generate candidate new rules by analyzing regret chains, forecast arc shifts, and symbolic deltas not covered by known rule fingerprints.

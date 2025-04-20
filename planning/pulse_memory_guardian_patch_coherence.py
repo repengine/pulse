@@ -4,7 +4,7 @@ Adds:
 - Coherence-aware pruning: discards incoherent forecasts based on contradiction scan.
 """
 
-from trust.pulse_mirror_core import check_forecast_coherence
+from trust_system.pulse_mirror_core import check_forecast_coherence
 
 def prune_incoherent_forecasts(memory_batch, verbose=True):
     """

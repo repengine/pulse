@@ -1,7 +1,7 @@
 """
 Module: pulse_regret_chain.py
 Pulse Version: v0.100.4
-Location: pulse/trust/
+Location: trust_system/
 
 Purpose:
 Tracks a sequence of regret events — forecast errors, missed scenarios, symbolic contradictions — and stores them as a learning chain.

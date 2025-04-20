@@ -1,7 +1,7 @@
 """
 Module: pulse_lineage_scorer.py
 Pulse Version: v0.100.7
-Location: pulse/trust/
+Location: trust_system/
 
 Purpose:
 Scores symbolic coherence and divergence across a forecast lineage chain.

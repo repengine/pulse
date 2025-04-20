@@ -1,7 +1,7 @@
 """
 Module: forecast_memory_evolver.py
 Pulse Version: v0.100.5
-Location: pulse/trust/
+Location: trust_system/
 
 Purpose:
 Analyzes past regrets and forecast memory to evolve Pulse's trust system and symbolic weightings.

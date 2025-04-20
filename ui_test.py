@@ -35,6 +35,7 @@ from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
 from trust_system.pulse_mirror_core import check_coherence
 from simulation_engine.turn_engine import run_turn
+from trust_system.forecast_contradiction_sentinel import scan_forecast_batch
 
 
 class PulseControlApp:
@@ -80,6 +81,7 @@ class PulseControlApp:
         ttk.Button(btn_frame, text="Load Overlays", command=self.load_overlays).pack(side="left", padx=2)
         ttk.Button(btn_frame, text="Save Overlays", command=self.save_overlays).pack(side="left", padx=2)
         ttk.Button(btn_frame, text="Show Overlay JSON", command=self.show_overlay_json).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Check Contradictions", command=lambda: check_contradictions_from_ui(self)).pack(side="left", padx=2)
 
         # Overlay summary/interpretation
         ttk.Label(self.root, textvariable=self.summary_var, font=("Arial", 10, "italic"), foreground="blue").pack(pady=4)
@@ -549,6 +551,32 @@ class PulseControlApp:
         """Append a line of text to the log output window."""
         self.output.insert("end", text + "\n")
         self.output.see("end")
+
+
+def check_contradictions_from_ui(app):
+    file_path = filedialog.askopenfilename(filetypes=[("JSONL files", "*.jsonl")])
+    if not file_path:
+        app.log("No file selected.")
+        return
+    try:
+        with open(file_path, "r") as f:
+            forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+        result = scan_forecast_batch(forecasts)
+        app.log("✅ Contradiction Scan Complete:")
+        if result["symbolic_conflicts"]:
+            app.log(f"⚠️ Symbolic Conflicts ({len(result['symbolic_conflicts'])}):")
+            for c in result["symbolic_conflicts"]:
+                app.log(f"  {c[0]} ⟷ {c[1]} → {c[2]}")
+        if result["capital_conflicts"]:
+            app.log(f"⚠️ Capital Conflicts ({len(result['capital_conflicts'])}):")
+            for c in result["capital_conflicts"]:
+                app.log(f"  {c[0]} ⟷ {c[1]} → {c[2]}")
+        if result["confidence_flags"]:
+            app.log(f"⚠️ Trust Conflicts (Low confidence): {', '.join(result['confidence_flags'])}")
+        if not (result["symbolic_conflicts"] or result["capital_conflicts"] or result["confidence_flags"]):
+            app.log("✅ No contradictions detected.")
+    except Exception as e:
+        app.log(f"❌ Error scanning contradictions: {e}")
 
 
 if __name__ == "__main__":

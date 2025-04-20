@@ -7,7 +7,7 @@ If symbolic, capital, or trust contradictions are found in a batch,
 they will be reported as coherence failures.
 """
 
-from trust.forecast_contradiction_sentinel import scan_forecast_batch
+from trust_system.forecast_contradiction_sentinel import scan_forecast_batch
 
 def check_forecast_coherence(forecast_batch):
     """

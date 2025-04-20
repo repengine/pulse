@@ -17,7 +17,7 @@ Related:
 Author: Pulse AI Engine
 """
 
-from .reverse_rule_mapper import load_rule_fingerprints, match_rule_by_delta
+from simulation_engine.rules.reverse_rule_mapper import load_rule_fingerprints, match_rule_by_delta
 from typing import Dict, List, Any, Optional
 import logging
 

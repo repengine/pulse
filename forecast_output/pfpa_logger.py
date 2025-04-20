@@ -15,6 +15,7 @@ import datetime
 from utils.log_utils import get_logger
 from core.pulse_config import CONFIDENCE_THRESHOLD
 from core.path_registry import PATHS
+from trust_system.pulse_mirror_core import check_forecast_coherence
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,14 @@ def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str =
     """
     Logs a forecast to the PFPA archive, tagging if below confidence threshold.
     """
+    # Wrap in a list for coherence check
+    status_flag, issues = check_forecast_coherence([forecast_obj])
+    if status_flag == "fail":
+        logger.error(f"[PFPA] ❌ Forecast rejected due to coherence issues:")
+        for i in issues:
+            logger.error("  - %s", i)
+        return None
+
     if forecast_obj.get("confidence", 0) < CONFIDENCE_THRESHOLD:
         forecast_obj["trust_label"] = "🔴 Below threshold"
 

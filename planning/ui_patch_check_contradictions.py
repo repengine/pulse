@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 import json
 
-from trust.forecast_contradiction_sentinel import scan_forecast_batch
+from trust_system.forecast_contradiction_sentinel import scan_forecast_batch
 
 def check_contradictions_from_ui(app):
     file_path = filedialog.askopenfilename(filetypes=[("JSONL files", "*.jsonl")])
