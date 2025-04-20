@@ -5,9 +5,16 @@ Pulse v0.2 execution shell. Initializes simulation state, runs a short simulatio
 generates foresight forecasts, and prints Strategos Digest summaries.
 
 Author: Pulse v0.2
+
+Usage:
+    python main.py [--turns N]
+
+Options:
+    --turns N   Number of simulation turns to run (default: 5)
 """
 import sys
 import os
+import argparse
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.log_utils import get_logger
@@ -32,10 +39,17 @@ from forecast_output.pfpa_logger import log_forecast_to_pfpa
 from foresight_architecture.digest_exporter import export_digest, export_digest_json
 from forecast_output.strategos_digest_builder import build_digest
 from operator_interface.pulse_prompt_logger import log_prompt
-from diagnostics.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
-
+from forecast_engine.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
+from trust_system.retrodiction_engine import simulate_retrodiction_test
+from diagnostics.trust_audit import audit_forecasts
 
 def run_pulse_simulation(turns: int = 5):
+    """
+    Run the main Pulse simulation loop.
+
+    Args:
+        turns (int): Number of simulation turns to execute.
+    """
     logger.info("\n🌐 Initializing Pulse...\n")
     state = WorldState()
     memory = ForecastMemory()
@@ -57,16 +71,19 @@ def run_pulse_simulation(turns: int = 5):
 
 # Run post-simulation retrodiction test
 try:
-    from retrodiction_engine import simulate_retrodiction_test
+    from trust_system.retrodiction_engine import simulate_retrodiction_test
     simulate_retrodiction_test()
 except Exception as e:
     logger.warning(f"⚠️ Retrodiction failed: {e}")
 # Strategic trust audit
 try:
-    from trust_audit import audit_forecasts
+    from diagnostics.trust_audit import audit_forecasts
     audit_forecasts()
 except Exception as e:
     logger.warning(f"⚠️ Audit failed: {e}")
 
 if __name__ == "__main__":
-    run_pulse_simulation(turns=5)
+    parser = argparse.ArgumentParser(description="Pulse Simulation Engine")
+    parser.add_argument("--turns", type=int, default=5, help="Number of simulation turns to run")
+    args = parser.parse_args()
+    run_pulse_simulation(turns=args.turns)

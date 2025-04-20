@@ -1,0 +1,26 @@
+# simulation_config.yaml
+#
+# Pulse Simulation Configuration File
+#
+# This YAML file defines default parameters, scenario presets, and environment variables
+# for Pulse simulation runs. Edit this file to customize simulation behavior.
+#
+# Example structure:
+#
+# default:
+#   decay_rate: 0.1
+#   max_simulation_forks: 1000
+#   confidence_threshold: 0.95
+#   fragility_threshold: 0.7
+#
+# scenario_presets:
+#   - name: "High Volatility"
+#     variables:
+#       market_volatility_index: 0.8
+#       inflation_index: 0.07
+#   - name: "AI Regulation Stress"
+#     variables:
+#       ai_policy_risk: 0.9
+#       public_trust_level: 0.3
+#
+# Add additional keys as needed for your simulation modules.

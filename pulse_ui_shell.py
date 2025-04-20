@@ -10,21 +10,35 @@ Supports:
 - Auto-hooked CLI modules from pulse_hooks_config.json
 
 Author: Pulse v0.20
-"""
 
+Usage:
+    python pulse_ui_shell.py --mode [run|test|suite|batch|view|hook] [options]
+    python pulse_ui_shell.py --help_hooks
+
+Options:
+    --mode         Choose a mode: run, test, suite, batch, view, or hook name
+    --turns        Number of simulation turns
+    --domain       Forecast domain (capital, sports, etc.)
+    --top          Forecasts to show in view mode
+    --quiet        Suppress logs
+    --count        Forecasts to generate (batch mode)
+    --help_hooks   List all active CLI hooks
+
+"""
 import argparse
 import json
 import os
 import importlib
+from typing import Any
 from simulation_engine.turn_engine import run_turn
 from simulation_engine.worldstate import WorldState
 from simulation_engine.utils.worldstate_io import load_worldstate_from_file as load_worldstate, save_worldstate_to_file as save_worldstate
 from core.variable_registry import validate_variables
 from dev_tools.rule_dev_shell import test_rules
-from simulation_engine.forecasting.forecast_log_viewer import load_and_display_forecasts
+from forecast_engine.forecast_log_viewer import load_and_display_forecasts
 from dev_tools.pulse_test_suite import test_symbolic_shift, test_capital_shift
 from dev_tools.pulse_forecast_test_suite import run_forecast_validation
-from simulation_engine.forecasting.forecast_batch_runner import run_batch_forecasts
+from forecast_engine.forecast_batch_runner import run_batch_forecasts
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from core.pulse_config import MODULES_ENABLED
@@ -38,7 +52,19 @@ if os.path.exists(HOOKS_JSON):
     with open(HOOKS_JSON, "r", encoding="utf-8") as f:
         hook_data = json.load(f)
 
-def safe_hook_import(hook_name):
+# --- Utility: List all available simulation domains ---
+def list_domains() -> None:
+    """Print all available simulation domains and their descriptions."""
+    if hasattr(VARIABLE_REGISTRY, 'DOMAINS'):
+        print("Available domains:")
+        for d, meta in VARIABLE_REGISTRY.DOMAINS.items():
+            desc = meta.get("description", "")
+            print(f"  {d:<12} {desc}")
+    else:
+        print("Domain registry not found.")
+
+def safe_hook_import(hook_name: str) -> None:
+    """Safely import and run a CLI hook module by name."""
     try:
         mod = importlib.import_module(hook_name)
         if hasattr(mod, "main"):
@@ -48,7 +74,8 @@ def safe_hook_import(hook_name):
     except Exception as e:
         logger.error(f"⚠️ Failed to execute hook '{hook_name}': {e}")
 
-def print_active_hooks():
+def print_active_hooks() -> None:
+    """Print all active CLI hooks with labels."""
     if hook_data["active_hooks"]:
         print("\n🧩 Available CLI Hooks:")
         for hook, enabled in hook_data["active_hooks"].items():
@@ -56,7 +83,16 @@ def print_active_hooks():
                 label = hook_data["metadata"].get(hook, {}).get("label", "hooked module")
                 print(f"  --{hook:<24} {label}")
 
-def main():
+# --- Error handling for worldstate file loading ---
+def try_load_worldstate(path: str) -> Any:
+    try:
+        return load_worldstate(path)
+    except Exception as e:
+        logger.error(f"Failed to load worldstate from {path}: {e}")
+        print(f"❌ Failed to load worldstate from {path}: {e}")
+        return None
+
+def main() -> None:
     parser = argparse.ArgumentParser(description="Pulse CLI Shell")
     parser.add_argument("--mode", type=str, default="run", help="Choose a mode: run, test, suite, batch, view, or hook name")
     parser.add_argument("--turns", type=int, default=1, help="Number of simulation turns")
@@ -65,6 +101,7 @@ def main():
     parser.add_argument("--quiet", action="store_true", help="Suppress logs")
     parser.add_argument("--count", type=int, default=5, help="Forecasts to generate (batch mode)")
     parser.add_argument("--help_hooks", action="store_true", help="List all active CLI hooks")
+    parser.add_argument("--list_domains", action="store_true", help="List all available simulation domains")
 
     # Dynamically add hook args
     for hook, active in hook_data["active_hooks"].items():
@@ -74,6 +111,11 @@ def main():
             parser.add_argument(f"--{hook}", action="store_true", help=f"[{category}] {label}")
 
     args = parser.parse_args()
+
+    # Print available domains if requested
+    if getattr(args, "list_domains", False):
+        list_domains()
+        return
 
     if args.help_hooks:
         print_active_hooks()
@@ -116,7 +158,9 @@ def main():
     input_path = PATHS.get("WORLDSTATE_INPUT", "simulation_engine/worldstate_input.json")
     output_path = PATHS.get("WORLDSTATE_OUTPUT", "simulation_engine/worldstate_output.json")
     print(f"🧠 Loading worldstate from {input_path}")
-    state = load_worldstate(input_path)
+    state = try_load_worldstate(input_path)
+    if state is None:
+        return
 
     # Validate worldstate variables
     ESTIMATE_MISSING = MODULES_ENABLED.get("estimate_missing_variables", False)
@@ -150,8 +194,12 @@ def main():
         print(f" - {line}")
 
     print(f"\n💾 Saving worldstate to {output_path}")
-    save_worldstate(state, output_path)
-    print("✅ Simulation complete.")
+    try:
+        save_worldstate(state, output_path)
+        print("✅ Simulation complete.")
+    except Exception as e:
+        logger.error(f"Failed to save worldstate: {e}")
+        print(f"❌ Failed to save worldstate: {e}")
 
 if __name__ == "__main__":
     main()

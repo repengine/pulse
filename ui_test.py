@@ -12,6 +12,9 @@ Features:
 - NEW: Symbolic Arc pop-out matplotlib graph
 
 Author: Pulse AI Engine
+
+This is a developer/test tool for interactive symbolic overlay and forecast batch testing.
+Requirements: tkinter, matplotlib, csv, Pulse core modules.
 """
 
 import tkinter as tk
@@ -35,7 +38,8 @@ from simulation_engine.turn_engine import run_turn
 
 
 class PulseControlApp:
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk):
+        """Initialize the PulseControlApp UI and state."""
         self.root = root
         self.root.title("Pulse UI Tester")
         self.state = WorldState()
@@ -56,7 +60,8 @@ class PulseControlApp:
         self.setup_ui()
         self.update_overlay_summary()  # Initialize summary
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
+        """Set up the Tkinter UI widgets and layout."""
         ttk.Label(self.root, text="Symbolic Overlays", font=("Arial", 12, "bold")).pack(pady=5)
         for k, var in self.overlay_vars.items():
             frame = ttk.Frame(self.root)
@@ -116,7 +121,7 @@ class PulseControlApp:
 
         self.log("Pulse Dev UI Ready.")
 
-    def update_overlay_summary(self):
+    def update_overlay_summary(self) -> None:
         """Update the summary label with a human-readable interpretation of overlays."""
         overlay = {k: v.get() for k, v in self.overlay_vars.items()}
         # Simple interpretation logic
@@ -135,7 +140,7 @@ class PulseControlApp:
         # Add more nuance if needed
         self.summary_var.set(f"Interpretation: {mood} ({dominant.capitalize()}={val:.2f})")
 
-    def run_n_turns(self):
+    def run_n_turns(self) -> None:
         """Run N simulation turns and update overlays accordingly."""
         try:
             n = self.turns.get()
@@ -153,7 +158,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Error running turns: {e}")
 
-    def apply_overlays(self):
+    def apply_overlays(self) -> None:
+        """Apply the current overlay values to the simulation state."""
         overlay = {k: round(v.get(), 3) for k, v in self.overlay_vars.items()}
         try:
             self.state.symbolic = overlay
@@ -164,13 +170,15 @@ class PulseControlApp:
                 self.state.set_overlay(overlay)
         self.log(f"Applied overlays: {overlay}")
 
-    def reset_overlays(self):
+    def reset_overlays(self) -> None:
+        """Reset all overlays to default (0.5) and apply to state."""
         for var in self.overlay_vars.values():
             var.set(0.5)
         self.apply_overlays()
         self.log("🔄 Overlays reset to default.")
 
-    def load_overlays(self):
+    def load_overlays(self) -> None:
+        """Load overlay values from a JSON file and apply them."""
         file = filedialog.askopenfilename(filetypes=[("JSON", "*.json")])
         if file:
             try:
@@ -184,7 +192,8 @@ class PulseControlApp:
             except Exception as e:
                 self.log(f"❌ Overlay load error: {e}")
 
-    def save_overlays(self):
+    def save_overlays(self) -> None:
+        """Save current overlay values to a JSON file."""
         file = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON", "*.json")])
         if file:
             overlay = {k: round(v.get(), 3) for k, v in self.overlay_vars.items()}
@@ -195,12 +204,14 @@ class PulseControlApp:
             except Exception as e:
                 self.log(f"❌ Overlay save error: {e}")
 
-    def show_overlay_json(self):
+    def show_overlay_json(self) -> None:
+        """Display the current overlays as JSON in the log."""
         overlay = {k: round(v.get(), 3) for k, v in self.overlay_vars.items()}
         self.log("📝 Current Overlays JSON:")
         self.log(json.dumps(overlay, indent=2))
 
-    def run_batch(self):
+    def run_batch(self) -> None:
+        """Run a batch of forecasts using the current overlays and batch size."""
         try:
             self.apply_overlays()
             size = self.batch_size.get()
@@ -215,7 +226,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Batch error: {e}")
 
-    def save_batch(self):
+    def save_batch(self) -> None:
+        """Save the last forecast batch to a JSONL file."""
         if not self.last_batch:
             self.log("⚠️ No batch to save.")
             return
@@ -229,7 +241,8 @@ class PulseControlApp:
             except Exception as e:
                 self.log(f"❌ Save failed: {e}")
 
-    def show_digest(self):
+    def show_digest(self) -> None:
+        """Display the Strategos Digest for the last batch."""
         if not self.last_batch:
             self.log("⚠️ No forecasts to display.")
             return
@@ -241,7 +254,8 @@ class PulseControlApp:
             except Exception as e:
                 self.log(f"Tile error: {e}")
 
-    def score_trace(self):
+    def score_trace(self) -> None:
+        """Score the current overlays as a symbolic trace."""
         try:
             trace = [{"hope": v.get(), "despair": 1 - v.get(), "rage": 0.5, "fatigue": 0.5}
                      for k, v in self.overlay_vars.items() if k == "hope"]
@@ -250,7 +264,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Trace scoring error: {e}")
 
-    def score_trace_from_file(self):
+    def score_trace_from_file(self) -> None:
+        """Score a symbolic trace loaded from a JSONL file."""
         file = filedialog.askopenfilename(filetypes=[("JSONL", "*.jsonl")])
         if file:
             try:
@@ -262,7 +277,8 @@ class PulseControlApp:
             except Exception as e:
                 self.log(f"❌ File scoring error: {e}")
 
-    def show_symbolic_arc(self):
+    def show_symbolic_arc(self) -> None:
+        """Plot the symbolic arc for the last batch using matplotlib."""
         if not self.last_batch:
             self.log("⚠️ No forecasts to graph.")
             return
@@ -289,7 +305,8 @@ class PulseControlApp:
         plt.tight_layout()
         plt.show()
 
-    def backtrace_and_graph(self):
+    def backtrace_and_graph(self) -> None:
+        """Run a backward simulation and plot the resulting symbolic arc."""
         try:
             from simulation_engine.simulator_core import simulate_backward
             from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
@@ -330,7 +347,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Backtrace error: {e}")
 
-    def load_and_replay_trace(self):
+    def load_and_replay_trace(self) -> None:
+        """Load a simulation trace from file and replay overlays in the log."""
         file = filedialog.askopenfilename(filetypes=[("JSONL", "*.jsonl")])
         if not file:
             return
@@ -344,10 +362,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Trace replay error: {e}")
 
-    def load_and_visualize_trace(self):
-        """
-        Load a .jsonl simulation trace and interactively plot overlays, variables, or tags.
-        """
+    def load_and_visualize_trace(self) -> None:
+        """Load a .jsonl simulation trace and interactively plot overlays, variables, or tags."""
         file = filedialog.askopenfilename(filetypes=[("JSONL", "*.jsonl")])
         if not file:
             return
@@ -392,10 +408,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Trace visualization error: {e}")
 
-    def prune_memory(self):
-        """
-        Prune memory forecasts below a user-specified confidence threshold.
-        """
+    def prune_memory(self) -> None:
+        """Prune memory forecasts below a user-specified confidence threshold."""
         try:
             memory = ForecastMemory()
             threshold = simpledialog.askfloat("Prune Memory", "Delete forecasts below confidence:")
@@ -409,10 +423,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Prune error: {e}")
 
-    def run_memory_audit(self):
-        """
-        Runs a memory audit and displays summary statistics, with user feedback dialog.
-        """
+    def run_memory_audit(self) -> None:
+        """Run a memory audit and display summary statistics with user feedback dialog."""
         try:
             memory = ForecastMemory()
             import io
@@ -447,10 +459,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Memory audit error: {e}")
 
-    def export_memory_audit(self):
-        """
-        Export the last memory audit to CSV.
-        """
+    def export_memory_audit(self) -> None:
+        """Export the last memory audit to CSV."""
         try:
             if not hasattr(self, "memory_audit_last") or not self.memory_audit_last.get("raw"):
                 self.log("⚠️ Run memory audit first.")
@@ -471,10 +481,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Export error: {e}")
 
-    def plot_memory_stats(self):
-        """
-        Plot memory audit statistics (domain distribution, confidence histogram).
-        """
+    def plot_memory_stats(self) -> None:
+        """Plot memory audit statistics (domain distribution, confidence histogram)."""
         try:
             if not hasattr(self, "memory_audit_last") or not self.memory_audit_last.get("raw"):
                 self.log("⚠️ Run memory audit first.")
@@ -497,10 +505,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Plot error: {e}")
 
-    def run_coherence_check(self):
-        """
-        Runs a coherence check on the last batch and displays warnings or success, with user feedback dialog.
-        """
+    def run_coherence_check(self) -> None:
+        """Run a coherence check on the last batch and display warnings or success."""
         if not self.last_batch:
             self.log("⚠️ No forecasts to check.")
             return
@@ -518,10 +524,8 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Coherence check error: {e}")
 
-    def export_coherence_warnings(self):
-        """
-        Export the last coherence warnings to a text file.
-        """
+    def export_coherence_warnings(self) -> None:
+        """Export the last coherence warnings to a text file."""
         try:
             if not hasattr(self, "coherence_warnings_last"):
                 self.log("⚠️ Run coherence check first.")
@@ -536,11 +540,13 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Export error: {e}")
 
-    def clear_log(self):
+    def clear_log(self) -> None:
+        """Clear the log output window."""
         self.output.delete("1.0", "end")
         self.log("🧹 Log cleared.")
 
-    def log(self, text):
+    def log(self, text: str) -> None:
+        """Append a line of text to the log output window."""
         self.output.insert("end", text + "\n")
         self.output.see("end")
 

@@ -11,6 +11,8 @@ Supports:
   - run-turns [N]
   - set-overlay [name] [value]
   - show-overlays
+  - list-overlays
+  - show-log [N]
   - load-worldstate [file]
   - show-forecast
   - compare-drift [file1 file2]
@@ -32,6 +34,7 @@ Log Output: logs/interactive_shell_log.jsonl
 
 import json
 import os
+import readline  # For command history and editing
 from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
@@ -51,11 +54,13 @@ INTERACTIVE_LOG_PATH = PATHS.get("INTERACTIVE_LOG_PATH", "logs/interactive_shell
 symbolic_overlays = {name: 0.5 for name in getattr(__import__('core.pulse_config'), 'OVERLAY_NAMES', ["hope", "despair", "rage", "fatigue", "trust"])}
 
 # Ensure log dir exists
-def ensure_log_dir(path: str):
+def ensure_log_dir(path: str) -> None:
+    """Ensure the directory for the log file exists."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 # Structured logger
-def log_interaction(command: str, result: str):
+def log_interaction(command: str, result: str) -> None:
+    """Log a shell interaction to the JSONL log file."""
     ensure_log_dir(INTERACTIVE_LOG_PATH)
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
@@ -73,7 +78,7 @@ def log_interaction(command: str, result: str):
         print(f"[LOG ERROR] {e}")
 
 # Command handlers
-def cmd_help(args: List[str]):
+def cmd_help(args: List[str]) -> None:
     """
     Lists all available commands and their usage.
     """
@@ -83,13 +88,20 @@ def cmd_help(args: List[str]):
         print(f"  {name:<16} {doc.strip().splitlines()[0] if doc else ''}")
     log_interaction("help", "displayed")
 
-def cmd_show_overlays(args: List[str]):
+def cmd_show_overlays(args: List[str]) -> None:
     """Display current overlay values"""
     for k, v in symbolic_overlays.items():
         print(f"  {k:<8}: {v:.3f}")
     log_interaction("show-overlays", "ok")
 
-def cmd_set_overlay(args: List[str]):
+def cmd_list_overlays(args: List[str]) -> None:
+    """List all available overlay names"""
+    print("Available overlays:")
+    for k in symbolic_overlays.keys():
+        print(f"  {k}")
+    log_interaction("list-overlays", "ok")
+
+def cmd_set_overlay(args: List[str]) -> None:
     """Set a symbolic overlay value"""
     if len(args) != 2:
         print("Usage: set-overlay [name] [value]")
@@ -108,7 +120,7 @@ def cmd_set_overlay(args: List[str]):
         print("Invalid numeric value.")
         log_interaction("set-overlay", "error")
 
-def cmd_run_turns(args: List[str]):
+def cmd_run_turns(args: List[str]) -> None:
     """Run N turns of simulation (stub)"""
     if len(args) != 1 or not args[0].isdigit():
         print("Usage: run-turns [N]")
@@ -116,7 +128,7 @@ def cmd_run_turns(args: List[str]):
     print(f"[Stub] Running {args[0]} turns...")
     log_interaction("run-turns", f"{args[0]} turns run")
 
-def cmd_load_worldstate(args: List[str]):
+def cmd_load_worldstate(args: List[str]) -> None:
     """Load a saved worldstate (stub)"""
     if not args:
         print("Usage: load-worldstate [file]")
@@ -124,12 +136,12 @@ def cmd_load_worldstate(args: List[str]):
     print(f"[Stub] Loaded worldstate from {args[0]}")
     log_interaction("load-worldstate", f"{args[0]}")
 
-def cmd_show_forecast(args: List[str]):
+def cmd_show_forecast(args: List[str]) -> None:
     """Trigger forecast generation (stub)"""
     print("[Stub] Forecast generated.")
     log_interaction("show-forecast", "run")
 
-def cmd_compare_drift(args: List[str]):
+def cmd_compare_drift(args: List[str]) -> None:
     """Compare drift between two forecast logs"""
     if len(args) != 2:
         print("Usage: compare-drift [file1] [file2]")
@@ -137,14 +149,14 @@ def cmd_compare_drift(args: List[str]):
     print(f"[Stub] Compared {args[0]} vs {args[1]}")
     log_interaction("compare-drift", f"{args[0]} vs {args[1]}")
 
-def cmd_memory_audit(args: List[str]):
+def cmd_memory_audit(args: List[str]) -> None:
     """
     Run memory audit and print results.
     """
     memory = ForecastMemory()
     audit_memory(memory)
 
-def cmd_coherence_check(args: List[str]):
+def cmd_coherence_check(args: List[str]) -> None:
     """
     Check coherence of recent forecasts.
     """
@@ -157,7 +169,7 @@ def cmd_coherence_check(args: List[str]):
     else:
         print("✅ All forecasts are coherent.")
 
-def cmd_view_trace(args: List[str]):
+def cmd_view_trace(args: List[str]) -> None:
     """
     View a simulation trace file.
     Usage: view-trace <trace.jsonl>
@@ -172,7 +184,21 @@ def cmd_view_trace(args: List[str]):
     except Exception as e:
         print(f"Trace load error: {e}")
 
-def cmd_exit(args: List[str]):
+def cmd_show_log(args: List[str]) -> None:
+    """Show recent interaction log entries"""
+    n = int(args[0]) if args and args[0].isdigit() else 10
+    try:
+        with open(INTERACTIVE_LOG_PATH, "r") as f:
+            lines = f.readlines()[-n:]
+        for line in lines:
+            entry = json.loads(line)
+            print(f"[{entry['timestamp']}] {entry['command']} -> {entry['result']}")
+        log_interaction("show-log", f"last {n} entries")
+    except Exception as e:
+        print(f"Log read error: {e}")
+        log_interaction("show-log", "error")
+
+def cmd_exit(args: List[str]) -> None:
     """Exit the strategist shell"""
     log_interaction("exit", "shutdown")
     raise SystemExit("Goodbye.")
@@ -183,6 +209,7 @@ COMMANDS: Dict[str, Callable[[List[str]], None]] = {
     "exit": cmd_exit,
     "quit": cmd_exit,
     "show-overlays": cmd_show_overlays,
+    "list-overlays": cmd_list_overlays,
     "set-overlay": cmd_set_overlay,
     "run-turns": cmd_run_turns,
     "load-worldstate": cmd_load_worldstate,
@@ -191,11 +218,14 @@ COMMANDS: Dict[str, Callable[[List[str]], None]] = {
     "memory-audit": cmd_memory_audit,
     "coherence-check": cmd_coherence_check,
     "view-trace": cmd_view_trace,
+    "show-log": cmd_show_log,
 }
 
-def run_shell():
+def run_shell() -> None:
+    """Main interactive shell loop."""
     print("🔮 Pulse Strategist Shell v0.22.2")
-    print("Type 'help' for commands.")
+    print("Type 'help' for commands. Use tab for completion. Use up/down for history.")
+    readline.parse_and_bind('tab: complete')
     while True:
         try:
             raw = input("pulse> ").strip()
