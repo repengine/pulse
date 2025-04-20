@@ -44,7 +44,7 @@ from core.pulse_config import DEFAULT_DECAY_RATE
 from core.pulse_config import OVERLAY_NAMES
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
-from trust_system.pulse_mirror_core import check_coherence
+from trust_system.trust_engine import TrustEngine
 
 logger = get_logger(__name__)
 
@@ -161,7 +161,7 @@ def cmd_coherence_check(args: List[str]) -> None:
     Check coherence of recent forecasts.
     """
     memory = ForecastMemory()
-    warnings = check_coherence(memory._memory)
+    warnings = TrustEngine.check_forecast_coherence(memory._memory)
     if warnings:
         print("⚠️ Coherence Warnings:")
         for w in warnings:

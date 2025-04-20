@@ -33,9 +33,8 @@ from forecast_output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
-from trust_system.pulse_mirror_core import check_coherence
 from simulation_engine.turn_engine import run_turn
-from trust_system.forecast_contradiction_sentinel import scan_forecast_batch
+from trust_system.trust_engine import TrustEngine
 
 
 class PulseControlApp:
@@ -513,7 +512,7 @@ class PulseControlApp:
             self.log("⚠️ No forecasts to check.")
             return
         try:
-            warnings = check_coherence(self.last_batch)
+            warnings = TrustEngine.check_forecast_coherence(self.last_batch)
             self.coherence_warnings_last = warnings
             if warnings:
                 self.log("⚠️ Coherence Warnings:")
@@ -561,7 +560,7 @@ def check_contradictions_from_ui(app):
     try:
         with open(file_path, "r") as f:
             forecasts = [json.loads(line.strip()) for line in f if line.strip()]
-        result = scan_forecast_batch(forecasts)
+        result = TrustEngine.scan_forecast_batch(forecasts)
         app.log("✅ Contradiction Scan Complete:")
         if result["symbolic_conflicts"]:
             app.log(f"⚠️ Symbolic Conflicts ({len(result['symbolic_conflicts'])}):")

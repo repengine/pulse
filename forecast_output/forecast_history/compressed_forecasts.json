@@ -1,232 +1,102 @@
 [
   {
-    "horizon_days": 2,
-    "forecast": {
-      "duration_days": 2,
-      "symbolic_fragility": 0.625,
-      "start_capital": {
-        "nvda": 0.0,
-        "msft": 0.0,
-        "ibit": 0.0,
-        "spy": 0.0,
-        "cash": 100000.0
+    "tag": "unknown",
+    "count": 3,
+    "avg_confidence": 0.95,
+    "top_drivers": [],
+    "examples": [
+      {
+        "horizon_days": 2,
+        "forecast": {
+          "duration_days": 2,
+          "symbolic_fragility": 0.0,
+          "start_capital": {
+            "nvda": 0.0,
+            "msft": 0.0,
+            "ibit": 0.0,
+            "spy": 0.0,
+            "cash": 100000.0
+          },
+          "end_capital": {
+            "nvda": 0.0,
+            "msft": 0.0,
+            "ibit": 0.0,
+            "spy": 0.0,
+            "cash": 100000.0
+          },
+          "symbolic_change": {
+            "hope": 0.0,
+            "despair": 0.0,
+            "rage": 0.0,
+            "fatigue": 0.0,
+            "trust": 0.0
+          },
+          "tags": [],
+          "confidence": null
+        },
+        "fragility": 0.0,
+        "exposure": {
+          "nvda": 0.0,
+          "msft": 0.0,
+          "ibit": 0.0,
+          "spy": 0.0,
+          "cash": 100000.0
+        },
+        "alignment": {
+          "bias": "neutral"
+        },
+        "confidence": 0.95,
+        "trace_id": "fcast_turn_34210",
+        "origin_turn": 34210,
+        "status": "\ud83d\udfe2 Trusted",
+        "timestamp": "2025-04-20T08:14:46.652211"
       },
-      "end_capital": {
-        "nvda": 125.0,
-        "msft": -20.0,
-        "ibit": -120.0,
-        "spy": 112.5,
-        "cash": 100000.0
-      },
-      "symbolic_change": {
-        "hope": 0.0,
-        "despair": 0.0,
-        "rage": 0.0,
-        "fatigue": 0.0,
-        "trust": 0.0
-      },
-      "tags": [],
-      "confidence": null
-    },
-    "fragility": 0.625,
-    "exposure": {
-      "nvda": 125.0,
-      "msft": -20.0,
-      "ibit": -120.0,
-      "spy": 112.5,
-      "cash": 100000.0
-    },
-    "alignment": {
-      "bias": "neutral"
-    },
-    "confidence": 0.95,
-    "trace_id": "fcast_turn_0",
-    "origin_turn": 0,
-    "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:56:23.256171"
-  },
-  {
-    "horizon_days": 2,
-    "forecast": {
-      "duration_days": 2,
-      "symbolic_fragility": 0.625,
-      "start_capital": {
-        "nvda": 125.0,
-        "msft": -20.0,
-        "ibit": -120.0,
-        "spy": 112.5,
-        "cash": 100000.0
-      },
-      "end_capital": {
-        "nvda": 250.0,
-        "msft": -40.0,
-        "ibit": -240.0,
-        "spy": 225.0,
-        "cash": 100000.0
-      },
-      "symbolic_change": {
-        "hope": 0.0,
-        "despair": 0.0,
-        "rage": 0.0,
-        "fatigue": 0.0,
-        "trust": 0.0
-      },
-      "tags": [],
-      "confidence": null
-    },
-    "fragility": 0.625,
-    "exposure": {
-      "nvda": 250.0,
-      "msft": -40.0,
-      "ibit": -240.0,
-      "spy": 225.0,
-      "cash": 100000.0
-    },
-    "alignment": {
-      "bias": "neutral"
-    },
-    "confidence": 0.95,
-    "trace_id": "fcast_turn_0",
-    "origin_turn": 0,
-    "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:56:23.256210"
-  },
-  {
-    "horizon_days": 2,
-    "forecast": {
-      "duration_days": 2,
-      "symbolic_fragility": 0.625,
-      "start_capital": {
-        "nvda": 250.0,
-        "msft": -40.0,
-        "ibit": -240.0,
-        "spy": 225.0,
-        "cash": 100000.0
-      },
-      "end_capital": {
-        "nvda": 375.0,
-        "msft": -60.0,
-        "ibit": -360.0,
-        "spy": 337.5,
-        "cash": 100000.0
-      },
-      "symbolic_change": {
-        "hope": 0.0,
-        "despair": 0.0,
-        "rage": 0.0,
-        "fatigue": 0.0,
-        "trust": 0.0
-      },
-      "tags": [],
-      "confidence": null
-    },
-    "fragility": 0.625,
-    "exposure": {
-      "nvda": 375.0,
-      "msft": -60.0,
-      "ibit": -360.0,
-      "spy": 337.5,
-      "cash": 100000.0
-    },
-    "alignment": {
-      "bias": "neutral"
-    },
-    "confidence": 0.95,
-    "trace_id": "fcast_turn_0",
-    "origin_turn": 0,
-    "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:56:23.256236"
-  },
-  {
-    "horizon_days": 2,
-    "forecast": {
-      "duration_days": 2,
-      "symbolic_fragility": 0.625,
-      "start_capital": {
-        "nvda": 375.0,
-        "msft": -60.0,
-        "ibit": -360.0,
-        "spy": 337.5,
-        "cash": 100000.0
-      },
-      "end_capital": {
-        "nvda": 500.0,
-        "msft": -80.0,
-        "ibit": -480.0,
-        "spy": 450.0,
-        "cash": 100000.0
-      },
-      "symbolic_change": {
-        "hope": 0.0,
-        "despair": 0.0,
-        "rage": 0.0,
-        "fatigue": 0.0,
-        "trust": 0.0
-      },
-      "tags": [],
-      "confidence": null
-    },
-    "fragility": 0.625,
-    "exposure": {
-      "nvda": 500.0,
-      "msft": -80.0,
-      "ibit": -480.0,
-      "spy": 450.0,
-      "cash": 100000.0
-    },
-    "alignment": {
-      "bias": "neutral"
-    },
-    "confidence": 0.95,
-    "trace_id": "fcast_turn_0",
-    "origin_turn": 0,
-    "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:56:23.256257"
-  },
-  {
-    "horizon_days": 2,
-    "forecast": {
-      "duration_days": 2,
-      "symbolic_fragility": 0.625,
-      "start_capital": {
-        "nvda": 500.0,
-        "msft": -80.0,
-        "ibit": -480.0,
-        "spy": 450.0,
-        "cash": 100000.0
-      },
-      "end_capital": {
-        "nvda": 625.0,
-        "msft": -100.0,
-        "ibit": -600.0,
-        "spy": 562.5,
-        "cash": 100000.0
-      },
-      "symbolic_change": {
-        "hope": 0.0,
-        "despair": 0.0,
-        "rage": 0.0,
-        "fatigue": 0.0,
-        "trust": 0.0
-      },
-      "tags": [],
-      "confidence": null
-    },
-    "fragility": 0.625,
-    "exposure": {
-      "nvda": 625.0,
-      "msft": -100.0,
-      "ibit": -600.0,
-      "spy": 562.5,
-      "cash": 100000.0
-    },
-    "alignment": {
-      "bias": "neutral"
-    },
-    "confidence": 0.95,
-    "trace_id": "fcast_turn_0",
-    "origin_turn": 0,
-    "status": "\ud83d\udfe2 Trusted",
-    "timestamp": "2025-04-18T17:56:23.256279"
+      {
+        "horizon_days": 2,
+        "forecast": {
+          "duration_days": 2,
+          "symbolic_fragility": 0.0,
+          "start_capital": {
+            "nvda": 0.0,
+            "msft": 0.0,
+            "ibit": 0.0,
+            "spy": 0.0,
+            "cash": 100000.0
+          },
+          "end_capital": {
+            "nvda": 0.0,
+            "msft": 0.0,
+            "ibit": 0.0,
+            "spy": 0.0,
+            "cash": 100000.0
+          },
+          "symbolic_change": {
+            "hope": 0.0,
+            "despair": 0.0,
+            "rage": 0.0,
+            "fatigue": 0.0,
+            "trust": 0.0
+          },
+          "tags": [],
+          "confidence": null
+        },
+        "fragility": 0.0,
+        "exposure": {
+          "nvda": 0.0,
+          "msft": 0.0,
+          "ibit": 0.0,
+          "spy": 0.0,
+          "cash": 100000.0
+        },
+        "alignment": {
+          "bias": "neutral"
+        },
+        "confidence": 0.95,
+        "trace_id": "fcast_turn_34210",
+        "origin_turn": 34210,
+        "status": "\ud83d\udfe2 Trusted",
+        "timestamp": "2025-04-20T08:14:46.652252"
+      }
+    ]
   }
 ]

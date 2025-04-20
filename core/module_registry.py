@@ -19,7 +19,7 @@ MODULE_REGISTRY: Dict[str, Dict[str, Any]] = {
     "simulation_replayer": {"version": "v0.003", "enabled": False},
     "forecast_tracker": {"version": "v0.005", "enabled": True},
     "symbolic_memory": {"version": "v0.020", "enabled": True},
-    "pulse_mirror_core": {"version": "v0.030", "enabled": False},
+    "trust_engine": {"version": "v0.030", "enabled": False},
     # Add new modules here as needed for gating
 }
 

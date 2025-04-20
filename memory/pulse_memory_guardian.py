@@ -8,7 +8,7 @@ Usage:
 """
 
 from memory.forecast_memory import ForecastMemory
-from trust_system.pulse_mirror_core import check_forecast_coherence
+from trust_system.trust_engine import TrustEngine
 
 def prune_memory(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False):
     """
@@ -32,7 +32,7 @@ def prune_incoherent_forecasts(memory_batch, verbose=True):
     """
     retained = []
     for forecast in memory_batch:
-        status, issues = check_forecast_coherence([forecast])
+        status, issues = TrustEngine.check_forecast_coherence([forecast])
         if status == "pass":
             retained.append(forecast)
         elif verbose:
