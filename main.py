@@ -7,10 +7,11 @@ generates foresight forecasts, and prints Strategos Digest summaries.
 Author: Pulse v0.2
 
 Usage:
-    python main.py [--turns N]
+    python main.py [--turns N] [--output FILE]
 
 Options:
     --turns N   Number of simulation turns to run (default: 5)
+    --output FILE   Optional output file for digest
 """
 import sys
 import os
@@ -85,5 +86,14 @@ except Exception as e:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Simulation Engine")
     parser.add_argument("--turns", type=int, default=5, help="Number of simulation turns to run")
+    parser.add_argument("--output", type=str, default=None, help="Optional output file for digest")
     args = parser.parse_args()
     run_pulse_simulation(turns=args.turns)
+    if args.output:
+        try:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write("# Strategos Digest\n\n")
+                f.write(str(generate_strategos_digest(ForecastMemory(), n=min(args.turns, 5))))
+            logger.info(f"Digest exported to {args.output}")
+        except Exception as e:
+            logger.error(f"Failed to export digest: {e}")

@@ -38,26 +38,44 @@ def run_turn(
     3. Execute structured causal rules (auditable)
     4. Run optional external logic
     5. Increment turn
+    6. Log state changes for traceability
 
     Returns:
         list: Rule audit log (rule ID, tags, deltas)
     """
+    try:
+        # Step 1: Symbolic decay (for each overlay variable)
+        for overlay_name in state.overlays.as_dict():
+            decay_overlay(state, overlay_name, rate=decay_rate)
+        state.log_state_change("Symbolic decay applied to overlays.")
+    except Exception as e:
+        state.log_state_change(f"[ERROR] Symbolic decay failed: {e}")
 
-    # Step 1: Symbolic decay (for each overlay variable)
-    for overlay_name in state.overlays.as_dict():
-        decay_overlay(state, overlay_name, rate=decay_rate)
+    try:
+        # Step 2: Apply symbolic and capital shifts (non-audited)
+        apply_causal_rules(state)
+        state.log_state_change("Causal rules applied.")
+    except Exception as e:
+        state.log_state_change(f"[ERROR] Causal rules failed: {e}")
 
-    # Step 2: Apply symbolic and capital shifts (non-audited)
-    apply_causal_rules(state)
-
-    # Step 3: Run structured rule engine and capture audit log
-    rule_execution_log = run_rules(state, verbose=verbose)
+    try:
+        # Step 3: Run structured rule engine and capture audit log
+        rule_execution_log = run_rules(state, verbose=verbose)
+        state.log_state_change("Structured rule engine executed.")
+    except Exception as e:
+        state.log_state_change(f"[ERROR] Rule engine failed: {e}")
+        rule_execution_log = []
 
     # Step 4: Optional injected logic (for testing or external simulation branches)
     if rule_fn:
-        rule_fn(state)
+        try:
+            rule_fn(state)
+            state.log_state_change("Custom rule_fn executed.")
+        except Exception as e:
+            state.log_state_change(f"[ERROR] Custom rule_fn failed: {e}")
 
     # Step 5: Advance the simulation
     state.increment_turn()
+    state.log_state_change("Turn incremented.")
 
     return rule_execution_log

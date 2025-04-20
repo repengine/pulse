@@ -28,6 +28,12 @@ PFPA_ARCHIVE = []  # or your actual archive object
 def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str = "open") -> None:
     """
     Logs a forecast to the PFPA archive, tagging if below confidence threshold.
+    Args:
+        forecast_obj (dict): The forecast object to log.
+        outcome (dict, optional): Outcome data for the forecast.
+        status (str): Status tag for the forecast.
+    Returns:
+        None
     """
     # Wrap in a list for coherence check
     status_flag, issues = TrustEngine.check_forecast_coherence([forecast_obj])
@@ -39,6 +45,7 @@ def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str =
 
     if forecast_obj.get("confidence", 0) < CONFIDENCE_THRESHOLD:
         forecast_obj["trust_label"] = "🔴 Below threshold"
+        logger.warning(f"Forecast {forecast_obj.get('trace_id', '-')} below confidence threshold.")
 
     # Optional: simulate actual exposure for retrodiction
     simulated_actual = {
@@ -78,5 +85,9 @@ def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str =
 def get_latest_forecasts(n: int = 5) -> List[Dict]:
     """
     Returns the N most recent forecasts from the archive.
+    Args:
+        n (int): Number of recent forecasts to retrieve.
+    Returns:
+        List[Dict]: List of recent forecast entries.
     """
     return pfpa_memory.get_recent(n)

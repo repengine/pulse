@@ -15,6 +15,16 @@ from utils.log_utils import get_logger
 
 logger = get_logger(__name__)
 
+# Diagnostics enabled flag (can be toggled at runtime)
+DIAGNOSTICS_ENABLED = True
+
+def set_diagnostics_enabled(enabled: bool):
+    """
+    Enable or disable PLIA diagnostics dynamically.
+    """
+    global DIAGNOSTICS_ENABLED
+    DIAGNOSTICS_ENABLED = enabled
+
 
 def run_plia_stub(state: WorldState) -> Dict[str, any]:
     """
@@ -26,6 +36,9 @@ def run_plia_stub(state: WorldState) -> Dict[str, any]:
     Returns:
         Dict[str, any]: audit results
     """
+    if not DIAGNOSTICS_ENABLED:
+        logger.info("PLIA diagnostics are currently disabled.")
+        return {"status": "disabled"}
     symbolic_state = get_overlay_snapshot(state)
     symbolic_tension = symbolic_tension_score(symbolic_state)
     capital_total = total_exposure(state)
@@ -45,6 +58,19 @@ def run_plia_stub(state: WorldState) -> Dict[str, any]:
     return results
 
 
-if __name__ == "__main__":
+def test_plia_stub():
+    """
+    Test function for PLIA stub diagnostics.
+    """
+    from simulation_engine.worldstate import WorldState
+    set_diagnostics_enabled(True)
     result = run_plia_stub(WorldState())
-    logger.info(result)
+    assert result["status"].startswith("pass")
+    set_diagnostics_enabled(False)
+    result = run_plia_stub(WorldState())
+    assert result["status"] == "disabled"
+    logger.info("test_plia_stub passed.")
+
+
+if __name__ == "__main__":
+    test_plia_stub()

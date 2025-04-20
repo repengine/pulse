@@ -102,6 +102,7 @@ def main() -> None:
     parser.add_argument("--count", type=int, default=5, help="Forecasts to generate (batch mode)")
     parser.add_argument("--help_hooks", action="store_true", help="List all active CLI hooks")
     parser.add_argument("--list_domains", action="store_true", help="List all available simulation domains")
+    parser.add_argument("--help", action="store_true", help="Show help for all available UI commands")
 
     # Dynamically add hook args
     for hook, active in hook_data["active_hooks"].items():
@@ -112,6 +113,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    if args.help:
+        parser.print_help()
+        return
+
     # Print available domains if requested
     if getattr(args, "list_domains", False):
         list_domains()
@@ -119,6 +124,14 @@ def main() -> None:
 
     if args.help_hooks:
         print_active_hooks()
+        return
+
+    # Input validation for turns and count
+    if args.turns < 1:
+        print("⚠️ Number of simulation turns must be positive.")
+        return
+    if args.count < 1:
+        print("⚠️ Batch count must be positive.")
         return
 
     # Hook execution by direct flag
