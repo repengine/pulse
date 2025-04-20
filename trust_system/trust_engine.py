@@ -12,6 +12,7 @@ from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from core.pulse_config import CONFIDENCE_THRESHOLD
+from trust_system.forecast_retrospector import retrospective_analysis_batch
 
 
 logger = logging.getLogger("pulse.trust")
@@ -251,7 +252,31 @@ class TrustEngine:
     # ---- Batch Application ----
 
     @staticmethod
-    def apply_all(forecasts: List[Dict], memory: Optional[List[Dict]] = None) -> List[Dict]:
+    def apply_all(
+        forecasts: List[Dict],
+        memory: Optional[List[Dict]] = None,
+        current_state: Optional[Dict] = None,
+        retrodiction_threshold: float = 1.5
+    ) -> List[Dict]:
+        """
+        Batch process forecasts: tags, scores, trust labels, and metadata.
+        Optionally runs retrodiction analysis if current_state is provided.
+
+        Args:
+            forecasts: List of forecast dicts to process.
+            memory: Optional list of past forecast dicts for novelty/duplication checks.
+            current_state: Optional dict representing the current simulation state for retrodiction.
+            retrodiction_threshold: Threshold for retrodiction filtering (default 1.5).
+        Returns:
+            List of processed forecast dicts with trust metadata.
+        """
+        # Optional: run retrodiction check before tagging
+        if current_state:
+            try:
+                forecasts = retrospective_analysis_batch(forecasts, current_state, threshold=retrodiction_threshold)
+            except Exception as e:
+                logger.warning(f"Retrodiction batch analysis failed: {e}")
+
         for f in forecasts:
             try:
                 TrustEngine.tag_forecast(f)
@@ -270,6 +295,7 @@ class TrustEngine:
             except Exception as e:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
         return forecasts
+
 
 # Add this at the end of the file to allow direct import
 score_forecast = TrustEngine.score_forecast
