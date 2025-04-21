@@ -23,18 +23,25 @@ def license_forecast(
     Assigns a license tag to a forecast based on trustworthiness.
     Does NOT delete forecast — just labels it.
 
+    Args:
+        forecast (Dict): The forecast dictionary to license.
+        confidence_threshold (float): Minimum confidence for licensing.
+        fragility_threshold (float): Maximum fragility for licensing.
     Returns:
-        forecast dict with .license_status field
+        Dict: The forecast dict with .license_status field
     """
     conf = forecast.get("confidence", 0.0)
     frag = forecast.get("fragility", 0.0)
 
     if conf >= confidence_threshold and frag < fragility_threshold:
         forecast["license_status"] = "✅ Licensed"
+        logger.info(f"Forecast {forecast.get('trace_id', '-')}: Licensed (conf={conf}, frag={frag})")
     elif conf >= 0.4:
         forecast["license_status"] = "⚠️ Unlicensed (low trust)"
+        logger.warning(f"Forecast {forecast.get('trace_id', '-')}: Unlicensed (low trust) (conf={conf}, frag={frag})")
     else:
         forecast["license_status"] = "❌ Suppressed (very low trust)"
+        logger.error(f"Forecast {forecast.get('trace_id', '-')}: Suppressed (very low trust) (conf={conf}, frag={frag})")
 
     return forecast
 
@@ -44,14 +51,13 @@ def filter_licensed_forecasts(
     strict: bool = False
 ) -> List[Dict]:
     """
-    Filters forecasts using license_forecast()
+    Filters forecasts using license_forecast().
 
-    Parameters:
-        forecasts (List): batch of foresight dicts
-        strict (bool): if True, returns only ✅ Licensed
-
+    Args:
+        forecasts (List[Dict]): Batch of forecast dicts.
+        strict (bool): If True, returns only ✅ Licensed forecasts.
     Returns:
-        List: filtered or labeled forecasts
+        List[Dict]: Filtered or labeled forecasts.
     """
     # Flatten any nested lists and filter out non-dict items
     flat = []
@@ -68,14 +74,20 @@ def filter_licensed_forecasts(
     return labeled
 
 
-# === Local test ===
-def simulate_license_test():
-    from forecast_output.pfpa_logger import PFPA_ARCHIVE
-    batch = PFPA_ARCHIVE[-5:]
-    filtered = filter_licensed_forecasts(batch)
-    for f in filtered:
-        logger.info(f"{f['trace_id']} → {f['confidence']} | {f.get('license_status')}")
-
+def test_license_generation():
+    """
+    Unit test for license_forecast and filter_licensed_forecasts.
+    """
+    test_batch = [
+        {"trace_id": "A", "confidence": 0.97, "fragility": 0.2},
+        {"trace_id": "B", "confidence": 0.5, "fragility": 0.8},
+        {"trace_id": "C", "confidence": 0.2, "fragility": 0.1},
+    ]
+    results = filter_licensed_forecasts(test_batch)
+    assert results[0]["license_status"] == "✅ Licensed"
+    assert results[1]["license_status"].startswith("⚠️")
+    assert results[2]["license_status"].startswith("❌")
+    logger.info("test_license_generation passed.")
 
 if __name__ == "__main__":
-    simulate_license_test()
+    test_license_generation()

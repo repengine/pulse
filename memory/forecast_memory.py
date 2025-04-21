@@ -14,21 +14,27 @@ from typing import List, Dict, Optional
 class ForecastMemory:
     """
     Unified forecast storage and retrieval.
+    Supports memory limit enforcement and pruning of unused/old entries.
     """
+    MAX_MEMORY_ENTRIES: int = 1000  # Default maximum number of forecasts to retain
 
-    def __init__(self, persist_dir: Optional[str] = None):
+    def __init__(self, persist_dir: Optional[str] = None, max_entries: Optional[int] = None):
         """
         Args:
             persist_dir: Directory to persist forecasts. Defaults to PATHS["FORECAST_HISTORY"].
+            max_entries: Maximum number of forecasts to retain in memory.
         """
         self.persist_dir = persist_dir or PATHS["FORECAST_HISTORY"]
         self._memory: List[Dict] = []
+        self.max_entries = max_entries or self.MAX_MEMORY_ENTRIES
         if self.persist_dir:
             self._load_from_files()
+        self._enforce_memory_limit()
 
     def store(self, forecast_obj: Dict) -> None:
-        """Adds a forecast object to memory and persists to file."""
+        """Adds a forecast object to memory and persists to file. Prunes if over limit."""
         self._memory.append(forecast_obj)
+        self._enforce_memory_limit()
         if self.persist_dir:
             self._persist_to_file(forecast_obj)
 
@@ -47,6 +53,22 @@ class ForecastMemory:
                 if self.persist_dir:
                     self._persist_to_file(f)
                 break
+
+    def prune(self, min_confidence: float = None) -> int:
+        """
+        Prune memory entries below a confidence threshold or oldest if over limit.
+        Returns the number of pruned entries.
+        """
+        before = len(self._memory)
+        if min_confidence is not None:
+            self._memory = [f for f in self._memory if float(f.get("confidence", 0)) >= min_confidence]
+        self._enforce_memory_limit()
+        return before - len(self._memory)
+
+    def _enforce_memory_limit(self) -> None:
+        """Ensure memory does not exceed max_entries; prune oldest if needed."""
+        if len(self._memory) > self.max_entries:
+            self._memory = self._memory[-self.max_entries:]
 
     def _persist_to_file(self, forecast_obj: Dict) -> None:
         if not self.persist_dir:

@@ -9,7 +9,7 @@
         "horizon_days": 2,
         "forecast": {
           "duration_days": 2,
-          "symbolic_fragility": 0.0,
+          "symbolic_fragility": 0.625,
           "start_capital": {
             "nvda": 0.0,
             "msft": 0.0,
@@ -18,10 +18,10 @@
             "cash": 100000.0
           },
           "end_capital": {
-            "nvda": 0.0,
-            "msft": 0.0,
-            "ibit": 0.0,
-            "spy": 0.0,
+            "nvda": 125.0,
+            "msft": -20.0,
+            "ibit": -120.0,
+            "spy": 112.5,
             "cash": 100000.0
           },
           "symbolic_change": {
@@ -34,40 +34,40 @@
           "tags": [],
           "confidence": null
         },
-        "fragility": 0.0,
+        "fragility": 0.625,
         "exposure": {
-          "nvda": 0.0,
-          "msft": 0.0,
-          "ibit": 0.0,
-          "spy": 0.0,
+          "nvda": 125.0,
+          "msft": -20.0,
+          "ibit": -120.0,
+          "spy": 112.5,
           "cash": 100000.0
         },
         "alignment": {
           "bias": "neutral"
         },
         "confidence": 0.95,
-        "trace_id": "fcast_turn_34210",
-        "origin_turn": 34210,
+        "trace_id": "fcast_turn_0",
+        "origin_turn": 0,
         "status": "\ud83d\udfe2 Trusted",
-        "timestamp": "2025-04-20T08:14:46.652211"
+        "timestamp": "2025-04-20T19:26:04.749051"
       },
       {
         "horizon_days": 2,
         "forecast": {
           "duration_days": 2,
-          "symbolic_fragility": 0.0,
+          "symbolic_fragility": 0.625,
           "start_capital": {
-            "nvda": 0.0,
-            "msft": 0.0,
-            "ibit": 0.0,
-            "spy": 0.0,
+            "nvda": 125.0,
+            "msft": -20.0,
+            "ibit": -120.0,
+            "spy": 112.5,
             "cash": 100000.0
           },
           "end_capital": {
-            "nvda": 0.0,
-            "msft": 0.0,
-            "ibit": 0.0,
-            "spy": 0.0,
+            "nvda": 250.0,
+            "msft": -40.0,
+            "ibit": -240.0,
+            "spy": 225.0,
             "cash": 100000.0
           },
           "symbolic_change": {
@@ -80,22 +80,22 @@
           "tags": [],
           "confidence": null
         },
-        "fragility": 0.0,
+        "fragility": 0.625,
         "exposure": {
-          "nvda": 0.0,
-          "msft": 0.0,
-          "ibit": 0.0,
-          "spy": 0.0,
+          "nvda": 250.0,
+          "msft": -40.0,
+          "ibit": -240.0,
+          "spy": 225.0,
           "cash": 100000.0
         },
         "alignment": {
           "bias": "neutral"
         },
         "confidence": 0.95,
-        "trace_id": "fcast_turn_34210",
-        "origin_turn": 34210,
+        "trace_id": "fcast_turn_0",
+        "origin_turn": 0,
         "status": "\ud83d\udfe2 Trusted",
-        "timestamp": "2025-04-20T08:14:46.652252"
+        "timestamp": "2025-04-20T19:26:04.749089"
       }
     ]
   }

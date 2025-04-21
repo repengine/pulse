@@ -250,6 +250,76 @@ from core.pulse_config import CONFIDENCE_THRESHOLD
 
 ---
 
+## How to Contribute
+
+We welcome community contributions! To get started:
+
+1. Fork the repository and create a new branch for your feature or bugfix.
+2. Follow the coding standards (type annotations, docstrings, and tests for all new code).
+3. Run all tests with `pytest` before submitting a pull request.
+4. Ensure your code passes linting (`black` and `flake8` recommended).
+5. Submit a pull request with a clear description of your changes.
+
+For larger features, please open an issue first to discuss your proposal.
+
+---
+
+## Architecture Overview
+
+Below is a high-level flowchart of the Pulse system architecture:
+
+```mermaid
+flowchart TD
+    A[Input Data] --> B[Simulation Engine]
+    B --> C[WorldState]
+    C --> D[Forecast Engine]
+    D --> E[Trust Engine]
+    E --> F[Forecast Output]
+    F --> G[Memory/Diagnostics]
+    G --> H[UI/CLI]
+```
+
+- **Input Data:** Ingests real or mock data for simulation.
+- **Simulation Engine:** Orchestrates state, overlays, and capital logic.
+- **WorldState:** Central state object for each simulation turn.
+- **Forecast Engine:** Generates forecasts and symbolic changes.
+- **Trust Engine:** Scores, tags, and licenses forecasts.
+- **Forecast Output:** Formats, logs, and exports results.
+- **Memory/Diagnostics:** Stores history, runs audits, and prunes memory.
+- **UI/CLI:** User interface for running and analyzing simulations.
+
+---
+
+## Test Coverage & Running Tests
+
+- All core modules have unit and integration tests in `tests/`.
+- Property-based tests (using `hypothesis`) are included for complex logic.
+- To run all tests and check coverage:
+
+```sh
+pytest --cov=.
+```
+
+- To run a specific test file:
+
+```sh
+pytest tests/test_forecast_memory.py
+```
+
+---
+
+## Coverage Badge
+
+[![codecov](https://codecov.io/gh/your-org/pulse/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/pulse)
+
+---
+
+## Deprecation Policy
+
+See `docs/deprecation_policy.md` for the detailed timeline and migration guide for deprecated features.
+
+---
+
 ## Deprecation & Milestone Policy
 
 See `docs/deprecation_policy.md`.

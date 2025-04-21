@@ -17,6 +17,10 @@ import copy
 import json
 from core.path_registry import PATHS
 from core.variable_registry import get_default_variable_state
+from utils.log_utils import get_logger
+import logging
+
+logger = get_logger(__name__)
 
 WORLDSTATE_LOG_PATH = PATHS.get("WORLDSTATE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 # ...use WORLDSTATE_LOG_PATH for worldstate logs...
@@ -84,19 +88,30 @@ class WorldState:
         """Return a deep copy of the worldstate."""
         return copy.deepcopy(self)
 
-    def increment_turn(self) -> None:
-        self.turn += 1
-        self.log_event(f"Turn advanced to {self.turn}")
+    def log_state_change(self, message: str) -> None:
+        """
+        Log a state change event with timestamp for traceability.
+        """
+        log_entry = f"[TURN {self.turn}] {self.timestamp}: {message}"
+        logger.info(log_entry)
+        self.log.append(log_entry)
 
     def update_variable(self, name: str, value: Any) -> None:
         self.variables[name] = value
-        self.log_event(f"Variable '{name}' updated to {value}")
+        msg = f"Variable '{name}' updated to {value}"
+        self.log_event(msg)
+        self.log_state_change(msg)
 
-    def get_variable(self, name: str, default: Any = None) -> Any:
-        return self.variables.get(name, default)
+    def increment_turn(self) -> None:
+        self.turn += 1
+        msg = f"Turn advanced to {self.turn}"
+        self.log_event(msg)
+        self.log_state_change(msg)
 
     def log_event(self, msg: str) -> None:
         self.log.append(msg)
+        # Also log to logger for traceability
+        logger.debug(f"[EVENT] {msg}")
 
     def get_log(self, last_n: int = 10) -> List[str]:
         return self.log[-last_n:]
