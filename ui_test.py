@@ -127,6 +127,9 @@ class PulseControlApp:
         ttk.Button(self.root, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
         ttk.Button(self.root, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
         ttk.Button(self.root, text="Run Batch Alignment Scoring", command=self.run_alignment_batch_analysis).pack(pady=2)
+        ttk.Button(self.root, text="Log Batch Audit Trail", command=self.log_batch_forecast_audits).pack(pady=2)
+        # Add button for episode summary
+        ttk.Button(self.root, text="Summarize Symbolic Episodes", command=self.view_episode_summary).pack(pady=2)
 
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
@@ -692,6 +695,45 @@ class PulseControlApp:
 
         except Exception as e:
             self.log(f"❌ Alignment analysis error: {e}")
+
+    def log_batch_forecast_audits(self):
+        """GUI wrapper to audit and log all forecasts in a batch."""
+        from tkinter import filedialog
+        from trust.forecast_audit_trail import generate_forecast_audit, log_forecast_audit
+
+        file = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
+        if not file:
+            self.log("Audit logging cancelled.")
+            return
+
+        try:
+            with open(file, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            self.log(f"📂 Loaded {len(forecasts)} forecasts. Logging...")
+
+            for fc in forecasts:
+                audit = generate_forecast_audit(fc)
+                log_forecast_audit(audit)
+
+            self.log(f"✅ Audit trail updated for {len(forecasts)} forecasts.")
+        except Exception as e:
+            self.log(f"❌ Audit logging failed: {e}")
+
+    def view_episode_summary(self):
+        """Display a symbolic episode summary from memory log."""
+        from trust.forecast_episode_logger import summarize_episodes
+        from tkinter import filedialog
+
+        file = filedialog.askopenfilename(title="Select episode log (JSONL)")
+        if not file:
+            return
+        try:
+            summary = summarize_episodes(file)
+            self.log("🧠 Episode Summary:")
+            for k, v in summary.items():
+                self.log(f" - {k}: {v}")
+        except Exception as e:
+            self.log(f"❌ Episode summary error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""
