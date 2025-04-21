@@ -5,6 +5,7 @@ from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
 from typing import Optional, List, Dict
 from core.path_registry import PATHS
+from trust_system.alignment_index import compute_alignment_index
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
@@ -54,6 +55,15 @@ def generate_strategos_digest(
     """
     raw = memory.get_recent(n + 5)
     forecasts = filter_licensed_forecasts(raw, strict=True)
+
+    # --- Alignment scoring integration ---
+    for forecast in forecasts:
+        alignment = compute_alignment_index(forecast)
+        forecast["alignment_score"] = alignment["alignment_score"]
+
+    # Optionally sort by alignment_score (top-N)
+    forecasts = sorted(forecasts, key=lambda f: f.get("alignment_score", 0), reverse=True)
+
     groups = group_by_confidence(forecasts)
     header = title or "Strategos Forecast Digest"
 
@@ -65,6 +75,10 @@ def generate_strategos_digest(
             continue
         sections.append(f"==== {label} ====")
         for tile in tiles:
+            # Display alignment alongside confidence
+            conf = tile.get("confidence", "N/A")
+            align = tile.get("alignment_score", "N/A")
+            sections.append(f"[Conf: {conf} | Align: {align}]")
             sections.append(format_strategos_tile(tile))
         sections.append("")
 

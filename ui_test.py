@@ -126,6 +126,7 @@ class PulseControlApp:
         ttk.Button(self.root, text="Generate Operator Brief", command=lambda: prompt_and_generate_brief(self.log)).pack(pady=2)
         ttk.Button(self.root, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
         ttk.Button(self.root, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
+        ttk.Button(self.root, text="Run Batch Alignment Scoring", command=self.run_alignment_batch_analysis).pack(pady=2)
 
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
@@ -661,6 +662,36 @@ class PulseControlApp:
             plot_arc_distribution(arc_counts)
         except Exception as e:
             self.log(f"❌ Arc plot error: {e}")
+
+    def run_alignment_batch_analysis(self):
+        """Run alignment scoring on a forecast batch via CLI bridge."""
+        from tkinter import filedialog
+        from pulse.trust.alignment_index import compute_alignment_index
+
+        path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
+        if not path:
+            self.log("⚠️ Cancelled.")
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line) for line in f if line.strip()]
+            self.log(f"📂 Loaded {len(forecasts)} forecasts.")
+
+            scored = []
+            for fc in forecasts:
+                align = compute_alignment_index(fc)
+                fc["alignment_score"] = align["alignment_score"]
+                scored.append(fc)
+
+            scored = sorted(scored, key=lambda x: x["alignment_score"], reverse=True)
+
+            self.log("🏆 Top 5 forecasts by alignment:")
+            for fc in scored[:5]:
+                self.log(f" - {fc.get('trace_id')}: {fc['alignment_score']}")
+
+        except Exception as e:
+            self.log(f"❌ Alignment analysis error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

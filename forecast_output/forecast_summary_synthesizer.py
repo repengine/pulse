@@ -31,9 +31,10 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from core.path_registry import PATHS
-from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
+from symbolic_system.pulse_symbolic_arc_tracker import (
     compare_arc_drift, compute_arc_stability
 )
+from trust_system.alignment_index import compute_alignment_index
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 VALID_TAGS = {"hope", "despair", "rage", "fatigue", "trust"}
@@ -50,7 +51,8 @@ def summarize_forecasts(
     forecasts: List[Dict],
     method: str = "default",
     log_path: Optional[str] = None,
-    previous_forecasts: Optional[List[Dict]] = None
+    previous_forecasts: Optional[List[Dict]] = None,
+    alignment: bool = False
 ) -> List[Dict]:
     """
     Generate a human-readable summary of each forecast.
@@ -88,6 +90,10 @@ def summarize_forecasts(
             "arc_drift_summary": arc_drift,
             "arc_volatility_score": arc_volatility,
         }
+        if alignment:
+            alignment_info = compute_alignment_index(f, current_state=None)
+            scenario["alignment_score"] = alignment_info["alignment_score"]
+            scenario["alignment_components"] = alignment_info["components"]
         summaries.append(scenario)
 
         try:

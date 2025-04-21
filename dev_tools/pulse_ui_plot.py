@@ -82,20 +82,62 @@ def plot_variables(traces: Dict[str, Tuple[List[int], List[float]]], export_path
         plt.show()
 
 
+def plot_alignment_scores(path: str, save_path: str = None):
+    """
+    Plots alignment scores from JSON or JSONL file.
+
+    Parameters:
+        path (str): Path to JSON or JSONL file containing alignment scores
+        save_path (str): Optional path to save alignment plot image
+    """
+    with open(path, "r") as f:
+        if path.endswith(".jsonl"):
+            data = [json.loads(line) for line in f if line.strip()]
+        else:
+            data = json.load(f)
+
+    scores = [d["alignment_score"] for d in data if "alignment_score" in d]
+    ids = [d.get("forecast_id", f"fc{i}") for i, d in enumerate(data)]
+
+    plt.figure(figsize=(10, 4))
+    plt.bar(ids, scores, color="mediumpurple", edgecolor="black")
+    plt.title("Forecast Alignment Index Scores")
+    plt.xlabel("Forecast ID")
+    plt.ylabel("Alignment Score (0–100)")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    if save_path:
+        try:
+            plt.savefig(save_path)
+            print(f"📤 Alignment plot exported to {save_path}")
+        except Exception as e:
+            print(f"❌ Failed to export alignment plot: {e}")
+    else:
+        plt.show()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pulse Variable Grapher")
-    parser.add_argument("--file", type=str, required=True, help="Path to variable trace file (.jsonl)")
-    parser.add_argument("--var", type=str, nargs="+", required=True, help="Variable(s) to plot (e.g. hope rage)")
+    parser.add_argument("--file", type=str, help="Path to variable trace file (.jsonl)")
+    parser.add_argument("--var", type=str, nargs="+", help="Variable(s) to plot (e.g. hope rage)")
     parser.add_argument("--export", type=str, help="Optional: path to save plot image (e.g. graph.png)")
+    parser.add_argument("--alignment", type=str, help="Path to JSON or JSONL with alignment scores")
+    parser.add_argument("--save", type=str, help="Optional: path to save alignment plot image")
     args = parser.parse_args()
 
-    traces = load_variable_trace(args.file, args.var)
-    any_found = any(steps for steps, values in traces.values())
+    if args.alignment:
+        plot_alignment_scores(args.alignment, save_path=args.save)
+        return
 
-    if any_found:
-        plot_variables(traces, export_path=args.export)
+    if args.file and args.var:
+        traces = load_variable_trace(args.file, args.var)
+        any_found = any(steps for steps, values in traces.values())
+        if any_found:
+            plot_variables(traces, export_path=args.export)
+        else:
+            print(f"❌ None of the specified variables were found in {args.file}")
     else:
-        print(f"❌ None of the specified variables were found in {args.file}")
+        parser.print_help()
 
 
 if __name__ == "__main__":
