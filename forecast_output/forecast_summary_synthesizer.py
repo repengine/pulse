@@ -33,6 +33,11 @@ from datetime import datetime
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
+VALID_TAGS = {"hope", "despair", "rage", "fatigue", "trust"}
+
+def is_valid_tag(tag: str) -> bool:
+    return tag.lower() in VALID_TAGS
+
 SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.jsonl")
 
 def ensure_log_dir(path: str):

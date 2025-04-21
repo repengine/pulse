@@ -130,6 +130,7 @@ class PulseControlApp:
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
         ttk.Button(self.root, text="Replay & Plot Trace", command=self.replay_and_plot_trace).pack(pady=2)
         ttk.Button(self.root, text="Forecast Variable Trajectory", command=self.forecast_variable_trajectory).pack(pady=2)
+        ttk.Button(self.root, text="Score Forecast Accuracy", command=self.score_forecast_accuracy).pack(pady=2)
 
         # Log + clear
         log_frame = ttk.Frame(self.root)
@@ -609,6 +610,36 @@ class PulseControlApp:
             plot_forecast(results["average"], results["trajectories"], var, export=export)
         except Exception as e:
             self.log(f"❌ Forecast error: {e}")
+
+    def score_forecast_accuracy(self):
+        """Compare Pulse forecast vs real data using tag and variable alignment."""
+        from dev_tools.pulse_forecast_evaluator import evaluate_forecast
+        from tkinter import filedialog, simpledialog
+
+        forecast_path = filedialog.askopenfilename(title="Select Pulse forecast trace (.jsonl)")
+        real_path = filedialog.askopenfilename(title="Select real-world trace (.jsonl)")
+        if not forecast_path or not real_path:
+            self.log("⚠️ Forecast evaluation cancelled.")
+            return
+
+        var = simpledialog.askstring("Variable", "Enter variable/overlay name to evaluate (e.g. 'hope'):")
+        if not var:
+            self.log("⚠️ No variable selected.")
+            return
+
+        mode = simpledialog.askstring("Mode", "Enter mode: 'variables' or 'overlays'")
+        if mode not in ["variables", "overlays"]:
+            self.log("⚠️ Invalid mode. Use 'variables' or 'overlays'.")
+            return
+
+        try:
+            self.log(f"🔍 Evaluating forecast accuracy for {var} ({mode})...")
+            result = evaluate_forecast(real_path, forecast_path, variable=var, mode=mode)
+            self.log("📊 Forecast Evaluation Summary:")
+            for k, v in result.items():
+                self.log(f" - {k}: {v}")
+        except Exception as e:
+            self.log(f"❌ Forecast evaluator error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""
