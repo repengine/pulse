@@ -27,7 +27,7 @@ from core.module_registry import MODULE_REGISTRY
 from core.pulse_config import STARTUP_BANNER
 
 print(STARTUP_BANNER)
-print(f"Pulse version: {MODULE_REGISTRY['turn_engine']['version']}")
+print(f"Pulse version: {MODULE_REGISTRY.get_version('turn_engine')}")
 
 from foresight_architecture.digest_logger import save_digest_to_file
 from operator_interface.strategos_digest import generate_strategos_digest
@@ -41,8 +41,6 @@ from foresight_architecture.digest_exporter import export_digest, export_digest_
 from forecast_output.strategos_digest_builder import build_digest
 from operator_interface.pulse_prompt_logger import log_prompt
 from forecast_engine.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
-from trust_system.retrodiction_engine import simulate_retrodiction_test
-from diagnostics.trust_audit import audit_forecasts
 
 def run_pulse_simulation(turns: int = 5):
     """

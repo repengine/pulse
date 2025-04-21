@@ -17,7 +17,7 @@ from utils.log_utils import get_logger
 from core.pulse_config import CONFIDENCE_THRESHOLD, MODULES_ENABLED
 from core.module_registry import MODULE_REGISTRY
 
-if not MODULE_REGISTRY.get("trust_audit", {}).get("enabled", MODULES_ENABLED.get("trust_audit", True)):
+if not MODULE_REGISTRY.is_enabled("trust_audit"):
     raise RuntimeError("Trust audit module is disabled in config.")
 
 logger = get_logger(__name__)

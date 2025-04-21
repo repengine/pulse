@@ -28,6 +28,7 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from core.pulse_config import CONFIDENCE_THRESHOLD
 from core.module_registry import MODULE_REGISTRY
+from diagnostics.recursion_audit import generate_recursion_report
 
 logger = get_logger(__name__)
 
@@ -93,6 +94,36 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
             }, f, indent=2)
 
         print(f"📝 Batch summary written to {SUMMARY_PATH}")
+
+    # --- Recursion audit logic ---
+    forecasts = []
+    try:
+        # Collect all accepted forecasts for this batch
+        files = tracker.list_forecasts()
+        for file in files:
+            path = os.path.join(tracker.log_dir, file)
+            with open(path, "r") as f:
+                data = json.load(f)
+                forecasts.append(data)
+    except Exception:
+        pass
+
+    # Run recursion audit if previous batch exists
+    if os.path.exists("data/last_forecast_batch.jsonl"):
+        with open("data/last_forecast_batch.jsonl", "r") as f:
+            previous = [json.loads(line.strip()) for line in f if line.strip()]
+        current = forecasts
+        report = generate_recursion_report(previous, current)
+        with open("data/recursion_audit_log.json", "w") as f:
+            json.dump(report, f, indent=2)
+        print("📈 Recursion audit complete. See data/recursion_audit_log.json")
+    else:
+        print("🕐 No prior forecast batch available for audit.")
+
+    # Save current batch as future baseline
+    with open("data/last_forecast_batch.jsonl", "w") as f:
+        for entry in forecasts:
+            f.write(json.dumps(entry) + "\n")
 
     print(f"✅ Batch complete: {accepted} accepted / {count} total")
 

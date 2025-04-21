@@ -1,5 +1,5 @@
 """
-Module: pulse_ui_tester_expanded_with_graph.py
+Module: ui_test.py
 Pulse Version: v0.099.99
 
 Features:
@@ -35,6 +35,12 @@ from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
 from simulation_engine.turn_engine import run_turn
 from trust_system.trust_engine import TrustEngine
+
+from dev_tools.pulse_ui_bridge import (
+    prompt_and_run_audit,
+    prompt_and_generate_brief,
+    prompt_and_plot_variables
+)
 
 
 class PulseControlApp:
@@ -112,6 +118,17 @@ class PulseControlApp:
         ttk.Button(self.root, text="Plot Memory Stats", command=self.plot_memory_stats).pack(pady=2)
         ttk.Button(self.root, text="Coherence Check", command=self.run_coherence_check).pack(pady=5)
         ttk.Button(self.root, text="Export Coherence Warnings", command=self.export_coherence_warnings).pack(pady=2)
+
+        # --- Operator Tools ---
+        ttk.Separator(self.root, orient="horizontal").pack(fill="x", pady=6)
+        ttk.Label(self.root, text="Operator Tools", font=("Arial", 12, "bold")).pack(pady=3)
+        ttk.Button(self.root, text="Run Recursion Audit", command=lambda: prompt_and_run_audit(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Generate Operator Brief", command=lambda: prompt_and_generate_brief(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
+
+        # --- Trace Replay Tools ---
+        ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
+        ttk.Button(self.root, text="Replay & Plot Trace", command=self.replay_and_plot_trace).pack(pady=2)
 
         # Log + clear
         log_frame = ttk.Frame(self.root)
@@ -540,6 +557,32 @@ class PulseControlApp:
             self.log(f"✅ Coherence warnings exported to {file}")
         except Exception as e:
             self.log(f"❌ Export error: {e}")
+
+    def replay_and_plot_trace(self) -> None:
+        """Load a trace and plot a variable/overlay timeline."""
+        from dev_tools.pulse_ui_replay import replay_trace
+        from tkinter import filedialog, simpledialog
+
+        path = filedialog.askopenfilename(filetypes=[("JSONL files", "*.jsonl")])
+        if not path:
+            self.log("Trace selection cancelled.")
+            return
+
+        mode = simpledialog.askstring("Mode", "Enter mode: 'variables' or 'overlays'")
+        if mode not in ["variables", "overlays"]:
+            self.log("Invalid mode. Use 'variables' or 'overlays'.")
+            return
+
+        key = simpledialog.askstring("Key", f"Enter the {mode} key to plot:")
+        if not key:
+            self.log("Key input cancelled.")
+            return
+
+        try:
+            self.log(f"📈 Replaying trace for {mode}:{key}")
+            replay_trace(path, mode=mode, key=key)
+        except Exception as e:
+            self.log(f"❌ Replay error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""
