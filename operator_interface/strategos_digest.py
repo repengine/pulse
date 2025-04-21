@@ -6,6 +6,9 @@ from memory.forecast_memory import ForecastMemory
 from typing import Optional, List, Dict
 from core.path_registry import PATHS
 from trust_system.alignment_index import compute_alignment_index
+from trust_system.forecast_episode_logger import summarize_episodes
+from trust_system.trust_engine import compute_symbolic_attention_score
+import os
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
@@ -37,10 +40,23 @@ def group_by_confidence(forecasts: List[Dict]) -> Dict[str, List[Dict]]:
         groups[label].sort(key=lambda f: f.get('priority_score', 0.0), reverse=True)
     return groups
 
+def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
+    """
+    Compute the drift in symbolic arcs between two episode logs.
+    """
+    prev = summarize_episodes(prev_path)
+    curr = summarize_episodes(curr_path)
+    arcs_prev = {k.replace("arc_", ""): v for k, v in prev.items() if k.startswith("arc_")}
+    arcs_curr = {k.replace("arc_", ""): v for k, v in curr.items() if k.startswith("arc_")}
+    all_keys = set(arcs_prev) | set(arcs_curr)
+    return {k: arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys}
+
 def generate_strategos_digest(
     memory: ForecastMemory,
     n: int = 5,
-    title: Optional[str] = None
+    title: Optional[str] = None,
+    previous_episode_log: Optional[str] = None,
+    current_episode_log: Optional[str] = None
 ) -> str:
     """
     Generate a Strategos digest from forecast memory.
@@ -49,6 +65,8 @@ def generate_strategos_digest(
         memory (ForecastMemory): Forecast memory instance.
         n (int, optional): Number of recent forecasts to include. Defaults to 5.
         title (Optional[str], optional): Title for the digest. Defaults to None.
+        previous_episode_log (Optional[str], optional): Path to previous episode log.
+        current_episode_log (Optional[str], optional): Path to current episode log.
 
     Returns:
         str: Strategos digest as a formatted string.
@@ -69,6 +87,17 @@ def generate_strategos_digest(
 
     sections = [f"📘 {header}", ""]
 
+    # Arc drift summary
+    arc_drift = {}
+    if previous_episode_log and current_episode_log and os.path.exists(previous_episode_log) and os.path.exists(current_episode_log):
+        arc_drift = compute_arc_drift(previous_episode_log, current_episode_log)
+        if arc_drift:
+            sections.append("## 🌀 Arc Drift This Cycle")
+            for arc, delta in arc_drift.items():
+                sign = "+" if delta > 0 else ""
+                sections.append(f"- {arc}: {sign}{delta}")
+            sections.append("")
+
     for label in ["🟢 Trusted", "⚠️ Moderate", "🔴 Fragile", "🔘 Unscored"]:
         tiles = groups[label]
         if not tiles:
@@ -78,7 +107,18 @@ def generate_strategos_digest(
             # Display alignment alongside confidence
             conf = tile.get("confidence", "N/A")
             align = tile.get("alignment_score", "N/A")
-            sections.append(f"[Conf: {conf} | Align: {align}]")
+            # Add attention score if arc_drift is available
+            attention = ""
+            if arc_drift:
+                try:
+                    attn_score = compute_symbolic_attention_score(tile, arc_drift)
+                    if attn_score > 0.5:
+                        attention = f" | ⚡️Attention: {attn_score}"
+                    elif attn_score > 0:
+                        attention = f" | Attention: {attn_score}"
+                except Exception as e:
+                    attention = " | ⚠️ Attention Error"
+            sections.append(f"[Conf: {conf} | Align: {align}{attention}]")
             sections.append(format_strategos_tile(tile))
         sections.append("")
 

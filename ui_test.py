@@ -128,8 +128,11 @@ class PulseControlApp:
         ttk.Button(self.root, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
         ttk.Button(self.root, text="Run Batch Alignment Scoring", command=self.run_alignment_batch_analysis).pack(pady=2)
         ttk.Button(self.root, text="Log Batch Audit Trail", command=self.log_batch_forecast_audits).pack(pady=2)
-        # Add button for episode summary
         ttk.Button(self.root, text="Summarize Symbolic Episodes", command=self.view_episode_summary).pack(pady=2)
+        # Add operator brief generator button
+        ttk.Button(self.root, text="Generate Operator Brief", command=self.generate_operator_brief_gui).pack(pady=2)
+        # Add arc drift visualization button
+        ttk.Button(self.root, text="Plot Arc Drift (Cycles)", command=self.plot_arc_drift_across_cycles).pack(pady=2)
 
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
@@ -734,6 +737,57 @@ class PulseControlApp:
                 self.log(f" - {k}: {v}")
         except Exception as e:
             self.log(f"❌ Episode summary error: {e}")
+
+    def generate_operator_brief_gui(self):
+        """Select alignment + episode log and generate operator markdown brief."""
+        from operator.operator_brief_generator import generate_operator_brief
+        from tkinter import filedialog
+
+        alignment = filedialog.askopenfilename(title="Select alignment-scored forecasts (.jsonl)")
+        episodes = filedialog.askopenfilename(title="Select symbolic episode log (.jsonl)")
+        output = filedialog.asksaveasfilename(defaultextension=".md", title="Save operator brief as")
+
+        if not alignment or not episodes or not output:
+            self.log("⚠️ Operator brief generation cancelled.")
+            return
+
+        try:
+            generate_operator_brief(alignment_file=alignment, episode_log_file=episodes, output_md_path=output)
+            self.log(f"✅ Brief saved to: {output}")
+        except Exception as e:
+            self.log(f"❌ Brief generation failed: {e}")
+
+    def plot_arc_drift_across_cycles(self):
+        """Plot arc drift between two symbolic episode logs."""
+        from tkinter import filedialog
+        from trust.forecast_episode_logger import summarize_episodes
+        import matplotlib.pyplot as plt
+
+        prev = filedialog.askopenfilename(title="Select previous episode log")
+        curr = filedialog.askopenfilename(title="Select current episode log")
+        if not prev or not curr:
+            self.log("Drift comparison cancelled.")
+            return
+
+        try:
+            p = summarize_episodes(prev)
+            c = summarize_episodes(curr)
+            arcs_prev = {k.replace("arc_", ""): v for k, v in p.items() if k.startswith("arc_")}
+            arcs_curr = {k.replace("arc_", ""): v for k, v in c.items() if k.startswith("arc_")}
+            all_keys = sorted(set(arcs_prev) | set(arcs_curr))
+            drift = [arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys]
+
+            plt.figure(figsize=(10, 4))
+            plt.bar(all_keys, drift, color="indianred", edgecolor="black")
+            plt.title("Symbolic Arc Drift Across Cycles")
+            plt.xlabel("Arc Label")
+            plt.ylabel("Δ Count (Current - Previous)")
+            plt.xticks(rotation=45, ha="right")
+            plt.tight_layout()
+            plt.show()
+
+        except Exception as e:
+            self.log(f"❌ Arc drift plot error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

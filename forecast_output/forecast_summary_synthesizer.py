@@ -35,6 +35,8 @@ from symbolic_system.pulse_symbolic_arc_tracker import (
     compare_arc_drift, compute_arc_stability
 )
 from trust_system.alignment_index import compute_alignment_index
+from trust_system.forecast_episode_logger import summarize_episodes
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 VALID_TAGS = {"hope", "despair", "rage", "fatigue", "trust"}
@@ -52,7 +54,8 @@ def summarize_forecasts(
     method: str = "default",
     log_path: Optional[str] = None,
     previous_forecasts: Optional[List[Dict]] = None,
-    alignment: bool = False
+    alignment: bool = False,
+    previous_episode_log: Optional[str] = None
 ) -> List[Dict]:
     """
     Generate a human-readable summary of each forecast.
@@ -67,7 +70,15 @@ def summarize_forecasts(
     summaries = []
     arc_drift = {}
     arc_volatility = None
-    if previous_forecasts:
+
+    if previous_episode_log and os.path.exists(previous_episode_log):
+        prev = summarize_episodes(previous_episode_log)
+        curr = summarize_episodes(PATHS.get("EPISODE_LOG_PATH", "logs/forecast_episode_log.jsonl"))
+        arcs_prev = {k.replace("arc_", ""): v for k, v in prev.items() if k.startswith("arc_")}
+        arcs_curr = {k.replace("arc_", ""): v for k, v in curr.items() if k.startswith("arc_")}
+        all_keys = set(arcs_prev) | set(arcs_curr)
+        arc_drift = {k: arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys}
+    elif previous_forecasts:
         arc_drift = compare_arc_drift(previous_forecasts, forecasts)
         arc_volatility = compute_arc_stability(arc_drift)
 
@@ -90,6 +101,8 @@ def summarize_forecasts(
             "arc_drift_summary": arc_drift,
             "arc_volatility_score": arc_volatility,
         }
+        if arc_drift:
+            scenario["symbolic_arc_drift"] = arc_drift
         if alignment:
             alignment_info = compute_alignment_index(f, current_state=None)
             scenario["alignment_score"] = alignment_info["alignment_score"]

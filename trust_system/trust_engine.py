@@ -25,6 +25,38 @@ class TrustResult(NamedTuple):
     symbolic_tag: str
     fragility: float
 
+def symbolic_attention_score(forecast: Dict, arc_drift: Dict[str, int]) -> float:
+    """
+    Score how much attention a forecast deserves based on its arc's volatility.
+    Forecasts contributing to unstable arcs receive higher attention scores.
+
+    Args:
+        forecast (Dict): A forecast with 'arc_label'
+        arc_drift (Dict): Drift delta per arc label
+
+    Returns:
+        float: Attention score (0–1+); higher = more volatile/misaligned
+    """
+    arc = forecast.get("arc_label", "unknown")
+    delta = abs(arc_drift.get(arc, 0))
+    normalized = min(delta / 10.0, 1.0)  # cap at 1.0
+    return round(normalized, 3)
+
+def compute_symbolic_attention_score(forecast: Dict, arc_drift: Dict[str, int]) -> float:
+    """
+    Return attention score (0–1.0) based on how volatile the forecast's arc is.
+
+    Args:
+        forecast (Dict): Single forecast with arc_label
+        arc_drift (Dict): Dict of arc label → Δ count
+
+    Returns:
+        float: score between 0 (stable) and 1 (volatile arc)
+    """
+    arc = forecast.get("arc_label", "unknown")
+    delta = abs(arc_drift.get(arc, 0))
+    return round(min(delta / 10.0, 1.0), 3)
+
 class TrustEngine:
     """
     Main interface for tagging, scoring, gating, and auditing forecasts.
@@ -256,7 +288,8 @@ class TrustEngine:
         forecasts: List[Dict],
         memory: Optional[List[Dict]] = None,
         current_state: Optional[Dict] = None,
-        retrodiction_threshold: float = 1.5
+        retrodiction_threshold: float = 1.5,
+        arc_drift: Optional[Dict[str, int]] = None
     ) -> List[Dict]:
         """
         Batch process forecasts: tags, scores, trust labels, and metadata.
@@ -267,6 +300,7 @@ class TrustEngine:
             memory: Optional list of past forecast dicts for novelty/duplication checks.
             current_state: Optional dict representing the current simulation state for retrodiction.
             retrodiction_threshold: Threshold for retrodiction filtering (default 1.5).
+            arc_drift: Optional dict of arc drift deltas for attention scoring.
         Returns:
             List of processed forecast dicts with trust metadata.
         """
@@ -292,6 +326,8 @@ class TrustEngine:
                     symbolic_tag=f.get("symbolic_tag", ""),
                     fragility=f.get("fragility", 0.0),
                 )._asdict()
+                if arc_drift:
+                    f["attention_score"] = symbolic_attention_score(f, arc_drift)
             except Exception as e:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
         return forecasts
