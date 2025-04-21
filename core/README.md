@@ -23,13 +23,3 @@ Handles all file path management.
 - Keeps relative paths portable across dev environments
 
 ---
-
-### `module_registry.py`
-Defines versioning and enablement for every module in the Pulse stack.
-
-```python
-MODULE_REGISTRY = {
-  "turn_engine": {"version": "v0.000", "enabled": True},
-  "decay_overlay": {"version": "v0.002", "enabled": True},
-  ...
-}

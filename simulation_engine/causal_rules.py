@@ -12,16 +12,12 @@ from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import adjust_overlay, update_numeric_variable, adjust_capital
 from core.variable_accessor import get_variable, get_overlay
 from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
-from core.module_registry import MODULE_REGISTRY
 
 
 def apply_causal_rules(state: WorldState):
     """
     Executes causal rules and mutates overlays and capital. Includes symbolic tagging.
     """
-    if not MODULE_REGISTRY.get("rule_engine", {}).get("enabled", True):
-        return
-
     v = state.variables  # shorthand
 
     # Use accessors and config constants

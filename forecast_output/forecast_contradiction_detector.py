@@ -24,6 +24,7 @@ import os
 from typing import List, Dict, Tuple
 from datetime import datetime
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 CONTRADICTION_LOG_PATH = PATHS.get("CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl")
 

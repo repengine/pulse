@@ -7,6 +7,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 LOG_FILE_PATH = str(PATHS.get("LOG_FILE", "logs/pulse.log"))
 

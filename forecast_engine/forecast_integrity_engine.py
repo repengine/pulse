@@ -15,7 +15,7 @@ Author: Pulse v0.10
 
 from core.pulse_config import CONFIDENCE_THRESHOLD
 from core.path_registry import PATHS
-from core.module_registry import MODULE_REGISTRY
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.variable_accessor import get_variable, get_overlay
 
 def validate_forecast(metadata: dict, min_conf=None, max_frag=None, blocked_tags=None, required_keys=None) -> bool:
@@ -32,10 +32,6 @@ def validate_forecast(metadata: dict, min_conf=None, max_frag=None, blocked_tags
     Returns:
         bool: True if forecast is valid
     """
-    # If the forecast_integrity_engine module is disabled, forecasts are considered invalid.
-    if not MODULE_REGISTRY.get("forecast_integrity_engine", {}).get("enabled", True):
-        return False
-
     min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD
     max_frag = max_frag if max_frag is not None else 0.7
 

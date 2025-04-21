@@ -48,7 +48,6 @@ Pulse/
 │   ├── __init__.py
 │   ├── pulse_config.py   # ✅ Built
 │   ├── path_registry.py  # ✅ Built
-│   └── module_registry.py # ✅ Built
 │
 ├── simulation_engine/     # Core simulation modules
 │   ├── __init__.py

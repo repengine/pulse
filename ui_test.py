@@ -129,6 +129,7 @@ class PulseControlApp:
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
         ttk.Button(self.root, text="Replay & Plot Trace", command=self.replay_and_plot_trace).pack(pady=2)
+        ttk.Button(self.root, text="Forecast Variable Trajectory", command=self.forecast_variable_trajectory).pack(pady=2)
 
         # Log + clear
         log_frame = ttk.Frame(self.root)
@@ -583,6 +584,31 @@ class PulseControlApp:
             replay_trace(path, mode=mode, key=key)
         except Exception as e:
             self.log(f"❌ Replay error: {e}")
+
+    def forecast_variable_trajectory(self):
+        """GUI wrapper for pulse_variable_forecaster logic."""
+        from simulation_engine.utils.pulse_variable_forecaster import simulate_forward, plot_forecast
+        from tkinter import simpledialog, filedialog
+
+        var = simpledialog.askstring("Variable", "Enter variable name to forecast:")
+        if not var:
+            self.log("⚠️ Forecast cancelled.")
+            return
+
+        try:
+            horizon = int(simpledialog.askinteger("Steps", "Forecast horizon (steps):", initialvalue=12))
+            runs = int(simpledialog.askinteger("Runs", "Number of simulations:", initialvalue=10))
+        except (ValueError, TypeError):
+            self.log("⚠️ Invalid input for steps or runs.")
+            return
+
+        self.log(f"📈 Forecasting: {var} for {horizon} steps × {runs} runs")
+        try:
+            results = simulate_forward(var, horizon, runs)
+            export = filedialog.asksaveasfilename(defaultextension=".png", title="Export forecast plot?")
+            plot_forecast(results["average"], results["trajectories"], var, export=export)
+        except Exception as e:
+            self.log(f"❌ Forecast error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

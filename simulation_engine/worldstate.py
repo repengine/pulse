@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 import copy
 import json
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.variable_registry import get_default_variable_state
 from utils.log_utils import get_logger
 import logging

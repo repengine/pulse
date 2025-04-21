@@ -24,6 +24,7 @@ import os
 from datetime import datetime
 from typing import Dict, Optional
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 EPISODE_LOG_PATH = PATHS.get("EPISODE_LOG_PATH", "logs/forecast_episodes.jsonl")
 

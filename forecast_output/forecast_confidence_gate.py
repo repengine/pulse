@@ -25,11 +25,11 @@ import json
 from typing import List, Dict, Union
 from datetime import datetime
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import CONFIDENCE_THRESHOLD
-from core.module_registry import MODULE_REGISTRY
+DEFAULT_FRAGILITY_THRESHOLD = getattr(__import__('core.pulse_config'), 'DEFAULT_FRAGILITY_THRESHOLD', 0.7)
 
 CONFIDENCE_LOG_PATH = PATHS.get("CONFIDENCE_LOG_PATH", "logs/forecast_confidence_filter_log.jsonl")
-DEFAULT_FRAGILITY_THRESHOLD = getattr(__import__('core.pulse_config'), 'DEFAULT_FRAGILITY_THRESHOLD', 0.7)
 
 def ensure_log_dir(path: str):
     import os
@@ -40,8 +40,6 @@ def filter_by_confidence(
     min_confidence: float = None,
     max_fragility: float = None
 ) -> List[Dict]:
-    if not MODULE_REGISTRY.get("forecast_confidence_gate", {}).get("enabled", True):
-        return []
     min_confidence = min_confidence if min_confidence is not None else CONFIDENCE_THRESHOLD
     max_fragility = max_fragility if max_fragility is not None else DEFAULT_FRAGILITY_THRESHOLD
     ensure_log_dir(CONFIDENCE_LOG_PATH)

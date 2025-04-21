@@ -5,6 +5,7 @@ from datetime import datetime
 from forecast_engine.forecast_tracker import ForecastTracker
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 

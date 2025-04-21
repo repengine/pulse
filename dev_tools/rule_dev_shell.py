@@ -13,6 +13,7 @@ from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 RULE_LOG_PATH = PATHS.get("RULE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 

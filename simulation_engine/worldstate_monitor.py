@@ -15,6 +15,7 @@ from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
 from core.variable_accessor import get_variable, set_variable, get_overlay, set_overlay
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 import datetime
 import os
 from typing import Optional

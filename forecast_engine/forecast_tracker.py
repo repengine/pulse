@@ -18,6 +18,7 @@ from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
 from memory.forecast_memory import ForecastMemory
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 

@@ -21,6 +21,7 @@ from datetime import datetime
 from typing import Dict
 from core.pulse_config import MODULES_ENABLED
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
 

@@ -38,6 +38,9 @@ PATHS: Dict[str, Path] = {
     # Main log file
     "LOG_FILE": LOGS_DIR / "pulse.log",
 
+    # Rules log file
+    "RULES_LOG_PATH": LOGS_DIR / "rules.log",
+
     # Add other centralized paths as needed
 }
 

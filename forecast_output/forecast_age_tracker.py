@@ -15,6 +15,8 @@ from typing import List, Dict
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
 
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
+
 logger = get_logger(__name__)
 
 AGE_LOG_PATH = PATHS.get("AGE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])

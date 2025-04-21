@@ -31,7 +31,7 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from core.path_registry import PATHS
-from forecast_output.forecast_tags import is_valid_tag
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.jsonl")
 

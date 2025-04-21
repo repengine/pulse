@@ -19,6 +19,7 @@ from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
 from typing import Callable, Optional
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 TURN_LOG_PATH = PATHS.get("TURN_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 

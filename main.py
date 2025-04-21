@@ -23,11 +23,9 @@ logger = get_logger(__name__)
 
 logger.info("🧠 Starting Pulse...")
 
-from core.module_registry import MODULE_REGISTRY
 from core.pulse_config import STARTUP_BANNER
 
 print(STARTUP_BANNER)
-print(f"Pulse version: {MODULE_REGISTRY.get_version('turn_engine')}")
 
 from foresight_architecture.digest_logger import save_digest_to_file
 from operator_interface.strategos_digest import generate_strategos_digest

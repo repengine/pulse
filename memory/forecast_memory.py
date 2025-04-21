@@ -8,6 +8,8 @@ Author: Pulse v3.5
 """
 
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
+
 from typing import List, Dict, Optional
 
 

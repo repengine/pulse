@@ -28,6 +28,7 @@ from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from simulation_engine.worldstate import WorldState
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 BATCH_LOG_PATH = PATHS.get("BATCH_LOG_PATH", "logs/forecast_batch_output.jsonl")
 

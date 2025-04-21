@@ -13,8 +13,10 @@ Author: Pulse v0.20 (scaffolded at v0.10)
 """
 
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import MODULES_ENABLED
-from core.module_registry import MODULE_REGISTRY
+
+print(f"[DEBUG] PATHS type in rule_registry: {type(PATHS)}")  # Add this line for debugging
 
 RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 

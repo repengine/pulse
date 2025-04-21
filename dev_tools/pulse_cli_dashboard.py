@@ -18,6 +18,7 @@ import json
 import argparse
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from typing import Dict, List
 
 DASHBOARD_CONFIG = PATHS.get("DASHBOARD_CONFIG", "dev_tools/dashboard_config.json")

@@ -26,8 +26,8 @@ from forecast_engine.forecast_integrity_engine import validate_forecast
 from forecast_engine.forecast_memory import save_forecast_to_memory
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import CONFIDENCE_THRESHOLD
-from core.module_registry import MODULE_REGISTRY
 from diagnostics.recursion_audit import generate_recursion_report
 
 logger = get_logger(__name__)
@@ -48,9 +48,6 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
         export_summary (bool): Write summary to disk
     """
     min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD
-    if not MODULE_REGISTRY.get("forecast_batch_runner", {}).get("enabled", True):
-        logger.warning("Forecast tracker is disabled in module registry.")
-        return
 
     tracker = ForecastTracker()
     accepted = 0

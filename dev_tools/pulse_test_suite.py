@@ -10,14 +10,10 @@ Author: Pulse v0.20
 from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
 from utils.log_utils import get_logger
-from core.module_registry import MODULE_REGISTRY
 
 logger = get_logger(__name__)
 
 def test_symbolic_shift(threshold=0.01, turns=5):
-    if not MODULE_REGISTRY.get("pulse_test_suite", {}).get("enabled", True):
-        logger.warning("pulse_test_suite is disabled in module registry.")
-        return
     logger.info("🔎 Running symbolic overlay drift test...")
     state = WorldState()
     initial = state.overlays.as_dict().copy()
@@ -34,9 +30,6 @@ def test_symbolic_shift(threshold=0.01, turns=5):
             logger.info(f"⚠️  {k} barely changed ({delta})")
 
 def test_capital_shift(threshold=1.0, turns=5):
-    if not MODULE_REGISTRY.get("pulse_test_suite", {}).get("enabled", True):
-        logger.warning("pulse_test_suite is disabled in module registry.")
-        return
     logger.info("\n💰 Running capital exposure drift test...")
     state = WorldState()
     initial = state.capital.as_dict().copy()

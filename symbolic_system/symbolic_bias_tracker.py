@@ -15,6 +15,7 @@ import json
 from collections import Counter
 from typing import List, Dict
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 BIAS_LOG_PATH = PATHS.get("SYMBOLIC_BIAS_LOG", "logs/symbolic_bias_log.jsonl")
 

@@ -11,6 +11,7 @@ from typing import List, Dict, Optional
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 COMPRESSED_OUTPUT = PATHS["FORECAST_COMPRESSED"]
 

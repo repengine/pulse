@@ -39,7 +39,7 @@ from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
-from core.module_registry import MODULE_REGISTRY
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import DEFAULT_DECAY_RATE
 from core.pulse_config import OVERLAY_NAMES
 from memory.pulse_memory_audit_report import audit_memory

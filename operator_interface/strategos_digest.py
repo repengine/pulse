@@ -5,6 +5,7 @@ from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
 from typing import Optional, List, Dict
 from core.path_registry import PATHS
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
 
