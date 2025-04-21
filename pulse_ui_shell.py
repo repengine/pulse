@@ -120,6 +120,8 @@ def main() -> None:
     parser.add_argument("--filter-trusted", action="store_true", help="Output only \U0001F7E2 Trusted forecasts")
     parser.add_argument("--trust-summary", action="store_true", help="Print trust audit summary to CLI")
     parser.add_argument("--compress-topk", type=int, default=None, help="If set, compress to top-K most confident forecasts")
+    parser.add_argument("--enforce-license", action="store_true", help="Only retain or export licensed forecasts")
+    parser.add_argument("--trust-only", action="store_true", help="Only save/export licensed forecasts")
 
     # Dynamically add hook args
     for hook, active in hook_data["active_hooks"].items():
@@ -162,6 +164,12 @@ def main() -> None:
             # Optional: compression
             if args.compress_topk:
                 scored = compress_forecasts(scored, top_k=args.compress_topk)
+
+            # Enforce license filter if requested
+            if args.enforce_license:
+                from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+                scored = annotate_forecasts(scored)
+                scored = filter_licensed(scored)
 
             # Write output
             with open(args.retrodict_output, "w") as f:
@@ -209,7 +217,11 @@ def main() -> None:
         return
 
     if args.mode == "batch":
-        run_batch_forecasts(count=args.count, domain=args.domain or "capital")
+        run_batch_forecasts(
+            count=args.count,
+            domain=args.domain or "capital",
+            enforce_license=args.trust_only
+        )
         return
 
     if args.mode == "view":

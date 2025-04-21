@@ -12,6 +12,7 @@ Usage:
 
 import argparse
 from operator.operator_brief_generator import generate_operator_brief
+from trust_system.license_explainer import explain_forecast_license
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Operator Brief Generator CLI")
@@ -20,8 +21,18 @@ def main():
     parser.add_argument("--export", type=str, default="operator_brief.md", help="Output markdown path")
     parser.add_argument("--topk", type=int, default=5, help="Top-N forecasts to include")
     parser.add_argument("--previous-episodes", type=str, help="Optional: prior episode log for drift comparison")
+    parser.add_argument("--explain", action="store_true", help="Print rationale for each license decision")
 
     args = parser.parse_args()
+
+    if args.explain:
+        import json
+        print("🔍 License Rationales:")
+        with open(args.alignment, "r", encoding="utf-8") as f:
+            forecasts = [json.loads(line) for line in f]
+        for fc in forecasts:
+            explanation = explain_forecast_license(fc)
+            print(f"→ {fc.get('trace_id', 'unknown')} — {explanation}")
 
     generate_operator_brief(
         alignment_file=args.alignment,

@@ -19,12 +19,44 @@ COMPRESSED_OUTPUT = PATHS["FORECAST_COMPRESSED"]
 
 logger = get_logger(__name__)
 
+def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
+    """
+    Flags forecasts if they belong to unstable arcs or drift-prone rule sets.
+
+    Args:
+        forecasts (List[Dict])
+        drift_report (Dict): Output from run_simulation_drift_analysis()
+        threshold (float): Drift cutoff for flagging
+
+    Returns:
+        List[Dict]: forecasts updated with 'drift_flag'
+    """
+    volatile_rules = {r for r, delta in drift_report.get("rule_trigger_delta", {}).items() if abs(delta) > threshold * 10}
+    unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold}
+
+    for fc in forecasts:
+        arc = fc.get("arc_label", "unknown")
+        rules = fc.get("fired_rules", [])
+        overlays = fc.get("forecast", {}).get("symbolic_change", {})
+
+        flagged = False
+        if any(r in volatile_rules for r in rules):
+            fc["drift_flag"] = "⚠️ Rule Instability"
+            flagged = True
+        if any(k in unstable_overlays for k in overlays):
+            fc["drift_flag"] = "⚠️ Overlay Volatility"
+            flagged = True
+        if not flagged:
+            fc["drift_flag"] = "✅ Stable"
+    return forecasts
+
 def compress_forecasts(
     forecasts: List[Dict],
     cluster_key: str = "symbolic_tag",
     top_n: int = None,
     summarize: bool = True,
-    arc_drift: Optional[Dict[str, int]] = None
+    arc_drift: Optional[Dict[str, int]] = None,
+    drift_report: Optional[Dict] = None
 ) -> List[Dict]:
     """
     Compresses forecasts by clustering and summarizing.
@@ -35,6 +67,7 @@ def compress_forecasts(
         top_n: Only keep top N clusters (by count).
         summarize: If True, call forecast_summary_synthesizer.
         arc_drift: Optional dict of arc drift deltas for attention scoring.
+        drift_report: Optional simulation drift report for drift flagging.
 
     Returns:
         List of compressed cluster dicts.
@@ -44,6 +77,13 @@ def compress_forecasts(
     if not isinstance(forecasts, list):
         logger.warning("Input 'forecasts' is not a list.")
         return []
+    # Flag drift-sensitive forecasts if drift_report is provided
+    if drift_report:
+        forecasts = flag_drift_sensitive_forecasts(forecasts, drift_report)
+
+    # Suppress drift-flagged forecasts before top-K selection
+    forecasts = [f for f in forecasts if f.get("drift_flag") not in {"⚠️ Rule Instability", "⚠️ Overlay Volatility"}]
+
     clusters = defaultdict(list)
     for f in forecasts:
         label = f.get(cluster_key, "unknown")

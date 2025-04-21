@@ -23,6 +23,8 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 TURN_LOG_PATH = PATHS.get("TURN_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
+AUTO_ENFORCE = False  # Set to True to enable post-turn license enforcement
+
 
 def run_turn(
     state: WorldState,
@@ -78,5 +80,12 @@ def run_turn(
     # Step 5: Advance the simulation
     state.increment_turn()
     state.log_state_change("Turn incremented.")
+
+    # Optional: Post-turn license enforcement (if enabled)
+    if AUTO_ENFORCE:
+        from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+        if hasattr(state, "forecasts"):
+            state.forecasts = annotate_forecasts(state.forecasts)
+            state.forecasts = filter_licensed(state.forecasts)
 
     return rule_execution_log

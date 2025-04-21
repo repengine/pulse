@@ -16,6 +16,8 @@ from typing import List, Dict, Optional
 from trust_system.forecast_episode_logger import summarize_episodes
 import os
 
+from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
+
 
 def load_jsonl(path: str) -> List[Dict]:
     """Load a JSONL file as list of dicts."""
@@ -32,7 +34,9 @@ def generate_operator_brief(
     episode_log_file: Optional[str] = None,
     output_md_path: str = "operator_brief.md",
     top_k: int = 5,
-    previous_episode_log: Optional[str] = None
+    previous_episode_log: Optional[str] = None,
+    prev_trace_path: Optional[str] = None,
+    curr_trace_path: Optional[str] = None
 ) -> None:
     """
     Generate a markdown report based on alignment scores and symbolic episodes.
@@ -43,6 +47,8 @@ def generate_operator_brief(
         output_md_path (str): Where to save the markdown output
         top_k (int): How many top forecasts to display
         previous_episode_log (str): Previous symbolic episode log for drift comparison
+        prev_trace_path (str): Path to previous simulation trace for drift analysis
+        curr_trace_path (str): Path to current simulation trace for drift analysis
     """
     forecasts = load_jsonl(alignment_file) if alignment_file else []
     episodes = load_jsonl(episode_log_file) if episode_log_file else []
@@ -58,6 +64,19 @@ def generate_operator_brief(
             arc: arcs_curr.get(arc, 0) - arcs_prev.get(arc, 0)
             for arc in all_arcs
         }
+
+    # Simulation drift analysis
+    simulation_drift = None
+    if prev_trace_path and curr_trace_path:
+        try:
+            drift_report = run_simulation_drift_analysis(prev_trace_path, curr_trace_path)
+            simulation_drift = {
+                "overlay_drift": drift_report.get("overlay_drift", {}),
+                "rule_trigger_deltas": drift_report.get("rule_trigger_delta", {}),
+                "structural_change": drift_report.get("structure_shift", None)
+            }
+        except Exception as e:
+            print(f"❌ Failed to run simulation drift analysis: {e}")
 
     try:
         with open(output_md_path, "w", encoding="utf-8") as f:
@@ -101,6 +120,26 @@ def generate_operator_brief(
                 for arc, delta in drift_summary.items():
                     sign = "+" if delta > 0 else ""
                     f.write(f"- {arc}: {sign}{delta}\n")
+                f.write("\n")
+
+            # Simulation Drift Summary
+            if simulation_drift:
+                f.write("## 🧪 Simulation Drift Summary\n")
+                overlay = simulation_drift.get("overlay_drift", {})
+                if overlay:
+                    for k, v in overlay.items():
+                        sign = "+" if v > 0 else ""
+                        f.write(f"- Overlay Δ {k}: {sign}{v:.3f}\n")
+                rule_deltas = simulation_drift.get("rule_trigger_deltas", {})
+                if rule_deltas:
+                    f.write("- Rule trigger delta:\n")
+                    for rule, delta in rule_deltas.items():
+                        sign = "+" if delta > 0 else ""
+                        f.write(f"  - {rule}: {sign}{delta}\n")
+                struct = simulation_drift.get("structural_change", None)
+                if struct is not None:
+                    sign = "+" if struct > 0 else ""
+                    f.write(f"- Turn count changed by: {sign}{struct}\n")
                 f.write("\n")
 
             # Risk Summary (simple volatility cue)

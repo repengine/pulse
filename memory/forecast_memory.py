@@ -12,6 +12,10 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 from typing import List, Dict, Optional
 
+# 🧩 Import license enforcement utilities for use in memory/export flows
+from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+
+BLOCKED_MEMORY_LOG = "logs/blocked_memory_log.jsonl"
 
 class ForecastMemory:
     """
@@ -35,6 +39,10 @@ class ForecastMemory:
 
     def store(self, forecast_obj: Dict) -> None:
         """Adds a forecast object to memory and persists to file. Prunes if over limit."""
+        # PATCH: Tag drift-prone forecasts as review_only and unlicensed
+        if forecast_obj.get("trust_label") == "🔴 Drift-Prone":
+            forecast_obj["memory_flag"] = "review_only"
+            forecast_obj["license"] = False
         self._memory.append(forecast_obj)
         self._enforce_memory_limit()
         if self.persist_dir:
@@ -66,6 +74,28 @@ class ForecastMemory:
             self._memory = [f for f in self._memory if float(f.get("confidence", 0)) >= min_confidence]
         self._enforce_memory_limit()
         return before - len(self._memory)
+
+    def gate_memory_retention_by_license(self, license_loss_percent: float, threshold: float = 40.0):
+        """
+        Prevent memory retention if trust breaks down. Logs discarded content.
+
+        Args:
+            license_loss_percent (float): How many forecasts failed license test
+            threshold (float): Block memory if over this %
+        """
+        import json
+        if license_loss_percent > threshold:
+            print(f"⚠️ Memory blocked due to license instability ({license_loss_percent:.1f}%)")
+            try:
+                with open(BLOCKED_MEMORY_LOG, "a") as f:
+                    for entry in self._memory:
+                        f.write(json.dumps(entry) + "\n")
+                print(f"📤 Blocked memory logged to {BLOCKED_MEMORY_LOG}")
+            except Exception as e:
+                print(f"❌ Failed to log blocked memory: {e}")
+            self._memory = []
+        else:
+            print("✅ Memory retention approved.")
 
     def _enforce_memory_limit(self) -> None:
         """Ensure memory does not exceed max_entries; prune oldest if needed."""

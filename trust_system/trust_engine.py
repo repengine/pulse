@@ -57,6 +57,37 @@ def compute_symbolic_attention_score(forecast: Dict, arc_drift: Dict[str, int]) 
     delta = abs(arc_drift.get(arc, 0))
     return round(min(delta / 10.0, 1.0), 3)
 
+def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
+    """
+    Flags forecasts if they belong to unstable arcs or drift-prone rule sets.
+
+    Args:
+        forecasts (List[Dict])
+        drift_report (Dict): Output from run_simulation_drift_analysis()
+        threshold (float): Drift cutoff for flagging
+
+    Returns:
+        List[Dict]: forecasts updated with 'drift_flag'
+    """
+    volatile_rules = {r for r, delta in drift_report.get("rule_trigger_delta", {}).items() if abs(delta) > threshold * 10}
+    unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold}
+
+    for fc in forecasts:
+        arc = fc.get("arc_label", "unknown")
+        rules = fc.get("fired_rules", [])
+        overlays = fc.get("forecast", {}).get("symbolic_change", {})
+
+        flagged = False
+        if any(r in volatile_rules for r in rules):
+            fc["drift_flag"] = "⚠️ Rule Instability"
+            flagged = True
+        if any(k in unstable_overlays for k in overlays):
+            fc["drift_flag"] = "⚠️ Overlay Volatility"
+            flagged = True
+        if not flagged:
+            fc["drift_flag"] = "✅ Stable"
+    return forecasts
+
 class TrustEngine:
     """
     Main interface for tagging, scoring, gating, and auditing forecasts.
@@ -289,7 +320,8 @@ class TrustEngine:
         memory: Optional[List[Dict]] = None,
         current_state: Optional[Dict] = None,
         retrodiction_threshold: float = 1.5,
-        arc_drift: Optional[Dict[str, int]] = None
+        arc_drift: Optional[Dict[str, int]] = None,
+        drift_report: Optional[Dict] = None
     ) -> List[Dict]:
         """
         Batch process forecasts: tags, scores, trust labels, and metadata.
@@ -301,6 +333,7 @@ class TrustEngine:
             current_state: Optional dict representing the current simulation state for retrodiction.
             retrodiction_threshold: Threshold for retrodiction filtering (default 1.5).
             arc_drift: Optional dict of arc drift deltas for attention scoring.
+            drift_report: Optional simulation drift report for drift flagging.
         Returns:
             List of processed forecast dicts with trust metadata.
         """
@@ -311,11 +344,19 @@ class TrustEngine:
             except Exception as e:
                 logger.warning(f"Retrodiction batch analysis failed: {e}")
 
+        # Flag drift-sensitive forecasts if drift_report is provided
+        if drift_report:
+            forecasts = flag_drift_sensitive_forecasts(forecasts, drift_report)
+
         for f in forecasts:
             try:
                 TrustEngine.tag_forecast(f)
                 score = TrustEngine.score_forecast(f, memory)
-                label = TrustEngine.confidence_gate(f)
+                # Drift gating: hard-cap drifted outputs
+                if f.get("drift_flag") in {"⚠️ Rule Instability", "⚠️ Overlay Volatility"}:
+                    label = "🔴 Drift-Prone"
+                else:
+                    label = TrustEngine.confidence_gate(f)
                 f["confidence"] = score
                 f["trust_label"] = label
                 f["pulse_trust_meta"] = TrustResult(

@@ -35,7 +35,7 @@ logger = get_logger(__name__)
 SUMMARY_PATH = PATHS["BATCH_FORECAST_SUMMARY"]
 
 
-def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block=None, verbose=True, export_summary=True):
+def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block=None, verbose=True, export_summary=True, enforce_license=False):
     """
     Runs batch of forecast simulations and outputs results.
 
@@ -46,6 +46,7 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
         symbolic_block (list): Symbolic drivers to auto-reject
         verbose (bool): Print status
         export_summary (bool): Write summary to disk
+        enforce_license (bool): Enforce license compliance for forecasts
     """
     min_conf = min_conf if min_conf is not None else CONFIDENCE_THRESHOLD
 
@@ -105,6 +106,12 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
     except Exception:
         pass
 
+    # --- License enforcement ---
+    if enforce_license:
+        from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+        forecasts = annotate_forecasts(forecasts)
+        forecasts = filter_licensed(forecasts)
+
     # Run recursion audit if previous batch exists
     if os.path.exists("data/last_forecast_batch.jsonl"):
         with open("data/last_forecast_batch.jsonl", "r") as f:
@@ -132,6 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--min_conf", type=float, default=CONFIDENCE_THRESHOLD, help="Minimum required confidence")
     parser.add_argument("--block", nargs='*', default=None, help="Symbolic drivers to block (e.g. despair)")
     parser.add_argument("--quiet", action="store_true", help="Suppress verbose output")
+    parser.add_argument("--trust-only", action="store_true", help="Only save/export licensed forecasts")
     args = parser.parse_args()
 
     run_batch_forecasts(
@@ -139,5 +147,6 @@ if __name__ == "__main__":
         domain=args.domain,
         min_conf=args.min_conf,
         symbolic_block=args.block,
-        verbose=not args.quiet
+        verbose=not args.quiet,
+        enforce_license=args.trust_only
     )

@@ -133,6 +133,26 @@ class PulseControlApp:
         ttk.Button(self.root, text="Generate Operator Brief", command=self.generate_operator_brief_gui).pack(pady=2)
         # Add arc drift visualization button
         ttk.Button(self.root, text="Plot Arc Drift (Cycles)", command=self.plot_arc_drift_across_cycles).pack(pady=2)
+        # Add simulation drift comparison button
+        ttk.Button(self.root, text="Compare Simulation Drift", command=self.visualize_simulation_drift).pack(pady=2)
+        # Add forecast licensing evaluation button
+        ttk.Button(self.root, text="Evaluate Forecast Licensing", command=self.evaluate_forecast_licenses).pack(pady=2)
+        # Add explain forecast licenses button
+        ttk.Button(self.root, text="Explain Forecast Licenses", command=self.explain_forecast_licenses).pack(pady=2)
+        # Add enforce license rules button
+        ttk.Button(self.root, text="Enforce License Rules", command=self.enforce_forecast_batch_license).pack(pady=2)
+        # Add license trust breakdown bar chart button
+        ttk.Button(self.root, text="Plot License Trust Breakdown", command=self.plot_license_loss_bar).pack(pady=2)
+        # Add blocked memory review button
+        ttk.Button(self.root, text="Review Blocked Memory", command=self.review_blocked_memory).pack(pady=2)
+        # Add repair blocked forecasts button
+        ttk.Button(self.root, text="Repair Blocked Forecasts", command=self.repair_blocked_memory).pack(pady=2)
+        # Add symbolic trust sweep button
+        ttk.Button(self.root, text="Run Symbolic Trust Sweep", command=self.run_symbolic_sweep_gui).pack(pady=2)
+        # Add show sweep summary button
+        ttk.Button(self.root, text="Show Sweep Summary", command=self.show_sweep_summary).pack(pady=2)
+
+
 
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
@@ -788,6 +808,211 @@ class PulseControlApp:
 
         except Exception as e:
             self.log(f"❌ Arc drift plot error: {e}")
+
+    def visualize_simulation_drift(self):
+        """Compare two simulation traces for internal drift."""
+        from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
+        from tkinter import filedialog
+
+        prev = filedialog.askopenfilename(title="Select previous simulation trace (.jsonl)")
+        curr = filedialog.askopenfilename(title="Select current simulation trace (.jsonl)")
+        if not prev or not curr:
+            self.log("Drift comparison cancelled.")
+            return
+
+        try:
+            result = run_simulation_drift_analysis(prev, curr)
+            self.log("📊 Simulation Drift Summary:")
+            for k, v in result["overlay_drift"].items():
+                self.log(f" - Overlay '{k}': Δ {v:.4f}")
+            self.log("🔁 Rule Trigger Delta:")
+            for rule, delta in result["rule_trigger_delta"].items():
+                self.log(f" - {rule}: {delta:+}")
+            self.log(f"🧱 Turn Count Change: {result['structure_shift']['turn_diff']}")
+        except Exception as e:
+            self.log(f"❌ Drift analysis failed: {e}")
+
+    def evaluate_forecast_licenses(self):
+        from tkinter import filedialog
+        from trust_system.forecast_licensing_shell import license_forecast
+
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        if not path:
+            self.log("License check cancelled.")
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            approved = 0
+            for fc in forecasts:
+                fc["license_status"] = license_forecast(fc)
+                if fc["license_status"] == "✅ Approved":
+                    approved += 1
+            self.log(f"✅ {approved}/{len(forecasts)} forecasts approved for license.")
+        except Exception as e:
+            self.log(f"❌ License evaluation failed: {e}")
+
+    def explain_forecast_licenses(self):
+        """Select a forecast batch and view license rationales per forecast."""
+        from tkinter import filedialog
+        from trust_system.license_explainer import explain_forecast_license
+
+        path = filedialog.askopenfilename(title="Select forecast batch with licenses")
+        if not path:
+            self.log("License rationale view cancelled.")
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            self.log(f"📂 Loaded {len(forecasts)} forecasts with licensing.")
+            for fc in forecasts:
+                rationale = explain_forecast_license(fc)
+                self.log(f"🧾 {fc.get('trace_id', 'unknown')} → {fc.get('license_status')}\n{rationale}")
+        except Exception as e:
+            self.log(f"❌ Failed to explain licenses: {e}")
+
+    def enforce_forecast_batch_license(self):
+        """Run license enforcement across a forecast batch."""
+        from tkinter import filedialog
+        from trust_system.license_enforcer import (
+            annotate_forecasts, filter_licensed, summarize_license_distribution, export_rejected_forecasts
+        )
+
+        path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
+        if not path:
+            self.log("License enforcement cancelled.")
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+
+            forecasts = annotate_forecasts(forecasts)
+            licensed = filter_licensed(forecasts)
+            summary = summarize_license_distribution(forecasts)
+
+            out_path = filedialog.asksaveasfilename(defaultextension=".jsonl", title="Save approved forecasts")
+            if out_path:
+                with open(out_path, "w") as f:
+                    for fc in licensed:
+                        f.write(json.dumps(fc) + "\n")
+                self.log(f"✅ Saved {len(licensed)} approved forecasts.")
+            else:
+                self.log("⚠️ No export path selected.")
+
+            self.log("📊 License Summary:")
+            for k, v in summary.items():
+                self.log(f" - {k}: {v}")
+
+        except Exception as e:
+            self.log(f"❌ License enforcement error: {e}")
+
+    def plot_license_loss_bar(self):
+        """Visualize license retention vs. drop from a digest JSON."""
+        from tkinter import filedialog
+        import matplotlib.pyplot as plt
+
+        file = filedialog.askopenfilename(title="Select Strategos Digest (JSON)")
+        if not file:
+            return
+
+        try:
+            with open(file, "r") as f:
+                digest = json.load(f)
+
+            passed = digest.get("license_pass_count", 0)
+            total = digest.get("license_total", 0)
+            failed = total - passed
+
+            plt.bar(["Approved", "Rejected"], [passed, failed], color=["green", "red"])
+            plt.title("📊 License Outcome Summary")
+            plt.ylabel("Forecast Count")
+            plt.tight_layout()
+            plt.show()
+
+        except Exception as e:
+            self.log(f"❌ Failed to render license bar chart: {e}")
+
+    def review_blocked_memory(self):
+        """Open blocked memory log and review license reasons + optionally export."""
+        from tkinter import filedialog, simpledialog
+        from tools.memory_recovery_viewer import load_blocked_forecasts, export_subset
+
+        path = filedialog.askopenfilename(title="Select blocked_memory_log.jsonl")
+        if not path:
+            self.log("Review cancelled.")
+            return
+
+        try:
+            blocked = load_blocked_forecasts(path)
+            reasons = {}
+            for fc in blocked:
+                label = fc.get("license_status", "❓ Unlabeled")
+                reasons[label] = reasons.get(label, 0) + 1
+
+            self.log("📉 License Blocked Forecast Summary:")
+            for reason, count in reasons.items():
+                self.log(f" - {reason}: {count}")
+
+            choice = simpledialog.askstring("Export Reason", "Enter license status to export:")
+            if choice:
+                out = filedialog.asksaveasfilename(defaultextension=".jsonl")
+                if out:
+                    export_subset(blocked, reason_filter=choice, out_path=out)
+                    self.log(f"✅ Exported forecasts with reason: {choice}")
+        except Exception as e:
+            self.log(f"❌ Failed to review blocked memory: {e}")
+
+    def repair_blocked_memory(self):
+        """Retry licensing for previously blocked forecasts."""
+        from tkinter import filedialog
+        from memory.memory_repair_queue import load_blocked_memory, retry_licensing, export_recovered
+
+        path = filedialog.askopenfilename(title="Select blocked_memory_log.jsonl")
+        if not path:
+            self.log("Repair cancelled.")
+            return
+
+        try:
+            blocked = load_blocked_memory(path)
+            recovered = retry_licensing(blocked)
+
+            self.log(f"✅ {len(recovered)} forecasts passed re-licensing.")
+
+            out = filedialog.asksaveasfilename(defaultextension=".jsonl")
+            if out:
+                export_recovered(recovered, out)
+                self.log(f"📤 Saved recovered forecasts to: {out}")
+        except Exception as e:
+            self.log(f"❌ Repair failed: {e}")
+
+    def run_symbolic_sweep_gui(self):
+        """GUI wrapper to run symbolic sweep and log results."""
+        from scheduler.symbolic_sweep_scheduler import run_sweep_now
+        try:
+            result = run_sweep_now()
+            self.log(f"🧠 Sweep recovered {result['recovered']} of {result['total_blocked']} forecasts.")
+        except Exception as e:
+            self.log(f"❌ Symbolic sweep error: {e}")
+
+    def show_sweep_summary(self):
+        """Show symbolic trust sweep summary from history log."""
+        from scheduler.symbolic_sweep_scheduler import summarize_sweep_log
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select sweep log", initialfile="symbolic_sweep_log.jsonl")
+        if not path:
+            return
+        try:
+            with open(path, "r") as f:
+                entries = [json.loads(line.strip()) for line in f if line.strip()]
+            self.log(f"📊 Sweep History ({len(entries)}):")
+            for entry in entries[-10:]:
+                self.log(f"{entry['timestamp']} → Recovered {entry['recovered']} of {entry['total_blocked']}")
+        except Exception as e:
+            self.log(f"❌ Failed to read sweep log: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""
