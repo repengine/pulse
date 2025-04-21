@@ -49,165 +49,148 @@ class PulseControlApp:
         self.root = root
         self.root.title("Pulse UI Tester")
         self.state = WorldState()
+
         self.overlay_vars = {
             "hope": tk.DoubleVar(value=0.5),
             "despair": tk.DoubleVar(value=0.5),
             "rage": tk.DoubleVar(value=0.5),
             "fatigue": tk.DoubleVar(value=0.5)
         }
+
         self.batch_size = tk.IntVar(value=3)
-        self.turns = tk.IntVar(value=5)
+        self.turns = tk.IntVar(value=5)  # Add turns variable
         self.last_batch = []
-        self.summary_var = tk.StringVar(value="")
-        self.status_var = tk.StringVar(value="Ready.")
+
+        self.summary_var = tk.StringVar(value="")  # For overlay interpretation
+
         self.setup_ui()
-        self.update_overlay_summary()
+        self.update_overlay_summary()  # Initialize summary
 
     def setup_ui(self) -> None:
-        """Set up the Tkinter UI widgets and layout (tabbed, menu, status bar)."""
-        # --- Menu Bar ---
-        menubar = tk.Menu(self.root)
-        file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label="Load Overlays", command=self.load_overlays)
-        file_menu.add_command(label="Save Overlays", command=self.save_overlays)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.root.quit)
-        menubar.add_cascade(label="File", menu=file_menu)
-
-        tools_menu = tk.Menu(menubar, tearoff=0)
-        tools_menu.add_command(label="Memory Audit", command=self.run_memory_audit)
-        tools_menu.add_command(label="Export Memory Audit", command=self.export_memory_audit)
-        tools_menu.add_command(label="Coherence Check", command=self.run_coherence_check)
-        tools_menu.add_command(label="Export Coherence Warnings", command=self.export_coherence_warnings)
-        menubar.add_cascade(label="Tools", menu=tools_menu)
-
-        advanced_menu = tk.Menu(menubar, tearoff=0)
-        advanced_menu.add_command(label="Check Contradictions", command=lambda: check_contradictions_from_ui(self))
-        advanced_menu.add_command(label="Show Overlay JSON", command=self.show_overlay_json)
-        menubar.add_cascade(label="Advanced", menu=advanced_menu)
-
-        self.root.config(menu=menubar)
-
-        # --- Notebook Tabs ---
-        notebook = ttk.Notebook(self.root)
-        notebook.pack(fill="both", expand=True, padx=4, pady=2)
-
-        # --- Simulation Tab ---
-        sim_tab = ttk.Frame(notebook)
-        notebook.add(sim_tab, text="Simulation")
-        # Overlay sliders
-        overlay_frame = ttk.LabelFrame(sim_tab, text="Symbolic Overlays")
-        overlay_frame.pack(fill="x", padx=4, pady=4)
+        """Set up the Tkinter UI widgets and layout."""
+        ttk.Label(self.root, text="Symbolic Overlays", font=("Arial", 12, "bold")).pack(pady=5)
         for k, var in self.overlay_vars.items():
-            frame = ttk.Frame(overlay_frame)
-            frame.pack(fill="x", pady=1)
+            frame = ttk.Frame(self.root)
+            frame.pack()
             ttk.Label(frame, text=f"{k.capitalize():<8}").pack(side="left")
             scale = ttk.Scale(frame, from_=0.0, to=1.0, variable=var, length=200, orient="horizontal")
             scale.pack(side="left")
             ttk.Label(frame, textvariable=var).pack(side="left")
+            # Update summary when overlays change
             var.trace_add("write", lambda *_: self.update_overlay_summary())
-        # Overlay summary
-        ttk.Label(overlay_frame, textvariable=self.summary_var, font=("Arial", 10, "italic"), foreground="blue").pack(pady=2)
-        # Overlay controls
-        overlay_btns = ttk.Frame(overlay_frame)
-        overlay_btns.pack(pady=2)
-        ttk.Button(overlay_btns, text="Reset Overlays", command=self.reset_overlays).pack(side="left", padx=2)
-        ttk.Button(overlay_btns, text="Apply Overlays", command=self.apply_overlays).pack(side="left", padx=2)
 
-        # Simulation controls
-        sim_ctrl = ttk.LabelFrame(sim_tab, text="Simulation Controls")
-        sim_ctrl.pack(fill="x", padx=4, pady=4)
-        turns_frame = ttk.Frame(sim_ctrl)
+        # Overlay control buttons
+        btn_frame = ttk.Frame(self.root)
+        btn_frame.pack(pady=2)
+        ttk.Button(btn_frame, text="Reset Overlays", command=self.reset_overlays).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Load Overlays", command=self.load_overlays).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Save Overlays", command=self.save_overlays).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Show Overlay JSON", command=self.show_overlay_json).pack(side="left", padx=2)
+        ttk.Button(btn_frame, text="Check Contradictions", command=lambda: check_contradictions_from_ui(self)).pack(side="left", padx=2)
+
+        # Overlay summary/interpretation
+        ttk.Label(self.root, textvariable=self.summary_var, font=("Arial", 10, "italic"), foreground="blue").pack(pady=4)
+
+        ttk.Separator(self.root, orient="horizontal").pack(fill="x", pady=5)
+        # Simulation turn controls
+        turns_frame = ttk.Frame(self.root)
         turns_frame.pack(pady=2)
         ttk.Label(turns_frame, text="Sim Turns:").pack(side="left")
         ttk.Entry(turns_frame, textvariable=self.turns, width=5).pack(side="left", padx=2)
         ttk.Button(turns_frame, text="Run N Turns", command=self.run_n_turns).pack(side="left", padx=2)
 
-        # --- Batch Tab ---
-        batch_tab = ttk.Frame(notebook)
-        notebook.add(batch_tab, text="Batch")
-        batch_frame = ttk.LabelFrame(batch_tab, text="Forecast Batch Operations")
-        batch_frame.pack(fill="x", padx=4, pady=4)
-        ttk.Label(batch_frame, text="Batch Size").pack()
-        ttk.Entry(batch_frame, textvariable=self.batch_size, width=5).pack()
-        ttk.Button(batch_frame, text="Run Forecast Batch", command=self.run_batch).pack(pady=2)
-        ttk.Button(batch_frame, text="Save Forecast Batch", command=self.save_batch).pack(pady=2)
-        ttk.Button(batch_frame, text="Show Strategos Digest", command=self.show_digest).pack(pady=2)
-        ttk.Button(batch_frame, text="Score Current Trace", command=self.score_trace).pack(pady=2)
-        ttk.Button(batch_frame, text="Score Trace from File", command=self.score_trace_from_file).pack(pady=2)
-        ttk.Button(batch_frame, text="Show Symbolic Arc", command=self.show_symbolic_arc).pack(pady=2)
-        ttk.Button(batch_frame, text="Backtrace + Graph", command=self.backtrace_and_graph).pack(pady=2)
+        ttk.Label(self.root, text="Batch Size").pack()
+        ttk.Entry(self.root, textvariable=self.batch_size, width=5).pack()
 
-        # --- Analysis Tab ---
-        analysis_tab = ttk.Frame(notebook)
-        notebook.add(analysis_tab, text="Analysis/Plots")
-        analysis_frame = ttk.LabelFrame(analysis_tab, text="Analysis & Plots")
-        analysis_frame.pack(fill="x", padx=4, pady=4)
-        ttk.Button(analysis_frame, text="Load & Replay Trace", command=self.load_and_replay_trace).pack(pady=2)
-        ttk.Button(analysis_frame, text="Load & Visualize Trace", command=self.load_and_visualize_trace).pack(pady=2)
-        ttk.Button(analysis_frame, text="Plot Memory Stats", command=self.plot_memory_stats).pack(pady=2)
-        ttk.Button(analysis_frame, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
-        ttk.Button(analysis_frame, text="Plot Arc Drift (Cycles)", command=self.plot_arc_drift_across_cycles).pack(pady=2)
-        ttk.Button(analysis_frame, text="Compare Simulation Drift", command=self.visualize_simulation_drift).pack(pady=2)
-        ttk.Button(analysis_frame, text="Plot License Trust Breakdown", command=self.plot_license_loss_bar).pack(pady=2)
-        ttk.Button(analysis_frame, text="Show Symbolic Transition Graph", command=self.show_symbolic_transition_graph).pack(pady=2)
-        ttk.Button(analysis_frame, text="Check Symbolic Convergence", command=self.check_symbolic_convergence).pack(pady=2)
+        # Action buttons
+        ttk.Button(self.root, text="Run Forecast Batch", command=self.run_batch).pack(pady=5)
+        ttk.Button(self.root, text="Save Forecast Batch", command=self.save_batch).pack(pady=5)
+        ttk.Button(self.root, text="Show Strategos Digest", command=self.show_digest).pack(pady=5)
+        ttk.Button(self.root, text="Score Current Trace", command=self.score_trace).pack(pady=5)
+        ttk.Button(self.root, text="Score Trace from File", command=self.score_trace_from_file).pack(pady=5)
+        ttk.Button(self.root, text="Show Symbolic Arc", command=self.show_symbolic_arc).pack(pady=5)
+        ttk.Button(self.root, text="Backtrace + Graph", command=self.backtrace_and_graph).pack(pady=5)
+        ttk.Button(self.root, text="Load & Replay Trace", command=self.load_and_replay_trace).pack(pady=5)
+        ttk.Button(self.root, text="Load & Visualize Trace", command=self.load_and_visualize_trace).pack(pady=5)
+        ttk.Button(self.root, text="Prune Memory", command=self.prune_memory).pack(pady=2)
+        ttk.Button(self.root, text="Memory Audit", command=self.run_memory_audit).pack(pady=5)
+        ttk.Button(self.root, text="Export Memory Audit", command=self.export_memory_audit).pack(pady=2)
+        ttk.Button(self.root, text="Plot Memory Stats", command=self.plot_memory_stats).pack(pady=2)
+        ttk.Button(self.root, text="Coherence Check", command=self.run_coherence_check).pack(pady=5)
+        ttk.Button(self.root, text="Export Coherence Warnings", command=self.export_coherence_warnings).pack(pady=2)
 
-        # --- Memory Tab ---
-        memory_tab = ttk.Frame(notebook)
-        notebook.add(memory_tab, text="Memory")
-        memory_frame = ttk.LabelFrame(memory_tab, text="Memory Tools")
-        memory_frame.pack(fill="x", padx=4, pady=4)
-        ttk.Button(memory_frame, text="Prune Memory", command=self.prune_memory).pack(pady=2)
-        ttk.Button(memory_frame, text="Memory Audit", command=self.run_memory_audit).pack(pady=2)
-        ttk.Button(memory_frame, text="Export Memory Audit", command=self.export_memory_audit).pack(pady=2)
-        ttk.Button(memory_frame, text="Review Blocked Memory", command=self.review_blocked_memory).pack(pady=2)
-        ttk.Button(memory_frame, text="Repair Blocked Forecasts", command=self.repair_blocked_memory).pack(pady=2)
-        ttk.Button(memory_frame, text="Run Symbolic Trust Sweep", command=self.run_symbolic_sweep_gui).pack(pady=2)
-        ttk.Button(memory_frame, text="Show Sweep Summary", command=self.show_sweep_summary).pack(pady=2)
+        # --- Operator Tools ---
+        ttk.Separator(self.root, orient="horizontal").pack(fill="x", pady=6)
+        ttk.Label(self.root, text="Operator Tools", font=("Arial", 12, "bold")).pack(pady=3)
+        ttk.Button(self.root, text="Run Recursion Audit", command=lambda: prompt_and_run_audit(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Generate Operator Brief", command=lambda: prompt_and_generate_brief(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
+        ttk.Button(self.root, text="Run Batch Alignment Scoring", command=self.run_alignment_batch_analysis).pack(pady=2)
+        ttk.Button(self.root, text="Log Batch Audit Trail", command=self.log_batch_forecast_audits).pack(pady=2)
+        ttk.Button(self.root, text="Summarize Symbolic Episodes", command=self.view_episode_summary).pack(pady=2)
+        # Add operator brief generator button
+        ttk.Button(self.root, text="Generate Operator Brief", command=self.generate_operator_brief_gui).pack(pady=2)
+        # Add arc drift visualization button
+        ttk.Button(self.root, text="Plot Arc Drift (Cycles)", command=self.plot_arc_drift_across_cycles).pack(pady=2)
+        # Add simulation drift comparison button
+        ttk.Button(self.root, text="Compare Simulation Drift", command=self.visualize_simulation_drift).pack(pady=2)
+        # Add forecast licensing evaluation button
+        ttk.Button(self.root, text="Evaluate Forecast Licensing", command=self.evaluate_forecast_licenses).pack(pady=2)
+        # Add explain forecast licenses button
+        ttk.Button(self.root, text="Explain Forecast Licenses", command=self.explain_forecast_licenses).pack(pady=2)
+        # Add enforce license rules button
+        ttk.Button(self.root, text="Enforce License Rules", command=self.enforce_forecast_batch_license).pack(pady=2)
+        # Add license trust breakdown bar chart button
+        ttk.Button(self.root, text="Plot License Trust Breakdown", command=self.plot_license_loss_bar).pack(pady=2)
+        # Add blocked memory review button
+        ttk.Button(self.root, text="Review Blocked Memory", command=self.review_blocked_memory).pack(pady=2)
+        # Add repair blocked forecasts button
+        ttk.Button(self.root, text="Repair Blocked Forecasts", command=self.repair_blocked_memory).pack(pady=2)
+        # Add symbolic trust sweep button
+        ttk.Button(self.root, text="Run Symbolic Trust Sweep", command=self.run_symbolic_sweep_gui).pack(pady=2)
+        # Add show sweep summary button
+        ttk.Button(self.root, text="Show Sweep Summary", command=self.show_sweep_summary).pack(pady=2)
+        # Add symbolic lineage viewer button
+        ttk.Button(self.root, text="Trace Forecast Lineage", command=self.trace_forecast_episode_chain).pack(pady=2)
+        # Add symbolic flip pattern analysis button
+        ttk.Button(self.root, text="Analyze Symbolic Flip Patterns", command=self.analyze_symbolic_flips).pack(pady=2)
+        # Add symbolic transition graph button
+        ttk.Button(self.root, text="Show Symbolic Transition Graph", command=self.show_symbolic_transition_graph).pack(pady=2)
 
-        # --- Operator Tab ---
-        operator_tab = ttk.Frame(notebook)
-        notebook.add(operator_tab, text="Operator")
-        operator_frame = ttk.LabelFrame(operator_tab, text="Operator Tools")
-        operator_frame.pack(fill="x", padx=4, pady=4)
-        ttk.Button(operator_frame, text="Run Recursion Audit", command=lambda: prompt_and_run_audit(self.log)).pack(pady=2)
-        ttk.Button(operator_frame, text="Generate Operator Brief", command=lambda: prompt_and_generate_brief(self.log)).pack(pady=2)
-        ttk.Button(operator_frame, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
-        ttk.Button(operator_frame, text="Summarize Symbolic Episodes", command=self.view_episode_summary).pack(pady=2)
-        ttk.Button(operator_frame, text="Generate Operator Brief", command=self.generate_operator_brief_gui).pack(pady=2)
-        ttk.Button(operator_frame, text="Run Batch Alignment Scoring", command=self.run_alignment_batch_analysis).pack(pady=2)
-        ttk.Button(operator_frame, text="Log Batch Audit Trail", command=self.log_batch_forecast_audits).pack(pady=2)
-        ttk.Button(operator_frame, text="Trace Forecast Lineage", command=self.trace_forecast_episode_chain).pack(pady=2)
-        ttk.Button(operator_frame, text="Analyze Symbolic Flip Patterns", command=self.analyze_symbolic_flips).pack(pady=2)
 
-        # --- Replay Tab ---
-        replay_tab = ttk.Frame(notebook)
-        notebook.add(replay_tab, text="Replay")
-        replay_frame = ttk.LabelFrame(replay_tab, text="Trace Replay Tools")
-        replay_frame.pack(fill="x", padx=4, pady=4)
-        ttk.Button(replay_frame, text="Replay & Plot Trace", command=self.replay_and_plot_trace).pack(pady=2)
-        ttk.Button(replay_frame, text="Forecast Variable Trajectory", command=self.forecast_variable_trajectory).pack(pady=2)
-        ttk.Button(replay_frame, text="Score Forecast Accuracy", command=self.score_forecast_accuracy).pack(pady=2)
-        ttk.Button(replay_frame, text="Plot Symbolic Trajectory", command=self.plot_symbolic_trajectory_gui).pack(pady=2)
+        # --- Trace Replay Tools ---
+        ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
+        ttk.Button(self.root, text="Replay & Plot Trace", command=self.replay_and_plot_trace).pack(pady=2)
+        ttk.Button(self.root, text="Forecast Variable Trajectory", command=self.forecast_variable_trajectory).pack(pady=2)
+        ttk.Button(self.root, text="Score Forecast Accuracy", command=self.score_forecast_accuracy).pack(pady=2)
+        ttk.Button(self.root, text="Plot Symbolic Trajectory", command=self.plot_symbolic_trajectory_gui).pack(pady=2)
+        ttk.Button(self.root, text="Plot License Trust Breakdown", command=self.plot_license_loss_bar).pack(pady=2)
+        # Add blocked memory review button
+        ttk.Button(self.root, text="Review Blocked Memory", command=self.review_blocked_memory).pack(pady=2)
+        # Add repair blocked forecasts button
+        ttk.Button(self.root, text="Repair Blocked Forecasts", command=self.repair_blocked_memory).pack(pady=2)
+        # Add symbolic trust sweep button
+        ttk.Button(self.root, text="Run Symbolic Trust Sweep", command=self.run_symbolic_sweep_gui).pack(pady=2)
+        # Add show sweep summary button
+        ttk.Button(self.root, text="Show Sweep Summary", command=self.show_sweep_summary).pack(pady=2)
+        # Add symbolic lineage viewer button
+        ttk.Button(self.root, text="Trace Forecast Lineage", command=self.trace_forecast_episode_chain).pack(pady=2)
 
-        # --- Log Output (always visible) ---
+
+        # Log + clear
         log_frame = ttk.Frame(self.root)
-        log_frame.pack(fill="x", pady=5)
-        self.output = scrolledtext.ScrolledText(log_frame, height=14, width=100, wrap="word")
-        self.output.pack(side="left", fill="both", expand=True)
+        log_frame.pack(pady=5)
+        self.output = scrolledtext.ScrolledText(log_frame, height=22, width=100, wrap="word")
+        self.output.pack(side="left")
         ttk.Button(log_frame, text="Clear Log", command=self.clear_log).pack(side="left", padx=5)
-
-        # --- Status Bar ---
-        status_bar = ttk.Frame(self.root)
-        status_bar.pack(fill="x", side="bottom")
-        ttk.Label(status_bar, textvariable=self.status_var, anchor="w").pack(fill="x", padx=4)
 
         self.log("Pulse Dev UI Ready.")
 
     def update_overlay_summary(self) -> None:
         """Update the summary label with a human-readable interpretation of overlays."""
         overlay = {k: v.get() for k, v in self.overlay_vars.items()}
+        # Simple interpretation logic
         dominant = max(overlay, key=overlay.get)
         val = overlay[dominant]
         if val > 0.8:
@@ -220,6 +203,7 @@ class PulseControlApp:
             mood = f"Low {dominant}"
         else:
             mood = "Balanced"
+        # Add more nuance if needed
         self.summary_var.set(f"Interpretation: {mood} ({dominant.capitalize()}={val:.2f})")
 
     def run_n_turns(self) -> None:
@@ -231,6 +215,7 @@ class PulseControlApp:
                 return
             for _ in range(n):
                 run_turn(self.state)
+            # Update overlay_vars from state
             overlays = self.state.overlays.as_dict() if hasattr(self.state.overlays, "as_dict") else dict(self.state.overlays)
             for k, var in self.overlay_vars.items():
                 var.set(overlays.get(k, 0.5))
@@ -394,6 +379,7 @@ class PulseControlApp:
             from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
             import matplotlib.pyplot as plt
 
+            # Use current overlays as starting point
             ws = WorldState()
             overlays = {k: v.get() for k, v in self.overlay_vars.items()}
             for k, v in overlays.items():
@@ -407,8 +393,10 @@ class PulseControlApp:
             arc_label = result.get("arc_label", "N/A")
             arc_certainty = result.get("arc_certainty", "N/A")
 
+            # Log arc label + certainty
             self.log(f"Backtrace Arc: {arc_label} | Certainty: {arc_certainty}")
 
+            # Plot
             emotions = ["hope", "despair", "rage", "fatigue"]
             turns = list(range(len(trace)))
             data = {e: [entry.get(e, 0.5) for entry in trace] for e in emotions}
@@ -450,6 +438,7 @@ class PulseControlApp:
             with open(file, "r") as f:
                 trace = [json.loads(line) for line in f]
             self.log(f"Loaded {len(trace)} events from {file}")
+            # Ask user what to plot
             choice = messagebox.askquestion("Plot", "Plot overlays? (Yes)\nPlot variables? (No)\nCancel for tags.")
             if choice == "yes":
                 overlays = ["hope", "despair", "rage", "fatigue"]
@@ -464,6 +453,7 @@ class PulseControlApp:
                 plt.tight_layout()
                 plt.show()
             elif choice == "no":
+                # Plot variables (ask user for variable name)
                 var = simpledialog.askstring("Variable", "Enter variable name to plot:")
                 if var:
                     vals = [e.get("variables", {}).get(var, None) for e in trace]
@@ -474,6 +464,7 @@ class PulseControlApp:
                     plt.tight_layout()
                     plt.show()
             else:
+                # Plot tags
                 tags = [e.get("symbolic_tag", "N/A") for e in trace]
                 plt.plot(tags)
                 plt.ylabel("Tag")
@@ -506,12 +497,13 @@ class PulseControlApp:
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 audit_memory(memory)
+            # Add summary statistics
             total = len(memory._memory)
             domains = {}
             confidences = []
             for f in memory._memory:
                 if not isinstance(f, dict):
-                    continue
+                    continue  # skip if not a dict
                 d = f.get("domain", "unspecified")
                 domains[d] = domains.get(d, 0) + 1
                 c = f.get("confidence")
@@ -527,6 +519,7 @@ class PulseControlApp:
             if confidences:
                 import statistics
                 self.log(f"Confidence: min={min(confidences):.2f} max={max(confidences):.2f} avg={statistics.mean(confidences):.2f}")
+            # User feedback dialog
             messagebox.showinfo("Memory Audit Complete", f"Audit complete.\nTotal: {total}\nDomains: {domains}")
         except Exception as e:
             self.log(f"❌ Memory audit error: {e}")
@@ -562,10 +555,12 @@ class PulseControlApp:
             domains = self.memory_audit_last["domains"]
             confidences = self.memory_audit_last["confidences"]
             fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+            # Domain distribution
             axs[0].bar(domains.keys(), domains.values())
             axs[0].set_title("Forecasts by Domain")
             axs[0].set_xlabel("Domain")
             axs[0].set_ylabel("Count")
+            # Confidence histogram
             axs[1].hist(confidences, bins=10, color="skyblue", edgecolor="black")
             axs[1].set_title("Confidence Distribution")
             axs[1].set_xlabel("Confidence")
@@ -694,7 +689,7 @@ class PulseControlApp:
     def visualize_arc_distribution(self):
         """Load forecasts and show symbolic arc distribution plot."""
         from tkinter import filedialog
-        from symbolic_system.pulse_symbolic_arc_tracker import (
+        from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
             track_symbolic_arcs, plot_arc_distribution
         )
 
@@ -714,7 +709,7 @@ class PulseControlApp:
     def run_alignment_batch_analysis(self):
         """Run alignment scoring on a forecast batch via CLI bridge."""
         from tkinter import filedialog
-        from trust_system.alignment_index import compute_alignment_index
+        from pulse.trust.alignment_index import compute_alignment_index
 
         path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
         if not path:
@@ -1087,77 +1082,15 @@ class PulseControlApp:
         except Exception as e:
             self.log(f"❌ Graph rendering failed: {e}")
 
-    def plot_symbolic_trajectory_gui(self):
-        """Prompt for a forecast archive and trace ID to plot symbolic arc/tag evolution."""
-        from forecasting.mutation_compression_engine import plot_symbolic_trajectory
-        from memory.forecast_episode_tracer import build_episode_chain
-        from tkinter import filedialog, simpledialog
-
-        path = filedialog.askopenfilename(title="Select forecast archive (.jsonl)")
-        if not path:
-            self.log("Trajectory plot cancelled.")
-            return
-
-        try:
-            with open(path, "r") as f:
-                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
-            root_id = simpledialog.askstring("Trace ID", "Enter root forecast ID for trajectory:")
-            if not root_id:
-                return
-            chain = build_episode_chain(forecasts, root_id=root_id)
-            plot_symbolic_trajectory(chain, title=f"Trajectory for {root_id}")
-        except Exception as e:
-            self.log(f"❌ Failed to plot symbolic trajectory: {e}")
-
-    def check_symbolic_convergence(self):
-        """Compute symbolic convergence score across forecast archive."""
-        from symbolic.symbolic_convergence_detector import (
-            compute_convergence_score,
-            identify_dominant_arcs,
-            detect_fragmentation,
-            plot_convergence_bars
-        )
-        from tkinter import filedialog, simpledialog
-
-        path = filedialog.askopenfilename(title="Select forecast archive (.jsonl)")
-        if not path:
-            return
-
-        try:
-            with open(path, "r") as f:
-                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
-
-            key = simpledialog.askstring("Symbolic Field", "Score by: 'arc_label' or 'symbolic_tag'")
-            if not key or key not in {"arc_label", "symbolic_tag"}:
-                self.log("Invalid symbolic field.")
-                return
-
-            score = compute_convergence_score(forecasts, key=key)
-            dom = identify_dominant_arcs(forecasts, key=key)
-            frag = detect_fragmentation(forecasts, key=key)
-
-            self.log(f"📊 Symbolic Convergence Score ({key}): {score:.3f}")
-            self.log("🔝 Top Symbols:")
-            for k, v in dom.items():
-                self.log(f" - {k}: {v}")
-            if frag:
-                self.log("⚠️ Narrative fragmentation detected.")
-
-            plot_convergence_bars(forecasts, key=key)
-
-        except Exception as e:
-            self.log(f"❌ Convergence analysis failed: {e}")
-
     def clear_log(self) -> None:
         """Clear the log output window."""
         self.output.delete("1.0", "end")
         self.log("🧹 Log cleared.")
 
     def log(self, text: str) -> None:
-        """Append a line of text to the log output window and update status bar."""
+        """Append a line of text to the log output window."""
         self.output.insert("end", text + "\n")
         self.output.see("end")
-        self.status_var.set(text[:120])  # Show last log line in status bar
 
 
 def check_contradictions_from_ui(app):

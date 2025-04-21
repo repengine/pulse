@@ -8,7 +8,7 @@ Author: Pulse AI Engine
 import argparse
 import json
 import os
-from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
+from symbolic_system.pulse_symbolic_arc_tracker import (
     track_symbolic_arcs,
     compare_arc_drift,
     compute_arc_stability,

@@ -97,6 +97,14 @@ class ForecastMemory:
         else:
             print("✅ Memory retention approved.")
 
+    def retain_only_stable_forecasts(self):
+        """Exclude unstable symbolic paths from memory retention."""
+        self._memory = [
+            f for f in self._memory
+            if not f.get("unstable_symbolic_path")
+        ]
+        print(f"✅ Retained {len(self._memory)} stable forecasts in memory.")
+
     def _enforce_memory_limit(self) -> None:
         """Ensure memory does not exceed max_entries; prune oldest if needed."""
         if len(self._memory) > self.max_entries:

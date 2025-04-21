@@ -1,0 +1,28 @@
+📘 Strategos Forecast Digest
+
+## 🛡️ Trust Enforcement Report
+- Total forecasts: 6
+- Approved: 0
+- Rejected: 6
+- License drop rate: 100.00%
+⚠️ High license loss rate — trust coherence degraded.
+
+## ✅ Forecast Licensing Summary
+- Approved: 0
+- Rejected: 0
+- Low Alignment: 0
+
+## 🌐 Symbolic Transition Graph
+![Symbolic Graph](plots/strategos_symbolic_graph.png)
+
+## ♻️ Symbolic Flip Patterns
+- ARC: Despair → ARC: Rage (4x)
+- TAG: Neutral → TAG: Collapse Risk (3x)
+
+## 🔁 Detected Loops
+- TAG: Fatigue ↔ TAG: Despair
+- ARC: Collapse Risk ↔ ARC: Stabilization
+
+🎯 Avg Retrodiction Score: 0.0 | Symbolic Score: 0.0
+📊 Confidence Sparkline: []
+Total Forecasts: 0

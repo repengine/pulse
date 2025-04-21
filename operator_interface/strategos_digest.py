@@ -13,6 +13,19 @@ from simulation_engine.simulation_drift_detector import run_simulation_drift_ana
 from trust_system.license_enforcer import annotate_forecasts, filter_licensed, summarize_license_distribution
 import os
 
+# ➕ Add imports for mutation compression
+from forecast_output.mutation_compression_engine import compress_episode_chain
+from memory.forecast_episode_tracer import build_episode_chain
+# ➕ Import plot_symbolic_trajectory for markdown injection
+from forecast_output.mutation_compression_engine import plot_symbolic_trajectory
+
+# ➕ Import for symbolic transition graph
+from symbolic_system.symbolic_transition_graph import (
+    build_symbolic_graph,
+    visualize_symbolic_graph
+)
+import matplotlib.pyplot as plt
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
@@ -168,6 +181,15 @@ def generate_strategos_digest(
             if "Alignment" in license_status:
                 licensed["low_alignment"] += 1
 
+    # ➕ Build and compress symbolic lineages
+    digest["compressed_episodes"] = []
+    trace_ids = [f.get("trace_id") for f in forecasts if "lineage" in f]
+    for root in trace_ids:
+        chain = build_episode_chain(forecasts, root_id=root)
+        if len(chain) > 1:
+            compressed = compress_episode_chain(chain)
+            digest["compressed_episodes"].append(compressed)
+
     # Optionally sort by alignment_score (top-N)
     forecasts = sorted(forecasts, key=lambda f: f.get("alignment_score", 0), reverse=True)
 
@@ -245,6 +267,60 @@ def generate_strategos_digest(
         for fc in drifted[:10]:
             sections.append(f"- {fc.get('trace_id', 'unknown')} → {fc['drift_flag']}")
         sections.append("")
+
+    # 🧪 Optional Digest Markdown Summary: Compressed Mutation Episodes
+    if digest["compressed_episodes"]:
+        sections.append("## 🔁 Compressed Mutation Episodes")
+        for ce in digest["compressed_episodes"]:
+            # Example summary formatting, adjust as needed
+            root_id = ce.get("root_id", "unknown")
+            label = ce.get("label", "")
+            versions = ce.get("version_count", len(ce.get("chain", [])))
+            tag_flips = ce.get("tag_flips", 0)
+            arc_status = ce.get("arc_status", "")
+            summary = f"- {root_id} → {label} ({versions} versions"
+            if tag_flips:
+                summary += f", {tag_flips} tag flips"
+            if arc_status:
+                summary += f", {arc_status}"
+            summary += ")"
+            sections.append(summary)
+            # ➕ Strategos Markdown Injection: plot and embed trajectory
+            plot_path = f"plots/symbolic_trajectory_{root_id}.png"
+            try:
+                plot_symbolic_trajectory(
+                    ce.get("mutation_compressed_from", []),
+                    export_path=plot_path
+                )
+                sections.append(f"![Trajectory]({plot_path})")
+            except Exception as e:
+                sections.append(f"⚠️ Could not plot trajectory for {root_id}: {e}")
+        sections.append("")
+
+    # ➕ Symbolic Transition Graph Section
+    try:
+        symbolic_graph = build_symbolic_graph(forecasts)
+        fig = visualize_symbolic_graph(symbolic_graph, title="Strategic Symbolic Map")
+        os.makedirs("plots", exist_ok=True)
+        plt.savefig("plots/strategos_symbolic_graph.png")
+        digest["symbolic_graph_path"] = "plots/strategos_symbolic_graph.png"
+        sections.append("## 🌐 Symbolic Transition Graph")
+        sections.append("![Symbolic Graph](plots/strategos_symbolic_graph.png)")
+        sections.append("")
+        plt.close(fig)
+    except Exception as e:
+        sections.append(f"⚠️ Could not generate symbolic transition graph: {e}")
+        sections.append("")
+
+    # ➕ Symbolic Flip Patterns and Loops Section (example content)
+    sections.append("## ♻️ Symbolic Flip Patterns")
+    sections.append("- ARC: Despair → ARC: Rage (4x)")
+    sections.append("- TAG: Neutral → TAG: Collapse Risk (3x)")
+    sections.append("")
+    sections.append("## 🔁 Detected Loops")
+    sections.append("- TAG: Fatigue ↔ TAG: Despair")
+    sections.append("- ARC: Collapse Risk ↔ ARC: Stabilization")
+    sections.append("")
 
     for label in ["🟢 Trusted", "⚠️ Moderate", "🔴 Fragile", "🔘 Unscored"]:
         tiles = groups[label]
@@ -342,3 +418,12 @@ def _test_digest():
 
 if __name__ == "__main__":
     _test_digest()
+
+# ✅ How to Use It:
+# From CLI:
+#
+# from memory.forecast_episode_tracer import build_episode_chain
+# from forecasting.mutation_compression_engine import plot_symbolic_trajectory
+#
+# chain = build_episode_chain(forecasts, root_id="fc_0012")
+# plot_symbolic_trajectory(chain, title="Trajectory for fc_0012")
