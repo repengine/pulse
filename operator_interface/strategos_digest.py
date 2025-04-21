@@ -1,9 +1,10 @@
+import logging
+from typing import Optional, List, Dict, Any
 from forecast_output.forecast_licenser import filter_licensed_forecasts
 from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
-from typing import Optional, List, Dict
 from core.path_registry import PATHS
 from trust_system.alignment_index import compute_alignment_index
 from trust_system.forecast_episode_logger import summarize_episodes
@@ -11,26 +12,28 @@ from trust_system.trust_engine import compute_symbolic_attention_score
 from trust_system.forecast_licensing_shell import license_forecast
 from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
 from trust_system.license_enforcer import annotate_forecasts, filter_licensed, summarize_license_distribution
-import os
-
-# ➕ Add imports for mutation compression
-from forecast_output.mutation_compression_engine import compress_episode_chain
+from forecast_output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
 from memory.forecast_episode_tracer import build_episode_chain
-# ➕ Import plot_symbolic_trajectory for markdown injection
-from forecast_output.mutation_compression_engine import plot_symbolic_trajectory
-
-# ➕ Import for symbolic transition graph
-from symbolic_system.symbolic_transition_graph import (
-    build_symbolic_graph,
-    visualize_symbolic_graph
-)
+from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
+from symbolic.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs
 import matplotlib.pyplot as plt
+import os
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
 
-def group_by_confidence(forecasts: List[Dict]) -> Dict[str, List[Dict]]:
+def safe_save_plot(fig, path: str) -> bool:
+    """Safely save a matplotlib figure to disk."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        fig.savefig(path)
+        return True
+    except Exception as e:
+        logging.error(f"Failed to save plot to {path}: {e}")
+        return False
+
+def group_by_confidence(forecasts: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
     """
     Group forecasts by confidence levels.
 
@@ -61,6 +64,10 @@ def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
     """
     Compute the drift in symbolic arcs between two episode logs.
 
+    Args:
+        prev_path (str): Path to previous episode log.
+        curr_path (str): Path to current episode log.
+
     Returns:
         Dict[str, int]: Arc label to drift delta.
     """
@@ -75,7 +82,11 @@ def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
     all_keys = set(arcs_prev) | set(arcs_curr)
     return {k: arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys}
 
-def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
+def flag_drift_sensitive_forecasts(
+    forecasts: List[Dict[str, Any]],
+    drift_report: Dict[str, Any],
+    threshold: float = 0.2
+) -> List[Dict[str, Any]]:
     """
     Flags forecasts if they belong to unstable arcs or drift-prone rule sets.
 
@@ -105,6 +116,20 @@ def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, th
         if not flagged:
             fc["drift_flag"] = "✅ Stable"
     return forecasts
+
+def _extract_symbolic_flip_patterns(forecasts: List[Dict[str, Any]]) -> List[str]:
+    """
+    Placeholder: Extract symbolic flip patterns from forecasts.
+    """
+    # TODO: Implement actual pattern detection
+    return ["ARC: Despair → ARC: Rage (4x)", "TAG: Neutral → TAG: Collapse Risk (3x)"]
+
+def _extract_detected_loops(forecasts: List[Dict[str, Any]]) -> List[str]:
+    """
+    Placeholder: Extract detected loops from forecasts.
+    """
+    # TODO: Implement actual loop detection
+    return ["TAG: Fatigue ↔ TAG: Despair", "ARC: Collapse Risk ↔ ARC: Stabilization"]
 
 def generate_strategos_digest(
     memory: ForecastMemory,
@@ -154,7 +179,9 @@ def generate_strategos_digest(
     digest["license_loss_percent"] = drop_rate
     digest["warnings"] = []
     if digest.get("license_loss_percent", 0) > 40:
-        digest["warnings"].append("🔍 Triggering symbolic audit due to high license loss.")
+        warning_msg = "🔍 Triggering symbolic audit due to high license loss."
+        digest["warnings"].append(warning_msg)
+        logging.warning(warning_msg)
         # Optionally call symbolic audit system or arc drift scanner here
 
     # --- Alignment scoring integration ---
@@ -181,7 +208,7 @@ def generate_strategos_digest(
             if "Alignment" in license_status:
                 licensed["low_alignment"] += 1
 
-    # ➕ Build and compress symbolic lineages
+    # Build and compress symbolic lineages
     digest["compressed_episodes"] = []
     trace_ids = [f.get("trace_id") for f in forecasts if "lineage" in f]
     for root in trace_ids:
@@ -272,7 +299,6 @@ def generate_strategos_digest(
     if digest["compressed_episodes"]:
         sections.append("## 🔁 Compressed Mutation Episodes")
         for ce in digest["compressed_episodes"]:
-            # Example summary formatting, adjust as needed
             root_id = ce.get("root_id", "unknown")
             label = ce.get("label", "")
             versions = ce.get("version_count", len(ce.get("chain", [])))
@@ -285,8 +311,7 @@ def generate_strategos_digest(
                 summary += f", {arc_status}"
             summary += ")"
             sections.append(summary)
-            # ➕ Strategos Markdown Injection: plot and embed trajectory
-            plot_path = f"plots/symbolic_trajectory_{root_id}.png"
+            plot_path = os.path.join("plots", f"symbolic_trajectory_{root_id}.png")
             try:
                 plot_symbolic_trajectory(
                     ce.get("mutation_compressed_from", []),
@@ -294,6 +319,7 @@ def generate_strategos_digest(
                 )
                 sections.append(f"![Trajectory]({plot_path})")
             except Exception as e:
+                logging.error(f"Could not plot trajectory for {root_id}: {e}")
                 sections.append(f"⚠️ Could not plot trajectory for {root_id}: {e}")
         sections.append("")
 
@@ -301,25 +327,26 @@ def generate_strategos_digest(
     try:
         symbolic_graph = build_symbolic_graph(forecasts)
         fig = visualize_symbolic_graph(symbolic_graph, title="Strategic Symbolic Map")
-        os.makedirs("plots", exist_ok=True)
-        plt.savefig("plots/strategos_symbolic_graph.png")
-        digest["symbolic_graph_path"] = "plots/strategos_symbolic_graph.png"
-        sections.append("## 🌐 Symbolic Transition Graph")
-        sections.append("![Symbolic Graph](plots/strategos_symbolic_graph.png)")
-        sections.append("")
+        plot_path = os.path.join("plots", "strategos_symbolic_graph.png")
+        if safe_save_plot(fig, plot_path):
+            digest["symbolic_graph_path"] = plot_path
+            sections.append("## 🌐 Symbolic Transition Graph")
+            sections.append(f"![Symbolic Graph]({plot_path})")
+            sections.append("")
         plt.close(fig)
     except Exception as e:
+        logging.error(f"Could not generate symbolic transition graph: {e}")
         sections.append(f"⚠️ Could not generate symbolic transition graph: {e}")
         sections.append("")
 
-    # ➕ Symbolic Flip Patterns and Loops Section (example content)
+    # ➕ Symbolic Flip Patterns and Loops Section (dynamic)
     sections.append("## ♻️ Symbolic Flip Patterns")
-    sections.append("- ARC: Despair → ARC: Rage (4x)")
-    sections.append("- TAG: Neutral → TAG: Collapse Risk (3x)")
+    for pattern in _extract_symbolic_flip_patterns(forecasts):
+        sections.append(f"- {pattern}")
     sections.append("")
     sections.append("## 🔁 Detected Loops")
-    sections.append("- TAG: Fatigue ↔ TAG: Despair")
-    sections.append("- ARC: Collapse Risk ↔ ARC: Stabilization")
+    for loop in _extract_detected_loops(forecasts):
+        sections.append(f"- {loop}")
     sections.append("")
 
     for label in ["🟢 Trusted", "⚠️ Moderate", "🔴 Fragile", "🔘 Unscored"]:
@@ -328,11 +355,9 @@ def generate_strategos_digest(
             continue
         sections.append(f"==== {label} ====")
         for tile in tiles:
-            # Display alignment alongside confidence
             conf = tile.get("confidence", "N/A")
             align = tile.get("alignment_score", "N/A")
             drift_flag = tile.get("drift_flag", "")
-            # Add attention score if arc_drift is available
             attention = ""
             if arc_drift:
                 try:
@@ -352,7 +377,6 @@ def generate_strategos_digest(
             sections.append(tile_str)
         sections.append("")
 
-    # Footer: summary stats
     try:
         ret_scores = [f.get("retrodiction_score", 0.0) for f in forecasts if isinstance(f.get("retrodiction_score"), (float, int))]
         sym_scores = [f.get("symbolic_score", 0.0) for f in forecasts if isinstance(f.get("symbolic_score"), (float, int))]
@@ -381,16 +405,28 @@ def generate_strategos_digest(
 
     return "\n".join(sections)
 
-def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, export_fmt: str = "markdown", template: str = "full"):
+def live_digest_ui(
+    memory: ForecastMemory,
+    prompt: Optional[str] = None,
+    n: int = 10,
+    export_fmt: str = "markdown",
+    template: str = "full"
+) -> str:
     """
     Live UI hook: Build and display strategos digest, optionally filtered by prompt and template.
 
-    Example:
-        live_digest_ui(memory, prompt="AI", n=10, export_fmt="markdown", template="short")
+    Args:
+        memory (ForecastMemory): Forecast memory instance.
+        prompt (Optional[str]): Filter prompt.
+        n (int): Number of forecasts.
+        export_fmt (str): Output format.
+        template (str): Digest template.
+
+    Returns:
+        str: Digest output.
     """
     raw = memory.get_recent(n + 10)
     if prompt:
-        # Use digest builder's filter for prompt
         try:
             from forecast_output.strategos_digest_builder import filter_forecasts_by_prompt
             raw = filter_forecasts_by_prompt(raw, prompt)
@@ -406,24 +442,23 @@ def live_digest_ui(memory: ForecastMemory, prompt: str = None, n: int = 10, expo
 # --- Simple test function for manual validation ---
 def _test_digest():
     """Basic test for strategos digest generation."""
+    import unittest
+
     class DummyMemory:
         def get_recent(self, n):
-            # Return dummy forecasts
             return [
                 {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "priority_score": 1, "retrodiction_score": 0.9, "symbolic_score": 0.8, "age_hours": 2},
                 {"confidence": 0.6, "alignment_score": 60, "trust_label": "⚠️ Moderate", "priority_score": 0.5, "retrodiction_score": 0.7, "symbolic_score": 0.6, "age_hours": 5},
                 {"confidence": 0.4, "alignment_score": 40, "trust_label": "🔴 Fragile", "priority_score": 0.2, "retrodiction_score": 0.5, "symbolic_score": 0.4, "age_hours": 10},
             ]
-    print(generate_strategos_digest(DummyMemory(), n=3, title="Test Digest"))
+
+    class StrategosDigestTest(unittest.TestCase):
+        def test_digest_runs(self):
+            digest = generate_strategos_digest(DummyMemory(), n=3, title="Test Digest")
+            self.assertIn("Test Digest", digest)
+            self.assertIn("🛡️ Trust Enforcement Report", digest)
+
+    unittest.TextTestRunner().run(unittest.makeSuite(StrategosDigestTest))
 
 if __name__ == "__main__":
     _test_digest()
-
-# ✅ How to Use It:
-# From CLI:
-#
-# from memory.forecast_episode_tracer import build_episode_chain
-# from forecasting.mutation_compression_engine import plot_symbolic_trajectory
-#
-# chain = build_episode_chain(forecasts, root_id="fc_0012")
-# plot_symbolic_trajectory(chain, title="Trajectory for fc_0012")

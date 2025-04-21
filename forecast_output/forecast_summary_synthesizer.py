@@ -37,6 +37,9 @@ from symbolic_system.pulse_symbolic_arc_tracker import (
 from trust_system.alignment_index import compute_alignment_index
 from trust_system.forecast_episode_logger import summarize_episodes
 
+# Import symbolic fragmentation detector
+from symbolic_system.symbolic_convergence_detector import detect_fragmentation
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 VALID_TAGS = {"hope", "despair", "rage", "fatigue", "trust"}
@@ -48,6 +51,16 @@ SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.json
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
+# Add symbolic fragmentation tagging
+def tag_fragmented_forecasts(forecasts: List[Dict], key: str = "arc_label") -> List[Dict]:
+    if detect_fragmentation(forecasts, key=key):
+        for f in forecasts:
+            f["symbolic_fragmented"] = True
+    else:
+        for f in forecasts:
+            f["symbolic_fragmented"] = False
+    return forecasts
 
 def summarize_forecasts(
     forecasts: List[Dict],
@@ -82,6 +95,14 @@ def summarize_forecasts(
         arc_drift = compare_arc_drift(previous_forecasts, forecasts)
         arc_volatility = compute_arc_stability(arc_drift)
 
+    # Tag fragmentation before summarizing
+    forecasts = tag_fragmented_forecasts(forecasts, key="arc_label")
+
+    # Tag revision candidates after fragmentation detection
+    for fc in forecasts:
+        if fc.get("symbolic_fragmented"):
+            fc["revision_candidate"] = True
+
     for i, f in enumerate(forecasts):
         conf = f.get("confidence", 0.5)
         tag = f.get("symbolic_tag", "unlabeled")
@@ -100,6 +121,7 @@ def summarize_forecasts(
             },
             "arc_drift_summary": arc_drift,
             "arc_volatility_score": arc_volatility,
+            "symbolic_fragmented": f.get("symbolic_fragmented", False),
         }
         if arc_drift:
             scenario["symbolic_arc_drift"] = arc_drift

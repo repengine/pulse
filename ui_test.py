@@ -180,6 +180,7 @@ class PulseControlApp:
         ttk.Button(operator_frame, text="Log Batch Audit Trail", command=self.log_batch_forecast_audits).pack(pady=2)
         ttk.Button(operator_frame, text="Trace Forecast Lineage", command=self.trace_forecast_episode_chain).pack(pady=2)
         ttk.Button(operator_frame, text="Analyze Symbolic Flip Patterns", command=self.analyze_symbolic_flips).pack(pady=2)
+        ttk.Button(operator_frame, text="Apply Symbolic Revisions", command=self.apply_symbolic_revisions_gui).pack(pady=2)
 
         # --- Replay Tab ---
         replay_tab = ttk.Frame(notebook)
@@ -1147,6 +1148,40 @@ class PulseControlApp:
 
         except Exception as e:
             self.log(f"❌ Convergence analysis failed: {e}")
+
+    def apply_symbolic_revisions_gui(self):
+        """Apply symbolic tuning plans to forecast batch interactively."""
+        from symbolic.symbolic_tuning_engine import simulate_revised_forecast, compare_scores, log_tuning_result
+        from tkinter import filedialog
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        plan_path = filedialog.askopenfilename(title="Select revision plan JSON")
+
+        if not path or not plan_path:
+            self.log("Revision cancelled.")
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            with open(plan_path, "r") as f:
+                plans = json.load(f)
+
+            applied = 0
+            for fc in forecasts:
+                tid = fc.get("trace_id")
+                plan = next((p["plan"] for p in plans if p["trace_id"] == tid), None)
+                if not plan:
+                    continue
+                revised = simulate_revised_forecast(fc, plan)
+                delta = compare_scores(fc, revised)
+                self.log(f"🔁 {tid} → Δ Alignment: {delta['alignment_score']} | {delta['license_status_change']}")
+                revised["revision_plan"] = plan
+                log_tuning_result(fc, revised)
+                applied += 1
+
+            self.log(f"✅ Simulated {applied} symbolic revisions.")
+        except Exception as e:
+            self.log(f"❌ Tuning error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

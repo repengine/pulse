@@ -178,6 +178,15 @@ def build_digest(
     if skipped:
         logger.warning(f"Skipped {skipped} invalid forecasts in digest build.")
 
+    # Symbolic Fragmentation Summary
+    from collections import Counter
+    fragmented = [f for f in flattened if f.get("symbolic_fragmented")]
+    fragment_summary = Counter(f.get("arc_label", "unknown") for f in fragmented)
+    symbolic_fragmentation = {
+        "total": len(fragmented),
+        "by_arc": dict(fragment_summary)
+    }
+
     # Tag filter
     if tag_filter:
         flattened = [f for f in flattened if tag_filter in f.get("tags", [])]
@@ -225,6 +234,15 @@ def build_digest(
             return "\n".join(lines)
         # Default: markdown
         lines = ["# Strategos Digest\n"]
+
+        # Markdown Output: Symbolic Fragmentation Summary
+        lines.append("## ⚠️ Symbolic Fragmentation Summary")
+        lines.append(f"- Fragmented forecasts: {symbolic_fragmentation['total']}")
+        lines.append("- Breakdown by arc:")
+        for arc, count in symbolic_fragmentation["by_arc"].items():
+            lines.append(f"  - {arc}: {count}")
+        lines.append("")
+
         for label, cluster in clusters.items():
             lines.append(f"==== {label} ====")
             lines.append(f"Consensus ({overlay_key} rising): {consensus_score(cluster, overlay_key)*100:.0f}%")
