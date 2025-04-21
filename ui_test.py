@@ -125,6 +125,7 @@ class PulseControlApp:
         ttk.Button(self.root, text="Run Recursion Audit", command=lambda: prompt_and_run_audit(self.log)).pack(pady=2)
         ttk.Button(self.root, text="Generate Operator Brief", command=lambda: prompt_and_generate_brief(self.log)).pack(pady=2)
         ttk.Button(self.root, text="Graph Variable History", command=lambda: prompt_and_plot_variables(self.log)).pack(pady=2)
+        ttk.Button(self.root, text="Visualize Arc Distribution", command=self.visualize_arc_distribution).pack(pady=2)
 
         # --- Trace Replay Tools ---
         ttk.Label(self.root, text="🧠 Trace Replay Tools", font=("Arial", 11, "bold")).pack(pady=3)
@@ -640,6 +641,26 @@ class PulseControlApp:
                 self.log(f" - {k}: {v}")
         except Exception as e:
             self.log(f"❌ Forecast evaluator error: {e}")
+
+    def visualize_arc_distribution(self):
+        """Load forecasts and show symbolic arc distribution plot."""
+        from tkinter import filedialog
+        from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
+            track_symbolic_arcs, plot_arc_distribution
+        )
+
+        file = filedialog.askopenfilename(title="Select forecast .jsonl")
+        if not file:
+            self.log("Cancelled arc visualization.")
+            return
+        try:
+            with open(file, "r") as f:
+                forecasts = [json.loads(line) for line in f if line.strip()]
+            arc_counts = track_symbolic_arcs(forecasts)
+            self.log(f"📊 Arc labels found: {arc_counts}")
+            plot_arc_distribution(arc_counts)
+        except Exception as e:
+            self.log(f"❌ Arc plot error: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

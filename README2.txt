@@ -2,20 +2,8 @@
 
 ---
 
-## 🔹 Module Reference Table
 
-| Module             | Role/Responsibility                                                              |
-|--------------------|---------------------------------------------------------------------------------|
-| `pulse/agent.py`   | Agent objects (properties, strategies, capital, trust/emotion overlays)           |
-| `pulse/data.py`    | Ingestion, preprocessing, and validation of real/mocked external data             |
-| `pulse/forecast.py`| Timeline simulation, forecast generation, retrodiction methods                    |
-| `pulse/memories.py`| Memory traces, persistent state/action logs, history for learning/adaptation      |
-| `pulse/overlay.py` | Symbolic/emotional overlays: generation, application, scoring, toggling           |
-| `pulse/rule.py`    | Rules engine: data- and overlay-driven logic for state/agent transitions          |
-| `pulse/score.py`   | Fitness, risk, trust, and confidence scoring functions                            |
-| `pulse/simulate.py`| Core simulation loop: steers time, collects traces and results                    |
-| `pulse/state.py`   | State objects: environment, context, high-dimensional space encoding              |
-| `pulse/utils.py`   | Utility and helper functions (I/O, logging, parameter parsing etc)                |
+
 
 ---
 

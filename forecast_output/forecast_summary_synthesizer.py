@@ -31,6 +31,9 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from core.path_registry import PATHS
+from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
+    compare_arc_drift, compute_arc_stability
+)
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 VALID_TAGS = {"hope", "despair", "rage", "fatigue", "trust"}
@@ -43,7 +46,12 @@ SUMMARY_LOG_PATH = PATHS.get("SUMMARY_LOG_PATH", "logs/forecast_summary_log.json
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-def summarize_forecasts(forecasts: List[Dict], method: str = "default", log_path: Optional[str] = None) -> List[Dict]:
+def summarize_forecasts(
+    forecasts: List[Dict],
+    method: str = "default",
+    log_path: Optional[str] = None,
+    previous_forecasts: Optional[List[Dict]] = None
+) -> List[Dict]:
     """
     Generate a human-readable summary of each forecast.
     Returns a list of summary dicts and writes them to log.
@@ -55,6 +63,12 @@ def summarize_forecasts(forecasts: List[Dict], method: str = "default", log_path
     ensure_log_dir(path)
 
     summaries = []
+    arc_drift = {}
+    arc_volatility = None
+    if previous_forecasts:
+        arc_drift = compare_arc_drift(previous_forecasts, forecasts)
+        arc_volatility = compute_arc_stability(arc_drift)
+
     for i, f in enumerate(forecasts):
         conf = f.get("confidence", 0.5)
         tag = f.get("symbolic_tag", "unlabeled")
@@ -70,7 +84,9 @@ def summarize_forecasts(forecasts: List[Dict], method: str = "default", log_path
             "metadata": {
                 "version": "v0.015.0",
                 "source": "pulse/forecast_output/forecast_summary_synthesizer.py"
-            }
+            },
+            "arc_drift_summary": arc_drift,
+            "arc_volatility_score": arc_volatility,
         }
         summaries.append(scenario)
 
