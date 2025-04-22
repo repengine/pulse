@@ -23,6 +23,12 @@ import json
 from collections import defaultdict
 import logging
 
+# Add import for divergence detector
+from forecast_output.forecast_divergence_detector import (
+    generate_divergence_report,
+    group_conflicting_forecasts
+)
+
 try:
     from operator_interface.pulse_prompt_logger import get_prompt_hash
 except ImportError:
@@ -178,6 +184,14 @@ def build_digest(
     if skipped:
         logger.warning(f"Skipped {skipped} invalid forecasts in digest build.")
 
+    # --- Symbolic Divergence Report ---
+    divergence_report = generate_divergence_report(flattened, key="arc_label")
+    conflict_groups = group_conflicting_forecasts(flattened, key="arc_label")
+    divergent_ids = {f.get("trace_id") for flist in conflict_groups.values() for f in flist}
+    for fc in flattened:
+        if fc.get("trace_id") in divergent_ids:
+            fc["divergent"] = True
+
     # Symbolic Fragmentation Summary
     from collections import Counter
     fragmented = [f for f in flattened if f.get("symbolic_fragmented")]
@@ -186,6 +200,48 @@ def build_digest(
         "total": len(fragmented),
         "by_arc": dict(fragment_summary)
     }
+
+    # --- Most Evolved Forecasts by Cluster ---
+    try:
+        from memory.cluster_mutation_tracker import (
+            track_cluster_lineage,
+            select_most_evolved,
+            summarize_mutation_depths
+        )
+        cluster_map = track_cluster_lineage(flattened)
+        lineage_leaders = select_most_evolved(cluster_map)
+        mutation_depths = summarize_mutation_depths(cluster_map)
+        most_evolved_digest = {
+            "leaders": [
+                {
+                    "trace_id": fc.get("trace_id"),
+                    "arc": fc.get("arc_label"),
+                    "tag": fc.get("symbolic_tag"),
+                    "depth": len(fc.get("lineage", {}).get("ancestors", []))
+                }
+                for fc in lineage_leaders.values()
+            ],
+            "mutation_depths": mutation_depths
+        }
+    except Exception as e:
+        logger.warning(f"Could not compute most evolved forecasts: {e}")
+        most_evolved_digest = {"leaders": [], "mutation_depths": {}}
+
+    # --- Dual Narrative Scenarios ---
+    try:
+        from forecast_output.dual_narrative_compressor import generate_dual_scenarios
+        from forecast_output.strategic_fork_resolver import resolve_all_forks
+        dual_narrative_scenarios = generate_dual_scenarios(flattened)
+        fork_decisions = resolve_all_forks(dual_narrative_scenarios)
+    except Exception as e:
+        logger.warning(f"Dual narrative scenario generation failed: {e}")
+        dual_narrative_scenarios = []
+        fork_decisions = []
+    # Mark fork winners in forecasts
+    decision_ids = {r["selected_trace_id"] for r in fork_decisions if r.get("decision") in {"A", "B"}}
+    for fc in flattened:
+        if fc.get("trace_id") in decision_ids:
+            fc["fork_winner"] = True
 
     # Tag filter
     if tag_filter:
@@ -205,11 +261,36 @@ def build_digest(
     if top_n:
         clusters = dict(get_top_clusters(clusters, n=top_n, sort_by=sort_clusters_by))
 
+    # --- Compressed Cluster Memory Section ---
+    from forecast_output.cluster_memory_compressor import compress_by_cluster
+    compressed_cluster_forecasts = compress_by_cluster(flattened)
+
     try:
         if fmt == "json":
-            return json.dumps([{k: f.get(k) for k in fields} for f in flattened], indent=2)
+            digest_json = [{k: f.get(k) for k in fields} for f in flattened]
+            # Add most evolved section, divergence report, dual narrative scenarios, and fork decisions
+            return json.dumps({
+                "forecasts": digest_json,
+                "most_evolved_per_cluster": most_evolved_digest,
+                "symbolic_divergence": divergence_report,
+                "dual_narrative_scenarios": dual_narrative_scenarios,
+                "fork_decisions": fork_decisions
+            }, indent=2)
         if fmt == "html":
             lines = ["<h1>Strategos Digest</h1>"]
+            # --- Symbolic Divergence Report (HTML) ---
+            lines.append("<h2>⚔️ Symbolic Divergence Report</h2>")
+            lines.append(f"<b>Divergence Score:</b> {divergence_report['divergence_score']}<br>")
+            if divergence_report["symbolic_conflicts"]:
+                lines.append("<b>Conflicting Narratives Detected:</b><ul>")
+                for a, b in divergence_report["symbolic_conflicts"]:
+                    lines.append(f"<li>{a} vs {b}</li>")
+                lines.append("</ul>")
+            if divergence_report["cluster_sizes"]:
+                lines.append("<b>Cluster Sizes:</b><ul>")
+                for k, v in divergence_report["cluster_sizes"].items():
+                    lines.append(f"<li>{k}: {v}</li>")
+                lines.append("</ul>")
             for label, cluster in clusters.items():
                 lines.append(f"<h2>{label}</h2>")
                 lines.append(f"<b>Consensus ({overlay_key} rising):</b> {consensus_score(cluster, overlay_key)*100:.0f}%<br>")
@@ -231,9 +312,57 @@ def build_digest(
             lines.append(f"<b>Confidence Sparkline:</b> {stats['confidence_sparkline']}<br>")
             lines.append(f"<b>Forecast Age:</b> Avg {stats['avg_age']}h | Max: {stats['max_age']}h<br>")
             lines.append(f"<b>Total Forecasts:</b> {stats['total']}<br>")
+            # Insert Most Evolved section in HTML
+            lines.append("<h2>🧬 Most Evolved Forecasts by Cluster</h2>")
+            lines.append("<table><tr><th>Cluster</th><th>Trace ID</th><th>Arc Label</th><th>Depth</th></tr>")
+            for leader in most_evolved_digest["leaders"]:
+                lines.append(
+                    f"<tr><td>{leader['tag']}</td><td>{leader['trace_id']}</td><td>{leader['arc']}</td><td>{leader['depth']}</td></tr>"
+                )
+            lines.append("</table>")
+            lines.append(f"<b>Mutation Depths:</b> {most_evolved_digest['mutation_depths']}<br>")
+            # Optionally, insert dual narrative scenarios in HTML if desired
+            if dual_narrative_scenarios:
+                lines.append("<h2>🔀 Dual Narrative Scenarios</h2>")
+                for pair in dual_narrative_scenarios:
+                    a = pair.get("scenario_a", {})
+                    b = pair.get("scenario_b", {})
+                    lines.append(f"<h3>{a.get('arc', 'A')} vs {b.get('arc', 'B')}</h3>")
+                    lines.append(f"<b>Scenario A ({a.get('arc', 'A')}):</b><br>")
+                    lines.append(f"- Tag: {a.get('symbolic_tag', 'N/A')}<br>")
+                    lines.append(f"- Alignment: {a.get('alignment_score', 'N/A')}<br>")
+                    lines.append(f"- Confidence: {a.get('confidence', 'N/A')}<br>")
+                    lines.append(f"<b>Scenario B ({b.get('arc', 'B')}):</b><br>")
+                    lines.append(f"- Tag: {b.get('symbolic_tag', 'N/A')}<br>")
+                    lines.append(f"- Alignment: {b.get('alignment_score', 'N/A')}<br>")
+                    lines.append(f"- Confidence: {b.get('confidence', 'N/A')}<br>")
+            # HTML Output: Fork Resolutions
+            if fork_decisions:
+                lines.append("<h2>🧭 Strategic Fork Resolutions</h2>")
+                for d in fork_decisions:
+                    a = d.get("scenario_a", {})
+                    b = d.get("scenario_b", {})
+                    winner = d.get("winner_label", "N/A")
+                    winner_id = d.get("selected_trace_id", "N/A")
+                    winner_align = d.get("winner_alignment", "N/A")
+                    lines.append(f"<b>{a.get('arc', 'A')} vs {b.get('arc', 'B')}</b> &rarr; ✅ {winner}<br>")
+                    lines.append(f"&nbsp;&nbsp;- Winner: {winner_id} (Align: {winner_align})<br>")
             return "\n".join(lines)
         # Default: markdown
         lines = ["# Strategos Digest\n"]
+
+        # --- Symbolic Divergence Report (Markdown) ---
+        lines.append("## ⚔️ Symbolic Divergence Report\n")
+        lines.append(f"- Divergence Score: {divergence_report['divergence_score']}")
+        if divergence_report["symbolic_conflicts"]:
+            lines.append("- Conflicting Narratives Detected:")
+            for a, b in divergence_report["symbolic_conflicts"]:
+                lines.append(f"  - {a} vs {b}")
+        if divergence_report["cluster_sizes"]:
+            lines.append("\n- Cluster Sizes:")
+            for k, v in divergence_report["cluster_sizes"].items():
+                lines.append(f"  - {k}: {v}")
+        lines.append("")
 
         # Markdown Output: Symbolic Fragmentation Summary
         lines.append("## ⚠️ Symbolic Fragmentation Summary")
@@ -242,6 +371,55 @@ def build_digest(
         for arc, count in symbolic_fragmentation["by_arc"].items():
             lines.append(f"  - {arc}: {count}")
         lines.append("")
+
+        # Markdown Output: Compressed Cluster Memory
+        lines.append("## 🧠 Compressed Cluster Memory\n")
+        for c in compressed_cluster_forecasts:
+            label = c.get("narrative_theme") or c.get("symbolic_tag") or "Unknown"
+            trace_id = c.get("trace_id", "N/A")
+            align = c.get("alignment", c.get("confidence", None))
+            align_str = f"{align:.1f}" if isinstance(align, (float, int)) else "N/A"
+            lines.append(f"- {label} → {trace_id} (Align: {align_str})")
+        lines.append("")
+
+        # Markdown Output: Most Evolved Forecasts by Cluster
+        lines.append("## 🧬 Most Evolved Forecasts by Cluster\n")
+        lines.append("| Cluster           | Trace ID | Arc Label     | Depth |")
+        lines.append("|-------------------|----------|---------------|-------|")
+        for leader in most_evolved_digest["leaders"]:
+            lines.append(f"| {leader['tag']:<17} | {leader['trace_id']:<8} | {leader['arc'] or 'N/A':<13} | {leader['depth']}     |")
+        if not most_evolved_digest["leaders"]:
+            lines.append("| _None found_      |          |               |       |")
+        lines.append("")
+        lines.append(f"**Mutation Depths:** {most_evolved_digest['mutation_depths']}\n")
+
+        # Markdown Output: Dual Narrative Scenarios
+        if dual_narrative_scenarios:
+            lines.append("## 🔀 Dual Narrative Scenarios\n")
+            for pair in dual_narrative_scenarios:
+                a = pair.get("scenario_a", {})
+                b = pair.get("scenario_b", {})
+                lines.append(f"### {a.get('arc', 'A')} vs {b.get('arc', 'B')}\n")
+                lines.append(f"**Scenario A ({a.get('arc', 'A')})**  ")
+                lines.append(f"- Tag: {a.get('symbolic_tag', 'N/A')}  ")
+                lines.append(f"- Alignment: {a.get('alignment_score', 'N/A')}  ")
+                lines.append(f"- Confidence: {a.get('confidence', 'N/A')}\n")
+                lines.append(f"**Scenario B ({b.get('arc', 'B')})**  ")
+                lines.append(f"- Tag: {b.get('symbolic_tag', 'N/A')}  ")
+                lines.append(f"- Alignment: {b.get('alignment_score', 'N/A')}  ")
+                lines.append(f"- Confidence: {b.get('confidence', 'N/A')}\n")
+
+        # Markdown Output: Fork Resolutions
+        if fork_decisions:
+            lines.append("## 🧭 Strategic Fork Resolutions\n")
+            for d in fork_decisions:
+                a = d.get("scenario_a", {})
+                b = d.get("scenario_b", {})
+                winner = d.get("winner_label", "N/A")
+                winner_id = d.get("selected_trace_id", "N/A")
+                winner_align = d.get("winner_alignment", "N/A")
+                lines.append(f"- {a.get('arc', 'A')} vs {b.get('arc', 'B')} → ✅ {winner}")
+                lines.append(f"  - Winner: {winner_id} (Align: {winner_align})\n")
 
         for label, cluster in clusters.items():
             lines.append(f"==== {label} ====")

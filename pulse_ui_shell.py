@@ -111,6 +111,7 @@ def main() -> None:
     parser.add_argument("--help_hooks", action="store_true", help="List all active CLI hooks")
     parser.add_argument("--list_domains", action="store_true", help="List all available simulation domains")
     parser.add_argument("--help", action="store_true", help="Show help for all available UI commands")
+    parser.add_argument("--promote-memory", action="store_true", help="Export certified forecasts to core memory")
 
     # Retrodiction/trust CLI options
     parser.add_argument("--retrodict", type=str, help="Path to forecasts (.jsonl) for retrodiction scoring")
@@ -170,6 +171,12 @@ def main() -> None:
                 from trust_system.license_enforcer import annotate_forecasts, filter_licensed
                 scored = annotate_forecasts(scored)
                 scored = filter_licensed(scored)
+
+            # After forecasts are loaded:
+            if args.promote_memory:
+                from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
+                selected = select_promotable_forecasts(scored)
+                export_promoted(selected)
 
             # Write output
             with open(args.retrodict_output, "w") as f:

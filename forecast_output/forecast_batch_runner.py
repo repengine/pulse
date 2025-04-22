@@ -26,6 +26,7 @@ from typing import List, Dict
 from forecast_output.forecast_generator import generate_forecast
 from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
+from forecast_output.cluster_memory_compressor import compress_by_cluster
 from simulation_engine.worldstate import WorldState
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
@@ -62,6 +63,9 @@ def run_forecast_batch(
 
         compress_forecasts(results)
         summarize_forecasts(results)
+        # Cluster-based compression: only top forecast per narrative cluster retained
+        compressed = compress_by_cluster(results)
+        # Optionally, you can log or return compressed as needed
 
     return results
 

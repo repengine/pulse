@@ -105,6 +105,28 @@ class ForecastMemory:
         ]
         print(f"✅ Retained {len(self._memory)} stable forecasts in memory.")
 
+    def retain_certified_forecasts(self):
+        """Keep only forecasts marked as fully certified."""
+        self._memory = [f for f in self._memory if f.get("certified") is True]
+        print(f"🔒 Memory filtered: {len(self._memory)} certified forecasts retained.")
+
+    def tag_uncertified_for_review(self):
+        """Tag uncertified forecasts for review."""
+        for f in self._memory:
+            if not f.get("certified"):
+                f["memory_flag"] = "uncertified_discard"
+
+    def retain_cluster_lineage_leaders(self):
+        """Keep only the most evolved forecast per narrative cluster."""
+        from memory.cluster_mutation_tracker import (
+            track_cluster_lineage,
+            select_most_evolved
+        )
+        clusters = track_cluster_lineage(self._memory)
+        leaders = select_most_evolved(clusters)
+        self._memory = list(leaders.values())
+        print(f"🔁 Memory compressed to most evolved forecast per cluster ({len(self._memory)} retained).")
+
     def _enforce_memory_limit(self) -> None:
         """Ensure memory does not exceed max_entries; prune oldest if needed."""
         if len(self._memory) > self.max_entries:

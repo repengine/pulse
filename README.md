@@ -172,42 +172,8 @@ Pulse/
 
 ---
 
-## 🛣 Roadmap & Module Status
-
-| Area                    | Status      | Gaps/Recommendations                                 |
-|-------------------------|------------|------------------------------------------------------|
-| Digest Compression      | Partial     | Add narrative clustering, top-N, driver summary      |
-| Forecast Belief Chain   | Missing     | Implement ancestry, drift, tree, divergence          |
-| Reverse Rule Evolution  | Partial     | Add ranking, rule suggestion, robust scoring         |
-| Regret Engine           | Missing     | Implement regret analysis, feedback loop             |
-| Utility Add-ons         | Partial     | Add replay, lineage viewer, digest comparison        |
-
----
-
-## 🛣 Roadmap
-
-- **v0.3** → Input signal horizon, retrodiction engine
-- **v0.4** → Forecast compression, memory decay, strategic prioritization
-- **v1.0** → Autonomous simulation intelligence, UI, agent modeling
-
----
-
-## ⚠️ Status
-
-Pulse v0.2 is functional but experimental.  
-All forecasts are scored and labeled, but **licensing, memory pruning, and backtest scoring are still under construction.**
 
 This is an interpretability-first build: every module is readable, auditable, and designed for modular iteration.
-
----
-
-## Directory Structure
-
-- `simulation_engine/` — Core simulation modules
-- `utils/` — Shared utilities (logging, error, file, performance)
-- `tests/` — Unit tests and fixtures
-- `quarantine/` — Quarantined files and review script
-- `docs/` — Documentation, deprecation policy, API reference
 
 ---
 

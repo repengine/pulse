@@ -6,13 +6,16 @@ Score confidence, trust, and symbolic capital overlays
 Persist all reasoning, simulation, and feedback cycles
 Adapt rules, weights, and forecasts recursively
 Learn not just facts, but strategic meta-patterns across time
+
 Recommended Enhancement Outline
+
 1. Multi-Modal Data Ingestion
 Module: data_ingestion.py
 Features:
 Plug-in system for new data feeds (market, social, political, eco sensors…)
 Real-time streaming & historical replay support
 Data normalization and semantic enrichment (tag events with narratives, actors, sentiment)
+
 2. Stateful Memory & Trace Architecture
 Module: trace_memory.py
 Core: A database or object graph that logs:
@@ -20,6 +23,7 @@ Every simulation: input state, overlays, actions, outcomes, confidence
 Trust scores at each decision/node
 Retrospective ground-truth comparisons
 Why: This is your “learn from every move” substrate.
+
 3. Recursive Trust-Weighted Learning
 Confidence/Trust Loop
 Each forecast is assigned a trust score that is updated as reality unfolds.
@@ -27,22 +31,24 @@ Trust/weight propagation: forecasts feed into strategy synthesis and are scored 
 Rewards are assigned not just to predictions, but to reasoning chains and overlays.
 4. Meta-Learning Engine
 Purpose: Adapt forecasting/overlay strategies, not just parameter weights.
-
 Approach:
 Use a combination of:
 Reinforcement/Meta-Reinforcement Learning (reward strategies that maximize predictive and strategic utility over time)
 Symbolic rule evolution (evolving the overlay rules themselves)
 Bayesian / Ensemble learning for trust-weighted aggregation
 Each simulation cycle is an “episode” that updates the meta-policy over reasoning chains.
+
 5. Operator-Driven Interactive Learning
 Attach high-signal operator feedback to simulation traces:
 “Was this simulation trajectory insightful?”
 “Did this fork/move expose unseen fragility, or missed overlays?”
 Feedback becomes weighted training signal for future runs.
+
 6. Simulation Result Scoring & Pruning
 At a set cadence, all simulation cycles are scored:
 By empirical outturn, trust-weighted operator feedback, and strategic novelty
 Low-value or redundant cycles are pruned for efficiency; high-value traces are used for fine-tuning rules and future exploration seeds.
+
 7. Automated Retrodiction & Self-Critique Loop
 Schedule regular retrodiction (backcasting with new overlays/rules on past states)
 Log where new strategies outperform (or underperform) legacy traces

@@ -15,9 +15,19 @@ from trust_system.license_enforcer import annotate_forecasts, filter_licensed, s
 from forecast_output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
 from memory.forecast_episode_tracer import build_episode_chain
 from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
-from symbolic.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs
+from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs
 import matplotlib.pyplot as plt
 import os
+import json
+
+# --- PATCH: Import resonance scanner ---
+from forecast_output.forecast_resonance_scanner import generate_resonance_summary
+# --- PATCH: Import forecast certification digest ---
+from forecast_output.forecast_fidelity_certifier import generate_certified_digest
+# --- PATCH: Import forecast prioritization engine ---
+from forecast_output.forecast_prioritization_engine import select_top_forecasts
+# --- PATCH: Import narrative cluster classifier ---
+from forecast_output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
@@ -77,6 +87,7 @@ def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
     except Exception as e:
         print(f"⚠️ Error summarizing episodes: {e}")
         return {}
+    # --- FIX: Use correct dict comprehension variable names ---
     arcs_prev = {k.replace("arc_", ""): v for k, v in prev.items() if k.startswith("arc_")}
     arcs_curr = {k.replace("arc_", ""): v for k, v in curr.items() if k.startswith("arc_")}
     all_keys = set(arcs_prev) | set(arcs_curr)
@@ -156,6 +167,9 @@ def generate_strategos_digest(
         str: Strategos digest as a formatted string.
     """
     raw = memory.get_recent(n + 5)
+    # --- PATCH: Validate input forecasts ---
+    if not isinstance(raw, list):
+        return "❌ Error: Forecast memory did not return a list."
     try:
         forecasts = filter_licensed_forecasts(raw, strict=True)
     except Exception as e:
@@ -217,13 +231,92 @@ def generate_strategos_digest(
             compressed = compress_episode_chain(chain)
             digest["compressed_episodes"].append(compressed)
 
+    # --- Symbolic learning profile integration ---
+    from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
+    from symbolic_system.symbolic_upgrade_planner import propose_symbolic_upgrades
+
+    tune_log = "logs/tuning_results.jsonl"
+    if os.path.exists(tune_log):
+        results = learn_from_tuning_log(tune_log)
+        digest["symbolic_learning_profile"] = generate_learning_profile(results)
+
+    # --- Symbolic upgrade plan integration ---
+    results = learn_from_tuning_log("logs/tuning_results.jsonl")
+    profile = generate_learning_profile(results)
+    digest["symbolic_upgrade_plan"] = propose_symbolic_upgrades(profile)
+
+    # --- Symbolic tuning summary integration ---
+    from symbolic_system.symbolic_executor import rewrite_forecast_symbolics
+    from trust_system.recovered_forecast_scorer import summarize_repair_quality
+
+    digest["symbolic_tuning_summary"] = {}
+
+    tuning_log = "logs/tuning_results.jsonl"
+    upgrade_log = "plans/symbolic_upgrade_plan.json"
+
+    # Learn
+    results = learn_from_tuning_log(tuning_log)
+    profile = generate_learning_profile(results)
+    digest["symbolic_tuning_summary"]["learning_profile"] = profile
+
+    # Propose upgrade plan
+    plan = propose_symbolic_upgrades(profile)
+    digest["symbolic_tuning_summary"]["upgrade_plan"] = plan
+
+    # Apply upgrade and score
+    try:
+        with open("forecasts/revision_candidates.jsonl", "r") as f:
+            forecasts = [json.loads(line) for line in f if line.strip()]
+        mutated = rewrite_forecast_symbolics(forecasts, plan)
+        summary = summarize_repair_quality(mutated)
+        digest["symbolic_tuning_summary"]["repair_quality"] = summary
+        digest["symbolic_tuning_summary"]["total_mutations"] = len(mutated)
+    except Exception as e:
+        digest["symbolic_tuning_summary"]["repair_quality"] = f"Error: {e}"
+        digest["symbolic_tuning_summary"]["total_mutations"] = 0
+
+    # --- PATCH: Symbolic resonance summary ---
+    digest["symbolic_resonance"] = generate_resonance_summary(forecasts, key="arc_label")
+
+    # --- PATCH: Add forecast certification summary to digest ---
+    digest["forecast_certification"] = generate_certified_digest(forecasts)
+
+    # --- PATCH: Narrative Cluster Classification ---
+    # Tag forecasts with narrative cluster
+    for fc in forecasts:
+        fc["narrative_cluster"] = classify_forecast_cluster(fc)
+
+    # Build summary
+    digest["narrative_cluster_summary"] = summarize_cluster_counts(forecasts)
+
     # Optionally sort by alignment_score (top-N)
     forecasts = sorted(forecasts, key=lambda f: f.get("alignment_score", 0), reverse=True)
+
+    # --- PATCH: Top Strategic Forecasts Integration ---
+    top_forecasts = select_top_forecasts(forecasts, top_n=5)
+    digest["strategic_top_forecasts"] = [{
+        "trace_id": f.get("trace_id"),
+        "arc": f.get("arc_label"),
+        "tag": f.get("symbolic_tag"),
+        "alignment": f.get("alignment_score"),
+        "confidence": f.get("confidence")
+    } for f in top_forecasts]
 
     groups = group_by_confidence(forecasts)
     header = title or "Strategos Forecast Digest"
 
     sections = [f"📘 {header}", ""]
+
+    # --- PATCH: Markdown output for Top Strategic Forecasts ---
+    if digest.get("strategic_top_forecasts"):
+        sections.append("## 🧭 Top Strategic Forecasts\n")
+        sections.append("| Trace ID | Arc | Tag | Alignment | Confidence |")
+        sections.append("|----------|-----|-----|-----------|------------|")
+        for fc in digest["strategic_top_forecasts"]:
+            sections.append(
+                f"| {fc.get('trace_id','')} | {fc.get('arc','')} | {fc.get('tag','')} | {fc.get('alignment','')} | {fc.get('confidence','')} |"
+            )
+        sections.append("")
 
     # --- Trust Enforcement Report ---
     sections.append("## 🛡️ Trust Enforcement Report")
@@ -246,6 +339,25 @@ def generate_strategos_digest(
     sections.append(f"- Rejected: {licensed['rejected']}")
     sections.append(f"- Low Alignment: {licensed['low_alignment']}")
     sections.append("")
+
+    # --- PATCH: Markdown output for forecast certification summary ---
+    cert = digest.get("forecast_certification")
+    if cert:
+        sections.append("## ✅ Forecast Certification Summary")
+        sections.append(f"- Certified: {cert.get('certified', 0)}")
+        sections.append(f"- Uncertified: {cert.get('uncertified', 0)}")
+        sections.append(f"- Certification Rate: {cert.get('certified_ratio', 'N/A')}")
+        sections.append("")
+
+    # --- PATCH: Markdown output for Narrative Cluster Breakdown ---
+    cluster_summary = digest.get("narrative_cluster_summary")
+    if cluster_summary:
+        sections.append("## 🧠 Narrative Cluster Breakdown\n")
+        sections.append("| Cluster             | Count |")
+        sections.append("|---------------------|-------|")
+        for cluster, count in cluster_summary.items():
+            sections.append(f"| {cluster:<19} | {count:<5} |")
+        sections.append("")
 
     # Arc drift summary
     arc_drift = {}
@@ -292,7 +404,7 @@ def generate_strategos_digest(
     if drifted:
         sections.append("## 🔥 Drift-Flagged Forecasts")
         for fc in drifted[:10]:
-            sections.append(f"- {fc.get('trace_id', 'unknown')} → {fc['drift_flag']}")
+            sections.append(f"- {fc.get("trace_id", "unknown")} → {fc["drift_flag"]}")
         sections.append("")
 
     # 🧪 Optional Digest Markdown Summary: Compressed Mutation Episodes
@@ -337,6 +449,59 @@ def generate_strategos_digest(
     except Exception as e:
         logging.error(f"Could not generate symbolic transition graph: {e}")
         sections.append(f"⚠️ Could not generate symbolic transition graph: {e}")
+        sections.append("")
+
+    # --- PATCH: Symbolic Resonance Markdown Output ---
+    resonance = digest.get("symbolic_resonance")
+    if resonance:
+        sections.append("## 🔗 Symbolic Resonance")
+        sections.append(f"- Resonance Score: {resonance.get("resonance_score", "N/A")}")
+        sections.append(f"- Dominant Arc: {resonance.get("dominant_arc", "N/A")}")
+        if resonance.get("top_themes"):
+            sections.append(f"- Top Themes: {', '.join(resonance["top_themes"])}")
+        if resonance.get("cluster_sizes"):
+            sections.append("- Cluster Sizes:")
+            for k, v in resonance["cluster_sizes"].items():
+                sections.append(f"  - {k}: {v}")
+        sections.append("")
+
+    # --- Markdown output for symbolic tuning summary ---
+    if "symbolic_tuning_summary" in digest:
+        sts = digest["symbolic_tuning_summary"]
+        sections.append("## 🧠 Symbolic Tuning Summary\n")
+        # Learning Insights
+        sections.append("### Learning Insights")
+        lp = sts.get("learning_profile", {})
+        if lp:
+            strong = lp.get("strong_tags") or lp.get("strong", [])
+            risky = lp.get("risky_tags") or lp.get("risky", [])
+            if strong:
+                sections.append(f"- Strong Tags: {', '.join(strong)}")
+            if risky:
+                sections.append(f"- Risky Tags: {', '.join(risky)}")
+        # Upgrade Plan
+        sections.append("\n### Upgrade Plan")
+        up = sts.get("upgrade_plan", {})
+        if up:
+            boost = up.get("boost", []) or up.get("boost_tags", [])
+            replace = up.get("replace") or up.get("retune") or up.get("replace_retune") or []
+            if boost:
+                sections.append(f"- Boost: {boost}")
+            if replace:
+                sections.append(f"- Replace/Retune: {replace}")
+        # Results
+        sections.append("\n### Results")
+        total = sts.get("total_mutations", 0)
+        rq = sts.get("repair_quality", {})
+        stable = rq.get("stable_after_revision") if isinstance(rq, dict) else None
+        unstable = rq.get("still_unstable") if isinstance(rq, dict) else None
+        sections.append(f"- Total Rewritten: {total}")
+        if stable is not None:
+            sections.append(f"- Stable After Revision: {stable}")
+        if unstable is not None:
+            sections.append(f"- Still Unstable: {unstable}")
+        if isinstance(rq, str):
+            sections.append(f"- Repair Quality: {rq}")
         sections.append("")
 
     # ➕ Symbolic Flip Patterns and Loops Section (dynamic)
@@ -446,10 +611,12 @@ def _test_digest():
 
     class DummyMemory:
         def get_recent(self, n):
+            # Add a malformed entry for robustness
             return [
                 {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "priority_score": 1, "retrodiction_score": 0.9, "symbolic_score": 0.8, "age_hours": 2},
                 {"confidence": 0.6, "alignment_score": 60, "trust_label": "⚠️ Moderate", "priority_score": 0.5, "retrodiction_score": 0.7, "symbolic_score": 0.6, "age_hours": 5},
                 {"confidence": 0.4, "alignment_score": 40, "trust_label": "🔴 Fragile", "priority_score": 0.2, "retrodiction_score": 0.5, "symbolic_score": 0.4, "age_hours": 10},
+                {},  # malformed
             ]
 
     class StrategosDigestTest(unittest.TestCase):
@@ -457,6 +624,7 @@ def _test_digest():
             digest = generate_strategos_digest(DummyMemory(), n=3, title="Test Digest")
             self.assertIn("Test Digest", digest)
             self.assertIn("🛡️ Trust Enforcement Report", digest)
+            self.assertIn("Strategos Forecast Digest", digest or "")
 
     unittest.TextTestRunner().run(unittest.makeSuite(StrategosDigestTest))
 

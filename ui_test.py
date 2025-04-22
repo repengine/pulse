@@ -152,6 +152,7 @@ class PulseControlApp:
         ttk.Button(analysis_frame, text="Plot License Trust Breakdown", command=self.plot_license_loss_bar).pack(pady=2)
         ttk.Button(analysis_frame, text="Show Symbolic Transition Graph", command=self.show_symbolic_transition_graph).pack(pady=2)
         ttk.Button(analysis_frame, text="Check Symbolic Convergence", command=self.check_symbolic_convergence).pack(pady=2)
+        ttk.Button(analysis_frame, text="Scan Symbolic Resonance", command=self.scan_symbolic_resonance_gui).pack(pady=2)
 
         # --- Memory Tab ---
         memory_tab = ttk.Frame(notebook)
@@ -181,6 +182,9 @@ class PulseControlApp:
         ttk.Button(operator_frame, text="Trace Forecast Lineage", command=self.trace_forecast_episode_chain).pack(pady=2)
         ttk.Button(operator_frame, text="Analyze Symbolic Flip Patterns", command=self.analyze_symbolic_flips).pack(pady=2)
         ttk.Button(operator_frame, text="Apply Symbolic Revisions", command=self.apply_symbolic_revisions_gui).pack(pady=2)
+        ttk.Button(operator_frame, text="Run Symbolic Learning", command=self.run_symbolic_learning_gui).pack(pady=2)
+        ttk.Button(operator_frame, text="Generate Symbolic Upgrade", command=self.generate_symbolic_upgrade_gui).pack(pady=2)
+        ttk.Button(operator_frame, text="Apply Symbolic Upgrade", command=self.apply_symbolic_upgrade_gui).pack(pady=2)
 
         # --- Replay Tab ---
         replay_tab = ttk.Frame(notebook)
@@ -191,6 +195,17 @@ class PulseControlApp:
         ttk.Button(replay_frame, text="Forecast Variable Trajectory", command=self.forecast_variable_trajectory).pack(pady=2)
         ttk.Button(replay_frame, text="Score Forecast Accuracy", command=self.score_forecast_accuracy).pack(pady=2)
         ttk.Button(replay_frame, text="Plot Symbolic Trajectory", command=self.plot_symbolic_trajectory_gui).pack(pady=2)
+
+        # --- Add Certify Forecasts Button to main window ---
+        ttk.Button(self.root, text="Certify Forecasts", command=self.certify_forecasts_gui).pack(pady=2)
+        # --- Add Top Strategic Forecasts Button ---
+        ttk.Button(self.root, text="View Top Strategic Forecasts", command=self.view_top_strategic_forecasts).pack(pady=2)
+        # --- Add Classify Forecast Clusters Button ---
+        ttk.Button(self.root, text="Classify Forecast Clusters", command=self.classify_forecast_clusters_gui).pack(pady=2)
+        # --- Add Show Dual Narrative Scenarios Button ---
+        ttk.Button(self.root, text="Show Dual Narrative Scenarios", command=self.view_dual_narrative_scenarios).pack(pady=2)
+        # --- Add Promote Memory Candidates Button ---
+        ttk.Button(self.root, text="Promote Memory Candidates", command=self.promote_memory_candidates_gui).pack(pady=2)
 
         # --- Log Output (always visible) ---
         log_frame = ttk.Frame(self.root)
@@ -1182,6 +1197,193 @@ class PulseControlApp:
             self.log(f"✅ Simulated {applied} symbolic revisions.")
         except Exception as e:
             self.log(f"❌ Tuning error: {e}")
+
+    def run_symbolic_learning_gui(self):
+        from symbolic.pulse_symbolic_learning_loop import (
+            learn_from_tuning_log, generate_learning_profile, log_symbolic_learning
+        )
+        from tkinter import filedialog
+        path = filedialog.askopenfilename(title="Select tuning log")
+        if not path:
+            return
+        try:
+            results = learn_from_tuning_log(path)
+            profile = generate_learning_profile(results)
+            log_symbolic_learning(profile)
+            self.log("✅ Symbolic learning profile updated.")
+        except Exception as e:
+            self.log(f"❌ Learning failed: {e}")
+
+    def generate_symbolic_upgrade_gui(self):
+        from symbolic.symbolic_upgrade_planner import (
+            propose_symbolic_upgrades, export_upgrade_plan
+        )
+        from symbolic.pulse_symbolic_learning_loop import (
+            learn_from_tuning_log, generate_learning_profile
+        )
+        from tkinter import filedialog
+        path = filedialog.askopenfilename(title="Select tuning results")
+        if not path:
+            return
+        try:
+            results = learn_from_tuning_log(path)
+            profile = generate_learning_profile(results)
+            plan = propose_symbolic_upgrades(profile)
+            export_upgrade_plan(plan)
+            self.log(f"✅ Upgrade plan created.")
+        except Exception as e:
+            self.log(f"❌ Upgrade planning failed: {e}")
+
+    def apply_symbolic_upgrade_gui(self):
+        from symbolic.symbolic_executor import rewrite_forecast_symbolics, log_symbolic_mutation
+        from tkinter import filedialog
+        batch_path = filedialog.askopenfilename(title="Select forecast batch")
+        plan_path = filedialog.askopenfilename(title="Select upgrade plan")
+
+        if not batch_path or not plan_path:
+            return
+
+        try:
+            with open(batch_path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            with open(plan_path, "r") as f:
+                plan = json.load(f)
+
+            updated = rewrite_forecast_symbolics(forecasts, plan)
+            for fc in updated:
+                log_symbolic_mutation(fc)
+            self.log(f"✅ Applied symbolic upgrades to {len(updated)} forecasts.")
+        except Exception as e:
+            self.log(f"❌ Symbolic upgrade failed: {e}")
+
+    def scan_symbolic_resonance_gui(self):
+        """Analyze symbolic convergence and clustering across a forecast batch."""
+        from forecast_output.forecast_resonance_scanner import generate_resonance_summary
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            # --- PATCH: Validate input is a list of dicts ---
+            if not isinstance(forecasts, list) or not all(isinstance(fc, dict) for fc in forecasts):
+                self.log("❌ Input file does not contain a list of forecast dicts.")
+                return
+            result = generate_resonance_summary(forecasts, key="arc_label")
+
+            self.log("🔗 Symbolic Resonance Summary:")
+            self.log(f" - Resonance Score: {result['resonance_score']}")
+            self.log(f" - Dominant Arc: {result['dominant_arc']}")
+            if result.get("top_themes"):
+                self.log(f" - Top Themes: {', '.join(result['top_themes'])}")
+            if result.get("cluster_sizes"):
+                self.log(" - Cluster Sizes:")
+                for k, v in result["cluster_sizes"].items():
+                    self.log(f"   * {k}: {v}")
+        except Exception as e:
+            self.log(f"❌ Resonance scan failed: {e}")
+
+    def certify_forecasts_gui(self):
+        """Certify a forecast batch and log summary."""
+        from forecast_output.forecast_fidelity_certifier import (
+            tag_certified_forecasts, generate_certified_digest
+        )
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            certified = tag_certified_forecasts(forecasts)
+            report = generate_certified_digest(certified)
+            self.log(f"✅ Certified: {report['certified']} / {report['certified'] + report['uncertified']}")
+            self.log(f"📊 Certification Ratio: {report['certified_ratio']}")
+        except Exception as e:
+            self.log(f"❌ Certification failed: {e}")
+
+    def view_top_strategic_forecasts(self):
+        """Display top-ranked certified forecasts by strategic priority."""
+        from forecast_output.forecast_prioritization_engine import select_top_forecasts
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select certified forecast batch")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            top = select_top_forecasts(forecasts, top_n=5)
+            self.log("🧭 Top Strategic Forecasts:")
+            for fc in top:
+                self.log(f" - {fc.get('trace_id')} → {fc.get('arc_label')} | {fc.get('symbolic_tag')} | Align: {fc.get('alignment_score')} | Conf: {fc.get('confidence')}")
+        except Exception as e:
+            self.log(f"❌ Strategic preview failed: {e}")
+
+    def classify_forecast_clusters_gui(self):
+        """Show narrative cluster composition of a forecast batch."""
+        from forecast_output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            summary = summarize_cluster_counts(forecasts)
+            self.log("🧠 Narrative Cluster Summary:")
+            for cluster, count in summary.items():
+                self.log(f" - {cluster}: {count}")
+        except Exception as e:
+            self.log(f"❌ Cluster classification failed: {e}")
+
+    def view_dual_narrative_scenarios(self):
+        """Show symbolic narrative forks as paired scenarios."""
+        from forecast_output.dual_narrative_compressor import generate_dual_scenarios
+        from tkinter import filedialog
+
+        path = filedialog.askopenfilename(title="Select forecast batch")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            duals = generate_dual_scenarios(forecasts)
+            for pair in duals:
+                a, b = pair["scenario_a"]["forecast"], pair["scenario_b"]["forecast"]
+                self.log(f"🔀 {pair['scenario_a']['arc']} vs {pair['scenario_b']['arc']}")
+                self.log(f" A: {a.get('symbolic_tag')} | Align: {a.get('alignment_score')} | Conf: {a.get('confidence')}")
+                self.log(f" B: {b.get('symbolic_tag')} | Align: {b.get('alignment_score')} | Conf: {b.get('confidence')}")
+        except Exception as e:
+            self.log(f"❌ Dual scenario display failed: {e}")
+
+    def promote_memory_candidates_gui(self):
+        """Retain certified, fork-winning forecasts into final memory."""
+        from tkinter import filedialog
+        import json
+        from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
+
+        path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
+        if not path:
+            return
+
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            selected = select_promotable_forecasts(forecasts)
+            export_promoted(selected)
+            self.log(f"✅ Promoted {len(selected)} forecasts to final memory.")
+        except Exception as e:
+            self.log(f"❌ Memory promotion failed: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""
