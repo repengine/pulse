@@ -19,7 +19,7 @@ MEMORY_PATH = "memory/core_forecast_memory.jsonl"
 logger = logging.getLogger("forecast_memory_promoter")
 logging.basicConfig(level=logging.INFO)
 
-def select_promotable_forecasts(forecasts: List[Dict]) -> List[Dict]:
+def select_promotable_forecasts(forecasts) -> List[Dict]:
     """
     Select forecasts with full trust alignment.
 
@@ -32,6 +32,10 @@ def select_promotable_forecasts(forecasts: List[Dict]) -> List[Dict]:
     Returns:
         List[Dict]
     """
+    # Accept ForecastMemory or list
+    if hasattr(forecasts, "_memory"):
+        forecasts = forecasts._memory
+
     selected = []
     for fc in forecasts:
         if (

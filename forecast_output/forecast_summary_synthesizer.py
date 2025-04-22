@@ -58,6 +58,10 @@ def ensure_log_dir(path: str):
 
 # Add symbolic fragmentation tagging
 def tag_fragmented_forecasts(forecasts: List[Dict], key: str = "arc_label") -> List[Dict]:
+    """
+    Tag forecasts as fragmented if symbolic fragmentation is detected.
+    Used by forecast_compressor, digest, and pipeline modules.
+    """
     if detect_fragmentation(forecasts, key=key):
         for f in forecasts:
             f["symbolic_fragmented"] = True

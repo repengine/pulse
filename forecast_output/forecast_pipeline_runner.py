@@ -23,7 +23,7 @@ from trust_system.trust_engine import score_forecasts
 from trust_system.fragility_detector import tag_fragility
 from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
 from memory.forecast_memory import ForecastMemory
-from utils.log_utils import get_logger
+from utils.log_utils import log_info
 from forecast_output.forecast_prioritization_engine import select_top_forecasts
 import os, json
 
@@ -38,6 +38,10 @@ from memory.trace_memory import TraceMemory
 
 # Step 1: Import the Tracker
 from memory.variable_performance_tracker import VariablePerformanceTracker
+
+# Add contradiction detector import
+from forecast_output.forecast_contradiction_detector import detect_forecast_contradictions
+from core.pulse_learning_log import log_learning_event
 
 def run_forecast_pipeline(
     forecasts: List[Dict[str, Any]],
@@ -79,6 +83,21 @@ def run_forecast_pipeline(
     except Exception as e:
         log_info(f"[PIPELINE] Error during trust/fragility scoring: {e}")
         return {"status": "error", "error": str(e)}
+
+    # --- Contradiction detection + learning log ---
+    contradictions = detect_forecast_contradictions(scored)
+    if contradictions:
+        for tid1, tid2, reason in contradictions:
+            log_learning_event("forecast_contradiction_detected", {
+                "trace_id_1": tid1,
+                "trace_id_2": tid2,
+                "reason": reason
+            })
+        # Optionally flag involved forecasts as contradictory
+        involved = {tid1 for tid1, _, _ in contradictions} | {tid2 for _, tid2, _ in contradictions}
+        for f in scored:
+            if f.get("trace_id") in involved:
+                f["confidence_status"] = "❌ Contradictory"
 
     # --- Confidence gating: filter out low-confidence forecasts ---
     try:
@@ -146,7 +165,7 @@ def run_forecast_pipeline(
     digest_result = None
     if enable_digest:
         try:
-            digest_result = build_digest(forecasts=scored, tag="auto", export=True)
+            digest_result = build_digest(forecast_batch=compressed, tag="auto", export=True)
         except Exception as e:
             log_info(f"[PIPELINE] Digest failed: {e}")
 
@@ -154,7 +173,7 @@ def run_forecast_pipeline(
     if save_to_memory:
         try:
             memory = ForecastMemory()
-            for f in scored:
+            for f in compressed:
                 memory.store(f)
         except Exception as e:
             log_info(f"[PIPELINE] Memory store failed: {e}")
@@ -162,7 +181,7 @@ def run_forecast_pipeline(
     # --- Select top forecasts and export ---
     top = []
     try:
-        top = select_top_forecasts(scored, top_n=5)
+        top = select_top_forecasts(compressed, top_n=5)
         prioritized_log = os.path.join("logs", "strategic_batch_output.jsonl")
         os.makedirs(os.path.dirname(prioritized_log), exist_ok=True)
         with open(prioritized_log, "w") as f:
@@ -179,7 +198,7 @@ def run_forecast_pipeline(
         log_info(f"[PIPELINE] Top forecast selection/export/promote failed: {e}")
 
     # Log summary of rejected forecasts
-    rejected = [f for f in forecasts if f.get("confidence_status") == "❌ Rejected"]
+    rejected = [f for f in scored if f.get("confidence_status") == "❌ Rejected"]
     log_info(f"[PIPELINE] {len(rejected)} forecasts rejected by confidence gate")
 
     # Print trace memory summary

@@ -130,6 +130,7 @@ def compress_forecasts(
 
     if summarize:
         try:
+            # Always call summarize_forecasts after compression for downstream integration.
             summarize_forecasts(compressed)
         except Exception as e:
             logger.warning(f"Summary synthesizer failed: {e}")

@@ -17,6 +17,7 @@ Author: Pulse AI Engine
 import logging
 from typing import Any, Dict
 from datetime import datetime
+import json
 
 from memory.trace_memory import TraceMemory
 from memory.variable_performance_tracker import VariablePerformanceTracker
@@ -26,6 +27,7 @@ from dev_tools.apply_symbolic_upgrades import apply_symbolic_upgrades
 from dev_tools.apply_symbolic_revisions import apply_symbolic_revisions
 from dev_tools.pulse_batch_alignment_analyzer import analyze_arc_alignment
 from trust_system.pulse_regret_chain import score_symbolic_regret
+from simulation_engine.historical_retrodiction_runner import run_retrodiction_test
 
 from core.pulse_learning_log import (
     log_variable_weight_change,
@@ -34,6 +36,10 @@ from core.pulse_learning_log import (
     log_arc_regret,
     log_learning_summary
 )
+
+from dev_tools.rule_mutation_engine import apply_rule_mutations  # 🔧 Step 1
+from core.variable_cluster_engine import summarize_clusters  # 🔧 Step 1
+from memory.rule_cluster_engine import summarize_rule_clusters  # 🔧 Step 1
 
 # Configure logging
 logging.basicConfig(
@@ -63,6 +69,13 @@ class LearningEngine:
             self.score_symbolic_arcs()
             self.plan_overlay_mutations()
             self.trigger_revisions_if_needed()
+            # Run retrodiction learning before logging summary
+            self.run_retrodiction_learning(start_date="2020-01-01", days=14)
+            self.apply_retrodiction_pressure()
+            self.apply_variable_mutation_pressure()
+            self.apply_rule_mutation_pressure()
+            self.audit_cluster_volatility()  # 🔧 Step 3
+            self.audit_rule_clusters()       # 🔧 Step 3
             self.log_learning_summary()
         except Exception as e:
             logging.exception(f"Meta update failed: {e}")
@@ -118,7 +131,8 @@ class LearningEngine:
 
     def plan_overlay_mutations(self) -> None:
         """
-        Generates and applies candidate overlay tweaks.
+        Generates and applies candidate overlay tweaks (symbolic rule mutation).
+        Uses generate_symbolic_upgrade_plan and apply_symbolic_upgrades.
         """
         logging.info("[Symbolic Upgrade Plan] Generating candidate overlay tweaks...")
         try:
@@ -147,6 +161,85 @@ class LearningEngine:
                 logging.info(" - No drift detected.")
         except Exception as e:
             logging.error(f"Arc realignment failed: {e}")
+
+    def run_retrodiction_learning(self, start_date: str = "2020-01-01", days: int = 30):
+        print(f"[Retrodiction] Running from {start_date} for {days} days...")
+        run_retrodiction_test(start_date, days=days)
+
+    def parse_retrodiction_log(self, path: str = "logs/retrodiction_result_log.jsonl", top_n: int = 5):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                entries = [json.loads(line) for line in f]
+            sorted_errors = sorted(entries, key=lambda x: x.get("error_score", 0), reverse=True)
+            return sorted_errors[:top_n]
+        except Exception as e:
+            print(f"[Learning] Failed to read retrodiction log: {e}")
+            return []
+
+    def apply_retrodiction_pressure(self):
+        top_drift = self.parse_retrodiction_log()
+        if not top_drift:
+            return
+        print("[Learning] Retrodiction pressure triggered. Top error days:")
+        for entry in top_drift:
+            print(f" - {entry['sim_date']}: error={entry['error_score']}")
+        # Trigger symbolic mutation
+        plan = generate_symbolic_upgrade_plan()
+        if plan:
+            print(" - Applying symbolic upgrades due to retrodiction divergence.")
+            apply_symbolic_upgrades(plan)
+
+    def apply_variable_mutation_pressure(self):
+        """
+        Penalizes high-volatility, low-predictive variables by reducing their trust weights.
+        Optionally, this can be extended to remove or reclassify low-trust variables.
+        """
+        scores = self.tracker.score_variable_effectiveness()
+        drift_vars = self.tracker.detect_variable_drift(threshold=0.25)
+        print(f"[Variable Learning] Drift-sensitive variables: {drift_vars}")
+        for var in drift_vars:
+            meta = self.registry.get(var) or {}
+            old = meta.get("trust_weight", 1.0)
+            new = max(0.1, old * 0.85)
+            meta["trust_weight"] = round(new, 3)
+            self.registry.register_variable(var, meta)
+            log_variable_weight_change(var, old, new)
+        # Optionally: remove or reclassify variables with very low trust_weight here
+
+    def apply_rule_mutation_pressure(self):  # 🔧 Step 2
+        print("[Rule Learning] Applying pressure to mutate causal rules...")
+        apply_rule_mutations()
+
+    def audit_cluster_volatility(self):  # 🔧 Step 2
+        print("🧠 Variable Cluster Volatility Scan:")
+        clusters = summarize_clusters()
+        for c in clusters:
+            print(f"\n📦 Cluster: {c['cluster']} (size: {c['size']})")
+            print(f"Volatility Score: {c['volatility_score']}")
+            if c['volatility_score'] > 0.5:
+                print("⚠️  High volatility — triggering mutation pressure.")
+                for var in c['variables']:
+                    current = self.registry.get(var)
+                    if not current:
+                        continue
+                    old = current.get("trust_weight", 1.0)
+                    new = max(0.1, old * 0.85)
+                    current["trust_weight"] = round(new, 3)
+                    self.registry.register_variable(var, current)
+                    log_variable_weight_change(var, old, new)
+            for v in c["variables"]:
+                print(f" - {v}")
+
+    def audit_rule_clusters(self):  # 🔧 Step 2
+        print("📊 Rule Cluster Volatility Scan:")
+        clusters = summarize_rule_clusters(verbose=False)
+        for c in clusters:
+            print(f"\n📦 Cluster: {c['cluster']} (size: {c['size']})")
+            print(f"Volatility Score: {c['volatility_score']}")
+            if c['volatility_score'] > 0.4:
+                print(f"⚠️ High-volatility cluster: {c['cluster']} — consider mutation or demotion.")
+            for r in c["rules"]:
+                print(f" - {r}")
 
     def log_learning_summary(self) -> None:
         """

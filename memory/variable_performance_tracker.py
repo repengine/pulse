@@ -28,6 +28,18 @@ class VariablePerformanceTracker:
         self.records: List[Dict] = []
         os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 
+    def aggregate_from_memory(self, memory):
+        """
+        Optionally aggregate variable contributions from a ForecastMemory instance or list.
+        """
+        if hasattr(memory, "_memory"):
+            forecasts = memory._memory
+        else:
+            forecasts = memory
+        for forecast in forecasts:
+            state = forecast.get("input_state", {})
+            self.log_variable_contribution(forecast, state)
+
     def log_variable_contribution(self, forecast: Dict, state: Dict):
         """
         Logs how each variable in a forecast worldstate contributed to the outcome.

@@ -41,16 +41,20 @@ def get_mutation_depth(forecast: Dict) -> int:
     return len(ancestors)
 
 
-def track_cluster_lineage(forecasts: List[Dict]) -> Dict[str, List[Dict]]:
+def track_cluster_lineage(forecasts) -> Dict[str, List[Dict]]:
     """
     Group forecasts by narrative cluster.
 
     Args:
-        forecasts (List[Dict]): List of forecast dicts.
+        forecasts (List[Dict] or ForecastMemory): List of forecast dicts or ForecastMemory object.
 
     Returns:
         Dict[str, List[Dict]]: Mapping from cluster to list of forecasts.
     """
+    # Accept ForecastMemory or list
+    if hasattr(forecasts, "_memory"):
+        forecasts = forecasts._memory
+
     clusters = defaultdict(list)
     for fc in forecasts:
         cluster = classify_forecast_cluster(fc)

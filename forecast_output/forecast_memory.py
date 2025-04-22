@@ -9,6 +9,10 @@ class ForecastMemory:
         """Add a forecast to memory."""
         self._memory.append(forecast)
 
+    def store(self, forecast: Dict[str, Any]):
+        """Alias for add_forecast, for compatibility with promoter and other modules."""
+        self.add_forecast(forecast)
+
     def get_all_forecasts(self) -> List[Dict[str, Any]]:
         """Retrieve all forecasts from memory."""
         return self._memory

@@ -19,6 +19,7 @@ from diagnostics.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
 from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
+from core.variable_cluster_engine import summarize_clusters
 
 
 def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
@@ -128,6 +129,7 @@ def main():
         print(f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})")
         print("[9] Run Forecast Pipeline")
         print("[L] View Learning Log")
+        print("[V] View Variable Cluster Volatility")
         choice = input("Select option: ")
         if choice == "8":
             core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
@@ -152,6 +154,14 @@ def main():
                 render_event_digest(events)
             else:
                 print("No learning events found.")
+        elif choice.lower() == "v":
+            clusters = summarize_clusters()
+            print("🧠 Variable Cluster Volatility Digest:")
+            for c in clusters:
+                print(f"\n📦 Cluster: {c['cluster']}  (size: {c['size']})")
+                print(f"Volatility Score: {c['volatility_score']}")
+                for v in c["variables"]:
+                    print(f" - {v}")
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ Author: Pulse AI Engine
 """
 
 from typing import List, Dict, Any, Optional, Union
-import json
+import os, json
 from collections import defaultdict
 import logging
 
@@ -183,6 +183,8 @@ def build_digest(
             skipped += 1
     if skipped:
         logger.warning(f"Skipped {skipped} invalid forecasts in digest build.")
+
+    # All downstream modules (divergence, dual narrative, memory, etc.) now operate on flattened, validated forecasts.
 
     # --- Symbolic Divergence Report ---
     divergence_report = generate_divergence_report(flattened, key="arc_label")
