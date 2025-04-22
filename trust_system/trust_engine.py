@@ -11,7 +11,8 @@ import math
 from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
 from symbolic_system.symbolic_utils import symbolic_fragility_index
-from core.pulse_config import CONFIDENCE_THRESHOLD
+from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
+from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
 from trust_system.forecast_retrospector import retrospective_analysis_batch
 
 
@@ -171,6 +172,8 @@ class TrustEngine:
             movement_score * delta_weight +
             novelty_score * novelty_weight
         )
+        if USE_SYMBOLIC_OVERLAYS:
+            confidence -= compute_symbolic_drift_penalty(forecast)
         return round(min(max(confidence, CONFIDENCE_THRESHOLD), 1.0), 3)
 
     # ---- Symbolic Conflict / Mirror ----

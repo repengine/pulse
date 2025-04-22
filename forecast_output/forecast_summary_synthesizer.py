@@ -31,6 +31,7 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from core.path_registry import PATHS
+from core.pulse_config import USE_SYMBOLIC_OVERLAYS
 from symbolic_system.pulse_symbolic_arc_tracker import (
     compare_arc_drift, compute_arc_stability
 )
@@ -39,6 +40,9 @@ from trust_system.forecast_episode_logger import summarize_episodes
 
 # Import symbolic fragmentation detector
 from symbolic_system.symbolic_convergence_detector import detect_fragmentation
+
+from utils.log_utils import get_logger
+logger = get_logger(__name__)
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
@@ -96,12 +100,14 @@ def summarize_forecasts(
         arc_volatility = compute_arc_stability(arc_drift)
 
     # Tag fragmentation before summarizing
-    forecasts = tag_fragmented_forecasts(forecasts, key="arc_label")
+    if USE_SYMBOLIC_OVERLAYS:
+        forecasts = tag_fragmented_forecasts(forecasts, key="arc_label")
 
     # Tag revision candidates after fragmentation detection
-    for fc in forecasts:
-        if fc.get("symbolic_fragmented"):
-            fc["revision_candidate"] = True
+    if USE_SYMBOLIC_OVERLAYS:
+        for fc in forecasts:
+            if fc.get("symbolic_fragmented"):
+                fc["revision_candidate"] = True
 
     for i, f in enumerate(forecasts):
         conf = f.get("confidence", 0.5)
@@ -120,10 +126,10 @@ def summarize_forecasts(
                 "source": "pulse/forecast_output/forecast_summary_synthesizer.py"
             },
             "arc_drift_summary": arc_drift,
-            "arc_volatility_score": arc_volatility,
-            "symbolic_fragmented": f.get("symbolic_fragmented", False),
+            "arc_volatility_score": arc_volatility if USE_SYMBOLIC_OVERLAYS else None,
+            "symbolic_fragmented": f.get("symbolic_fragmented", False) if USE_SYMBOLIC_OVERLAYS else None,
         }
-        if arc_drift:
+        if arc_drift and USE_SYMBOLIC_OVERLAYS:
             scenario["symbolic_arc_drift"] = arc_drift
         if alignment:
             alignment_info = compute_alignment_index(f, current_state=None)
@@ -135,7 +141,7 @@ def summarize_forecasts(
             with open(path, "a") as f:
                 f.write(json.dumps(scenario) + "\n")
         except Exception as e:
-            print(f"[SummarySynthesizer] Logging error: {e}")
+            logger.error(f"[SummarySynthesizer] Logging error: {e}")
 
     return summaries
 

@@ -15,9 +15,11 @@ import json
 import os
 from typing import Any, Dict, Optional, List
 from core.path_registry import PATHS
-from memory.forecast_memory import load_memory, save_memory_snapshot
-from utils.log_utils import log_info, log_warn, log_error
+from memory.forecast_memory import ForecastMemory
+from utils.log_utils import get_logger
 from core.pulse_config import TRACE_OUTPUT_DIR
+
+logger = get_logger(__name__)
 
 def generate_trace_id() -> str:
     """Generates a unique UUID for a trace."""
@@ -41,21 +43,21 @@ def save_trace_to_disk(metadata: Dict[str, Any]) -> None:
     try:
         with open(filepath, "w") as f:
             json.dump(metadata, f, indent=2)
-        log_info(f"[TRACE] Saved trace to {filepath}")
+        logger.info(f"[TRACE] Saved trace to {filepath}")
     except Exception as e:
-        log_error(f"[TRACE] Failed to save trace: {e}")
+        logger.error(f"[TRACE] Failed to save trace: {e}")
 
 def load_trace(trace_id: str) -> Optional[Dict[str, Any]]:
     """Loads a trace from disk by trace ID."""
     filepath = os.path.join(TRACE_OUTPUT_DIR, f"{trace_id}.json")
     if not os.path.exists(filepath):
-        log_warn(f"[TRACE] Trace not found: {trace_id}")
+        logger.warning(f"[TRACE] Trace not found: {trace_id}")
         return None
     try:
         with open(filepath, "r") as f:
             return json.load(f)
     except Exception as e:
-        log_error(f"[TRACE] Failed to load trace: {e}")
+        logger.error(f"[TRACE] Failed to load trace: {e}")
         return None
 
 def replay_trace(trace_id: str) -> None:
@@ -65,11 +67,11 @@ def replay_trace(trace_id: str) -> None:
         return
     try:
         from main import run_simulation  # local call to Pulse engine
-        log_info(f"[TRACE] Replaying trace: {trace_id}")
+        logger.info(f"[TRACE] Replaying trace: {trace_id}")
         result = run_simulation(config_override=trace["input"])
-        log_info(f"[TRACE] Replay completed. (New trust: {result.get('trust', 'n/a')})")
+        logger.info(f"[TRACE] Replay completed. (New trust: {result.get('trust', 'n/a')})")
     except Exception as e:
-        log_error(f"[TRACE] Failed to replay trace: {e}")
+        logger.error(f"[TRACE] Failed to replay trace: {e}")
 
 def summarize_trace(trace_id: str) -> None:
     """Prints summary statistics of a trace."""
@@ -88,7 +90,7 @@ def audit_all_traces() -> None:
     """Runs a basic integrity audit across all saved traces."""
     issues = 0
     if not os.path.exists(TRACE_OUTPUT_DIR):
-        log_warn("[AUDIT] Trace directory does not exist.")
+        logger.warning("[AUDIT] Trace directory does not exist.")
         return
     for fname in os.listdir(TRACE_OUTPUT_DIR):
         if fname.endswith(".json"):
@@ -97,23 +99,20 @@ def audit_all_traces() -> None:
                 with open(path, "r") as f:
                     trace = json.load(f)
                 if "trace_id" not in trace or "output" not in trace:
-                    log_error(f"[AUDIT] Corrupt or incomplete trace: {fname}")
+                    logger.error(f"[AUDIT] Corrupt or incomplete trace: {fname}")
                     issues += 1
                 if not trace["output"].get("trust"):
-                    log_warn(f"[AUDIT] Missing trust score in: {fname}")
+                    logger.warning(f"[AUDIT] Missing trust score in: {fname}")
             except Exception as e:
-                log_error(f"[AUDIT] Failed to audit {fname}: {e}")
+                logger.error(f"[AUDIT] Failed to audit {fname}: {e}")
                 issues += 1
-    log_info(f"[AUDIT] Completed with {issues} issue(s).")
+    logger.info(f"[AUDIT] Completed with {issues} issue(s).")
 
 def register_trace_to_memory(trace_metadata: Dict[str, Any]) -> None:
     """Registers a trace to the forecast memory layer."""
     try:
-        memory = load_memory()
-        if "traces" not in memory:
-            memory["traces"] = []
-        memory["traces"].append(trace_metadata)
-        save_memory_snapshot(memory)
-        log_info(f"[TRACE] Trace {trace_metadata['trace_id']} added to memory.")
+        memory = ForecastMemory()
+        memory.store(trace_metadata)
+        logger.info(f"[TRACE] Trace {trace_metadata['trace_id']} added to memory.")
     except Exception as e:
-        log_error(f"[TRACE] Failed to register trace to memory: {e}")
+        logger.error(f"[TRACE] Failed to register trace to memory: {e}")

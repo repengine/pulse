@@ -17,6 +17,7 @@ import json
 import os
 from diagnostics.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
+import core.pulse_config
 
 
 def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
@@ -90,6 +91,11 @@ def main():
         print("  --compare PREV.jsonl CURR.jsonl [--export audit.json]")
         print("  --plot-variable hope rage --history path/to/vars.jsonl [--export graph.png]")
         print("  --brief path/to/audit.json [--export pulse_brief.md]")
+        print(f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})")
+        choice = input("Select option: ")
+        if choice == "8":
+            core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
+            print(f"Symbolic overlays now set to: {core.pulse_config.USE_SYMBOLIC_OVERLAYS}")
 
 
 if __name__ == "__main__":

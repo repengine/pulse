@@ -68,3 +68,14 @@ def symbolic_fragility_index(state: WorldState) -> float:
         fragility += overlays.get("rage", 0) * 0.4
 
     return round(min(fragility, 1.0), 3)
+
+
+def compute_symbolic_drift_penalty(forecast: dict) -> float:
+    """
+    Returns a penalty (0–1) for symbolic fragmentation or arc volatility.
+    """
+    if forecast.get("symbolic_fragmented"):
+        return 0.2  # Default penalty for fragmented forecast
+    if forecast.get("arc_volatility_score", 0) > 0.7:
+        return 0.1  # Penalty for unstable symbolic arcs
+    return 0.0

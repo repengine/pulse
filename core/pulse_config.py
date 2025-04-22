@@ -8,6 +8,9 @@ Centralized configuration constants and runtime flags for Pulse.
 - For environment- or scenario-specific overrides, see config/simulation_config.yaml.
 """
 from typing import Dict
+from core.path_registry import PATHS
+
+TRACE_OUTPUT_DIR = PATHS.get("TRACE_OUTPUT_DIR", "logs/traces")
 
 # Simulation settings
 DEFAULT_DECAY_RATE: float = 0.1  #: Default decay rate for symbolic overlays
@@ -23,6 +26,9 @@ MODULES_ENABLED: Dict[str, bool] = {
     "memory_guardian": False,           # Enable memory guardian module
     "estimate_missing_variables": False,  # Estimate missing variables if True (safe by default)
 }
+
+# Global toggle for symbolic overlays
+USE_SYMBOLIC_OVERLAYS = True
 
 # Trust and despair weights for capital/symbolic calculations
 TRUST_WEIGHT: float = 1.0  #: Weight for trust overlay in capital calculations

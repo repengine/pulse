@@ -45,6 +45,7 @@ from core.pulse_config import MODULES_ENABLED
 from core.variable_registry import VARIABLE_REGISTRY
 from trust_system.forecast_retrospector import retrospective_analysis_batch
 from trust_system.trust_engine import TrustEngine
+import core.pulse_config
 
 logger = get_logger(__name__)
 
@@ -99,6 +100,10 @@ def compress_forecasts(forecasts, top_k=10):
     Return the top_k most confident forecasts (after trust filtering).
     """
     return sorted(forecasts, key=lambda f: f.get("confidence", 0), reverse=True)[:top_k]
+
+def toggle_symbolic_overlays():
+    core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
+    print(f"Symbolic overlays now set to: {core.pulse_config.USE_SYMBOLIC_OVERLAYS}")
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Pulse CLI Shell")

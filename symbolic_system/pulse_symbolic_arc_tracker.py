@@ -120,3 +120,26 @@ def plot_arc_distribution(arc_counts: Dict[str, int], title: Optional[str] = "Sy
             plt.show()
     except Exception as e:
         print(f"❌ Failed to plot arc distribution: {e}")
+
+def compute_arc_label(forecast: Dict) -> str:
+    """
+    Assign a symbolic arc label to a forecast based on its symbolic_tag or drivers.
+
+    Args:
+        forecast (Dict): Forecast object.
+
+    Returns:
+        str: Arc label string.
+    """
+    tag = forecast.get("symbolic_tag", "").lower()
+    if "hope" in tag:
+        return "arc_hope_recovery"
+    if "despair" in tag:
+        return "arc_despair_decline"
+    if "rage" in tag:
+        return "arc_instability"
+    if "fatigue" in tag:
+        return "arc_exhaustion"
+    if "trust" in tag:
+        return "arc_stability"
+    return "arc_unknown"
