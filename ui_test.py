@@ -206,6 +206,8 @@ class PulseControlApp:
         ttk.Button(self.root, text="Show Dual Narrative Scenarios", command=self.view_dual_narrative_scenarios).pack(pady=2)
         # --- Add Promote Memory Candidates Button ---
         ttk.Button(self.root, text="Promote Memory Candidates", command=self.promote_memory_candidates_gui).pack(pady=2)
+        # --- Add Check Symbolic Entropy Button ---
+        ttk.Button(self.root, text="Check Symbolic Entropy", command=self.check_symbolic_entropy_gui).pack(pady=2)
 
         # --- Log Output (always visible) ---
         log_frame = ttk.Frame(self.root)
@@ -1384,6 +1386,31 @@ class PulseControlApp:
             self.log(f"✅ Promoted {len(selected)} forecasts to final memory.")
         except Exception as e:
             self.log(f"❌ Memory promotion failed: {e}")
+
+    def check_symbolic_entropy_gui(self):
+        """Score symbolic entropy of current memory vs a new forecast batch."""
+        from memory.forecast_memory_entropy import generate_entropy_report
+        from tkinter import filedialog
+
+        new_path = filedialog.askopenfilename(title="Select new forecast batch")
+        mem_path = filedialog.askopenfilename(title="Select current memory file")
+
+        if not new_path or not mem_path:
+            self.log("Entropy check cancelled.")
+            return
+
+        try:
+            with open(new_path, "r") as f:
+                new_batch = [json.loads(line.strip()) for line in f if line.strip()]
+            with open(mem_path, "r") as f:
+                memory = [json.loads(line.strip()) for line in f if line.strip()]
+
+            report = generate_entropy_report(new_batch, memory)
+            self.log("🌐 Symbolic Entropy Report:")
+            for k, v in report.items():
+                self.log(f" - {k}: {v}")
+        except Exception as e:
+            self.log(f"❌ Entropy check failed: {e}")
 
     def clear_log(self) -> None:
         """Clear the log output window."""

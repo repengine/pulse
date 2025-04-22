@@ -243,6 +243,27 @@ def build_digest(
         if fc.get("trace_id") in decision_ids:
             fc["fork_winner"] = True
 
+    # --- Symbolic Entropy Report ---
+    try:
+        from memory.forecast_memory_entropy import generate_entropy_report
+        # Optionally, load memory forecasts if available in config
+        memory_forecasts = None
+        if config and "memory_forecasts" in config:
+            memory_forecasts = config["memory_forecasts"]
+        else:
+            # Try to load from default memory file if exists
+            mem_path = config.get("memory_path") if config and "memory_path" in config else None
+            if mem_path and os.path.exists(mem_path):
+                with open(mem_path, "r", encoding="utf-8") as f:
+                    memory_forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+        if memory_forecasts:
+            entropy_report = generate_entropy_report(flattened, memory_forecasts)
+        else:
+            entropy_report = None
+    except Exception as e:
+        logger.warning(f"Could not compute symbolic entropy report: {e}")
+        entropy_report = None
+
     # Tag filter
     if tag_filter:
         flattened = [f for f in flattened if tag_filter in f.get("tags", [])]
@@ -268,13 +289,14 @@ def build_digest(
     try:
         if fmt == "json":
             digest_json = [{k: f.get(k) for k in fields} for f in flattened]
-            # Add most evolved section, divergence report, dual narrative scenarios, and fork decisions
+            # Add most evolved section, divergence report, dual narrative scenarios, fork decisions, and entropy report
             return json.dumps({
                 "forecasts": digest_json,
                 "most_evolved_per_cluster": most_evolved_digest,
                 "symbolic_divergence": divergence_report,
                 "dual_narrative_scenarios": dual_narrative_scenarios,
-                "fork_decisions": fork_decisions
+                "fork_decisions": fork_decisions,
+                "symbolic_entropy_report": entropy_report
             }, indent=2)
         if fmt == "html":
             lines = ["<h1>Strategos Digest</h1>"]
@@ -321,6 +343,11 @@ def build_digest(
                 )
             lines.append("</table>")
             lines.append(f"<b>Mutation Depths:</b> {most_evolved_digest['mutation_depths']}<br>")
+            # Insert Symbolic Entropy Report (HTML)
+            if entropy_report:
+                lines.append("<h2>🌐 Symbolic Entropy Report</h2>")
+                for k, v in entropy_report.items():
+                    lines.append(f"<b>{k.replace('_', ' ').capitalize()}:</b> {v}<br>")
             # Optionally, insert dual narrative scenarios in HTML if desired
             if dual_narrative_scenarios:
                 lines.append("<h2>🔀 Dual Narrative Scenarios</h2>")
@@ -392,6 +419,13 @@ def build_digest(
             lines.append("| _None found_      |          |               |       |")
         lines.append("")
         lines.append(f"**Mutation Depths:** {most_evolved_digest['mutation_depths']}\n")
+
+        # --- Symbolic Entropy Report (Markdown) ---
+        if entropy_report:
+            lines.append("## 🌐 Symbolic Entropy Report\n")
+            for k, v in entropy_report.items():
+                lines.append(f"- {k.replace('_', ' ').capitalize()}: {v}")
+            lines.append("")
 
         # Markdown Output: Dual Narrative Scenarios
         if dual_narrative_scenarios:
