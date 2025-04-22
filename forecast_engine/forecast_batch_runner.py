@@ -1,6 +1,13 @@
 """ 
 forecast_batch_runner.py
 
+Purpose:
+- Runs new forecast simulations in batch from scratch.
+- Handles scoring, validation, license enforcement, and recursion audit.
+- CLI entry point for batch simulation.
+
+Use this when you want to simulate new forecasts, not just process existing ones.
+
 Batch processor for Pulse forecasts.
 Each forecast is:
 - Simulated

@@ -21,6 +21,10 @@ from typing import Callable, Optional
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
+# Required imports for trace logging
+from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
+from core.pulse_config import ENABLE_TRACE_LOGGING
+
 TURN_LOG_PATH = PATHS.get("TURN_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 AUTO_ENFORCE = False  # Set to True to enable post-turn license enforcement
@@ -87,5 +91,21 @@ def run_turn(
         if hasattr(state, "forecasts"):
             state.forecasts = annotate_forecasts(state.forecasts)
             state.forecasts = filter_licensed(state.forecasts)
+
+    # Trace logging (if enabled)
+    if ENABLE_TRACE_LOGGING:
+        sim_input = {
+            "state": state.to_dict(),  # assumes to_dict exists or serialize manually
+            "decay_rate": decay_rate,
+            "rule_fn": rule_fn.__name__ if rule_fn else None,
+        }
+        sim_output = {
+            "overlays": state.overlays,
+            "variables": state.variables,
+            "trust": getattr(state, "trust", None),  # optional
+            "forks": getattr(state, "forks", []),
+        }
+        trace_metadata = assign_trace_metadata(sim_input, sim_output)
+        register_trace_to_memory(trace_metadata)
 
     return rule_execution_log

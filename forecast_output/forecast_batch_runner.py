@@ -1,4 +1,15 @@
 """
+forecast_batch_runner.py
+
+Purpose:
+- Processes a batch of forecasts from an existing WorldState.
+- Handles compression, summary, and logging.
+- Used as a utility in digest builders and operator tools.
+
+Not a CLI. Use this for batch-processing existing forecasts, not for running new simulations.
+"""
+
+"""
 Module: forecast_batch_runner.py
 Pulse Version: v0.012.0
 Location: pulse/forecast_output/

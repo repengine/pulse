@@ -31,6 +31,10 @@ DESPAIR_WEIGHT: float = 1.0  #: Weight for despair overlay in capital calculatio
 # Startup banner (displayed at launch)
 STARTUP_BANNER: str = "\U0001f9e0 Starting Pulse v0.4..."
 
+# Simulation run settings
+ENABLE_TRACE_LOGGING = True
+#: Enable trace logging for audit trail
+#: Set to False to disable trace logging for performance
 # To add a new config value:
 # - Add it here with a type annotation and comment
 # - Import from core.pulse_config in your module
