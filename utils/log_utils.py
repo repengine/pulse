@@ -40,3 +40,11 @@ def get_logger(name, log_to_file: bool = True, max_bytes: int = 5_000_000, backu
             logger.addHandler(file_handler)
     logger.setLevel(logging.INFO)
     return logger
+
+
+def log_info(msg: str):
+    """
+    Simple info-level logger for convenience.
+    """
+    logger = get_logger("pulse")
+    logger.info(msg)

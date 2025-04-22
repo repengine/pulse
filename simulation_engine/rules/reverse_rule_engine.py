@@ -136,6 +136,26 @@ def trace_causal_paths(
             chains.append(["SUGGEST_NEW_RULE", suggestion])
     return chains
 
+def compute_match_score(input_data: dict, rule: dict) -> float:
+    """
+    Compute a simple match score between input_data and rule's effects.
+    Score is 1.0 if all keys match exactly, otherwise decreases with difference.
+    """
+    effects = rule.get("effects", {})
+    if not input_data or not effects:
+        return 0.0
+    keys = set(input_data.keys()) | set(effects.keys())
+    if not keys:
+        return 0.0
+    total_diff = 0.0
+    for k in keys:
+        v1 = input_data.get(k, 0.0)
+        v2 = effects.get(k, 0.0)
+        total_diff += abs(v1 - v2)
+    # Normalize: higher score for smaller difference
+    score = max(0.0, 1.0 - total_diff / (len(keys) or 1))
+    return score
+
 def match_rules(input_data, rules, confidence_threshold: float = 0.0):
     """Match input data to rules, returning only those above the confidence threshold."""
     matches = []

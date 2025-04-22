@@ -136,6 +136,18 @@ class ForecastMemory:
         if not self.persist_dir:
             return
         import os, json
+        # --- PATCH: Ensure overlays are serializable ---
+        def overlay_to_dict(overlay):
+            if hasattr(overlay, "as_dict"):
+                return overlay.as_dict()
+            return dict(overlay)
+        if "overlays" in forecast_obj:
+            forecast_obj["overlays"] = overlay_to_dict(forecast_obj["overlays"])
+        if "forks" in forecast_obj:
+            for fork in forecast_obj["forks"]:
+                if "overlays" in fork:
+                    fork["overlays"] = overlay_to_dict(fork["overlays"])
+        # --- END PATCH ---
         os.makedirs(self.persist_dir, exist_ok=True)
         forecast_id = forecast_obj.get("forecast_id", "unknown")
         path = os.path.join(self.persist_dir, f"{forecast_id}.json")
@@ -149,5 +161,8 @@ class ForecastMemory:
             return
         for fname in os.listdir(self.persist_dir):
             if fname.endswith(".json"):
-                with open(os.path.join(self.persist_dir, fname), "r", encoding="utf-8") as f:
-                    self._memory.append(json.load(f))
+                try:
+                    with open(os.path.join(self.persist_dir, fname), "r", encoding="utf-8") as f:
+                        self._memory.append(json.load(f))
+                except Exception as e:
+                    print(f"[ForecastMemory] Skipped corrupted file {fname}: {e}")

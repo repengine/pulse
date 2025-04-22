@@ -18,6 +18,7 @@ import os
 from diagnostics.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
+from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
 
 
 def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
@@ -126,6 +127,7 @@ def main():
         print("  --brief path/to/audit.json [--export pulse_brief.md]")
         print(f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})")
         print("[9] Run Forecast Pipeline")
+        print("[L] View Learning Log")
         choice = input("Select option: ")
         if choice == "8":
             core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
@@ -140,6 +142,16 @@ def main():
             except Exception as e:
                 print(f"❌ Pipeline error: {e}")
             return
+        elif choice.lower() == "l":
+            events = load_learning_events(limit=20)
+            if events:
+                summary = summarize_learning_events(events)
+                print("\n🧾 Learning Summary:")
+                for k, v in summary.items():
+                    print(f" - {k}: {v} events")
+                render_event_digest(events)
+            else:
+                print("No learning events found.")
 
 
 if __name__ == "__main__":

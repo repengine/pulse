@@ -135,10 +135,41 @@ def retrodict_all_forecasts(
 
 
 def save_retrodiction_results(results: Dict):
+    # PATCH: Ensure overlays are serializable before storing
+    def overlay_to_dict(overlay):
+        if hasattr(overlay, "as_dict"):
+            return overlay.as_dict()
+        return dict(overlay)
+    if isinstance(results, dict):
+        if "overlays" in results:
+            results["overlays"] = overlay_to_dict(results["overlays"])
+        if "forks" in results:
+            for fork in results["forks"]:
+                if "overlays" in fork:
+                    fork["overlays"] = overlay_to_dict(fork["overlays"])
+    elif isinstance(results, list):
+        for res in results:
+            if "overlays" in res:
+                res["overlays"] = overlay_to_dict(res["overlays"])
+            if "forks" in res:
+                for fork in res["forks"]:
+                    if "overlays" in fork:
+                        fork["overlays"] = overlay_to_dict(fork["overlays"])
     retrodiction_memory.store(results)
 
 
 def save_forecast(forecast_obj: Dict):
+    # PATCH: Ensure overlays are serializable before storing
+    def overlay_to_dict(overlay):
+        if hasattr(overlay, "as_dict"):
+            return overlay.as_dict()
+        return dict(overlay)
+    if "overlays" in forecast_obj:
+        forecast_obj["overlays"] = overlay_to_dict(forecast_obj["overlays"])
+    if "forks" in forecast_obj:
+        for fork in forecast_obj["forks"]:
+            if "overlays" in fork:
+                fork["overlays"] = overlay_to_dict(fork["overlays"])
     forecast_memory.store(forecast_obj)
 
 

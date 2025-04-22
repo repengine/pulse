@@ -78,6 +78,18 @@ def log_forecast_to_pfpa(forecast_obj: dict, outcome: dict = None, status: str =
         "status_tag": status
     }
     forecast_obj = decay_confidence_and_priority(forecast_obj)
+    # --- PATCH: Ensure overlays are serializable before storing ---
+    def overlay_to_dict(overlay):
+        if hasattr(overlay, "as_dict"):
+            return overlay.as_dict()
+        return dict(overlay)
+    if "overlays" in entry:
+        entry["overlays"] = overlay_to_dict(entry["overlays"])
+    if "forks" in entry:
+        for fork in entry["forks"]:
+            if "overlays" in fork:
+                fork["overlays"] = overlay_to_dict(fork["overlays"])
+    # --- END PATCH ---
     pfpa_memory.store(entry)
     logger.info(f"Logged forecast {entry['trace_id']} to PFPA archive.")
 

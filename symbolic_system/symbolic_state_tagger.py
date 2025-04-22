@@ -95,7 +95,7 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
         "turn": turn,
         "symbolic_tag": label,
         "symbolic_tag_enum": tag.name,
-        "symbolic_overlays": overlays,
+        "symbolic_overlays": overlays.as_dict() if hasattr(overlays, "as_dict") else overlays,
         "timestamp": datetime.utcnow().isoformat(),
         "metadata": {
             "version": "v0.30.1",

@@ -25,9 +25,18 @@ def generate_trace_id() -> str:
     """Generates a unique UUID for a trace."""
     return str(uuid.uuid4())
 
+def overlay_to_dict(overlay):
+    """Convert SymbolicOverlay or dict to dict for JSON serialization."""
+    if hasattr(overlay, "as_dict"):
+        return overlay.as_dict()
+    return dict(overlay)
+
 def assign_trace_metadata(sim_input: Dict[str, Any], sim_output: Dict[str, Any]) -> Dict[str, Any]:
     """Attaches trace ID and metadata to a simulation output."""
     trace_id = generate_trace_id()
+    # Ensure overlays are serializable
+    if "overlays" in sim_output:
+        sim_output["overlays"] = overlay_to_dict(sim_output["overlays"])
     metadata = {
         "trace_id": trace_id,
         "input": sim_input,
@@ -41,6 +50,14 @@ def save_trace_to_disk(metadata: Dict[str, Any]) -> None:
     os.makedirs(TRACE_OUTPUT_DIR, exist_ok=True)
     filepath = os.path.join(TRACE_OUTPUT_DIR, f"{metadata['trace_id']}.json")
     try:
+        # Ensure overlays are serializable
+        if "output" in metadata and "overlays" in metadata["output"]:
+            metadata["output"]["overlays"] = overlay_to_dict(metadata["output"]["overlays"])
+        # PATCH: Recursively convert overlays in forks if present
+        if "output" in metadata and "forks" in metadata["output"]:
+            for fork in metadata["output"]["forks"]:
+                if "overlays" in fork:
+                    fork["overlays"] = overlay_to_dict(fork["overlays"])
         with open(filepath, "w") as f:
             json.dump(metadata, f, indent=2)
         logger.info(f"[TRACE] Saved trace to {filepath}")
@@ -111,6 +128,14 @@ def audit_all_traces() -> None:
 def register_trace_to_memory(trace_metadata: Dict[str, Any]) -> None:
     """Registers a trace to the forecast memory layer."""
     try:
+        # Ensure overlays are serializable
+        if "output" in trace_metadata and "overlays" in trace_metadata["output"]:
+            trace_metadata["output"]["overlays"] = overlay_to_dict(trace_metadata["output"]["overlays"])
+        # PATCH: Recursively convert overlays in forks if present
+        if "output" in trace_metadata and "forks" in trace_metadata["output"]:
+            for fork in trace_metadata["output"]["forks"]:
+                if "overlays" in fork:
+                    fork["overlays"] = overlay_to_dict(fork["overlays"])
         memory = ForecastMemory()
         memory.store(trace_metadata)
         logger.info(f"[TRACE] Trace {trace_metadata['trace_id']} added to memory.")

@@ -19,17 +19,25 @@ from core.pulse_config import USE_SYMBOLIC_OVERLAYS
 from forecast_output.forecast_compressor import compress_forecasts
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from forecast_output.strategos_digest_builder import build_digest
-from trust_system.trust_engine import score_forecast_batch
+from trust_system.trust_engine import score_forecasts
 from trust_system.fragility_detector import tag_fragility
 from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
 from memory.forecast_memory import ForecastMemory
-from utils.log_utils import log_info
+from utils.log_utils import get_logger
 from forecast_output.forecast_prioritization_engine import select_top_forecasts
-import os
+import os, json
 
 # Add memory promoter imports
 from memory.forecast_memory_promotor import select_promotable_forecasts, export_promoted
+
+# --- Capital Layer Imports ---
+from capital_engine.capital_layer import run_capital_forks, summarize_exposure, portfolio_alignment_tags
+
 from forecast_output.forecast_confidence_gate import filter_by_confidence
+from memory.trace_memory import TraceMemory
+
+# Step 1: Import the Tracker
+from memory.variable_performance_tracker import VariablePerformanceTracker
 
 def run_forecast_pipeline(
     forecasts: List[Dict[str, Any]],
@@ -62,8 +70,12 @@ def run_forecast_pipeline(
 
     # Step 1: Score trust + fragility
     try:
-        scored = score_forecast_batch(forecasts)
+        scored = score_forecasts(forecasts)
         scored = tag_fragility(scored)
+        # Apply confidence + fragility filter
+        scored = filter_by_confidence(scored)
+        # OPTIONAL: Drop rejected forecasts from pipeline
+        scored = [f for f in scored if f.get("confidence_status") != "❌ Rejected"]
     except Exception as e:
         log_info(f"[PIPELINE] Error during trust/fragility scoring: {e}")
         return {"status": "error", "error": str(e)}
@@ -74,6 +86,12 @@ def run_forecast_pipeline(
         log_info(f"[PIPELINE] Confidence gate applied: {len(scored)} forecasts retained.")
     except Exception as e:
         log_info(f"[PIPELINE] Confidence gating failed: {e}")
+
+    # Initialize trace memory logger
+    trace_logger = TraceMemory()
+
+    # Step 2: Initialize VariablePerformanceTracker
+    tracker = VariablePerformanceTracker()
 
     # Step 2: Apply symbolic overlays if enabled
     if USE_SYMBOLIC_OVERLAYS:
@@ -99,6 +117,15 @@ def run_forecast_pipeline(
         try:
             trace_meta = assign_trace_metadata({}, f)
             register_trace_to_memory(trace_meta)
+            # Log to trace memory
+            trace_logger.log_trace_entry(
+                trace_id=f.get("trace_id", "unknown"),
+                forecast=f,
+                input_state={}  # Replace with state.to_dict() if state is available
+            )
+            # Log variable impact to performance tracker
+            input_state = f.get("input_state", {})  # Replace with actual sim state if available
+            tracker.log_variable_contribution(f, input_state)
         except Exception as e:
             log_info(f"[PIPELINE] Trace assignment/registration failed: {e}")
 
@@ -151,14 +178,32 @@ def run_forecast_pipeline(
     except Exception as e:
         log_info(f"[PIPELINE] Top forecast selection/export/promote failed: {e}")
 
+    # Log summary of rejected forecasts
+    rejected = [f for f in forecasts if f.get("confidence_status") == "❌ Rejected"]
+    log_info(f"[PIPELINE] {len(rejected)} forecasts rejected by confidence gate")
+
+    # Print trace memory summary
+    summary = trace_logger.summarize_memory()
+    log_info(f"[TRACE MEMORY] Recent summary: {summary}")
+
+    # Step 4 (Optional): Export Variable Scores at End of Pipeline
+    tracker.export_variable_scores()
+
     log_info("[PIPELINE] Forecast pipeline complete.")
-    return {
+    result_bundle = {
         "status": "complete",
         "total": len(forecasts),
         "compressed": len(compressed),
         "digest": digest_result,
         "top_forecasts": top,
     }
+
+    # --- Capital Layer: add exposure and alignment summaries if state is available ---
+    # If you have a WorldState object, pass it here. Otherwise, adapt as needed.
+    # result_bundle["capital_exposure"] = summarize_exposure(state)
+    # result_bundle["capital_alignment"] = portfolio_alignment_tags(state)
+
+    return result_bundle
 
 def _test_pipeline():
     """Basic test for pipeline logic."""

@@ -24,6 +24,13 @@
             "spy": 112.5,
             "cash": 100000.0
           },
+          "capital_delta": {
+            "nvda": 125.0,
+            "msft": -20.0,
+            "ibit": -120.0,
+            "spy": 112.5,
+            "cash": 0.0
+          },
           "symbolic_change": {
             "hope": 0.0,
             "despair": 0.0,
@@ -31,8 +38,27 @@
             "fatigue": 0.0,
             "trust": 0.0
           },
-          "tags": [],
-          "confidence": null
+          "portfolio_alignment": {
+            "bias": "neutral"
+          },
+          "confidence": null,
+          "simulation_id": "default",
+          "turn": null,
+          "symbolic_tag": "Neutral",
+          "symbolic_tag_enum": "NEUTRAL",
+          "symbolic_overlays": {
+            "hope": 0.5,
+            "despair": 0.5,
+            "rage": 0.5,
+            "fatigue": 0.5
+          },
+          "timestamp": "2025-04-22T05:43:08.490135",
+          "metadata": {
+            "version": "v0.30.1",
+            "source": "symbolic_state_tagger.py",
+            "description": "Runtime symbolic state classification"
+          },
+          "arc_label": "arc_unknown"
         },
         "fragility": 0.625,
         "exposure": {
@@ -49,7 +75,12 @@
         "trace_id": "fcast_turn_0",
         "origin_turn": 0,
         "status": "\ud83d\udfe2 Trusted",
-        "timestamp": "2025-04-20T19:26:04.749051"
+        "timestamp": "2025-04-22T05:43:08.490970",
+        "symbolic_fragmented": false,
+        "narrative_cluster": "Miscellaneous Forecast",
+        "fragility_label": "\ud83d\udd34 Volatile",
+        "confidence_status": "\u2705 Actionable",
+        "arc_label": "arc_unknown"
       },
       {
         "horizon_days": 2,
@@ -70,6 +101,13 @@
             "spy": 225.0,
             "cash": 100000.0
           },
+          "capital_delta": {
+            "nvda": 125.0,
+            "msft": -20.0,
+            "ibit": -120.0,
+            "spy": 112.5,
+            "cash": 0.0
+          },
           "symbolic_change": {
             "hope": 0.0,
             "despair": 0.0,
@@ -77,8 +115,27 @@
             "fatigue": 0.0,
             "trust": 0.0
           },
-          "tags": [],
-          "confidence": null
+          "portfolio_alignment": {
+            "bias": "neutral"
+          },
+          "confidence": null,
+          "simulation_id": "default",
+          "turn": null,
+          "symbolic_tag": "Neutral",
+          "symbolic_tag_enum": "NEUTRAL",
+          "symbolic_overlays": {
+            "hope": 0.5,
+            "despair": 0.5,
+            "rage": 0.5,
+            "fatigue": 0.5
+          },
+          "timestamp": "2025-04-22T05:43:08.491054",
+          "metadata": {
+            "version": "v0.30.1",
+            "source": "symbolic_state_tagger.py",
+            "description": "Runtime symbolic state classification"
+          },
+          "arc_label": "arc_unknown"
         },
         "fragility": 0.625,
         "exposure": {
@@ -95,8 +152,14 @@
         "trace_id": "fcast_turn_0",
         "origin_turn": 0,
         "status": "\ud83d\udfe2 Trusted",
-        "timestamp": "2025-04-20T19:26:04.749089"
+        "timestamp": "2025-04-22T05:43:08.491550",
+        "symbolic_fragmented": false,
+        "narrative_cluster": "Miscellaneous Forecast",
+        "fragility_label": "\ud83d\udd34 Volatile",
+        "confidence_status": "\u2705 Actionable",
+        "arc_label": "arc_unknown"
       }
-    ]
+    ],
+    "attention_score": 0.0
   }
 ]

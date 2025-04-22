@@ -376,6 +376,28 @@ class TrustEngine:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
         return forecasts
 
+def score_forecasts(
+    forecasts: list,
+    memory: list = None,
+    fragility_weight: float = 0.4,
+    delta_weight: float = 0.4,
+    novelty_weight: float = 0.2
+) -> list:
+    """
+    Batch scoring: assign trust/confidence to each forecast in a list.
+    """
+    results = []
+    for fc in forecasts:
+        score = TrustEngine.score_forecast(
+            fc,
+            memory=memory,
+            fragility_weight=fragility_weight,
+            delta_weight=delta_weight,
+            novelty_weight=novelty_weight
+        )
+        fc["confidence"] = score
+        results.append(fc)
+    return results
 
 # Add this at the end of the file to allow direct import
 score_forecast = TrustEngine.score_forecast

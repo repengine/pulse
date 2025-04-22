@@ -1,0 +1,6 @@
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.495294", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.495500", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.495692", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.496148", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.496315", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
+{"trace_id": "fcast_turn_0", "confidence": 0.95, "fragility": 0.625, "status": "\u2705 Actionable", "timestamp": "2025-04-22T05:43:08.496465", "metadata": {"source": "forecast_confidence_gate.py", "version": "v0.018.0"}}
