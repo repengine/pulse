@@ -41,6 +41,30 @@ DEFAULT_FIELDS = [
     "trace_id", "turn", "confidence", "fragility", "trust_label", "symbolic_tag", "overlays", "exposure_delta"
 ]
 
+# --- PATCH: Import learning summary, mutation logs, capital/symbolic trends ---
+try:
+    from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
+except ImportError:
+    generate_learning_profile = None
+    learn_from_tuning_log = None
+
+try:
+    from forecast_output.mutation_compression_engine import summarize_mutation_log
+except ImportError:
+    summarize_mutation_log = None
+
+try:
+    from forecast_output.capital_symbolic_trends import generate_capital_trends_report
+except ImportError:
+    generate_capital_trends_report = None
+
+# ✅ PATCH B Step 1: Import contradiction digest formatter
+try:
+    from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md, load_symbolic_conflict_events
+except ImportError:
+    format_contradiction_cluster_md = None
+    load_symbolic_conflict_events = None
+
 def validate_forecast_schema(f: Dict) -> bool:
     """Basic schema validation for forecast objects."""
     required = ["trace_id", "confidence", "fragility", "symbolic_tag", "overlays"]
@@ -266,6 +290,45 @@ def build_digest(
         logger.warning(f"Could not compute symbolic entropy report: {e}")
         entropy_report = None
 
+    # --- PATCH: Learning Summary ---
+    learning_summary_md = ""
+    if generate_learning_profile and learn_from_tuning_log:
+        try:
+            tune_log = config.get("tuning_log", "logs/tuning_results.jsonl") if config else "logs/tuning_results.jsonl"
+            if os.path.exists(tune_log):
+                results = learn_from_tuning_log(tune_log)
+                profile = generate_learning_profile(results)
+                learning_summary_md = "## 🧠 Learning Summary\n"
+                strong = profile.get("strong_tags") or profile.get("strong", [])
+                risky = profile.get("risky_tags") or profile.get("risky", [])
+                if strong:
+                    learning_summary_md += f"- Strong Tags: {', '.join(strong)}\n"
+                if risky:
+                    learning_summary_md += f"- Risky Tags: {', '.join(risky)}\n"
+                learning_summary_md += "\n"
+        except Exception as e:
+            learning_summary_md = f"## 🧠 Learning Summary\n- Error: {e}\n"
+
+    # --- PATCH: Mutation Logs ---
+    mutation_log_md = ""
+    if summarize_mutation_log:
+        try:
+            mutation_log_md = summarize_mutation_log(forecast_batch, fmt="markdown")
+            if mutation_log_md and not mutation_log_md.startswith("##"):
+                mutation_log_md = "## 🔧 Mutation Log\n" + mutation_log_md
+        except Exception as e:
+            mutation_log_md = f"## 🔧 Mutation Log\n- Error: {e}\n"
+
+    # --- PATCH: Capital/Symbolic Trends ---
+    capital_trends_md = ""
+    if generate_capital_trends_report and config.get("show_capital_trends", True):
+        try:
+            capital_trends_md = generate_capital_trends_report(forecast_batch, fmt="markdown")
+            if capital_trends_md and not capital_trends_md.startswith("##"):
+                capital_trends_md = "## 📊 Capital/Symbolic Trends\n" + capital_trends_md
+        except Exception as e:
+            capital_trends_md = f"## 📊 Capital/Symbolic Trends\n- Error: {e}\n"
+
     # Tag filter
     if tag_filter:
         flattened = [f for f in flattened if tag_filter in f.get("tags", [])]
@@ -379,6 +442,21 @@ def build_digest(
             return "\n".join(lines)
         # Default: markdown
         lines = ["# Strategos Digest\n"]
+
+        # --- PATCH: Insert learning summary, mutation log, capital trends at top ---
+        if learning_summary_md:
+            lines.append(learning_summary_md)
+        if mutation_log_md:
+            lines.append(mutation_log_md)
+        if capital_trends_md:
+            lines.append(capital_trends_md)
+
+        # ✅ PATCH B Step 2: Insert symbolic contradiction digest section
+        if format_contradiction_cluster_md and load_symbolic_conflict_events:
+            clusters = load_symbolic_conflict_events()
+            if clusters:
+                lines.append("## ♻️ Symbolic Contradiction Clusters\n")
+                lines.append(format_contradiction_cluster_md(clusters))
 
         # --- Symbolic Divergence Report (Markdown) ---
         lines.append("## ⚔️ Symbolic Divergence Report\n")

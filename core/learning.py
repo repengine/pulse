@@ -15,7 +15,7 @@ Author: Pulse AI Engine
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 from datetime import datetime
 import json
 
@@ -34,12 +34,18 @@ from core.pulse_learning_log import (
     log_symbolic_upgrade,
     log_revision_trigger,
     log_arc_regret,
-    log_learning_summary
+    log_learning_summary,
+    log_learning_event
 )
 
 from dev_tools.rule_mutation_engine import apply_rule_mutations  # 🔧 Step 1
 from core.variable_cluster_engine import summarize_clusters  # 🔧 Step 1
 from memory.rule_cluster_engine import summarize_rule_clusters  # 🔧 Step 1
+from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md  # 🔧 PATCH 1
+from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md  # ✅ PATCH A Step 1
+from operator_interface.mutation_digest_exporter import export_full_digest  # ✅ PATCH A Step 1
+from symbolic_system.symbolic_contradiction_cluster import cluster_symbolic_conflicts  # ✅ PATCH A Step 1
+from operator_interface.symbolic_contradiction_digest import export_contradiction_digest_md  # ✅ PATCH A Step 1
 
 # Configure logging
 logging.basicConfig(
@@ -76,6 +82,16 @@ class LearningEngine:
             self.apply_rule_mutation_pressure()
             self.audit_cluster_volatility()  # 🔧 Step 3
             self.audit_rule_clusters()       # 🔧 Step 3
+
+            # --- PATCH A Step 3: Audit symbolic contradictions after retrodiction ---
+            # If you have forecasts available, pass them here. Example:
+            # forecasts = self.trace.get_recent_forecasts()  # <-- Replace with actual method if available
+            # self.audit_symbolic_contradictions(forecasts)
+            # For now, this is a placeholder:
+            forecasts = []  # TODO: Replace with actual forecast retrieval
+            self.audit_symbolic_contradictions(forecasts)
+            # --- end PATCH ---
+
             self.log_learning_summary()
         except Exception as e:
             logging.exception(f"Meta update failed: {e}")
@@ -241,6 +257,20 @@ class LearningEngine:
             for r in c["rules"]:
                 print(f" - {r}")
 
+    # ✅ PATCH A Step 2: Add contradiction audit method
+    def audit_symbolic_contradictions(self, forecasts: List[Dict]):
+        clusters = cluster_symbolic_conflicts(forecasts)
+        if not clusters:
+            print("✅ No symbolic contradictions detected.")
+            return
+        print("⚠️ Symbolic contradiction clusters found:")
+        for cluster in clusters:
+            log_learning_event("symbolic_contradiction_cluster", {
+                "origin_turn": cluster["origin_turn"],
+                "conflicts": cluster["conflicts"]
+            })
+            print(f"🌀 Turn {cluster['origin_turn']} — {len(cluster['conflicts'])} conflict(s)")
+
     def log_learning_summary(self) -> None:
         """
         Logs summary of the learning loop.
@@ -251,6 +281,26 @@ class LearningEngine:
             "updated_variables": len(self.registry.all()),
             "recent_traces": self.trace.summarize_memory()
         })
+        # --- PATCH: Print and save Rule Cluster Digest ---
+        digest = format_cluster_digest_md(limit=5)
+        print("\n📘 Rule Cluster Digest:\n")
+        print(digest)
+        try:
+            with open("logs/learning_summary_with_digest.md", "w", encoding="utf-8") as f:
+                f.write(digest)
+        except Exception as e:
+            logging.error(f"Failed to write rule cluster digest: {e}")
+
+        # ✅ PATCH A Step 2: Print Variable Cluster Digest
+        vcluster_digest = format_variable_cluster_digest_md(limit=5)
+        print("\n📘 Variable Cluster Digest:\n")
+        print(vcluster_digest)
+
+        # ✅ PATCH A: Auto-export full mutation digest
+        export_full_digest()
+
+        # ✅ PATCH A Step 2: Export symbolic contradiction digest
+        export_contradiction_digest_md()
 
 # Note: No user input is processed, so no security issues present.
 

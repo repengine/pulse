@@ -29,6 +29,8 @@ from forecast_output.forecast_prioritization_engine import select_top_forecasts
 # --- PATCH: Import narrative cluster classifier ---
 from forecast_output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
 
+from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md  # PATCH 2
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
@@ -567,6 +569,10 @@ def generate_strategos_digest(
         sections.append(f"⚠️ Age stats unavailable: {e}")
 
     sections.append(f"Total Forecasts: {len(forecasts)}")
+
+    # --- PATCH: Rule Cluster Digest Section ---
+    sections.append("\n## 🧩 Rule Cluster Digest\n")
+    sections.append(format_cluster_digest_md(limit=3))
 
     return "\n".join(sections)
 

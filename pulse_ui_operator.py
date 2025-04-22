@@ -20,7 +20,9 @@ from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
 from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
 from core.variable_cluster_engine import summarize_clusters
-
+from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md
+from operator_interface.mutation_digest_exporter import export_full_digest
+from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md
 
 def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
     print("🔁 Comparing recursive forecast batches...")
@@ -130,6 +132,9 @@ def main():
         print("[9] Run Forecast Pipeline")
         print("[L] View Learning Log")
         print("[V] View Variable Cluster Volatility")
+        print("[B] View Variable Cluster Digest")
+        print("[D] Export Full Mutation Digest")
+        print("[Y] View Symbolic Contradiction Digest")
         choice = input("Select option: ")
         if choice == "8":
             core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
@@ -162,6 +167,14 @@ def main():
                 print(f"Volatility Score: {c['volatility_score']}")
                 for v in c["variables"]:
                     print(f" - {v}")
+        elif choice.lower() == "b":
+            print(format_variable_cluster_digest_md())
+        elif choice.lower() == "d":
+            export_full_digest()
+        elif choice.lower() == "y":
+            from operator_interface.symbolic_contradiction_digest import load_symbolic_conflict_events
+            clusters = load_symbolic_conflict_events()
+            print(format_contradiction_cluster_md(clusters))
 
 
 if __name__ == "__main__":
