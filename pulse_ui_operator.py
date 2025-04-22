@@ -64,6 +64,39 @@ def generate_operator_brief(report_path: str, output_md: str):
         print(f"❌ Failed to generate brief: {e}")
 
 
+def run_forecast_pipeline_ui(last_batch=None, log=None):
+    """UI helper to run the forecast pipeline on last batch or file."""
+    import tkinter
+    from tkinter import filedialog, messagebox
+    from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
+
+    if last_batch and isinstance(last_batch, list) and last_batch:
+        forecasts = last_batch
+        source = "last simulation batch"
+    else:
+        path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
+        if not path:
+            if log:
+                log("⚠️ Pipeline cancelled.")
+            return
+        try:
+            with open(path, "r") as f:
+                forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+            source = f"file: {path}"
+        except Exception as e:
+            if log:
+                log(f"❌ Failed to load batch: {e}")
+            return
+
+    if log:
+        log(f"🚦 Running forecast pipeline on {source}...")
+    result = run_forecast_pipeline(forecasts)
+    if log:
+        log(f"✅ Pipeline complete. Status: {result.get('status')}, Total: {result.get('total')}, Digest: {bool(result.get('digest'))}")
+    else:
+        print(result)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pulse Operator CLI")
 
@@ -92,10 +125,21 @@ def main():
         print("  --plot-variable hope rage --history path/to/vars.jsonl [--export graph.png]")
         print("  --brief path/to/audit.json [--export pulse_brief.md]")
         print(f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})")
+        print("[9] Run Forecast Pipeline")
         choice = input("Select option: ")
         if choice == "8":
             core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
             print(f"Symbolic overlays now set to: {core.pulse_config.USE_SYMBOLIC_OVERLAYS}")
+        elif choice == "9":
+            # Try to use last_batch if available, else prompt for file
+            try:
+                run_forecast_pipeline_ui(
+                    last_batch=globals().get("last_batch", None),
+                    log=print
+                )
+            except Exception as e:
+                print(f"❌ Pipeline error: {e}")
+            return
 
 
 if __name__ == "__main__":
