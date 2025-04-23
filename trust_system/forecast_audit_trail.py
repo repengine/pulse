@@ -20,8 +20,8 @@ import os
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from trust.alignment_index import compute_alignment_index
-from trust.forecast_retrospector import compute_retrodiction_error
+from trust_system.alignment_index import compute_alignment_index
+from learning.forecast_retrospector import compute_retrodiction_error
 
 AUDIT_LOG_PATH = "logs/forecast_audit_trail.jsonl"
 
@@ -61,6 +61,10 @@ def generate_forecast_audit(
         except Exception as e:
             ret_error = None
 
+    # Ensure license status and explanation are present
+    from trust_system.license_enforcer import annotate_forecasts  # Moved import here
+    annotate_forecasts([forecast])  # Mutates forecast in-place
+
     return {
         "forecast_id": forecast.get("trace_id", "unknown"),
         "timestamp": datetime.utcnow().isoformat(),
@@ -71,7 +75,9 @@ def generate_forecast_audit(
         "symbolic_tag": forecast.get("symbolic_tag", "unknown"),
         "trust_label": forecast.get("trust_label", None),
         "rule_ids": forecast.get("fired_rules", []),
-        "components": alignment["components"]
+        "components": alignment["components"],
+        "license_status": forecast.get("license_status", None),
+        "license_explanation": forecast.get("license_explanation", None)
     }
 
 

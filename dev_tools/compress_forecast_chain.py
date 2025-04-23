@@ -11,7 +11,7 @@ Author: Pulse AI Engine
 
 import argparse
 import json
-from forecast_output.mutation_compression_engine import (
+from output.mutation_compression_engine import (
     compress_episode_chain, export_compressed_episode
 )
 from memory.forecast_episode_tracer import build_episode_chain

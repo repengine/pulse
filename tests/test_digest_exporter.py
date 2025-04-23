@@ -1,6 +1,6 @@
 import os
 import tempfile
-from forecast_output.digest_exporter import export_digest
+from output.digest_exporter import export_digest
 
 def test_export_markdown():
     with tempfile.NamedTemporaryFile(delete=False) as f:

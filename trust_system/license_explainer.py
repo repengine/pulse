@@ -19,6 +19,8 @@ from typing import Dict
 def explain_forecast_license(forecast: Dict) -> str:
     """
     Return a plain-language explanation for the license status of a forecast.
+    This function expects trust and license metadata to be present on the forecast.
+    Extend this function if new license rationale fields are added in the future.
 
     Args:
         forecast (Dict): A forecast object with trust metadata

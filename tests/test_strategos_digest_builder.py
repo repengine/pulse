@@ -1,5 +1,5 @@
 import pytest
-from forecast_output.strategos_digest_builder import build_digest
+from output.strategos_digest_builder import build_digest
 
 @pytest.fixture
 def sample_forecasts():

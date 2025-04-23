@@ -15,7 +15,7 @@ Author: Pulse AI Engine
 import argparse
 import json
 import os
-from diagnostics.recursion_audit import generate_recursion_report
+from learning.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
 from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
@@ -72,7 +72,7 @@ def run_forecast_pipeline_ui(last_batch=None, log=None):
     """UI helper to run the forecast pipeline on last batch or file."""
     import tkinter
     from tkinter import filedialog, messagebox
-    from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
+    from output.forecast_pipeline_runner import run_forecast_pipeline
 
     if last_batch and isinstance(last_batch, list) and last_batch:
         forecasts = last_batch

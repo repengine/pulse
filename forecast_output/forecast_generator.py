@@ -7,7 +7,7 @@ and alignment tagging. This forms the core output of each shortview simulation c
 Author: Pulse v3.5
 """
 
-from forecast_output.forecast_age_tracker import attach_timestamp
+from output.forecast_age_tracker import attach_timestamp
 from simulation_engine.worldstate import WorldState
 from capital_engine.capital_layer import run_shortview_forecast
 from capital_engine.capital_layer import summarize_exposure, portfolio_alignment_tags

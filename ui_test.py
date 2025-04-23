@@ -28,8 +28,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 sys.path.append(os.path.abspath("pulse"))
 
 from simulation_engine.worldstate import WorldState
-from forecast_output.forecast_batch_runner import run_forecast_batch
-from forecast_output.strategos_tile_formatter import format_strategos_tile
+from output.forecast_batch_runner import run_forecast_batch
+from output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
@@ -43,7 +43,7 @@ from dev_tools.pulse_ui_bridge import (
 )
 
 # --- PATCH: Contradiction Digest imports ---
-from forecast_output.forecast_contradiction_digest import load_contradiction_log, render_digest
+from output.forecast_contradiction_digest import load_contradiction_log, render_digest
 
 
 class PulseControlApp:

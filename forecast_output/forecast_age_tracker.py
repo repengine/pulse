@@ -79,7 +79,7 @@ def prune_stale_forecasts(forecasts: List[Dict], max_age_hours: float = 24.0) ->
 
 
 def simulate_age_decay_test():
-    from forecast_output.pfpa_logger import PFPA_ARCHIVE
+    from output.pfpa_logger import PFPA_ARCHIVE
     logger.info("\n[DECAY TEST] Age-based trust decay preview:")
     for f in PFPA_ARCHIVE[-5:]:
         decay_confidence_and_priority(f)

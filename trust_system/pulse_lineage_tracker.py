@@ -17,8 +17,11 @@ Author: Pulse AI Engine
 """
 
 import json
+import logging
 from typing import Dict, List, Tuple
 from collections import defaultdict
+
+logger = logging.getLogger("pulse_lineage_tracker")
 
 def build_lineage_tree(forecasts: List[Dict]) -> Dict[str, List[str]]:
     """Returns parent → [child] lineage tree."""
@@ -28,6 +31,7 @@ def build_lineage_tree(forecasts: List[Dict]) -> Dict[str, List[str]]:
         parent = f.get("parent_id")
         if child and parent:
             tree[parent].append(child)
+    logger.info(f"Lineage tree built: {len(tree)} parents.")
     return dict(tree)
 
 def group_by_generation(forecasts: List[Dict]) -> Dict[int, List[Dict]]:
@@ -46,6 +50,7 @@ def group_by_generation(forecasts: List[Dict]) -> Dict[int, List[Dict]]:
     for f in forecasts:
         gen = depth(f.get("trace_id", ""))
         generation.setdefault(gen, []).append(f)
+    logger.info(f"Generations grouped: {len(generation)} levels.")
     return generation
 
 def arc_evolution_map(forecasts: List[Dict]) -> Dict[str, List[str]]:
@@ -56,6 +61,7 @@ def arc_evolution_map(forecasts: List[Dict]) -> Dict[str, List[str]]:
         if parent:
             arc = f.get("arc_label", "Unknown")
             evolution[parent].append(arc)
+    logger.info(f"Arc evolution map built: {len(evolution)} parents.")
     return dict(evolution)
 
 def rule_recurrence_chain(forecasts: List[Dict]) -> Dict[str, int]:
@@ -65,19 +71,33 @@ def rule_recurrence_chain(forecasts: List[Dict]) -> Dict[str, int]:
         rule = f.get("rule_id", "")
         if rule:
             count[rule] += 1
+    logger.info(f"Rule recurrence chain: {len(count)} rules.")
     return dict(count)
 
 def lineage_trace_summary(forecasts: List[Dict]) -> Dict:
     gen_map = group_by_generation(forecasts)
     arc_map = arc_evolution_map(forecasts)
     rule_freq = rule_recurrence_chain(forecasts)
-
-    return {
+    summary = {
         "generations": {k: len(v) for k, v in gen_map.items()},
         "rule_recurrence": rule_freq,
         "arc_map": arc_map,
         "total_forecasts": len(forecasts)
     }
+    logger.info(f"Lineage summary: {summary}")
+    return summary
+
+# --- Unit test for lineage summary ---
+def _test_lineage_trace_summary():
+    dummy = [
+        {"trace_id": "A", "parent_id": None, "arc_label": "Hope"},
+        {"trace_id": "B", "parent_id": "A", "arc_label": "Hope"},
+        {"trace_id": "C", "parent_id": "A", "arc_label": "Despair", "rule_id": "R1"},
+        {"trace_id": "D", "parent_id": "B", "arc_label": "Hope", "rule_id": "R2"},
+    ]
+    summary = lineage_trace_summary(dummy)
+    assert summary["total_forecasts"] == 4
+    print("✅ pulse_lineage_tracker unit test passed.")
 
 # CLI
 if __name__ == "__main__":
@@ -90,3 +110,4 @@ if __name__ == "__main__":
         forecasts = [json.loads(line.strip()) for line in f if line.strip()]
     result = lineage_trace_summary(forecasts)
     print(json.dumps(result, indent=2))
+    _test_lineage_trace_summary()

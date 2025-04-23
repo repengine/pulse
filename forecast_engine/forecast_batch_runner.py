@@ -35,7 +35,7 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import CONFIDENCE_THRESHOLD
-from diagnostics.recursion_audit import generate_recursion_report
+from learning.recursion_audit import generate_recursion_report
 
 logger = get_logger(__name__)
 

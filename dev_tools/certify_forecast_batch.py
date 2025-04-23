@@ -10,7 +10,7 @@ Author: Pulse AI Engine
 """
 
 import argparse, json
-from forecast_output.forecast_fidelity_certifier import (
+from output.forecast_fidelity_certifier import (
     tag_certified_forecasts, generate_certified_digest
 )
 

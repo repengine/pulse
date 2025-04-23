@@ -13,7 +13,7 @@ Features:
 import argparse
 import json
 import os
-from diagnostics.recursion_audit import generate_recursion_report
+from learning.recursion_audit import generate_recursion_report
 
 
 def load_forecast_batch(path):

@@ -17,15 +17,26 @@ Author: Pulse AI Engine
 
 import json
 import os
+import logging
 from typing import List, Dict
+
+logger = logging.getLogger("pulse_regret_chain")
 
 REGRET_LOG = "data/regret_chain.jsonl"
 
-def ensure_log_path(path=REGRET_LOG):
+def ensure_log_path(path: str = REGRET_LOG) -> None:
+    """Ensure the regret log directory exists."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-def log_regret_event(trace_id: str, reason: str, arc_label: str = None, rule_id: str = None,
-                     timestamp: str = None, feedback: str = "", review_status: str = "Unreviewed") -> Dict:
+def log_regret_event(
+    trace_id: str,
+    reason: str,
+    arc_label: str = None,
+    rule_id: str = None,
+    timestamp: str = None,
+    feedback: str = "",
+    review_status: str = "Unreviewed"
+) -> Dict:
     """
     Append a regret event to the regret chain log.
     """
@@ -39,8 +50,12 @@ def log_regret_event(trace_id: str, reason: str, arc_label: str = None, rule_id:
         "feedback": feedback,
         "review_status": review_status
     }
-    with open(REGRET_LOG, "a") as f:
-        f.write(json.dumps(event) + "\n")
+    try:
+        with open(REGRET_LOG, "a") as f:
+            f.write(json.dumps(event) + "\n")
+        logger.info(f"Regret event logged: {trace_id} | {reason}")
+    except Exception as e:
+        logger.error(f"Failed to log regret event: {e}")
     return event
 
 def get_regret_chain() -> List[Dict]:
@@ -54,13 +69,14 @@ def get_regret_chain() -> List[Dict]:
             for line in f:
                 try:
                     regrets.append(json.loads(line.strip()))
-                except:
+                except Exception as e:
+                    logger.warning(f"Malformed regret entry skipped: {e}")
                     continue
     return regrets
 
-def print_regret_summary(regrets: List[Dict]):
+def print_regret_summary(regrets: List[Dict]) -> None:
     """
-    Summarize regret causes and patterns.
+    Summarize regret causes and patterns for operator review.
     """
     print(f"📉 Regret Chain: {len(regrets)} total regrets")
     arc_count = {}
@@ -76,20 +92,34 @@ def print_regret_summary(regrets: List[Dict]):
     print("🔍 Top Rule Triggers:")
     for k, v in sorted(rule_count.items(), key=lambda x: -x[1]):
         print(f"  {k}: {v}")
+    print(f"Summary: {len(arc_count)} unique arcs, {len(rule_count)} unique rules.")
 
-def mark_regret_reviewed(trace_id: str, status: str = "Operator-Reviewed"):
+def mark_regret_reviewed(trace_id: str, status: str = "Operator-Reviewed") -> bool:
     """
     Update a regret entry to mark it as reviewed.
     """
     regrets = get_regret_chain()
     updated = False
-    with open(REGRET_LOG, "w") as f:
-        for r in regrets:
-            if r.get("trace_id") == trace_id:
-                r["review_status"] = status
-                updated = True
-            f.write(json.dumps(r) + "\n")
+    try:
+        with open(REGRET_LOG, "w") as f:
+            for r in regrets:
+                if r.get("trace_id") == trace_id:
+                    r["review_status"] = status
+                    updated = True
+                f.write(json.dumps(r) + "\n")
+        logger.info(f"Regret {trace_id} marked as reviewed: {updated}")
+    except Exception as e:
+        logger.error(f"Failed to mark regret reviewed: {e}")
     return updated
+
+# --- Unit test for regret logging and summary ---
+def _test_regret_chain():
+    log_regret_event("t1", "Test reason", arc_label="Hope Surge", rule_id="R001")
+    regrets = get_regret_chain()
+    assert any(r.get("trace_id") == "t1" for r in regrets)
+    print_regret_summary(regrets)
+    assert mark_regret_reviewed("t1")
+    print("✅ pulse_regret_chain unit test passed.")
 
 # CLI entry
 if __name__ == "__main__":
@@ -119,3 +149,4 @@ if __name__ == "__main__":
         regrets = get_regret_chain()
         for r in regrets:
             print(json.dumps(r, indent=2))
+    _test_regret_chain()

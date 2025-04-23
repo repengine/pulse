@@ -3,7 +3,7 @@
 import unittest
 import os
 import json
-from diagnostics.history_tracker import track_variable_history
+from learning.history_tracker import track_variable_history
 
 class TestHistoryTracker(unittest.TestCase):
     def setUp(self):

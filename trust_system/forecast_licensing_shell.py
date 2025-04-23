@@ -15,6 +15,8 @@ from typing import Dict
 def license_forecast(forecast: Dict, thresholds: Dict = None) -> str:
     """
     Assign a license decision to a forecast.
+    This function expects trust metadata (confidence, trust_label, alignment_score, drift_flag)
+    to be present on the forecast. If not, upstream trust processing should be run first.
 
     Parameters:
         forecast (Dict): A single forecast object with trust metadata

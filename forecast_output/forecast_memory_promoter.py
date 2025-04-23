@@ -8,7 +8,7 @@ Author: Pulse v0.26
 """
 
 from typing import List, Dict
-from forecast_output.forecast_prioritization_engine import rank_certified_forecasts
+from output.forecast_prioritization_engine import rank_certified_forecasts
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import log_info
 

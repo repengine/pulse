@@ -14,7 +14,7 @@ import json
 import logging
 from typing import List, Dict, Tuple
 from collections import Counter
-from forecast_output.forecast_divergence_detector import detect_symbolic_opposition
+from output.forecast_divergence_detector import detect_symbolic_opposition
 
 logger = logging.getLogger("dual_narrative_compressor")
 logging.basicConfig(level=logging.INFO)

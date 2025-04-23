@@ -15,6 +15,8 @@ from typing import List, Dict
 
 from trust_system.license_explainer import explain_forecast_license
 from trust_system.forecast_licensing_shell import license_forecast
+from trust_system.trust_engine import TrustEngine
+from trust_system.forecast_audit_trail import generate_forecast_audit
 
 
 def annotate_forecasts(forecasts: List[Dict]) -> List[Dict]:
@@ -76,3 +78,20 @@ def export_rejected_forecasts(forecasts: List[Dict], path: str) -> None:
         print(f"📤 Rejected forecasts saved to {path}")
     except Exception as e:
         print(f"❌ Failed to save rejected forecasts: {e}")
+
+
+def full_trust_license_audit_pipeline(
+    forecasts: List[Dict],
+    current_state: Dict = None,
+    memory: List[Dict] = None
+) -> List[Dict]:
+    """
+    Run trust processing, licensing, and audit trail generation on a batch of forecasts.
+    Each forecast is updated in-place with trust, license, and audit metadata.
+    Returns the updated forecasts.
+    """
+    for fc in forecasts:
+        TrustEngine.apply_all([fc])  # TrustEngine.apply_all mutates in-place
+        annotate_forecasts([fc])
+        fc["pulse_audit_trail"] = generate_forecast_audit(fc, current_state=current_state, memory=memory)
+    return forecasts

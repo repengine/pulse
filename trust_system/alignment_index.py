@@ -16,7 +16,7 @@ Version: v1.0.1
 """
 
 from typing import Dict, Optional
-from forecast_output.forecast_retrospector import compute_retrodiction_error
+from learning.forecast_retrospector import compute_retrodiction_error
 from symbolic_system.pulse_symbolic_arc_tracker import compute_arc_stability
 from trust_system.trust_engine import TrustEngine
 

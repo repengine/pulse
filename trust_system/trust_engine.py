@@ -15,8 +15,26 @@ from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
 from trust_system.forecast_retrospector import retrospective_analysis_batch
 
-
 logger = logging.getLogger("pulse.trust")
+
+TRUST_ENRICHMENT_PLUGINS = []
+
+def register_trust_enrichment_plugin(plugin_fn):
+    """
+    Register a plugin function for custom trust enrichment.
+    Plugin signature: plugin_fn(forecast: Dict) -> None
+    """
+    TRUST_ENRICHMENT_PLUGINS.append(plugin_fn)
+
+def run_trust_enrichment_plugins(forecast: Dict):
+    """
+    Run all registered trust enrichment plugins on the forecast.
+    """
+    for plugin in TRUST_ENRICHMENT_PLUGINS:
+        try:
+            plugin(forecast)
+        except Exception as e:
+            logger.warning(f"[TrustEnrich] Plugin {plugin.__name__} failed: {e}")
 
 class TrustResult(NamedTuple):
     trace_id: str
@@ -376,6 +394,109 @@ class TrustEngine:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
         return forecasts
 
+def _enrich_fragility(forecast):
+    try:
+        from trust_system.fragility_detector import compute_fragility
+        overlays = forecast.get("overlays", {})
+        symbolic_change = forecast.get("symbolic_change", {})
+        forecast["fragility"] = compute_fragility(overlays, symbolic_change)
+    except Exception as e:
+        logger.warning(f"[TrustEnrich] Fragility enrichment failed: {e}")
+
+def _enrich_retrodiction(forecast, current_state):
+    if current_state:
+        try:
+            from trust_system.forecast_retrospector import retrodict_error_score, reconstruct_past_state
+            past_state = reconstruct_past_state(forecast)
+            forecast["retrodiction_error"] = retrodict_error_score(past_state, current_state)
+        except Exception as e:
+            logger.warning(f"[TrustEnrich] Retrodiction enrichment failed: {e}")
+            forecast["retrodiction_error"] = None
+
+def _enrich_alignment(forecast, current_state, memory):
+    try:
+        from trust_system.alignment_index import compute_alignment_index
+        alignment = compute_alignment_index(forecast, current_state=current_state, memory=memory)
+        forecast["alignment_score"] = alignment.get("alignment_score", 0)
+        forecast["alignment_components"] = alignment.get("components", {})
+    except Exception as e:
+        logger.warning(f"[TrustEnrich] Alignment enrichment failed: {e}")
+        forecast["alignment_score"] = 0
+
+def _enrich_attention(forecast, arc_drift):
+    if arc_drift:
+        forecast["attention_score"] = compute_symbolic_attention_score(forecast, arc_drift)
+
+def _enrich_regret(forecast, regret_log):
+    if regret_log:
+        forecast["repeat_regret"] = forecast.get("trace_id") in {r.get("trace_id") for r in regret_log}
+
+def _enrich_license(forecast, license_enforcer, license_explainer):
+    if license_enforcer and license_explainer:
+        forecast["license_status"] = license_enforcer(forecast)
+        forecast["license_explanation"] = license_explainer(forecast)
+
+def enrich_trust_metadata(
+    forecast: Dict,
+    current_state: Optional[Dict] = None,
+    memory: Optional[List[Dict]] = None,
+    arc_drift: Optional[Dict[str, int]] = None,
+    regret_log: Optional[List[Dict]] = None,
+    license_enforcer=None,
+    license_explainer=None
+) -> Dict:
+    """
+    Compute all trust metrics and attach to forecast.
+
+    Args:
+        forecast (Dict): Forecast to enrich.
+        current_state (Optional[Dict]): Current worldstate for retrodiction.
+        memory (Optional[List[Dict]]): Past forecasts for novelty/alignment.
+        arc_drift (Optional[Dict[str, int]]): Arc drift deltas.
+        regret_log (Optional[List[Dict]]): Regret events for repeat flagging.
+        license_enforcer (callable): Function to assign license status.
+        license_explainer (callable): Function to explain license status.
+
+    Returns:
+        Dict: Enriched forecast with trust metadata.
+
+    Example:
+        enrich_trust_metadata(forecast, current_state, memory, arc_drift, regret_log)
+
+    Security:
+        No sensitive data is logged or exposed. All enrichment is local to the forecast object.
+    """
+    forecast = TrustEngine.tag_forecast(forecast)
+    forecast["confidence"] = TrustEngine.score_forecast(forecast, memory)
+    _enrich_fragility(forecast)
+    _enrich_retrodiction(forecast, current_state)
+    _enrich_alignment(forecast, current_state, memory)
+    _enrich_attention(forecast, arc_drift)
+    _enrich_regret(forecast, regret_log)
+    _enrich_license(forecast, license_enforcer, license_explainer)
+    run_trust_enrichment_plugins(forecast)
+    # Add summary/explanation for operator interpretability
+    explanations = []
+    if forecast.get("trust_label") != "🟢 Trusted":
+        explanations.append(f"Trust label: {forecast.get('trust_label')}")
+    if forecast.get("confidence", 1.0) < 0.6:
+        explanations.append(f"Low confidence: {forecast.get('confidence')}")
+    if forecast.get("alignment_score", 100) < 70:
+        explanations.append(f"Low alignment: {forecast.get('alignment_score')}")
+    if forecast.get("fragility", 0.0) > 0.6:
+        explanations.append(f"High fragility: {forecast.get('fragility')}")
+    if forecast.get("license_status") and forecast.get("license_status") != "✅ Approved":
+        explanations.append(f"License: {forecast.get('license_status')}")
+    forecast["trust_summary"] = (
+        f"Trust: {forecast.get('trust_label', 'N/A')}, "
+        f"Conf: {forecast.get('confidence', 'N/A')}, "
+        f"Align: {forecast.get('alignment_score', 'N/A')}, "
+        f"Fragility: {forecast.get('fragility', 'N/A')}, "
+        f"License: {forecast.get('license_status', 'N/A')}"
+        + (f"\nExplanation(s): {'; '.join(explanations)}" if explanations else "")
+    )
+    return forecast
+
 def score_forecasts(
     forecasts: list,
     memory: list = None,
@@ -401,3 +522,52 @@ def score_forecasts(
 
 # Add this at the end of the file to allow direct import
 score_forecast = TrustEngine.score_forecast
+
+# --- Unit test for enrich_trust_metadata ---
+def _test_enrich_trust_metadata():
+    dummy = {
+        "trace_id": "t1",
+        "overlays": {"hope": 0.8, "despair": 0.1},
+        "forecast": {"start_capital": {"nvda": 1000}, "end_capital": {"nvda": 1100}, "symbolic_change": {"hope": 0.2}},
+        "fragility": 0.2,
+        "retrodiction_score": 0.9,
+        "trust_label": "🟢 Trusted"
+    }
+    enriched = enrich_trust_metadata(dummy)
+    assert "confidence" in enriched
+    assert "fragility" in enriched
+    assert "alignment_score" in enriched
+    assert "trust_summary" in enriched
+    print("✅ enrich_trust_metadata test passed.")
+
+# --- Extended unit tests for enrich_trust_metadata ---
+def _test_enrich_trust_metadata_edge_cases():
+    # Edge: missing overlays, missing alignment, missing license
+    dummy = {
+        "trace_id": "t2",
+        "forecast": {"start_capital": {"nvda": 1000}, "end_capital": {"nvda": 1100}, "symbolic_change": {"hope": 0.2}},
+        "fragility": 0.7,
+        "retrodiction_score": 0.2,
+        "trust_label": "⚠️ Moderate"
+    }
+    enriched = enrich_trust_metadata(dummy)
+    assert "confidence" in enriched
+    assert "fragility" in enriched
+    assert "alignment_score" in enriched
+    assert "trust_summary" in enriched
+    print("✅ enrich_trust_metadata edge case test passed.")
+
+def _test_plugin_registration():
+    # Plugin that adds a custom field
+    def custom_plugin(forecast):
+        forecast["custom_metric"] = 42
+    register_trust_enrichment_plugin(custom_plugin)
+    dummy = {"trace_id": "t3", "forecast": {}, "fragility": 0.1}
+    enriched = enrich_trust_metadata(dummy)
+    assert enriched.get("custom_metric") == 42
+    print("✅ Trust enrichment plugin test passed.")
+
+if __name__ == "__main__":
+    _test_enrich_trust_metadata()
+    _test_enrich_trust_metadata_edge_cases()
+    _test_plugin_registration()

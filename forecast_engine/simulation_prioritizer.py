@@ -9,7 +9,7 @@ Used to prioritize simulation effort and determine which forks are most valuable
 Author: Pulse v0.3
 """
 
-from forecast_output.forecast_age_tracker import get_forecast_age
+from output.forecast_age_tracker import get_forecast_age
 from typing import List, Dict
 from math import sqrt
 
@@ -86,7 +86,7 @@ def rank_forecasts(
 
 # === Local test hook ===
 def simulate_priority_test():
-    from forecast_output.pfpa_logger import PFPA_ARCHIVE
+    from output.pfpa_logger import PFPA_ARCHIVE
     if not PFPA_ARCHIVE:
         print("⚠️ No forecasts available for prioritization.")
         return

@@ -4,7 +4,7 @@ digest_exporter.py
 Exports strategos digest to Markdown, JSON, HTML, or PDF.
 
 Usage:
-    from digest_exporter import export_digest
+    from forecast_output.digest_exporter import export_digest
     export_digest(digest_str, "out.md", fmt="markdown")
     export_digest(digest_str, "out.pdf", fmt="pdf")
     export_digest(digest_str, "out.html", fmt="html", sanitize_html=True)
@@ -14,7 +14,12 @@ Usage:
 Author: Pulse AI Engine
 """
 
-from foresight_architecture.digest_exporter import *
+import warnings
+warnings.warn(
+    "foresight_architecture.digest_exporter is deprecated. Use forecast_output.digest_exporter instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 import json
 import logging

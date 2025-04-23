@@ -2,7 +2,7 @@ import os
 import json
 import tempfile
 import pytest
-from forecast_output import pulse_forecast_lineage as pfl
+from output import pulse_forecast_lineage as pfl
 
 @pytest.fixture
 def sample_forecasts():

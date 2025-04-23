@@ -7,7 +7,7 @@ Stores forecast metadata, symbolic conditions, and scoring hooks for long-term m
 Author: Pulse v3.5
 """
 
-from forecast_output.forecast_age_tracker import decay_confidence_and_priority
+from output.forecast_age_tracker import decay_confidence_and_priority
 from trust_system.retrodiction_engine import retrodict_forecast
 from memory.forecast_memory import ForecastMemory
 from typing import Dict, List
