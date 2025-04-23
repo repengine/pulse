@@ -14,6 +14,8 @@ Usage:
 Author: Pulse AI Engine
 """
 
+from foresight_architecture.digest_exporter import *
+
 import json
 import logging
 

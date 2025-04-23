@@ -1,5 +1,6 @@
 import json
 from typing import List, Dict, Any
+from memory.forecast_memory import ForecastMemory
 
 class ForecastMemory:
     def __init__(self):

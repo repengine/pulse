@@ -10,6 +10,7 @@ Usage:
 import json
 from typing import List, Dict, Callable, Optional
 import os
+from trust_system.forecast_retrospector import *
 
 def compute_retrodiction_error(forecast: Dict, current_state: Dict, keys: Optional[List[str]] = None) -> float:
     """
