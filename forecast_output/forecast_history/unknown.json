@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-04-23T06:39:46.321544",
+  "timestamp": "2025-04-23T08:03:39.247051",
   "trace_id": "fcast_turn_5",
   "origin_turn": 5,
   "horizon_days": 2,
   "fragility": 0.506,
-  "confidence": 0.95,
+  "confidence": 0.6,
   "status": "\ud83d\udfe2 Trusted",
   "trust_label": "\ud83d\udfe1 Unlabeled",
   "alignment": {
@@ -18,17 +18,17 @@
     "trust": 0.0
   },
   "exposure_start": {
-    "nvda": 475.0,
-    "msft": -76.0,
+    "nvda": -190.0,
+    "msft": -608.0,
     "ibit": -456.0,
-    "spy": 427.5,
+    "spy": -171.00000000000003,
     "cash": 100000.0
   },
   "exposure_end": {
-    "nvda": 587.5,
-    "msft": -94.0,
+    "nvda": -235.0,
+    "msft": -752.0,
     "ibit": -564.0,
-    "spy": 528.75,
+    "spy": -211.50000000000003,
     "cash": 100000.0
   },
   "retrodiction_score": 0.0,

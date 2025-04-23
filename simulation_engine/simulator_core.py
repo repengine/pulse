@@ -89,7 +89,8 @@ def simulate_turn(
     state: WorldState,
     use_symbolism: bool = True,
     return_mode: Literal["summary", "full"] = "summary",
-    logger: Optional[Callable[[str], None]] = None
+    logger: Optional[Callable[[str], None]] = None,
+    learning_engine=None
 ) -> Dict[str, Any]:
     """
     Simulates one turn of state mutation:
@@ -102,6 +103,7 @@ def simulate_turn(
         use_symbolism (bool): enable symbolic diagnostics
         return_mode (str): "summary" or "full"
         logger (callable): optional logger for messages
+        learning_engine: optional learning engine for hooks
 
     Returns:
         Dict: turn log with deltas, overlays, symbolic tags
@@ -166,6 +168,10 @@ def simulate_turn(
     if logger: logger(msg)
     state.log_event(msg)
     state.turn = getattr(state, 'turn', 0) + 1
+
+    if learning_engine is not None:
+        learning_engine.on_simulation_turn_end(state.snapshot())
+
     return output
 
 def simulate_forward(
@@ -174,7 +180,8 @@ def simulate_forward(
     use_symbolism: bool = True,
     return_mode: Literal["summary", "full"] = "summary",
     logger: Optional[Callable[[str], None]] = None,
-    progress_callback: Optional[Callable[[int, int], None]] = None
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+    learning_engine=None
 ) -> List[Dict[str, Any]]:
     """
     Runs multiple turns of forward simulation.
@@ -186,6 +193,7 @@ def simulate_forward(
         return_mode (str): summary/full return format
         logger (callable): optional logger for messages
         progress_callback (callable): optional progress reporter (step, total)
+        learning_engine: optional learning engine for hooks
 
     Returns:
         List of Dict per turn
@@ -194,7 +202,7 @@ def simulate_forward(
         raise ValueError("turns must be a positive integer")
     results = []
     for i in range(turns):
-        turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger)
+        turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger, learning_engine=learning_engine)
         results.append(turn_data)
         if progress_callback:
             progress_callback(i + 1, turns)

@@ -17,11 +17,18 @@ Related:
 Author: Pulse AI Engine
 """
 
-from simulation_engine.rules.reverse_rule_mapper import load_rule_fingerprints, match_rule_by_delta
+from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta
+from simulation_engine.rules.rule_registry import RuleRegistry
 from typing import Dict, List, Any, Optional
 import logging
 
 logger = logging.getLogger("reverse_rule_engine")
+
+_registry = RuleRegistry()
+_registry.load_all_rules()
+
+def get_fingerprints():
+    return [r for r in _registry.rules if r.get("effects")]
 
 def levenshtein(a: str, b: str) -> int:
     """Compute Levenshtein distance between two strings."""
@@ -107,7 +114,7 @@ def trace_causal_paths(
         List of rule_id chains (each a list of rule_ids).
     """
     if fingerprints is None:
-        fingerprints = load_rule_fingerprints()
+        fingerprints = get_fingerprints()
     if path is None:
         path = []
     if max_depth <= 0 or not delta:

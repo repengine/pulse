@@ -14,7 +14,21 @@ Author: Pulse AI Engine
 """
 
 import json
-from simulation_engine.rules.reverse_rule_mapper import load_rule_fingerprints, validate_fingerprint_schema
+from simulation_engine.rules.rule_registry import RuleRegistry
+
+# Use RuleRegistry for unified rule access
+_registry = RuleRegistry()
+_registry.load_all_rules()
+
+def load_rule_fingerprints(path: str = None):
+    return [r for r in _registry.rules if r.get("effects")]
+
+def validate_fingerprint_schema(fingerprints: list) -> list:
+    errors = []
+    for i, rule in enumerate(fingerprints):
+        if "rule_id" not in rule or "effects" not in rule:
+            errors.append(f"Entry {i} missing required fields: {rule}")
+    return errors
 
 def suggest_fingerprint_from_delta(delta: dict, rule_id: str = None) -> dict:
     """

@@ -1,0 +1,15 @@
+hope:
+  min_sti: 0.5
+  max_anomalies: 2
+despair:
+  min_sti: 0.6
+  max_anomalies: 1
+rage:
+  min_sti: 0.7
+  max_anomalies: 1
+fatigue:
+  min_sti: 0.4
+  max_anomalies: 3
+null:
+  min_sti: 0.5
+  max_anomalies: 2

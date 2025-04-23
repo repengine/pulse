@@ -20,10 +20,15 @@ import os
 from pathlib import Path
 from collections import defaultdict
 from typing import List, Dict, Tuple, Optional
+from simulation_engine.rules.rule_registry import RuleRegistry
 
 REGRET_FILE = "data/regret_chain.jsonl"
 FINGERPRINT_FILE = "data/rule_fingerprints.json"
 SUGGESTED_FILE = "data/candidate_rules.json"
+
+# Use RuleRegistry for unified rule access
+_registry = RuleRegistry()
+_registry.load_all_rules()
 
 def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
     regrets = []
@@ -35,9 +40,9 @@ def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
         pass
     return regrets
 
-def load_rules(path: str = FINGERPRINT_FILE) -> Dict[str, Dict]:
-    with open(path, "r") as f:
-        return json.load(f)
+def load_rules(path: str = None) -> Dict[str, Dict]:
+    # Return a dict keyed by rule_id for compatibility
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
 
 def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[str]:
     covered_arcs = {r.get("arc_label") for r in rules.values() if r.get("arc_label")}

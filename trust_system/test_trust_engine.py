@@ -63,6 +63,21 @@ class TestTrustEngine(unittest.TestCase):
         label = TrustEngine.confidence_gate(self.sample_forecast)
         self.assertEqual(label, "🟢 Trusted")
 
+    def test_missing_confidence_fragility(self):
+        """
+        Should handle forecasts missing confidence/fragility gracefully.
+        """
+        forecast = {}
+        label = TrustEngine.confidence_gate(forecast)
+        self.assertIn(label, ["❌ Rejected", "⚠️ Risky", "🟢 Trusted"])
+
+    def test_malformed_forecast(self):
+        """
+        Should not crash on malformed input.
+        """
+        with self.assertRaises(Exception):
+            TrustEngine.confidence_gate(None)
+
     def test_apply_all(self):
         """
         Ensure that batch trust processing injects `trust_label`

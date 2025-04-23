@@ -36,7 +36,7 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
-from output.forecast_tags import ForecastTag, get_tag_label
+from forecast_output.forecast_tags import ForecastTag, get_tag_label
 
 logger = get_logger(__name__)
 

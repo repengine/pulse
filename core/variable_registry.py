@@ -160,6 +160,21 @@ class VariableRegistry:
     def list_trust_ranked(self) -> List[str]:
         return sorted(self.variables.keys(), key=lambda k: self.variables[k].get("trust_weight", 1.0), reverse=True)
 
+    def bind_data_source(self, signal_provider_fn: callable):
+        """
+        Attach a signal-fetching function that returns {var_name: value} dicts.
+        """
+        self._signal_provider = signal_provider_fn
+
+    def get_live_value(self, var_name: str) -> Optional[float]:
+        if hasattr(self, "_signal_provider") and var_name in self.variables:
+            try:
+                signal_map = self._signal_provider()
+                return signal_map.get(var_name)
+            except Exception as e:
+                print(f"[VariableRegistry] Error fetching {var_name}: {e}")
+        return None
+
 if __name__ == "__main__":
     vr = VariableRegistry()
     print("Variables loaded:", vr.all())

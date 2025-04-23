@@ -1,0 +1,58 @@
+🔍 Pulse-Compatible Python Modules for Meta-Learning
+1. Pandas (✅ you likely already use)
+Purpose: Load and structure large amounts of forecast output and metadata.
+
+Use: Group by variable, overlay, or rule; analyze survival rate, fragility spread, correlation.
+
+2. Scikit-learn
+Purpose: Pattern discovery, feature importance, clustering.
+
+Use Cases:
+
+sklearn.feature_selection.SelectKBest → Detect most predictive variables.
+
+sklearn.cluster.KMeans → Identify clusters of similar forecasts.
+
+sklearn.metrics.mutual_info_score → Variable ↔️ Symbolic overlay dependency.
+
+3. NetworkX
+Purpose: Graph analysis of causal relationships, symbolic flow, variable co-dependencies.
+
+Use Cases:
+
+Causal rule path mapping
+
+Overlay impact trees
+
+Drift-aware graph deltas between past and present
+
+4. SHAP (SHapley Additive exPlanations) – for deep transparency
+Purpose: Variable importance scoring with explanation power.
+
+Use Cases:
+
+Show which variables contributed most to a simulation’s success/failure.
+
+Audit symbolic overlays for dominance or bias.
+
+5. Statsmodels
+Purpose: Regression, time-series causality, symbolic dominance over time.
+
+Use Cases:
+
+Test overlay volatility with rolling regression.
+
+Symbolic variable trend significance (e.g., Hope decline vs Trust collapse).
+
+6. DVC (Data Version Control) or MLflow (if you're scaling)
+Purpose: Track which variable/rule changes led to better simulation outcomes.
+
+Use Cases: Retain interpretability across model evolution.
+
+7. JSON + YAML + Pydantic
+Purpose: Structured introspection and memory trace validation.
+
+Use Cases:
+
+Pulse writes forecast metadata to JSON → reader validates/ingests → schema enforcement.
+

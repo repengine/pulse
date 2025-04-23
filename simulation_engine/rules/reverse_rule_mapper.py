@@ -9,15 +9,19 @@ Author: Pulse AI Engine
 
 import json
 from typing import Dict, List, Tuple, Optional
+from simulation_engine.rules.rule_registry import RuleRegistry
 
 FINGERPRINTS_PATH = "rules/rule_fingerprints.json"
 
-def load_rule_fingerprints(path: str = FINGERPRINTS_PATH) -> List[Dict]:
+# Use RuleRegistry for unified rule access
+_registry = RuleRegistry()
+_registry.load_all_rules()
+
+def load_rule_fingerprints(path: str = None) -> List[Dict]:
     """
-    Loads rule fingerprints from a JSON file.
+    Loads rule fingerprints from the RuleRegistry.
     """
-    with open(path, "r") as f:
-        return json.load(f)
+    return [r for r in _registry.rules if r.get("effects")]
 
 def match_rule_by_delta(
     delta: Dict[str, float],
@@ -80,7 +84,7 @@ if __name__ == "__main__":
         for kv in args.match:
             k, v = kv.split("=")
             delta[k] = float(v)
-        matches = match_rule_by_delta(delta)
+        matches = match_rule_by_delta(delta, load_rule_fingerprints())
         print("Matches:", matches)
     else:
         parser.print_help()

@@ -7,8 +7,12 @@ Usage:
     prune_memory(memory, max_entries=1000, dry_run=True)
 """
 
+import logging
+from typing import List, Dict, Any
 from memory.forecast_memory import ForecastMemory
 from trust_system.trust_engine import TrustEngine
+
+logger = logging.getLogger(__name__)
 
 def prune_memory(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False):
     """
@@ -18,10 +22,44 @@ def prune_memory(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool 
     excess = len(memory._memory) - max_entries
     if excess > 0:
         if dry_run:
-            print(f"[MemoryGuardian] Would prune {excess} oldest forecasts.")
+            logger.info(f"[MemoryGuardian] Would prune {excess} oldest forecasts.")
         else:
             memory._memory = memory._memory[-max_entries:]
-            print(f"[MemoryGuardian] Pruned {excess} oldest forecasts.")
+            logger.info(f"[MemoryGuardian] Pruned {excess} oldest forecasts.")
+
+# --- Variable Fossilization & Archiving ---
+def archive_variable_fossil(variable_name: str, data: Dict[str, Any], dry_run: bool = False):
+    """
+    Archives a variable as a 'fossil' for future analysis.
+    In a real implementation, this would persist to disk or a database.
+    """
+    if dry_run:
+        logger.info(f"[MemoryGuardian] Would archive variable fossil: {variable_name}")
+    else:
+        # Stub: Replace with actual persistence logic
+        logger.info(f"[MemoryGuardian] Archived variable fossil: {variable_name} | Data: {data}")
+
+
+def soft_retire_variable(variable_name: str, data: Dict[str, Any], dry_run: bool = False):
+    """
+    Soft-retires a variable (marks as inactive, but not deleted).
+    """
+    if dry_run:
+        logger.info(f"[MemoryGuardian] Would soft-retire variable: {variable_name}")
+    else:
+        # Stub: Replace with actual status update logic
+        logger.info(f"[MemoryGuardian] Soft-retired variable: {variable_name}")
+
+
+def reconsider_variable(variable_name: str, data: Dict[str, Any], regime: str = "alternate", dry_run: bool = False):
+    """
+    Reconsiders a soft-retired variable under a different symbolic regime.
+    """
+    if dry_run:
+        logger.info(f"[MemoryGuardian] Would reconsider variable: {variable_name} under regime: {regime}")
+    else:
+        # Stub: Replace with actual reconsideration logic
+        logger.info(f"[MemoryGuardian] Reconsidered variable: {variable_name} under regime: {regime}")
 
 def prune_incoherent_forecasts(memory_batch, verbose=True):
     """
@@ -36,7 +74,7 @@ def prune_incoherent_forecasts(memory_batch, verbose=True):
         if status == "pass":
             retained.append(forecast)
         elif verbose:
-            print(f"[Guardian] Pruned forecast {forecast.get('trace_id')} due to:")
+            logger.warning(f"[Guardian] Pruned forecast {forecast.get('trace_id')} due to:")
             for issue in issues:
-                print("  -", issue)
+                logger.warning("  - %s", issue)
     return retained

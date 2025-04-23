@@ -26,8 +26,7 @@ from typing import List, Dict, Union
 from datetime import datetime
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_config import CONFIDENCE_THRESHOLD
-DEFAULT_FRAGILITY_THRESHOLD = getattr(__import__('core.pulse_config'), 'DEFAULT_FRAGILITY_THRESHOLD', 0.7)
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, update_threshold
 
 CONFIDENCE_LOG_PATH = PATHS.get("CONFIDENCE_LOG_PATH", "logs/forecast_confidence_filter_log.jsonl")
 

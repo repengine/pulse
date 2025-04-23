@@ -1,9 +1,9 @@
 import logging
 from typing import Optional, List, Dict, Any
-from output.forecast_licenser import filter_licensed_forecasts
-from output.forecast_compressor import compress_forecasts
-from output.strategos_tile_formatter import format_strategos_tile
-from output.strategos_digest_builder import build_digest
+from forecast_output.forecast_licenser import filter_licensed_forecasts
+from forecast_output.forecast_compressor import compress_forecasts
+from forecast_output.strategos_tile_formatter import format_strategos_tile
+from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
 from core.path_registry import PATHS
 from trust_system.alignment_index import compute_alignment_index
@@ -12,7 +12,7 @@ from trust_system.trust_engine import compute_symbolic_attention_score
 from trust_system.forecast_licensing_shell import license_forecast
 from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
 from trust_system.license_enforcer import annotate_forecasts, filter_licensed, summarize_license_distribution
-from output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
+from forecast_output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
 from memory.forecast_episode_tracer import build_episode_chain
 from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
 from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs
@@ -21,13 +21,13 @@ import os
 import json
 
 # --- PATCH: Import resonance scanner ---
-from output.forecast_resonance_scanner import generate_resonance_summary
+from forecast_output.forecast_resonance_scanner import generate_resonance_summary
 # --- PATCH: Import forecast certification digest ---
-from output.forecast_fidelity_certifier import generate_certified_digest
+from forecast_output.forecast_fidelity_certifier import generate_certified_digest
 # --- PATCH: Import forecast prioritization engine ---
-from output.forecast_prioritization_engine import select_top_forecasts
+from forecast_output.forecast_prioritization_engine import select_top_forecasts
 # --- PATCH: Import narrative cluster classifier ---
-from output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
+from forecast_output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
 
 from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md  # PATCH 2
 
@@ -594,12 +594,12 @@ def live_digest_ui(
         template (str): Digest template.
 
     Returns:
-        str: Digest output.
+        str: Digest forecast_output.
     """
     raw = memory.get_recent(n + 10)
     if prompt:
         try:
-            from output.strategos_digest_builder import filter_forecasts_by_prompt
+            from forecast_output.strategos_digest_builder import filter_forecasts_by_prompt
             raw = filter_forecasts_by_prompt(raw, prompt)
         except Exception as e:
             print(f"⚠️ Error filtering by prompt: {e}")

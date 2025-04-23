@@ -1,0 +1,104 @@
+"""
+output_data_reader.py
+
+Pulse Output Reader — unified interface for historical forecast, symbolic, trust, and capital data.
+
+This module parses Pulse-generated output files and memory logs into structured DataFrames
+so that meta-analysis modules (e.g., LearningEngine) can perform scoring, mutation, or regression.
+
+Supports:
+- Forecast outcome loading
+- Symbolic overlay mapping
+- Capital performance parsing
+- Trust metadata extraction
+- Strategos Digest tag access
+
+Author: Pulse v0.299
+"""
+
+import os
+import json
+import pandas as pd
+from typing import List, Dict, Optional
+
+class OutputDataReader:
+    def __init__(self, base_path: str):
+        """
+        Args:
+            base_path (str): Directory root where Pulse outputs and logs are stored
+        """
+        self.base_path = base_path
+
+    def load_forecast_outputs(self) -> pd.DataFrame:
+        """Load all forecast output records into a unified DataFrame."""
+        records = []
+        forecasts_path = os.path.join(self.base_path, "forecast_output")
+        for fname in os.listdir(forecasts_path):
+            if fname.endswith(".json"):
+                with open(os.path.join(forecasts_path, fname)) as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        records.extend(data)
+                    elif isinstance(data, dict):
+                        records.append(data)
+        return pd.DataFrame(records)
+
+    def load_symbolic_overlays(self) -> pd.DataFrame:
+        """Extract symbolic overlays with success/failure attribution."""
+        overlay_path = os.path.join(self.base_path, "symbolic_logs")
+        data = []
+        for fname in os.listdir(overlay_path):
+            if fname.endswith(".json"):
+                with open(os.path.join(overlay_path, fname)) as f:
+                    data.extend(json.load(f))
+        return pd.DataFrame(data)
+
+    def load_trust_scores(self) -> pd.DataFrame:
+        """Load trust scoring metadata per forecast."""
+        trust_path = os.path.join(self.base_path, "trust_logs")
+        results = []
+        for fname in os.listdir(trust_path):
+            if fname.endswith(".json"):
+                with open(os.path.join(trust_path, fname)) as f:
+                    results.extend(json.load(f))
+        return pd.DataFrame(results)
+
+    def load_capital_outcomes(self) -> pd.DataFrame:
+        """Aggregate capital simulation results per scenario."""
+        capital_path = os.path.join(self.base_path, "capital_output")
+        outputs = []
+        for fname in os.listdir(capital_path):
+            if fname.endswith(".json"):
+                with open(os.path.join(capital_path, fname)) as f:
+                    outputs.extend(json.load(f))
+        return pd.DataFrame(outputs)
+
+    def load_digest_tags(self) -> pd.DataFrame:
+        """Pull Strategos Digest tags or narrative summaries."""
+        tag_path = os.path.join(self.base_path, "digest_logs")
+        tags = []
+        for fname in os.listdir(tag_path):
+            if fname.endswith(".json"):
+                with open(os.path.join(tag_path, fname)) as f:
+                    tags.extend(json.load(f))
+        return pd.DataFrame(tags)
+
+    def get_all_metadata(self) -> pd.DataFrame:
+        """
+        Merge all subsystems' data on scenario ID or timestamp if present.
+        Returns a master DataFrame for learning engines to analyze.
+        """
+        try:
+            df_f = self.load_forecast_outputs()
+            df_s = self.load_symbolic_overlays()
+            df_t = self.load_trust_scores()
+            df_c = self.load_capital_outcomes()
+            df_d = self.load_digest_tags()
+            df = df_f.merge(df_s, how="left", on="scenario_id")\
+                      .merge(df_t, how="left", on="scenario_id")\
+                      .merge(df_c, how="left", on="scenario_id")\
+                      .merge(df_d, how="left", on="scenario_id")
+            return df
+        except Exception as e:
+            print(f"[OutputDataReader] Metadata merge failed: {e}")
+            return pd.DataFrame()

@@ -34,7 +34,8 @@ def load_batch_config(path: str) -> List[Dict[str, Any]]:
 
 def run_batch_from_config(
     configs: List[Dict[str, Any]], 
-    export_path: Optional[str] = None
+    export_path: Optional[str] = None,
+    learning_engine=None  # <-- Add this parameter
 ) -> List[Dict[str, Any]]:
     """
     Executes a batch of simulation configs.
@@ -42,6 +43,7 @@ def run_batch_from_config(
     Args:
         configs (List[Dict]): Simulation configurations
         export_path (str): Optional output path for saving results
+        learning_engine: Optional LearningEngine instance for hooks
 
     Returns:
         List[Dict]: Pipeline results per config, including error info if failed.
@@ -53,7 +55,7 @@ def run_batch_from_config(
             # Step 1: Initialize worldstate
             state = WorldState(**cfg.get("state_overrides", {}))
             for _ in range(cfg.get("turns", 1)):
-                run_turn(state)
+                run_turn(state, learning_engine=learning_engine)
             # Step 2: Generate forecasts
             forecasts = generate_forecast(state)
             # Step 3: Run forecast pipeline

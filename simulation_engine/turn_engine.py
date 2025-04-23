@@ -34,7 +34,8 @@ def run_turn(
     state: WorldState,
     rule_fn: Optional[Callable[[WorldState], None]] = None,
     decay_rate: float = 0.01,
-    verbose: bool = True
+    verbose: bool = True,
+    learning_engine=None  # <-- Add this parameter
 ) -> list[dict]:
     """
     Executes one simulation turn in the Pulse engine.
@@ -91,6 +92,10 @@ def run_turn(
         if hasattr(state, "forecasts"):
             state.forecasts = annotate_forecasts(state.forecasts)
             state.forecasts = filter_licensed(state.forecasts)
+
+    # Call learning hook with a snapshot of the state
+    if learning_engine is not None:
+        learning_engine.on_simulation_turn_end(state.snapshot())
 
     # Trace logging (if enabled)
     if ENABLE_TRACE_LOGGING:

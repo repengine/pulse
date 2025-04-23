@@ -17,10 +17,15 @@ Author: Pulse AI Engine
 
 import json
 from typing import Dict, List, Tuple
+from simulation_engine.rules.rule_registry import RuleRegistry
 
-def load_rule_fingerprints(path="data/rule_fingerprints.json") -> Dict:
-    with open(path, "r") as f:
-        return json.load(f)
+# Use RuleRegistry for unified rule access
+_registry = RuleRegistry()
+_registry.load_all_rules()
+
+def load_rule_fingerprints(path=None) -> Dict:
+    # Return a dict keyed by rule_id for compatibility
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
 
 def match_forecast_to_rules(forecast: Dict, rules: Dict) -> List[Dict]:
     """
@@ -72,7 +77,7 @@ def explain_forecast(forecast: Dict, rules: Dict) -> Dict:
         "top_rules": top_rules
     }
 
-def explain_forecast_batch(forecasts: List[Dict], rule_file="data/rule_fingerprints.json") -> List[Dict]:
+def explain_forecast_batch(forecasts: List[Dict], rule_file=None) -> List[Dict]:
     rules = load_rule_fingerprints(rule_file)
     return [explain_forecast(f, rules) for f in forecasts]
 

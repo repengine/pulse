@@ -19,11 +19,16 @@ Author: Pulse AI Engine
 import json
 from typing import List, Dict, Tuple, Optional
 from pathlib import Path
+from simulation_engine.rules.rule_registry import RuleRegistry
 
-def load_rule_fingerprints(path: str = "data/rule_fingerprints.json") -> Dict:
-    """Load rule fingerprints from a JSON file."""
-    with open(path, "r") as f:
-        return json.load(f)
+# Use RuleRegistry for unified rule access
+_registry = RuleRegistry()
+_registry.load_all_rules()
+
+def load_rule_fingerprints(path: str = None) -> Dict:
+    """Load rule fingerprints using RuleRegistry."""
+    # Return a dict keyed by rule_id for compatibility
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
 
 def detect_conflicting_triggers(rules: Dict[str, Dict]) -> List[Tuple[str, str, str]]:
     """Detect rules with conflicting symbolic triggers on the same input."""
@@ -65,7 +70,7 @@ def detect_duplicate_rules(rules: Dict[str, Dict]) -> List[Tuple[str, str]]:
             seen[sig] = rid
     return dups
 
-def scan_rule_coherence(fpath: str = "data/rule_fingerprints.json") -> Dict:
+def scan_rule_coherence(fpath: str = None) -> Dict:
     """Run all rule coherence scans."""
     rules = load_rule_fingerprints(fpath)
     result = {
@@ -79,7 +84,7 @@ def scan_rule_coherence(fpath: str = "data/rule_fingerprints.json") -> Dict:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Pulse Rule Coherence Checker")
-    parser.add_argument("--file", default="data/rule_fingerprints.json", help="Path to rule fingerprint file")
+    parser.add_argument("--file", default=None, help="Path to rule fingerprint file")
     args = parser.parse_args()
 
     result = scan_rule_coherence(args.file)
