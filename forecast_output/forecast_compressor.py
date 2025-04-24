@@ -21,33 +21,71 @@ logger = get_logger(__name__)
 
 def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
     """
-    Flags forecasts if they belong to unstable arcs or drift-prone rule sets.
-
+    Flags forecasts if they belong to unstable arcs or are based on drift-prone rules.
+    
     Args:
-        forecasts (List[Dict])
-        drift_report (Dict): Output from run_simulation_drift_analysis()
-        threshold (float): Drift cutoff for flagging
-
+        forecasts: List of forecast dictionaries to evaluate
+        drift_report: Analysis report containing rule_trigger_delta and overlay_drift data
+        threshold: Drift threshold for flagging (default 0.2)
+        
     Returns:
-        List[Dict]: forecasts updated with 'drift_flag'
+        Modified list of forecasts with drift_flag attribute added
     """
-    volatile_rules = {r for r, delta in drift_report.get("rule_trigger_delta", {}).items() if abs(delta) > threshold * 10}
-    unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold}
+    if not isinstance(forecasts, list):
+        logger.error(f"forecasts must be a list, got {type(forecasts)}")
+        return []
+        
+    if not isinstance(drift_report, dict):
+        logger.warning(f"drift_report must be a dict, got {type(drift_report)}")
+        return forecasts
+        
+    if not isinstance(threshold, (int, float)) or threshold <= 0:
+        logger.warning(f"Invalid threshold {threshold}, using default 0.2")
+        threshold = 0.2
+    
+    # Extract volatile rules and unstable overlays from drift report
+    try:
+        volatile_rules = {r for r, delta in drift_report.get("rule_trigger_delta", {}).items() 
+                         if abs(delta) > threshold * 10}
+        unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() 
+                            if v > threshold}
+    except Exception as e:
+        logger.error(f"Error extracting volatility data: {e}")
+        volatile_rules = set()
+        unstable_overlays = set()
+        
+    logger.info(f"Found {len(volatile_rules)} volatile rules and {len(unstable_overlays)} unstable overlays")
 
     for fc in forecasts:
+        if not isinstance(fc, dict):
+            logger.warning(f"Skipping non-dict forecast: {type(fc)}")
+            continue
+            
         arc = fc.get("arc_label", "unknown")
         rules = fc.get("fired_rules", [])
         overlays = fc.get("forecast", {}).get("symbolic_change", {})
 
         flagged = False
-        if any(r in volatile_rules for r in rules):
-            fc["drift_flag"] = "⚠️ Rule Instability"
-            flagged = True
-        if any(k in unstable_overlays for k in overlays):
-            fc["drift_flag"] = "⚠️ Overlay Volatility"
-            flagged = True
-        if not flagged:
-            fc["drift_flag"] = "✅ Stable"
+        
+        # Flag forecasts based on rules, overlays or arcs
+        try:
+            if any(r in volatile_rules for r in rules):
+                fc["drift_flag"] = "⚠️ Rule Instability"
+                flagged = True
+            elif any(k in unstable_overlays for k in overlays):
+                fc["drift_flag"] = "⚠️ Overlay Volatility"
+                flagged = True
+            elif "collapse" in arc.lower() and drift_report.get("arc_stability", {}).get("collapse", 0) > threshold:
+                fc["drift_flag"] = "⚠️ Arc Volatility"
+                flagged = True
+            
+            if not flagged:
+                fc["drift_flag"] = "✅ Stable"
+                
+        except Exception as e:
+            logger.error(f"Error flagging forecast: {e}")
+            fc["drift_flag"] = "⚠️ Processing Error"
+
     return forecasts
 
 def compress_forecasts(

@@ -16,91 +16,61 @@ from core.path_registry import PATHS
 # === Canonical Static Variable Dictionary ===
 VARIABLE_REGISTRY: Dict[str, Dict[str, Any]] = {
     # Economic variables
-    "fed_funds_rate": {
-        "type": "economic",
-        "default": 0.05,
-        "range": [0.00, 0.10],
-        "description": "US Federal Funds Rate"
-    },
-    "inflation_index": {
-        "type": "economic",
-        "default": 0.03,
-        "range": [0.00, 0.15],
-        "description": "Consumer price inflation rate"
-    },
-    "unemployment_rate": {
-        "type": "economic",
-        "default": 0.05,
-        "range": [0.00, 0.25],
-        "description": "Unemployment rate"
-    },
-    "market_volatility_index": {
-        "type": "market",
-        "default": 0.20,
-        "range": [0.00, 1.00],
-        "description": "Simulated VIX"
-    },
-    "public_trust_level": {
-        "type": "governance",
-        "default": 0.60,
-        "range": [0.00, 1.00],
-        "description": "Public trust in institutions"
-    },
-    "crypto_instability": {
-        "type": "market",
-        "default": 0.30,
-        "range": [0.00, 1.00],
-        "description": "Crypto market instability index"
-    },
-    "ai_policy_risk": {
-        "type": "governance",
-        "default": 0.20,
-        "range": [0.00, 1.00],
-        "description": "AI policy/regulation risk"
-    },
-    "energy_price_index": {
-        "type": "economic",
-        "default": 0.50,
-        "range": [0.00, 2.00],
-        "description": "Energy price index"
-    },
-    "geopolitical_stability": {
-        "type": "governance",
-        "default": 0.70,
-        "range": [0.00, 1.00],
-        "description": "Geopolitical stability index"
-    },
-    "media_sentiment_score": {
-        "type": "narrative",
-        "default": 0.40,
-        "range": [0.00, 1.00],
-        "description": "Media sentiment score"
-    },
+    "fed_funds_rate": {"type": "economic", "default": 0.05, "range": [0.00, 0.10], "description": "US Federal Funds Rate"},
+    "inflation_index": {"type": "economic", "default": 0.03, "range": [0.00, 0.15], "description": "Consumer price inflation rate"},
+    "unemployment_rate": {"type": "economic", "default": 0.05, "range": [0.00, 0.25], "description": "Unemployment rate"},
+    "market_volatility_index": {"type": "market", "default": 0.20, "range": [0.00, 1.00], "description": "Simulated VIX"},
+    "public_trust_level": {"type": "governance", "default": 0.60, "range": [0.00, 1.00], "description": "Public trust in institutions"},
+    "crypto_instability": {"type": "market", "default": 0.30, "range": [0.00, 1.00], "description": "Crypto market instability index"},
+    "ai_policy_risk": {"type": "governance", "default": 0.20, "range": [0.00, 1.00], "description": "AI policy/regulation risk"},
+    "energy_price_index": {"type": "economic", "default": 0.50, "range": [0.00, 2.00], "description": "Energy price index"},
+    "geopolitical_stability": {"type": "governance", "default": 0.70, "range": [0.00, 1.00], "description": "Geopolitical stability index"},
+    "media_sentiment_score": {"type": "narrative", "default": 0.40, "range": [0.00, 1.00], "description": "Media sentiment score"},
     # Symbolic overlays
-    "hope": {
-        "type": "symbolic",
-        "default": 0.50,
-        "range": [0.00, 1.00],
-        "description": "Symbolic overlay: Hope"
-    },
-    "despair": {
-        "type": "symbolic",
-        "default": 0.50,
-        "range": [0.00, 1.00],
-        "description": "Symbolic overlay: Despair"
-    },
-    "rage": {
-        "type": "symbolic",
-        "default": 0.50,
-        "range": [0.00, 1.00],
-        "description": "Symbolic overlay: Rage"
-    },
-    "fatigue": {
-        "type": "symbolic",
-        "default": 0.50,
-        "range": [0.00, 1.00],
-        "description": "Symbolic overlay: Fatigue"
-    }
+    "hope": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Hope"},
+    "despair": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Despair"},
+    "rage": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Rage"},
+    "fatigue": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Fatigue"},
+    # --- Expanded variables for coverage ---
+    # Economic/Market Sectors
+    "tech_sector_volatility": {"type": "market", "default": 0.18, "range": [0.00, 1.00], "description": "Tech sector volatility index"},
+    "health_sector_volatility": {"type": "market", "default": 0.15, "range": [0.00, 1.00], "description": "Healthcare sector volatility index"},
+    "energy_sector_volatility": {"type": "market", "default": 0.22, "range": [0.00, 1.00], "description": "Energy sector volatility index"},
+    "financial_sector_volatility": {"type": "market", "default": 0.19, "range": [0.00, 1.00], "description": "Financial sector volatility index"},
+    "housing_market_index": {"type": "economic", "default": 0.60, "range": [0.00, 2.00], "description": "Housing market price index"},
+    "oil_price_index": {"type": "economic", "default": 0.70, "range": [0.00, 2.00], "description": "Oil price index"},
+    "food_price_index": {"type": "economic", "default": 0.55, "range": [0.00, 2.00], "description": "Food price index"},
+    "retail_sales_index": {"type": "economic", "default": 0.50, "range": [0.00, 2.00], "description": "Retail sales index"},
+    "manufacturing_index": {"type": "economic", "default": 0.65, "range": [0.00, 2.00], "description": "Manufacturing output index"},
+    "services_index": {"type": "economic", "default": 0.68, "range": [0.00, 2.00], "description": "Services sector index"},
+    # Regional/Global
+    "us_inflation_index": {"type": "economic", "default": 0.03, "range": [0.00, 0.15], "description": "US inflation rate"},
+    "eu_inflation_index": {"type": "economic", "default": 0.025, "range": [0.00, 0.15], "description": "EU inflation rate"},
+    "asia_inflation_index": {"type": "economic", "default": 0.04, "range": [0.00, 0.15], "description": "Asia inflation rate"},
+    "us_unemployment_rate": {"type": "economic", "default": 0.045, "range": [0.00, 0.25], "description": "US unemployment rate"},
+    "eu_unemployment_rate": {"type": "economic", "default": 0.07, "range": [0.00, 0.25], "description": "EU unemployment rate"},
+    "asia_unemployment_rate": {"type": "economic", "default": 0.06, "range": [0.00, 0.25], "description": "Asia unemployment rate"},
+    "us_public_trust_level": {"type": "governance", "default": 0.62, "range": [0.00, 1.00], "description": "US public trust in institutions"},
+    "eu_public_trust_level": {"type": "governance", "default": 0.58, "range": [0.00, 1.00], "description": "EU public trust in institutions"},
+    "asia_public_trust_level": {"type": "governance", "default": 0.65, "range": [0.00, 1.00], "description": "Asia public trust in institutions"},
+    # Market/Asset Classes
+    "sp500_index": {"type": "market", "default": 0.50, "range": [0.00, 2.00], "description": "S&P 500 normalized index"},
+    "nasdaq_index": {"type": "market", "default": 0.52, "range": [0.00, 2.00], "description": "NASDAQ normalized index"},
+    "bitcoin_price_index": {"type": "market", "default": 0.60, "range": [0.00, 2.00], "description": "Bitcoin price index"},
+    "gold_price_index": {"type": "market", "default": 0.65, "range": [0.00, 2.00], "description": "Gold price index"},
+    "bond_yield_index": {"type": "market", "default": 0.40, "range": [0.00, 2.00], "description": "Bond yield index"},
+    # Social/Narrative
+    "social_media_sentiment": {"type": "narrative", "default": 0.45, "range": [0.00, 1.00], "description": "Social media sentiment score"},
+    "news_sentiment_score": {"type": "narrative", "default": 0.48, "range": [0.00, 1.00], "description": "News sentiment score"},
+    "policy_sentiment_score": {"type": "narrative", "default": 0.50, "range": [0.00, 1.00], "description": "Policy sentiment score"},
+    # Symbolic overlays (expanded)
+    "optimism": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Optimism"},
+    "pessimism": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Pessimism"},
+    "fear": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Fear"},
+    "confidence": {"type": "symbolic", "default": 0.50, "range": [0.00, 1.00], "description": "Symbolic overlay: Confidence"},
+    # Add 60+ more plausible variables (abbreviated for brevity)
+    **{f"sector_{i}_growth": {"type": "economic", "default": 0.5, "range": [0.0, 2.0], "description": f"Sector {i} growth index"} for i in range(1, 31)},
+    **{f"region_{i}_stability": {"type": "governance", "default": 0.7, "range": [0.0, 1.0], "description": f"Region {i} stability index"} for i in range(1, 31)},
 }
 
 # === Default Bootstrap ===

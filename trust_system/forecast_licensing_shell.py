@@ -10,47 +10,60 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import Dict
+from typing import Dict, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 def license_forecast(forecast: Dict, thresholds: Dict = None) -> str:
     """
-    Assign a license decision to a forecast.
-    This function expects trust metadata (confidence, trust_label, alignment_score, drift_flag)
-    to be present on the forecast. If not, upstream trust processing should be run first.
-
-    Parameters:
-        forecast (Dict): A single forecast object with trust metadata
-        thresholds (Dict): Optional override values
-
+    Determines the licensing status of a forecast based on confidence, trust, alignment, and drift.
+    
+    Args:
+        forecast (Dict): The forecast to evaluate, containing trust_label, confidence, 
+                         alignment_score, and drift_flag keys.
+        thresholds (Dict, optional): Custom thresholds for confidence and alignment.
+                                     Defaults to {"confidence_min": 0.60, "alignment_min": 0.75}.
+    
     Returns:
-        str: One of:
-            ✅ Approved
-            🔴 Blocked - Drift-Prone
-            ⚠️ Low Alignment
-            🚫 Untrusted
-            ❌ No Confidence
+        str: License status (one of: "✅ Approved", "❌ No Confidence", "🚫 Untrusted", 
+             "🔴 Blocked - {drift_flag}", "⚠️ Low Alignment")
+    
+    Raises:
+        ValueError: If the forecast is None or not a dictionary
     """
-    t = thresholds or {
-        "confidence_min": 0.6,
-        "alignment_min": 70,
-    }
+    if forecast is None or not isinstance(forecast, dict):
+        logger.error("Invalid forecast provided to license_forecast")
+        raise ValueError("Forecast must be a dictionary")
 
-    # Defensive: handle missing/invalid fields
-    conf = forecast.get("confidence", 0.0)
+    # Default thresholds
+    t = thresholds or {"confidence_min": 0.60, "alignment_min": 0.75}
+    
+    # Extract and validate confidence
     try:
-        conf = float(conf)
-    except Exception:
+        conf = forecast.get("confidence", 0.0)
+        if not isinstance(conf, (int, float)):
+            logger.warning(f"Invalid confidence value: {conf}, defaulting to 0.0")
+            conf = 0.0
+    except Exception as e:
+        logger.error(f"Error extracting confidence: {e}")
         conf = 0.0
-
-    align = forecast.get("alignment_score", 0.0)
+    
+    # Extract and validate alignment score
     try:
-        align = float(align)
-    except Exception:
+        align = forecast.get("alignment_score", 0.0)
+        if not isinstance(align, (int, float)) and align is not None:
+            logger.warning(f"Invalid alignment value: {align}, defaulting to 0.0")
+            align = 0.0
+        align = float(align) if align is not None else 0.0
+    except Exception as e:
+        logger.error(f"Error extracting alignment score: {e}")
         align = 0.0
 
     trust_label = forecast.get("trust_label", "unknown")
     drift_flag = forecast.get("drift_flag")
 
+    # Decision logic
     if conf < t["confidence_min"]:
         return "❌ No Confidence"
     if trust_label not in {"🟢 Trusted", "⚠️ Moderate"}:
@@ -65,15 +78,29 @@ def license_forecast(forecast: Dict, thresholds: Dict = None) -> str:
 # --- Simple test function for manual validation ---
 def _test_license():
     """Basic test for forecast licensing shell."""
-    tests = [
-        {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted"},
-        {"confidence": 0.5, "alignment_score": 80, "trust_label": "🟢 Trusted"},
-        {"confidence": 0.8, "alignment_score": 60, "trust_label": "🟢 Trusted"},
-        {"confidence": 0.8, "alignment_score": 80, "trust_label": "🔴 Fragile"},
-        {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "drift_flag": "Rule Instability"},
+    test_forecasts = [
+        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
+        {"confidence": 0.4, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
+        {"confidence": 0.8, "trust_label": "🔴 Rejected", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
+        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.5, "drift_flag": "✅ Stable"},
+        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "⚠️ Overlay Volatility"},
     ]
-    for i, fc in enumerate(tests):
-        print(f"Test {i+1}: {license_forecast(fc)}")
+    
+    for i, fc in enumerate(test_forecasts):
+        status = license_forecast(fc)
+        print(f"Test {i+1}: {status}")
+    
+    # Edge case testing
+    try:
+        print(f"Edge case 1: {license_forecast(None)}")
+    except ValueError as e:
+        print(f"Edge case 1 correctly failed: {e}")
+    
+    try:
+        print(f"Edge case 2: {license_forecast({'confidence': 'invalid'})}")
+        print(f"Edge case 3: {license_forecast({'alignment_score': 'invalid'})}")
+    except Exception as e:
+        print(f"Unexpected failure: {e}")
 
 if __name__ == "__main__":
     _test_license()

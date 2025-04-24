@@ -139,3 +139,64 @@ class OutputDataReader:
         except Exception as e:
             print(f"[OutputDataReader] Metadata merge failed: {e}")
             return pd.DataFrame()
+
+# Market, social, ecological data loaders for feature engineering
+def load_market_data() -> pd.DataFrame:
+    """
+    Load market data for feature engineering.
+    Reads CSV files from irldata/market_data directory.
+    """
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    data_dir = os.path.join(base_dir, "irldata", "market_data")
+    dfs = []
+    if os.path.isdir(data_dir):
+        for fname in os.listdir(data_dir):
+            if fname.endswith(".csv"):
+                try:
+                    df = pd.read_csv(os.path.join(data_dir, fname))
+                    dfs.append(df)
+                except Exception as e:
+                    print(f"[OutputDataReader] Error reading market data file {fname}: {e}")
+    if dfs:
+        return pd.concat(dfs, ignore_index=True)
+    return pd.DataFrame()
+
+def load_social_data() -> pd.DataFrame:
+    """
+    Load social data (e.g., sentiment, engagement) for feature engineering.
+    Reads CSV files from irldata/social_data directory.
+    """
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    data_dir = os.path.join(base_dir, "irldata", "social_data")
+    dfs = []
+    if os.path.isdir(data_dir):
+        for fname in os.listdir(data_dir):
+            if fname.endswith(".csv"):
+                try:
+                    df = pd.read_csv(os.path.join(data_dir, fname))
+                    dfs.append(df)
+                except Exception as e:
+                    print(f"[OutputDataReader] Error reading social data file {fname}: {e}")
+    if dfs:
+        return pd.concat(dfs, ignore_index=True)
+    return pd.DataFrame()
+
+def load_ecological_data() -> pd.DataFrame:
+    """
+    Load ecological data (e.g., environmental indicators) for feature engineering.
+    Reads CSV files from irldata/ecological_data directory.
+    """
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    data_dir = os.path.join(base_dir, "irldata", "ecological_data")
+    dfs = []
+    if os.path.isdir(data_dir):
+        for fname in os.listdir(data_dir):
+            if fname.endswith(".csv"):
+                try:
+                    df = pd.read_csv(os.path.join(data_dir, fname))
+                    dfs.append(df)
+                except Exception as e:
+                    print(f"[OutputDataReader] Error reading ecological data file {fname}: {e}")
+    if dfs:
+        return pd.concat(dfs, ignore_index=True)
+    return pd.DataFrame()

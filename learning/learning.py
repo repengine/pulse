@@ -65,6 +65,8 @@ from learning.engines.causal_inference import CausalInferenceEngine
 from learning.engines.continuous_learning import ContinuousLearningEngine
 from learning.engines.external_integration import ExternalIntegrationEngine
 from learning.engines.active_experimentation import ActiveExperimentationEngine
+from core.bayesian_trust_tracker import bayesian_trust_tracker
+from trust_system.trust_engine import TrustEngine
 
 # Configure logging
 logging.basicConfig(
@@ -211,8 +213,12 @@ class LearningEngine:
         Hook to be called after each simulation turn.
         """
         # Example: log trace, update memory, trigger learning, etc.
-        self.trace.log_trace_entry(trace_id="sim_turn", forecast={}, input_state=state_snapshot)
+        # Enrich state_snapshot with trust metadata if overlays/capital present
+        enriched = TrustEngine.enrich_trust_metadata(state_snapshot)
+        self.trace.log_trace_entry(trace_id="sim_turn", forecast=enriched, input_state=state_snapshot)
         # Optionally trigger learning updates or logging
+        if "trust_label" not in enriched or "confidence" not in enriched:
+            logging.warning("[TRUST] Warning: trust_label or confidence missing from learning turn output.")
 
     def consume_simulation_trace(self, trace_path: str):
         """
@@ -228,286 +234,7 @@ class LearningEngine:
         self.advanced_engine.memory['last_drift_report'] = drift_report
         # Optionally trigger learning or adaptation
 
-    def adjust_rule_weights_from_learning_profile(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Adjusts arc/tag trust weights based on learning profile statistics.
-        Logs all changes. Extend to persist to rule/tag registry as needed.
-        """
-        arc_perf = learning_profile.get("arc_performance", {})
-        tag_perf = learning_profile.get("tag_performance", {})
-        for arc, stats in arc_perf.items():
-            win_rate = stats.get("rate", 0)
-            old_weight = stats.get("weight", 1.0)
-            if win_rate < 0.3:
-                new_weight = max(0.0, old_weight - 0.1)
-                log_variable_weight_change(arc, old_weight, new_weight)
-                # TODO: persist new_weight to arc registry
-            elif win_rate > 0.8:
-                new_weight = min(1.0, old_weight + 0.1)
-                log_variable_weight_change(arc, old_weight, new_weight)
-                # TODO: persist new_weight to arc registry
-        for tag, stats in tag_perf.items():
-            win_rate = stats.get("rate", 0)
-            old_weight = stats.get("weight", 1.0)
-            if win_rate < 0.3:
-                new_weight = max(0.0, old_weight - 0.1)
-                log_variable_weight_change(tag, old_weight, new_weight)
-                # TODO: persist new_weight to tag registry
-            elif win_rate > 0.8:
-                new_weight = min(1.0, old_weight + 0.1)
-                log_variable_weight_change(tag, old_weight, new_weight)
-                # TODO: persist new_weight to tag registry
-
-    def auto_tune_thresholds(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Adjusts confidence/fragility thresholds based on learning loop outputs.
-        """
-        from core.pulse_config import update_threshold
-        avg_regret = learning_profile.get("avg_regret", None)
-        if avg_regret is not None:
-            if avg_regret > 0.5:
-                update_threshold("CONFIDENCE_THRESHOLD", 0.5)
-            elif avg_regret < 0.2:
-                update_threshold("CONFIDENCE_THRESHOLD", 0.7)
-        # Extend with more logic as needed
-
-    def process_learning_profile(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Automates trust/weight feedback and threshold tuning from a learning profile.
-        Ensures symbolic elements are not hardcoded to influence system learning; system can differentiate symbolic/statistical/causal sources.
-        """
-        # Only adjust symbolic elements if profile explicitly marks them as symbolic
-        if learning_profile.get("type") == "symbolic":
-            self.adjust_rule_weights_from_learning_profile(learning_profile)
-        # Always allow threshold tuning, but can be extended to check source
-        self.auto_tune_thresholds(learning_profile)
-        # Optionally log a summary event
-        from core.pulse_learning_log import log_learning_event
-        log_learning_event("learning_profile_processed", {
-            "profile_type": learning_profile.get("type"),
-            "profile_keys": list(learning_profile.keys()),
-            "timestamp": datetime.utcnow().isoformat()
-        })
-
-    def update_variable_weights_from_profile(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Adjusts variable trust weights based on statistical feedback (e.g., drift, correlation).
-        """
-        stats = learning_profile.get("variable_stats", {})
-        for var, stat in stats.items():
-            old = self.registry.get(var) or {}
-            old_weight = old.get("trust_weight", 1.0)
-            new_weight = stat.get("suggested_weight", old_weight)
-            if new_weight != old_weight:
-                self.registry.register_variable(var, {**old, "trust_weight": new_weight})
-                from core.pulse_learning_log import log_variable_weight_change
-                log_variable_weight_change(var, old_weight, new_weight)
-        self.registry._save()
-
-    def update_causal_links_from_profile(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Integrates causal feedback (e.g., inferred relationships, causal path analysis).
-        """
-        # Example: log or persist causal links
-        causal_links = learning_profile.get("causal_links", {})
-        if causal_links:
-            from core.pulse_learning_log import log_learning_event
-            log_learning_event("causal_links_update", {
-                "links": causal_links,
-                "timestamp": datetime.utcnow().isoformat()
-            })
-        # TODO: Integrate with rule/arc/variable registries as needed
-
-    def process_learning_feedback(self, learning_profile: Dict[str, Any]) -> None:
-        """
-        Central entry point for all learning feedback.
-        Routes feedback to symbolic, statistical, or causal handlers as appropriate.
-        Accepts either a dict or a LearningProfile dataclass.
-        """
-        if isinstance(learning_profile, dict):
-            profile = LearningProfile.from_dict(learning_profile)
-        else:
-            profile = learning_profile
-        profile_type = profile.type
-        if profile_type == "symbolic":
-            self.adjust_rule_weights_from_learning_profile(profile.__dict__)
-        elif profile_type == "statistical":
-            self.update_variable_weights_from_profile(profile.__dict__)
-        elif profile_type == "causal":
-            self.update_causal_links_from_profile(profile.__dict__)
-        # Always allow threshold tuning
-        self.auto_tune_thresholds(profile.__dict__)
-        from core.pulse_learning_log import log_learning_event
-        log_learning_event("learning_feedback_processed", {
-            "profile_type": profile_type,
-            "profile_keys": list(profile.__dict__.keys()),
-            "timestamp": datetime.utcnow().isoformat()
-        })
-
-    def run_meta_update(self) -> None:
-        """
-        Runs the full meta-learning update loop, including advanced analytics, anomaly detection,
-        feature discovery, audit reporting, causal inference, continuous learning, and experimentation.
-        """
-        logging.info("🧠 Running Pulse Learning Loop...")
-        try:
-            self.analyze_trace_memory()
-            self.update_variable_weights()
-            self.score_symbolic_arcs()
-            self.plan_overlay_mutations()
-            self.trigger_revisions_if_needed()
-            self.run_retrodiction_learning(start_date="2020-01-01", days=14)
-            self.apply_retrodiction_pressure()
-            self.apply_variable_mutation_pressure()
-            self.apply_rule_mutation_pressure()
-            self.audit_cluster_volatility()
-            self.audit_rule_clusters()
-            forecasts = []  # TODO: Replace with actual forecast retrieval
-            self.audit_symbolic_contradictions(forecasts)
-            # --- New: Anomaly Detection ---
-            try:
-                anomaly_result = self.anomaly_remediator.detect_and_remediate(self.tracker.score_variable_effectiveness())
-                if anomaly_result.get("status") == "success":
-                    log_learning_event("anomaly_remediation", anomaly_result)
-            except Exception as e:
-                logging.warning(f"Anomaly remediation failed: {e}")
-            # --- New: Feature Discovery ---
-            try:
-                df = pd.DataFrame(self.tracker.score_variable_effectiveness()).T
-                feature_result = self.feature_discoverer.discover_features(df)
-                if feature_result.get("status") == "success":
-                    log_learning_event("feature_discovery", feature_result)
-            except Exception as e:
-                logging.warning(f"Feature discovery failed: {e}")
-            # --- New: Continuous Learning ---
-            try:
-                cl_result = self.continuous_learner.update_trust_weights(self.tracker.score_variable_effectiveness())
-                if cl_result.get("status") == "success":
-                    log_learning_event("continuous_learning", cl_result)
-            except Exception as e:
-                logging.warning(f"Continuous learning update failed: {e}")
-            # --- New: External Integration ---
-            try:
-                ext_result = self.external_integrator.ingest_data("external_data.csv")
-                if ext_result.get("status") == "success":
-                    log_learning_event("external_integration", ext_result)
-            except Exception as e:
-                logging.warning(f"External integration failed: {e}")
-            # --- New: Active Experimentation (optional, can be CLI-triggered) ---
-            try:
-                exp_result = self.active_experimenter.run_experiment({"example_param": 42})
-                if exp_result.get("status") == "success":
-                    log_learning_event("active_experimentation", exp_result)
-            except Exception as e:
-                logging.warning(f"Active experimentation failed: {e}")
-            # --- New: Audit Reporting ---
-            try:
-                audit_result = self.audit_reporter.generate_report("logs/pulse_learning_log.jsonl")
-                if audit_result.get("status") == "success":
-                    log_learning_event("audit_report", audit_result)
-            except Exception as e:
-                logging.warning(f"Audit reporting failed: {e}")
-            # --- New: Causal Inference ---
-            try:
-                causal_result = self.causal_inferencer.analyze_causality(self.tracker.score_variable_effectiveness())
-                if causal_result.get("status") == "success":
-                    log_learning_event("causal_inference", causal_result)
-            except Exception as e:
-                logging.warning(f"Causal inference failed: {e}")
-        except Exception as e:
-            logging.exception(f"Meta update failed: {e}")
-        try:
-            self.advanced_engine.sync_memory(self.trace.summarize_memory())
-            self.advanced_engine.integrate_external_data()
-            analytics = self.advanced_engine.export_analytics_summary()
-            log_learning_event("advanced_analytics_summary", analytics)
-            self.run_retrodiction_learning(start_date="2020-01-01", days=14)
-            self.log_learning_summary()
-        except Exception as e:
-            logging.exception(f"Meta update failed: {e}")
-
-        # --- Symbolic Feedback Integration (Batch 2) ---
-        try:
-            from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
-            from forecast_output.forecast_memory import ForecastMemory as OutputForecastMemory
-            import os
-            # Use revision candidates from forecast_output memory as symbolic input
-            output_mem = OutputForecastMemory()
-            revision_candidates = output_mem.isolate_revision_candidates()
-            if revision_candidates:
-                symbolic_profile = generate_learning_profile(revision_candidates)
-                symbolic_profile["type"] = "symbolic"
-                self.process_learning_feedback(symbolic_profile)
-            # Fallback: tuning log
-            tuning_log_path = os.path.join("logs", "symbolic_learning_log.jsonl")
-            if os.path.exists(tuning_log_path):
-                results = learn_from_tuning_log(tuning_log_path)
-                symbolic_profile = generate_learning_profile(results)
-                symbolic_profile["type"] = "symbolic"
-                self.process_learning_feedback(symbolic_profile)
-        except Exception as e:
-            logging.warning(f"Symbolic feedback integration failed: {e}")
-
-        # --- Statistical Feedback Integration (Batch 3) ---
-        try:
-            from memory.forecast_memory import ForecastMemory
-            from memory.variable_performance_tracker import VariablePerformanceTracker
-            forecast_mem = ForecastMemory()
-            tracker = VariablePerformanceTracker()
-            tracker.aggregate_from_memory(forecast_mem)
-            stats = tracker.score_variable_effectiveness()
-            drift = tracker.detect_variable_drift()
-            variable_stats = {}
-            for var, stat in stats.items():
-                avg_conf = stat.get("avg_confidence")
-                avg_frag = stat.get("avg_fragility")
-                mi = stat.get("mutual_info")
-                if avg_conf is not None and avg_frag is not None:
-                    trust_adj = 1.0 + (avg_conf - avg_frag)
-                    variable_stats[var] = {"suggested_weight": round(trust_adj, 3)}
-                    if mi is not None:
-                        variable_stats[var]["mutual_info"] = mi
-            for var in drift:
-                if var in variable_stats:
-                    variable_stats[var]["drift_flagged"] = True
-            if variable_stats:
-                stat_profile = {"type": "statistical", "variable_stats": variable_stats}
-                self.process_learning_feedback(stat_profile)
-        except Exception as e:
-            logging.warning(f"Statistical feedback integration failed: {e}")
-
-        # --- Causal Feedback Integration (Batch 1 & 4) ---
-        try:
-            from memory.forecast_memory import ForecastMemory
-            from forecast_engine.forecast_integrity_engine import infer_causal_links
-            from simulation_engine.rules.reverse_rule_engine import trace_causal_paths
-            forecast_mem = ForecastMemory()
-            recent_forecasts = forecast_mem.get_recent(100)
-            # Direct causal links
-            causal_links = infer_causal_links(recent_forecasts)
-            # Causal paths (multi-step)
-            causal_paths = trace_causal_paths(recent_forecasts)
-            if causal_links or causal_paths:
-                causal_profile = {"type": "causal", "causal_links": causal_links, "causal_paths": causal_paths}
-                self.process_learning_feedback(causal_profile)
-        except Exception as e:
-            logging.warning(f"Causal feedback integration failed: {e}")
-
-        # --- Logging, Auditing, and Profile Schema (Batch 5) ---
-        # All feedback is logged via process_learning_feedback; schema is enforced by profile dict structure.
-        # For future: consider using a dataclass or pydantic model for learning profiles.
-
-    def analyze_trace_memory(self) -> None:
-        """
-        Summarizes trace memory for interpretability.
-        """
-        try:
-            summary = self.trace.summarize_memory()
-            logging.info(f"[Trace Summary] {summary}")
-        except Exception as e:
-            logging.error(f"Trace memory analysis failed: {e}")
-
-    def update_variable_weights(self) -> None:
+    def update_variable_weights(self, variable_id, outcome):
         """
         Adjusts variable trust weights based on performance statistics.
         """
@@ -529,82 +256,34 @@ class LearningEngine:
                 })
                 log_variable_weight_change(var, old_weight, round(trust_adj, 3))
             self.registry._save()
+            # Bayesian trust update
+            bayesian_trust_tracker.update(variable_id, outcome)
+            # Optionally use trust/confidence in weight adjustment
+            trust = bayesian_trust_tracker.get_trust(variable_id)
+            conf_int = bayesian_trust_tracker.get_confidence_interval(variable_id)
+            # Use trust/conf_int in your logic as needed
         except Exception as e:
             logging.error(f"Variable weight update failed: {e}")
 
-    def score_symbolic_arcs(self) -> None:
+    def update_variable_weights_from_profile(self, variable_id, profile_outcome):
         """
-        Scores symbolic arcs for regret/drift.
+        Adjusts variable trust weights based on statistical feedback (e.g., drift, correlation).
         """
-        logging.info("[Arc Drift] Scoring symbolic arc regret...")
-        try:
-            result = score_symbolic_regret()
-            for arc, score in result.get("regret_scores", {}).items():
-                logging.info(f" - Arc: {arc}  Regret Score: {score:.2f}")
-            log_arc_regret(result.get("regret_scores", {}))
-        except Exception as e:
-            logging.error(f"Symbolic arc scoring failed: {e}")
-
-    def plan_overlay_mutations(self) -> None:
-        """
-        Generates and applies candidate overlay tweaks (symbolic rule mutation).
-        Uses generate_symbolic_upgrade_plan and apply_symbolic_upgrades.
-        """
-        logging.info("[Symbolic Upgrade Plan] Generating candidate overlay tweaks...")
-        try:
-            plan = generate_symbolic_upgrade_plan()
-            if plan:
-                logging.info(f" - Proposed changes: {len(plan)}")
-                apply_symbolic_upgrades(plan)
-                log_symbolic_upgrade(plan)
-            else:
-                logging.info(" - No overlay tweaks proposed.")
-        except Exception as e:
-            logging.error(f"Overlay mutation planning failed: {e}")
-
-    def trigger_revisions_if_needed(self) -> None:
-        """
-        Checks for batch drift and applies symbolic revisions if needed.
-        """
-        logging.info("[Arc Realignment] Checking batch drift...")
-        try:
-            drift_detected = analyze_arc_alignment(min_fragility=0.4)
-            if drift_detected:
-                logging.info(" - Drift detected. Applying symbolic revisions.")
-                log_revision_trigger("batch drift or symbolic fragmentation detected")
-                apply_symbolic_revisions()
-            else:
-                logging.info(" - No drift detected.")
-        except Exception as e:
-            logging.error(f"Arc realignment failed: {e}")
-
-    def run_retrodiction_learning(self, start_date: str = "2020-01-01", days: int = 30):
-        print(f"[Retrodiction] Running from {start_date} for {days} days...")
-        run_retrodiction_test(start_date, days=days)
-
-    def parse_retrodiction_log(self, path: str = "logs/retrodiction_result_log.jsonl", top_n: int = 5):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                entries = [json.loads(line) for line in f]
-            sorted_errors = sorted(entries, key=lambda x: x.get("error_score", 0), reverse=True)
-            return sorted_errors[:top_n]
-        except Exception as e:
-            print(f"[Learning] Failed to read retrodiction log: {e}")
-            return []
-
-    def apply_retrodiction_pressure(self):
-        top_drift = self.parse_retrodiction_log()
-        if not top_drift:
+        stats = profile_outcome.get("variable_stats", {}).get(variable_id, {})
+        if not stats:
             return
-        print("[Learning] Retrodiction pressure triggered. Top error days:")
-        for entry in top_drift:
-            print(f" - {entry['sim_date']}: error={entry['error_score']}")
-        plan = generate_symbolic_upgrade_plan()
-        if plan:
-            print(" - Applying symbolic upgrades due to retrodiction divergence.")
-            apply_symbolic_upgrades(plan)
+        old = self.registry.get(variable_id) or {}
+        old_weight = old.get("trust_weight", 1.0)
+        new_weight = stats.get("suggested_weight", old_weight)
+        if new_weight != old_weight:
+            self.registry.register_variable(variable_id, {**old, "trust_weight": new_weight})
+            from core.pulse_learning_log import log_variable_weight_change
+            log_variable_weight_change(variable_id, old_weight, new_weight)
+        bayesian_trust_tracker.update(variable_id, profile_outcome)
+        trust = bayesian_trust_tracker.get_trust(variable_id)
+        conf_int = bayesian_trust_tracker.get_confidence_interval(variable_id)
 
-    def apply_variable_mutation_pressure(self):
+    def apply_variable_mutation_pressure(self, variable_id, mutation_success):
         """
         Penalizes high-volatility, low-predictive variables by reducing their trust weights.
         Optionally, this can be extended to remove or reclassify low-trust variables.
@@ -619,10 +298,18 @@ class LearningEngine:
             meta["trust_weight"] = round(new, 3)
             self.registry.register_variable(var, meta)
             log_variable_weight_change(var, old, new)
+            bayesian_trust_tracker.update(var, mutation_success)
+            trust = bayesian_trust_tracker.get_trust(var)
+            conf_int = bayesian_trust_tracker.get_confidence_interval(var)
+            print(f"[VariableTrust] {var}: trust={trust:.3f}, CI={conf_int}")
 
-    def apply_rule_mutation_pressure(self):  # 🔧 Step 2
+    def apply_rule_mutation_pressure(self, rule_id, mutation_success):
         print("[Rule Learning] Applying pressure to mutate causal rules...")
         apply_rule_mutations()
+        bayesian_trust_tracker.update(rule_id, mutation_success)
+        trust = bayesian_trust_tracker.get_trust(rule_id)
+        conf_int = bayesian_trust_tracker.get_confidence_interval(rule_id)
+        print(f"[RuleTrust] {rule_id}: trust={trust:.3f}, CI={conf_int}")
 
     def audit_cluster_volatility(self):  # 🔧 Step 2
         print("🧠 Variable Cluster Volatility Scan:")

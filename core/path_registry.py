@@ -42,6 +42,7 @@ PATHS: Dict[str, Path] = {
     "RULES_LOG_PATH": LOGS_DIR / "rules.log",
 
     # Add other centralized paths as needed
+    "MODEL_REGISTRY": BASE_DIR / "models" / "model_registry.json",
 }
 
 def get_path(key: str) -> Path:

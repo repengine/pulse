@@ -1,3 +1,14 @@
-# ...existing requirements...
 graphviz
 pyyaml
+
+pandas
+networkx
+pydot
+optuna
+# Ingestion dependencies
+kafka-python
+fastapi
+uvicorn
+watchdog
+boto3
+tweepy

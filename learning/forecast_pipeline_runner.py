@@ -208,6 +208,20 @@ def run_forecast_pipeline(
     # Step 4 (Optional): Export Variable Scores at End of Pipeline
     tracker.export_variable_scores()
 
+    # --- Automated Variable Recommendation and Registration ---
+    try:
+        import subprocess
+        recommender_cmd = [
+            "python", "-m", "irldata.variable_recommender",
+            "--top_n", "10",
+            "--min_count", "5",
+            "--output", "logs/recommended_vars.json"
+        ]
+        subprocess.run(recommender_cmd, check=True)
+        log_info("[PIPELINE] Variable recommender executed and variables registered.")
+    except Exception as e:
+        log_info(f"[PIPELINE] Variable recommender failed: {e}")
+
     log_info("[PIPELINE] Forecast pipeline complete.")
     result_bundle = {
         "status": "complete",

@@ -1,14 +1,18 @@
 import json
 from typing import List, Dict, Any
 from memory.forecast_memory import ForecastMemory
+from trust_system.trust_engine import TrustEngine
 
 class ForecastMemory:
     def __init__(self):
         self._memory: List[Dict[str, Any]] = []
 
     def add_forecast(self, forecast: Dict[str, Any]):
-        """Add a forecast to memory."""
-        self._memory.append(forecast)
+        """Add a forecast to memory, ensuring trust enrichment."""
+        enriched = TrustEngine.enrich_trust_metadata(forecast)
+        self._memory.append(enriched)
+        if "trust_label" not in enriched or "confidence" not in enriched:
+            print("[TRUST] Warning: trust_label or confidence missing from forecast added to memory.")
 
     def store(self, forecast: Dict[str, Any]):
         """Alias for add_forecast, for compatibility with promoter and other modules."""

@@ -14,6 +14,7 @@ from typing import List, Dict, Optional, Any
 from collections import defaultdict
 from datetime import datetime
 from core.path_registry import PATHS
+from core.bayesian_trust_tracker import bayesian_trust_tracker
 
 LOG_PATH = PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")
 
@@ -103,6 +104,23 @@ def render_event_digest(events: List[Dict[str, Any]]) -> None:
         elif dat:
             print(f"   - data: {dat}")
         print("-" * 60)
+
+
+def display_variable_trust(variable_id):
+    trust = bayesian_trust_tracker.get_trust(variable_id)
+    conf_int = bayesian_trust_tracker.get_confidence_interval(variable_id)
+    print(f"Variable {variable_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})")
+
+def display_rule_trust(rule_id):
+    trust = bayesian_trust_tracker.get_trust(rule_id)
+    conf_int = bayesian_trust_tracker.get_confidence_interval(rule_id)
+    print(f"Rule {rule_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})")
+
+# Example usage in your dashboard rendering logic:
+# for var_id in variable_ids:
+#     display_variable_trust(var_id)
+# for rule_id in rule_ids:
+#     display_rule_trust(rule_id)
 
 
 def main():

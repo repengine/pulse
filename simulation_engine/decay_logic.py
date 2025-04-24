@@ -9,10 +9,10 @@ Author: Pulse v3.5
 """
 
 from simulation_engine.worldstate import WorldState
-from core.pulse_config import DEFAULT_DECAY_RATE
+# Removed hardcoded DEFAULT_DECAY_RATE import; using YAML config via config_loader instead.
 
 
-def linear_decay(value: float, rate: float = DEFAULT_DECAY_RATE) -> float:
+def linear_decay(value: float, rate: float = None) -> float:
     """
     Reduces a value by a fixed rate, bounded at zero.
 
@@ -23,14 +23,20 @@ def linear_decay(value: float, rate: float = DEFAULT_DECAY_RATE) -> float:
     Returns:
         float: decayed value
     """
+    if rate is None:
+        from core.pulse_config import config_loader
+        rate = config_loader.get_config_value("core_config.yaml", "default_decay_rate", 0.1)
     return max(0.0, value - rate)
 
 
-def apply_overlay_decay(state: WorldState, decay_rate: float = DEFAULT_DECAY_RATE):
+def apply_overlay_decay(state: WorldState, decay_rate: float = None):
     """
     Applies linear decay to all symbolic overlays.
     Use this when not running via `turn_engine.py`.
     """
+    if decay_rate is None:
+        from core.pulse_config import config_loader
+        decay_rate = config_loader.get_config_value("core_config.yaml", "default_decay_rate", 0.1)
     for overlay_name in ["hope", "despair", "rage", "fatigue", "trust"]:
         current_value = getattr(state.overlays, overlay_name, None)
         if current_value is not None:
@@ -39,7 +45,7 @@ def apply_overlay_decay(state: WorldState, decay_rate: float = DEFAULT_DECAY_RAT
             state.log_event(f"[DECAY] {overlay_name}: {current_value:.3f} → {decayed:.3f}")
 
 
-def decay_variable(state: WorldState, name: str, rate: float = DEFAULT_DECAY_RATE, floor: float = 0.0):
+def decay_variable(state: WorldState, name: str, rate: float = None, floor: float = 0.0):
     """
     Applies decay to a numeric variable in state.variables.
 
@@ -49,6 +55,9 @@ def decay_variable(state: WorldState, name: str, rate: float = DEFAULT_DECAY_RAT
         rate (float): decay step
         floor (float): minimum value
     """
+    if rate is None:
+        from core.pulse_config import config_loader
+        rate = config_loader.get_config_value("core_config.yaml", "default_decay_rate", 0.1)
     current = state.get_variable(name, 0.0)
     decayed = max(floor, current - rate)
     state.update_variable(name, decayed)

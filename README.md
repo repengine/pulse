@@ -15,17 +15,6 @@ Memory and trace persistence are core: all simulation cycles are scored, pruned,
 
 ---
 
-## 🔧 Features
-
-- Emotional overlays: Hope, Despair, Rage, Fatigue, Trust
-- Capital fork logic: NVDA, MSFT, IBIT, SPY
-- Forecast generator with symbolic decay and exposure deltas
-- Trust engine scoring confidence from 0.0–1.0
-- Fragility index based on symbolic tension and volatility
-- Strategos Digest: grouped, sorted, and labeled forecast output
-- PFPA forecast memory with confidence, fragility, and trace IDs
-- Digest export system (`digest.txt`)
-- Modular, fully readable code (Python 3.10+)
 
 ---
 

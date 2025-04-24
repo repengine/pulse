@@ -53,11 +53,13 @@ except ImportError:
 
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path
-from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta       # updated path
+from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta, get_all_rule_fingerprints       # updated path
 from src.engine import LearningEngine, log_learning_event
+from trust_system.trust_engine import TrustEngine
 
 from typing import Dict, List, Any, Literal, Optional, Callable
 from datetime import datetime
+import json
 
 def _validate_overlay(overlay: dict) -> bool:
     """Validate overlay dict: all values must be float/int and keys are non-empty strings."""
@@ -94,97 +96,133 @@ def simulate_turn(
     learning_engine=None
 ) -> Dict[str, Any]:
     """
-    Simulates one turn of state mutation:
-    - Applies decay and rules
-    - Optionally logs symbolic tag and memory snapshot
-    - Returns trace output
-
+    Executes a single simulation turn, applying decay, rules, and capturing state changes.
+    
     Args:
-        state (WorldState): simulation object
-        use_symbolism (bool): enable symbolic diagnostics
-        return_mode (str): "summary" or "full"
-        logger (callable): optional logger for messages
-        learning_engine: optional learning engine for hooks
-
+        state: The current world state to simulate
+        use_symbolism: Whether to apply symbolic tagging to the output
+        return_mode: Level of detail in the return object ('summary' or 'full')
+        logger: Optional logging function
+        learning_engine: Optional learning engine to apply
+        
     Returns:
-        Dict: turn log with deltas, overlays, symbolic tags
+        Dictionary containing turn results, including overlays, deltas, and symbolic info
+        
+    Raises:
+        ValueError: If state is invalid or return_mode is invalid
     """
     if not isinstance(state, WorldState):
-        raise TypeError("state must be a WorldState instance")
-    pre_overlay = _copy_overlay(getattr(state, 'overlays', {}))
-    if not _validate_overlay(pre_overlay):
-        raise ValueError("Invalid overlay structure before turn")
+        error_msg = f"Expected WorldState, got {type(state)}"
+        if logger: logger(error_msg)
+        raise ValueError(error_msg)
+        
+    if return_mode not in ["summary", "full"]:
+        error_msg = f"Invalid return_mode: {return_mode}"
+        if logger: logger(error_msg)
+        raise ValueError(error_msg)
+    
+    # Validate state before simulation
+    validation_errors = state.validate()
+    if validation_errors:
+        error_msg = f"Invalid world state: {validation_errors}"
+        if logger: logger(error_msg)
+        state.log_event(f"Warning: {error_msg}")
+
+    # Store initial overlay state for comparison
+    try:
+        pre_overlay = _copy_overlay(getattr(state, 'overlays', {}))
+    except Exception as e:
+        error_msg = f"[SIM] Failed to copy initial overlays: {e}"
+        if logger: logger(error_msg)
+        state.log_event(error_msg)
+        pre_overlay = {}
+
+    # Apply decay to overlays
     try:
         decay_overlay(state)
     except Exception as e:
-        msg = f"[SIM] Decay error: {e}"
-        if logger: logger(msg)
-        state.log_event(msg)
+        error_msg = f"[SIM] Decay error: {str(e)}"
+        if logger: logger(error_msg)
+        state.log_event(error_msg)
+
+    # Run simulation rules
     try:
         run_rules(state)
     except Exception as e:
-        msg = f"[SIM] Rule engine error: {e}"
-        if logger: logger(msg)
-        state.log_event(msg)
+        error_msg = f"[SIM] Rule engine error: {str(e)}"
+        if logger: logger(error_msg)
+        state.log_event(error_msg)
 
-    overlays_now = getattr(state, 'overlays', {})
+    # Apply learning engine if provided
+    if learning_engine is not None:
+        try:
+            learning_engine.process_turn(state)
+            if logger: logger("[SIM] Applied learning engine processing")
+        except Exception as e:
+            error_msg = f"[SIM] Learning engine error: {str(e)}"
+            if logger: logger(error_msg)
+            state.log_event(error_msg)
+
+    # Get current overlay state
+    try:
+        overlays_now = _copy_overlay(getattr(state, 'overlays', {}))
+    except Exception as e:
+        error_msg = f"[SIM] Failed to copy final overlays: {e}"
+        if logger: logger(error_msg)
+        state.log_event(error_msg)
+        overlays_now = {}
+
+    # Validate overlay structure
     if not _validate_overlay(overlays_now):
         msg = "[SIM] Warning: overlays structure invalid after turn."
         if logger: logger(msg)
         state.log_event(msg)
+
+    # Check for missing overlay keys
     missing_keys = set(pre_overlay) - set(overlays_now)
     if missing_keys:
         msg = f"[SIM] Warning: overlays missing keys after turn: {missing_keys}"
         if logger: logger(msg)
         state.log_event(msg)
+
     # Compute overlay deltas for each key in pre_overlay
     output = {
         "turn": getattr(state, 'turn', -1),
         "timestamp": datetime.utcnow().isoformat(),
-        "overlays": _copy_overlay(overlays_now),
+        "overlays": overlays_now,
         "deltas": {
-            k: round(overlays_now.get(k, 0.0) - pre_overlay[k], 3) for k in pre_overlay
+            k: round(overlays_now.get(k, 0.0) - pre_overlay.get(k, 0.0), 3) 
+            for k in set(pre_overlay) | set(overlays_now)
         }
     }
 
+    # Apply symbolic tagging
     if use_symbolism:
         try:
-            tag = tag_symbolic_state(overlays_now, sim_id=getattr(state, 'sim_id', None), turn=getattr(state, 'turn', -1))
-            output["symbolic_tag"] = tag.get("symbolic_tag", "N/A")
-            log_episode_event(overlays_now, sim_id=getattr(state, 'sim_id', None), turn=getattr(state, 'turn', -1), tag=output["symbolic_tag"])
+            tag_result = tag_symbolic_state(
+                overlays_now, 
+                sim_id=getattr(state, 'sim_id', None), 
+                turn=getattr(state, 'turn', -1)
+            )
+            output.update(tag_result)
         except Exception as e:
-            msg = f"[SIM] Symbolic system error: {e}"
-            if logger: logger(msg)
-            state.log_event(msg)
+            error_msg = f"[SIM] Symbolic tagging error: {str(e)}"
+            if logger: logger(error_msg)
+            state.log_event(error_msg)
             output["symbolic_tag"] = "error"
+            output["symbolic_score"] = 0.0
 
+    # Add fired rules if in full mode
     if return_mode == "full":
-        output["worldstate_snapshot"] = {
-            "vars": dict(getattr(state, 'variables', {})),
-            "overlays": _copy_overlay(overlays_now),
-            "event_log": list(getattr(state, 'events', [])[-3:])  # last few entries
-        }
+        output["fired_rules"] = getattr(state, 'last_fired_rules', [])
+        output["full_state"] = state.snapshot()
 
-    msg = f"[SIM] Turn {getattr(state, 'turn', -1)} complete."
-    if logger: logger(msg)
-    state.log_event(msg)
-    state.turn = getattr(state, 'turn', 0) + 1
-
-    if learning_engine is None:
-        # Use global learning engine if not provided
-        try:
-            global_learning_engine = LearningEngine()
-            global_learning_engine.on_simulation_turn_end(state.snapshot())
-        except Exception as e:
-            if logger: logger(f"[SIM] Learning engine error: {e}")
-            state.log_event(f"[SIM] Learning engine error: {e}")
-    else:
-        try:
-            learning_engine.on_simulation_turn_end(state.snapshot())
-        except Exception as e:
-            if logger: logger(f"[SIM] Learning engine error: {e}")
-            state.log_event(f"[SIM] Learning engine error: {e}")
-
+    # --- Trust enrichment ---
+    output = TrustEngine.enrich_trust_metadata(output)
+    # Warn if trust_label or confidence missing
+    if "trust_label" not in output or "confidence" not in output:
+        if logger:
+            logger("[TRUST] Warning: trust_label or confidence missing from simulation output.")
     return output
 
 def simulate_forward(
@@ -194,7 +232,10 @@ def simulate_forward(
     return_mode: Literal["summary", "full"] = "summary",
     logger: Optional[Callable[[str], None]] = None,
     progress_callback: Optional[Callable[[int, int], None]] = None,
-    learning_engine=None
+    learning_engine=None,
+    checkpoint_every: Optional[int] = None,
+    checkpoint_path: Optional[str] = None,
+    parallel: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Runs multiple turns of forward simulation.
@@ -213,12 +254,31 @@ def simulate_forward(
     """
     if not isinstance(turns, int) or turns <= 0:
         raise ValueError("turns must be a positive integer")
+    if parallel:
+        raise NotImplementedError("Parallel execution is not yet supported")
     results = []
     for i in range(turns):
         turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger, learning_engine=learning_engine)
         results.append(turn_data)
+        # Checkpointing
+        if checkpoint_every and checkpoint_path and (i + 1) % checkpoint_every == 0:
+            try:
+                snapshot = state.snapshot()
+                filepath = f"{checkpoint_path}_turn_{i+1}.json"
+                with open(filepath, "w", encoding="utf-8") as f:
+                    json.dump(snapshot, f)
+                if logger: logger(f"[SIM] Checkpoint saved to {filepath}")
+            except Exception as e:
+                if logger: logger(f"[SIM] Checkpoint error: {e}")
         if progress_callback:
             progress_callback(i + 1, turns)
+    # --- Batch trust enrichment (redundant if already done in simulate_turn, but ensures all are processed) ---
+    results = TrustEngine.apply_all(results)
+    # Warn if any result missing trust_label/confidence
+    for r in results:
+        if "trust_label" not in r or "confidence" not in r:
+            if logger:
+                logger("[TRUST] Warning: trust_label or confidence missing from simulation batch output.")
     return results
 
 def inverse_decay(value: float, rate: float = 0.01, floor: float = 0.0, ceil: float = 1.0) -> float:
@@ -297,8 +357,15 @@ def simulate_backward(
             "step": -(step + 1),
             "overlays": prior_overlays.copy(),
             "deltas": deltas,
-            "symbolic_tag": symbolic_tag
+            "symbolic_tag": symbolic_tag,
+            "matched_rules": match_rule_by_delta(deltas, get_all_rule_fingerprints())
         }
+        # Reverse causal logic stub: infer prior causes
+        try:
+            inferred = reverse_rule_engine(state, entry["overlays"], dict(getattr(state, 'variables', {})), step + 1)
+            entry["inferred_priors"] = inferred
+        except Exception as e:
+            if logger: logger(f"[SIM-BACK] Reverse rule error: {e}")
         trace.append(entry)
         symbolic_trace.append(prior_overlays.copy())
         prev_overlays = prior_overlays
