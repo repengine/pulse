@@ -572,9 +572,10 @@ class LearningEngine:
             return
         print("⚠️ Symbolic contradiction clusters found:")
         for cluster in clusters:
-            log_learning_event("symbolic_contradiction_cluster", {
+            log_learning_event("symbolic_contradiction", {
                 "origin_turn": cluster["origin_turn"],
-                "conflicts": cluster["conflicts"]
+                "conflicts": cluster["conflicts"],
+                "timestamp": datetime.utcnow().isoformat()
             })
             print(f"🌀 Turn {cluster['origin_turn']} — {len(cluster['conflicts'])} conflict(s)")
 

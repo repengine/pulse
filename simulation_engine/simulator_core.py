@@ -54,6 +54,7 @@ except ImportError:
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path
 from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta       # updated path
+from src.engine import LearningEngine, log_learning_event
 
 from typing import Dict, List, Any, Literal, Optional, Callable
 from datetime import datetime
@@ -169,8 +170,20 @@ def simulate_turn(
     state.log_event(msg)
     state.turn = getattr(state, 'turn', 0) + 1
 
-    if learning_engine is not None:
-        learning_engine.on_simulation_turn_end(state.snapshot())
+    if learning_engine is None:
+        # Use global learning engine if not provided
+        try:
+            global_learning_engine = LearningEngine()
+            global_learning_engine.on_simulation_turn_end(state.snapshot())
+        except Exception as e:
+            if logger: logger(f"[SIM] Learning engine error: {e}")
+            state.log_event(f"[SIM] Learning engine error: {e}")
+    else:
+        try:
+            learning_engine.on_simulation_turn_end(state.snapshot())
+        except Exception as e:
+            if logger: logger(f"[SIM] Learning engine error: {e}")
+            state.log_event(f"[SIM] Learning engine error: {e}")
 
     return output
 

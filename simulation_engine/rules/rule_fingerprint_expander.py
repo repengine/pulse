@@ -20,13 +20,14 @@ from simulation_engine.rules.rule_registry import RuleRegistry
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
-def load_rule_fingerprints(path: str = None):
-    return [r for r in _registry.rules if r.get("effects")]
+def get_all_rule_fingerprints() -> list:
+    """Return all rule fingerprints from the unified registry."""
+    return [r for r in _registry.rules if r.get("effects") or r.get("effect")]
 
 def validate_fingerprint_schema(fingerprints: list) -> list:
     errors = []
     for i, rule in enumerate(fingerprints):
-        if "rule_id" not in rule or "effects" not in rule:
+        if "rule_id" not in rule and "id" not in rule or "effects" not in rule:
             errors.append(f"Entry {i} missing required fields: {rule}")
     return errors
 
@@ -62,7 +63,7 @@ def suggest_fingerprints(forecasts: list, min_conf: float = 0.7) -> list:
 
 def validate_fingerprints_file(path: str):
     try:
-        fps = load_rule_fingerprints(path)
+        fps = get_all_rule_fingerprints()
         errors = validate_fingerprint_schema(fps)
         if errors:
             print("❌ Errors:")

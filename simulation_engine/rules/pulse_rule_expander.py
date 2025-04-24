@@ -26,9 +26,12 @@ REGRET_FILE = "data/regret_chain.jsonl"
 FINGERPRINT_FILE = "data/rule_fingerprints.json"
 SUGGESTED_FILE = "data/candidate_rules.json"
 
-# Use RuleRegistry for unified rule access
+# Use RuleRegistry for all rule access
 _registry = RuleRegistry()
 _registry.load_all_rules()
+
+def get_all_rule_fingerprints() -> list:
+    return [r for r in _registry.rules if r.get("effects") or r.get("effect")]
 
 def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
     regrets = []
@@ -42,7 +45,7 @@ def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
 
 def load_rules(path: str = None) -> Dict[str, Dict]:
     # Return a dict keyed by rule_id for compatibility
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
 
 def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[str]:
     covered_arcs = {r.get("arc_label") for r in rules.values() if r.get("arc_label")}

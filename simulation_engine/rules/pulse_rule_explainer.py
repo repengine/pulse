@@ -19,11 +19,11 @@ import json
 from typing import Dict, List, Tuple
 from simulation_engine.rules.rule_registry import RuleRegistry
 
-# Use RuleRegistry for unified rule access
+# Use RuleRegistry for all rule access
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
-def load_rule_fingerprints(path=None) -> Dict:
+def get_all_rule_fingerprints() -> Dict:
     # Return a dict keyed by rule_id for compatibility
     return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
 

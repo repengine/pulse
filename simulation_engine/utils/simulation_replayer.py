@@ -22,6 +22,7 @@ from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from core.pulse_learning_log import log_learning_event
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
@@ -50,7 +51,7 @@ class SimulationReplayer:
             data = json.load(f)
         return WorldState.from_dict(data)
 
-    def replay(self):
+    def replay(self, replay_id=None):
         files = sorted(f for f in os.listdir(self.log_dir) if f.endswith(".json"))
         if self.config.step_limit:
             files = files[:self.config.step_limit]
@@ -91,6 +92,13 @@ class SimulationReplayer:
                 json.dump(self.replay_log, f, indent=2)
             if self.config.verbose:
                 logger.info(f"\nReplay log written to {log_file}")
+
+        if replay_id:
+            log_learning_event("simulation_replay", {
+                "replay_id": replay_id,
+                "outcome": "completed",
+                "timestamp": datetime.utcnow().isoformat()
+            })
 
     def replay_last_run(self):
         """

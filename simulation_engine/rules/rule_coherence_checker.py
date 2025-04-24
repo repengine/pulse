@@ -21,13 +21,12 @@ from typing import List, Dict, Tuple, Optional
 from pathlib import Path
 from simulation_engine.rules.rule_registry import RuleRegistry
 
-# Use RuleRegistry for unified rule access
+# Use RuleRegistry for all rule access
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
-def load_rule_fingerprints(path: str = None) -> Dict:
-    """Load rule fingerprints using RuleRegistry."""
-    # Return a dict keyed by rule_id for compatibility
+def get_all_rule_fingerprints() -> dict:
+    """Retrieve all rule fingerprints using RuleRegistry."""
     return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
 
 def detect_conflicting_triggers(rules: Dict[str, Dict]) -> List[Tuple[str, str, str]]:
@@ -70,9 +69,9 @@ def detect_duplicate_rules(rules: Dict[str, Dict]) -> List[Tuple[str, str]]:
             seen[sig] = rid
     return dups
 
-def scan_rule_coherence(fpath: str = None) -> Dict:
+def scan_rule_coherence() -> Dict:
     """Run all rule coherence scans."""
-    rules = load_rule_fingerprints(fpath)
+    rules = get_all_rule_fingerprints()
     result = {
         "conflicting_triggers": detect_conflicting_triggers(rules),
         "opposite_effects": detect_opposite_effects(rules),
@@ -84,8 +83,7 @@ def scan_rule_coherence(fpath: str = None) -> Dict:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Pulse Rule Coherence Checker")
-    parser.add_argument("--file", default=None, help="Path to rule fingerprint file")
     args = parser.parse_args()
 
-    result = scan_rule_coherence(args.file)
+    result = scan_rule_coherence()
     print(json.dumps(result, indent=2))

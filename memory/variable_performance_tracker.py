@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from core.path_registry import PATHS
 from core.variable_registry import VARIABLE_REGISTRY
+from core.pulse_learning_log import log_learning_event
 
 LOG_PATH = PATHS.get("VARIABLE_SCORE_LOG", "logs/variable_score_log.jsonl")
 SCORE_EXPORT_PATH = PATHS.get("VARIABLE_SCORE_EXPORT", "logs/variable_score_summary.json")
@@ -122,6 +123,17 @@ class VariablePerformanceTracker:
             if stat.get("avg_fragility", 0) > threshold or stat.get("certified_ratio", 1) < (1 - threshold):
                 outliers.append(var)
         return outliers
+
+    def update_performance(self, var_name, new_score):
+        """
+        Updates the performance of a variable and logs the learning event.
+        """
+        log_learning_event("memory_update", {
+            "event": "variable_performance_update",
+            "variable": var_name,
+            "new_score": new_score,
+            "timestamp": datetime.utcnow().isoformat()
+        })
 
 # === Example CLI usage
 if __name__ == "__main__":

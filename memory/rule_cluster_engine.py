@@ -12,23 +12,16 @@ import os
 from typing import Dict, List, Optional
 from core.path_registry import PATHS
 from collections import defaultdict
+from simulation_engine.rules.rule_registry import RuleRegistry
 
-RULE_REGISTRY_PATH = PATHS.get("RULE_REGISTRY", "configs/rule_registry.json")
 RULE_MUTATION_LOG = PATHS.get("RULE_MUTATION_LOG", "logs/rule_mutation_log.jsonl")
 
+_registry = RuleRegistry()
+_registry.load_all_rules()
 
-def load_rules(path: Optional[str] = None) -> Dict[str, Dict]:
-    """Loads the current rule registry from disk."""
-    path = path or RULE_REGISTRY_PATH
-    if not os.path.exists(path):
-        print(f"[RuleCluster] Missing rule registry at: {path}")
-        return {}
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"[RuleCluster] Load error: {e}")
-        return {}
+def get_all_rules() -> dict:
+    """Return all rules from the unified registry keyed by rule_id or id."""
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)}
 
 
 def cluster_rules_by_domain(rules: Dict[str, Dict]) -> Dict[str, List[str]]:
@@ -72,7 +65,7 @@ def summarize_rule_clusters(verbose: bool = False) -> List[Dict]:
             - volatility_score (float)
             - size (int)
     """
-    rules = load_rules()
+    rules = get_all_rules()
     if not rules:
         return []
     clusters = cluster_rules_by_domain(rules)

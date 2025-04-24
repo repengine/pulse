@@ -15,8 +15,10 @@ from typing import Dict, List, Any
 
 from core.path_registry import PATHS
 from simulation_engine.rule_cluster_engine import score_rule_volatility
+from simulation_engine.rules.rule_registry import RuleRegistry
+from core.pulse_learning_log import log_learning_event
+from datetime import datetime
 
-RULE_REGISTRY_PATH = PATHS.get("RULE_REGISTRY", "configs/rule_registry.json")
 RULE_MUTATION_LOG = PATHS.get("RULE_MUTATION_LOG", "logs/rule_mutation_log.jsonl")
 
 logging.basicConfig(
@@ -24,33 +26,12 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-def load_rules() -> Dict[str, Dict[str, Any]]:
-    """
-    Loads the rule registry from disk.
-    Returns an empty dict if loading fails.
-    """
-    try:
-        with open(RULE_REGISTRY_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if not isinstance(data, dict):
-                logging.error("Rule registry is not a dict.")
-                return {}
-            return data
-    except Exception as e:
-        logging.error(f"Failed to load rules: {e}")
-        return {}
+_registry = RuleRegistry()
+_registry.load_all_rules()
 
-def save_rules(rules: Dict[str, Dict[str, Any]]) -> None:
-    """
-    Saves the rule registry to disk atomically.
-    """
-    tmp_path = RULE_REGISTRY_PATH + ".tmp"
-    try:
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(rules, f, indent=2)
-        os.replace(tmp_path, RULE_REGISTRY_PATH)
-    except Exception as e:
-        logging.error(f"Failed to save rules: {e}")
+def get_all_rules() -> dict:
+    """Return all rules from the unified registry keyed by rule_id or id."""
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)}
 
 def propose_rule_mutations(rules: Dict[str, Dict[str, Any]], top_n: int = 5) -> List[Dict[str, Any]]:
     """
@@ -75,13 +56,14 @@ def propose_rule_mutations(rules: Dict[str, Dict[str, Any]], top_n: int = 5) -> 
         rule["threshold"] = new_threshold
         mutations.append({"rule": rule_id, "from": old, "to": new_threshold})
         logging.info(f"Mutated rule {rule_id}: threshold {old} -> {new_threshold}")
+        log_learning_event("rule_mutation", {"rule_id": rule_id, "from": old, "to": new_threshold, "timestamp": datetime.utcnow().isoformat()})
     return mutations
 
 def apply_rule_mutations() -> None:
     """
     Loads rules, applies mutations, saves, and logs the changes.
     """
-    rules = load_rules()
+    rules = get_all_rules()
     if not rules:
         print("[RuleMutation] No rules loaded.")
         return
@@ -91,15 +73,15 @@ def apply_rule_mutations() -> None:
         print("[RuleMutation] No mutations proposed.")
         return
 
-    save_rules(rules)
-
     try:
         with open(RULE_MUTATION_LOG, "a", encoding="utf-8") as f:
             for m in mutations:
                 f.write(json.dumps({"mutation": m}) + "\n")
         print(f"✅ Applied {len(mutations)} rule mutations.")
+        log_learning_event("rule_mutation_batch", {"count": len(mutations), "timestamp": datetime.utcnow().isoformat()})
     except Exception as e:
         logging.error(f"Failed to log rule mutations: {e}")
+        log_learning_event("exception", {"error": str(e), "context": "apply_rule_mutations", "timestamp": datetime.utcnow().isoformat()})
 
 def test_rule_mutation_engine():
     """

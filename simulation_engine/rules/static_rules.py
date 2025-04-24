@@ -35,13 +35,3 @@ def build_static_rules():
         }
     ]
     return rules
-
-# Register static rules with the central registry if imported as main module
-try:
-    from simulation_engine.rules.rule_registry import RuleRegistry
-    _static_rules = build_static_rules()
-    registry = RuleRegistry()
-    registry.static_rules = _static_rules
-    registry.rules.extend(_static_rules)
-except Exception as e:
-    print(f"[static_rules] Could not register static rules: {e}")

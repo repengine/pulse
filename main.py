@@ -16,6 +16,7 @@ Options:
 import sys
 import os
 import argparse
+from datetime import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.log_utils import get_logger
@@ -39,6 +40,7 @@ from forecast_output.digest_exporter import export_digest, export_digest_json
 from forecast_output.strategos_digest_builder import build_digest
 from operator_interface.pulse_prompt_logger import log_prompt
 from forecast_engine.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
+from core.pulse_learning_log import log_learning_event
 
 def run_pulse_simulation(turns: int = 5):
     """
@@ -60,6 +62,7 @@ def run_pulse_simulation(turns: int = 5):
             log_forecast_to_pfpa(forecast)
         except Exception as e:
             logger.error(f"❌ Forecast error: {e}")
+            log_learning_event("exception", {"error": str(e), "context": "forecast_generation", "timestamp": datetime.utcnow().isoformat()})
             continue
 
     digest = generate_strategos_digest(memory, n=min(turns, 5))
@@ -70,14 +73,18 @@ def run_pulse_simulation(turns: int = 5):
 try:
     from trust_system.retrodiction_engine import simulate_retrodiction_test
     simulate_retrodiction_test()
+    log_learning_event("forecast_scored", {"forecast_id": "retrodiction_test", "score": "success", "timestamp": datetime.utcnow().isoformat()})
 except Exception as e:
     logger.warning(f"⚠️ Retrodiction failed: {e}")
+    log_learning_event("exception", {"error": str(e), "context": "retrodiction_test", "timestamp": datetime.utcnow().isoformat()})
 # Strategic trust audit
 try:
     from learning.trust_audit import audit_forecasts
     audit_forecasts()
+    log_learning_event("symbolic_contradiction", {"details": "audit_success", "timestamp": datetime.utcnow().isoformat()})
 except Exception as e:
     logger.warning(f"⚠️ Audit failed: {e}")
+    log_learning_event("exception", {"error": str(e), "context": "trust_audit", "timestamp": datetime.utcnow().isoformat()})
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Simulation Engine")
@@ -93,3 +100,4 @@ if __name__ == "__main__":
             logger.info(f"Digest exported to {args.output}")
         except Exception as e:
             logger.error(f"Failed to export digest: {e}")
+            log_learning_event("exception", {"error": str(e), "context": "digest_export", "timestamp": datetime.utcnow().isoformat()})

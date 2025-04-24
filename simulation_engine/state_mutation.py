@@ -9,6 +9,8 @@ Author: Pulse v3.5
 
 from simulation_engine.worldstate import WorldState
 from typing import Any
+from core.pulse_learning_log import log_learning_event
+from datetime import datetime
 
 
 def update_numeric_variable(state: WorldState, name: str, delta: float, min_val: float = 0.0, max_val: float = 1.0):
@@ -31,6 +33,7 @@ def decay_overlay(state: WorldState, overlay: str, rate: float = 0.01):
         new_value = max(0.0, current_value - rate)
         setattr(state.overlays, overlay, new_value)
         state.log_event(f"Overlay '{overlay}' decayed from {current_value:.3f} to {new_value:.3f}")
+        log_learning_event("overlay_shift", {"overlay": overlay, "old_value": current_value, "new_value": new_value, "timestamp": datetime.utcnow().isoformat()})
 
 
 def adjust_overlay(state: WorldState, overlay: str, delta: float):
@@ -42,6 +45,7 @@ def adjust_overlay(state: WorldState, overlay: str, delta: float):
         new_value = max(0.0, min(1.0, current_value + delta))
         setattr(state.overlays, overlay, new_value)
         state.log_event(f"Overlay '{overlay}' adjusted by {delta:.3f} to {new_value:.3f}")
+        log_learning_event("overlay_shift", {"overlay": overlay, "old_value": current_value, "new_value": new_value, "timestamp": datetime.utcnow().isoformat()})
 
 
 def adjust_capital(state: WorldState, asset: str, delta: float):
@@ -50,5 +54,7 @@ def adjust_capital(state: WorldState, asset: str, delta: float):
     """
     if hasattr(state.capital, asset):
         current = getattr(state.capital, asset)
-        setattr(state.capital, asset, current + delta)
-        state.log_event(f"Capital exposure for '{asset}' changed by {delta:.2f} to {getattr(state.capital, asset):.2f}")
+        new_value = current + delta
+        setattr(state.capital, asset, new_value)
+        state.log_event(f"Capital exposure for '{asset}' changed by {delta:.2f} to {new_value:.2f}")
+        log_learning_event("capital_shift", {"asset": asset, "old_value": current, "new_value": new_value, "timestamp": datetime.utcnow().isoformat()})

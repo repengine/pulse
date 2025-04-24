@@ -91,12 +91,13 @@ def flag_divergence(forecasts: List[Dict]) -> List[str]:
         ['Divergence: C from parent A']
     """
     forks = []
-    seen = set()
+    children_count = {}
     for f in forecasts:
         parent = f.get("parent_id")
-        if parent and parent in seen:
-            forks.append(f"Divergence: {f.get('trace_id')} from parent {parent}")
-        seen.add(f.get("trace_id"))
+        if parent:
+            children_count[parent] = children_count.get(parent, 0) + 1
+            if children_count[parent] > 1:
+                forks.append(f"Divergence: {f.get('trace_id')} from parent {parent}")
     logger.info(f"Divergence flagging: {len(forks)} forks found.")
     return forks
 

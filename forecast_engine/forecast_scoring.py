@@ -11,6 +11,8 @@ Author: Pulse v0.10
 """
 
 from simulation_engine.worldstate import WorldState
+from core.pulse_learning_log import log_learning_event
+from datetime import datetime
 
 def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
     """
@@ -47,8 +49,15 @@ def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
     fragility = 1.0 - (0.03 * diversity_factor)
     fragility = max(0.0, min(fragility, 1.0))
 
-    return {
+    result = {
         "confidence": round(confidence, 3),
         "fragility": round(fragility, 3),
         "symbolic_driver": symbolic_driver
     }
+    log_learning_event("forecast_scored", {
+        "confidence": result["confidence"],
+        "fragility": result["fragility"],
+        "symbolic_driver": result["symbolic_driver"],
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    return result

@@ -36,6 +36,7 @@ def compute_alignment_index(
     current_state: Optional[Dict] = None,
     memory: Optional[list] = None,
     arc_volatility: Optional[float] = None,
+    tag_match: Optional[float] = None,
     weights: Optional[Dict[str, float]] = None
 ) -> Dict[str, float]:
     """
@@ -100,10 +101,13 @@ def compute_alignment_index(
 
     # --- Tag Match ---
     try:
-        tag = forecast.get("symbolic_tag", "").lower()
-        # For demonstration, tag match is 1.0 if tag is in a trusted set
-        trusted_tags = {"hope", "trust", "recovery", "neutral"}
-        tag_match = 1.0 if tag in trusted_tags else 0.0
+        if tag_match is None:
+            tag = forecast.get("symbolic_tag", "").lower()
+            trusted_tags = {"hope", "trust", "recovery", "neutral"}
+            tag_match = 1.0 if tag in trusted_tags else 0.0
+        else:
+            tag_match = float(tag_match)
+        tag_match = max(0.0, min(tag_match, 1.0))
     except Exception:
         tag_match = 0.0
 
@@ -130,7 +134,8 @@ def compute_alignment_index(
 
     return {
         "alignment_score": alignment_score,
-        "components": components
+        "components": components,
+        "forecast_id": forecast.get("trace_id")
     }
 
 # --- Simple test ---

@@ -14,6 +14,8 @@ from typing import List, Dict, Optional
 
 # 🧩 Import license enforcement utilities for use in memory/export flows
 from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+from core.pulse_learning_log import log_learning_event
+from datetime import datetime
 
 BLOCKED_MEMORY_LOG = "logs/blocked_memory_log.jsonl"
 
@@ -47,6 +49,11 @@ class ForecastMemory:
         self._enforce_memory_limit()
         if self.persist_dir:
             self._persist_to_file(forecast_obj)
+        log_learning_event("memory_update", {
+            "event": "forecast_stored",
+            "forecast_id": forecast_obj.get("trace_id"),
+            "timestamp": datetime.utcnow().isoformat()
+        })
 
     def get_recent(self, n: int = 10, domain: Optional[str] = None) -> List[Dict]:
         """Retrieves the N most recent forecasts, optionally filtered by domain."""

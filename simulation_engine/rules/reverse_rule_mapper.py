@@ -11,17 +11,14 @@ import json
 from typing import Dict, List, Tuple, Optional
 from simulation_engine.rules.rule_registry import RuleRegistry
 
-FINGERPRINTS_PATH = "rules/rule_fingerprints.json"
-
-# Use RuleRegistry for unified rule access
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
-def load_rule_fingerprints(path: str = None) -> List[Dict]:
+def get_all_rule_fingerprints() -> List[Dict]:
     """
-    Loads rule fingerprints from the RuleRegistry.
+    Return all rule fingerprints from the unified registry.
     """
-    return [r for r in _registry.rules if r.get("effects")]
+    return [r for r in _registry.rules if r.get("effects") or r.get("effect")]
 
 def match_rule_by_delta(
     delta: Dict[str, float],
@@ -41,7 +38,7 @@ def match_rule_by_delta(
         List of (rule_id, match_score) tuples, sorted by score descending.
     """
     if fingerprints is None:
-        fingerprints = load_rule_fingerprints()
+        fingerprints = get_all_rule_fingerprints()
     results = []
     for rule in fingerprints:
         effects = rule.get("effects", {})
@@ -50,7 +47,7 @@ def match_rule_by_delta(
             continue
         score = sum(1 for k in match_keys if abs(effects[k] - delta[k]) < 1e-3) / max(len(effects), 1)
         if score >= min_match:
-            results.append((rule["rule_id"], score))
+            results.append((rule.get("rule_id") or rule.get("id"), score))
     return sorted(results, key=lambda x: -x[1])
 
 def validate_fingerprint_schema(fingerprints: List[Dict]) -> List[str]:
@@ -60,7 +57,7 @@ def validate_fingerprint_schema(fingerprints: List[Dict]) -> List[str]:
     """
     errors = []
     for i, rule in enumerate(fingerprints):
-        if "rule_id" not in rule or "effects" not in rule:
+        if "rule_id" not in rule and "id" not in rule or "effects" not in rule:
             errors.append(f"Entry {i} missing required fields: {rule}")
     return errors
 
@@ -71,7 +68,7 @@ if __name__ == "__main__":
     parser.add_argument("--match", nargs="+", help="Match delta: key1=val1 key2=val2 ...")
     args = parser.parse_args()
     if args.validate:
-        fps = load_rule_fingerprints()
+        fps = get_all_rule_fingerprints()
         errs = validate_fingerprint_schema(fps)
         if errs:
             print("❌ Schema errors:")
@@ -84,7 +81,7 @@ if __name__ == "__main__":
         for kv in args.match:
             k, v = kv.split("=")
             delta[k] = float(v)
-        matches = match_rule_by_delta(delta, load_rule_fingerprints())
+        matches = match_rule_by_delta(delta, get_all_rule_fingerprints())
         print("Matches:", matches)
     else:
         parser.print_help()
