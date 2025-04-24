@@ -11,7 +11,7 @@ Author: Pulse AI Engine
 
 import argparse
 import json
-from trust.forecast_audit_trail import generate_forecast_audit, log_forecast_audit
+from trust_system.forecast_audit_trail import generate_forecast_audit, log_forecast_audit
 
 def load_jsonl(path):
     with open(path, "r") as f:

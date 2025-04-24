@@ -12,7 +12,7 @@ Available digest templates:
 UI integration: The digest builder supports template selection via the `template` argument in both CLI and UI (see live_digest_ui in strategos_digest.py).
 
 Usage:
-    from strategos_digest_builder import build_digest
+    from forecast_output.strategos_digest_builder import build_digest
     digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
 
 Author: Pulse AI Engine

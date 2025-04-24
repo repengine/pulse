@@ -19,7 +19,7 @@ from learning.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
 from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
-from core.variable_cluster_engine import summarize_clusters
+from memory.variable_cluster_engine import summarize_clusters
 from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md
 from operator_interface.mutation_digest_exporter import export_full_digest
 from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md
@@ -72,7 +72,7 @@ def run_forecast_pipeline_ui(last_batch=None, log=None):
     """UI helper to run the forecast pipeline on last batch or file."""
     import tkinter
     from tkinter import filedialog, messagebox
-    from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
+    from learning.forecast_pipeline_runner import run_forecast_pipeline
 
     if last_batch and isinstance(last_batch, list) and last_batch:
         forecasts = last_batch
@@ -179,3 +179,24 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def display_forecast_visualization(simulation_forecast, ai_forecast, ensemble_forecast, performance_metrics=None):
+    """
+    Display a visualization of forecasts and performance metrics.
+    
+    Args:
+        simulation_forecast (dict): Simulation-based forecast with key 'value'.
+        ai_forecast (dict): AI forecast adjustments with key 'adjustment'.
+        ensemble_forecast (dict): Ensemble forecast with key 'ensemble_forecast'.
+        performance_metrics (dict, optional): Performance metrics such as MAE and RMSE.
+    """
+    print("\n--- Forecast Visualization ---")
+    print("Simulation Forecast: {:.2f}".format(simulation_forecast.get('value', 0.0)))
+    print("AI Forecast Adjustment: {:.2f}".format(ai_forecast.get('adjustment', 0.0)))
+    print("Ensemble Forecast: {:.2f}".format(ensemble_forecast.get('ensemble_forecast', 0.0)))
+    
+    if performance_metrics:
+        print("\nPerformance Metrics:")
+        for metric, value in performance_metrics.items():
+            print("  {}: {:.2f}".format(metric, value))
+    print("------------------------------\n")

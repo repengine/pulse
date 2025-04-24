@@ -5,7 +5,7 @@ Scans directories for Python modules with CLI hook candidates (main/run function
 Returns a list of hookable modules and associated metadata for CLI integration.
 
 Usage:
-    from hook_utils import scan_for_hooks
+    from dev_tools.hook_utils import scan_for_hooks
     modules, metadata = scan_for_hooks(["dev_tools", "simulation_engine/forecasting"])
 
 Returned hookable_modules: List[Dict[str, Any]] with keys:

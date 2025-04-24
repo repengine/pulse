@@ -13,7 +13,7 @@ import argparse
 import json
 from typing import List, Dict, Any
 import os
-from symbolic_system.symbolic_tuning_engine import (
+from forecast_output.symbolic_tuning_engine import (
     simulate_revised_forecast,
     compare_scores,
     log_tuning_result

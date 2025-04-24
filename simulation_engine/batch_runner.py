@@ -21,7 +21,7 @@ from core.path_registry import PATHS
 from simulation_engine.turn_engine import run_turn
 from simulation_engine.worldstate import WorldState
 from forecast_output.forecast_generator import generate_forecast
-from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
+from learning.forecast_pipeline_runner import run_forecast_pipeline
 from utils.log_utils import log_info
 
 

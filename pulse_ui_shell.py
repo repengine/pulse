@@ -43,7 +43,7 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from core.pulse_config import MODULES_ENABLED
 from core.variable_registry import VARIABLE_REGISTRY
-from learning.learning.py import retrospective_analysis_batch
+from learning.learning import retrospective_analysis_batch
 from trust_system.trust_engine import TrustEngine
 import core.pulse_config
 
@@ -179,7 +179,7 @@ def main() -> None:
 
             # After forecasts are loaded:
             if args.promote_memory:
-                from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
+                from forecast_output.forecast_memory_promoter import select_promotable_forecasts, export_promoted
                 selected = select_promotable_forecasts(scored)
                 export_promoted(selected)
 

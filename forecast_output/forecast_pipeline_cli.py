@@ -16,7 +16,7 @@ Author: Pulse AI Engine
 import argparse
 import json
 import sys
-from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
+from learning.forecast_pipeline_runner import run_forecast_pipeline
 
 def load_jsonl(path):
     with open(path, "r") as f:

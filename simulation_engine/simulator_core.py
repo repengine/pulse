@@ -44,12 +44,12 @@ Author: Pulse AI Engine
 from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import decay_overlay
 from simulation_engine.rule_engine import run_rules
-from forecast_output.forecast_episode_logger import log_episode_event  # optional
+from trust_system.forecast_episode_logger import log_episode_event  # optional
 # Use relative import if possible, fallback to absolute
 try:
     from symbolic_system.symbolic_state_tagger import tag_symbolic_state
 except ImportError:
-    from main.symbolic_system.symbolic_state_tagger import tag_symbolic_state
+    from symbolic_system.symbolic_state_tagger import tag_symbolic_state
 
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path

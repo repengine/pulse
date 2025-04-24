@@ -28,7 +28,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 sys.path.append(os.path.abspath("pulse"))
 
 from simulation_engine.worldstate import WorldState
-from forecast_output.forecast_batch_runner import run_forecast_batch
+from forecast_engine.forecast_batch_runner import run_forecast_batch
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory
@@ -689,7 +689,7 @@ class PulseControlApp:
     def visualize_arc_distribution(self):
         """Load forecasts and show symbolic arc distribution plot."""
         from tkinter import filedialog
-        from pulse.symbolic_analysis.pulse_symbolic_arc_tracker import (
+        from symbolic_system.pulse_symbolic_arc_tracker import (
             track_symbolic_arcs, plot_arc_distribution
         )
 
@@ -709,7 +709,7 @@ class PulseControlApp:
     def run_alignment_batch_analysis(self):
         """Run alignment scoring on a forecast batch via CLI bridge."""
         from tkinter import filedialog
-        from pulse.trust.alignment_index import compute_alignment_index
+        from trust_system.alignment_index import compute_alignment_index
 
         path = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
         if not path:
@@ -739,7 +739,7 @@ class PulseControlApp:
     def log_batch_forecast_audits(self):
         """GUI wrapper to audit and log all forecasts in a batch."""
         from tkinter import filedialog
-        from trust.forecast_audit_trail import generate_forecast_audit, log_forecast_audit
+        from trust_system.forecast_audit_trail import generate_forecast_audit, log_forecast_audit
 
         file = filedialog.askopenfilename(title="Select forecast batch (.jsonl)")
         if not file:
@@ -761,7 +761,7 @@ class PulseControlApp:
 
     def view_episode_summary(self):
         """Display a symbolic episode summary from memory log."""
-        from trust.forecast_episode_logger import summarize_episodes
+        from trust_system.forecast_episode_logger import summarize_episodes
         from tkinter import filedialog
 
         file = filedialog.askopenfilename(title="Select episode log (JSONL)")
@@ -777,7 +777,7 @@ class PulseControlApp:
 
     def generate_operator_brief_gui(self):
         """Select alignment + episode log and generate operator markdown brief."""
-        from operator.operator_brief_generator import generate_operator_brief
+        from operator_interface.operator_brief_generator import generate_operator_brief
         from tkinter import filedialog
 
         alignment = filedialog.askopenfilename(title="Select alignment-scored forecasts (.jsonl)")
@@ -797,7 +797,7 @@ class PulseControlApp:
     def plot_arc_drift_across_cycles(self):
         """Plot arc drift between two symbolic episode logs."""
         from tkinter import filedialog
-        from trust.forecast_episode_logger import summarize_episodes
+        from trust_system.forecast_episode_logger import summarize_episodes
         import matplotlib.pyplot as plt
 
         prev = filedialog.askopenfilename(title="Select previous episode log")
@@ -955,7 +955,7 @@ class PulseControlApp:
     def review_blocked_memory(self):
         """Open blocked memory log and review license reasons + optionally export."""
         from tkinter import filedialog, simpledialog
-        from tools.memory_recovery_viewer import load_blocked_forecasts, export_subset
+        from dev_tools.memory_recovery_viewer import load_blocked_forecasts, export_subset
 
         path = filedialog.askopenfilename(title="Select blocked_memory_log.jsonl")
         if not path:
@@ -1007,7 +1007,7 @@ class PulseControlApp:
 
     def run_symbolic_sweep_gui(self):
         """GUI wrapper to run symbolic sweep and log results."""
-        from scheduler.symbolic_sweep_scheduler import run_sweep_now
+        from learning.symbolic_sweep_scheduler import run_sweep_now
         try:
             result = run_sweep_now()
             self.log(f"🧠 Sweep recovered {result['recovered']} of {result['total_blocked']} forecasts.")
@@ -1016,7 +1016,7 @@ class PulseControlApp:
 
     def show_sweep_summary(self):
         """Show symbolic trust sweep summary from history log."""
-        from scheduler.symbolic_sweep_scheduler import summarize_sweep_log
+        from learning.symbolic_sweep_scheduler import summarize_sweep_log
         from tkinter import filedialog
 
         path = filedialog.askopenfilename(title="Select sweep log", initialfile="symbolic_sweep_log.jsonl")

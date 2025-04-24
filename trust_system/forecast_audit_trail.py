@@ -21,7 +21,6 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from trust_system.alignment_index import compute_alignment_index
-from learning.learning.py import compute_retrodiction_error
 
 AUDIT_LOG_PATH = "logs/forecast_audit_trail.jsonl"
 
@@ -57,6 +56,7 @@ def generate_forecast_audit(
     ret_error = None
     if current_state:
         try:
+            from learning.learning import compute_retrodiction_error  # moved import here to avoid circular import
             ret_error = compute_retrodiction_error(forecast, current_state)
         except Exception as e:
             ret_error = None

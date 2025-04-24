@@ -6,7 +6,7 @@ Usage:
 """
 
 import argparse, json
-from memory.forecast_memory_promoter import (
+from forecast_output.forecast_memory_promoter import (
     select_promotable_forecasts,
     export_promoted
 )

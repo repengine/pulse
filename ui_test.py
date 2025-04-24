@@ -28,7 +28,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 sys.path.append(os.path.abspath("pulse"))
 
 from simulation_engine.worldstate import WorldState
-from forecast_output.forecast_batch_runner import run_forecast_batch
+from forecast_engine.forecast_batch_runner import run_forecast_batch
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory

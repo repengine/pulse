@@ -16,9 +16,6 @@ Version: v1.0.1
 """
 
 from typing import Dict, Optional
-from learning.learning.py import compute_retrodiction_error
-from symbolic_system.pulse_symbolic_arc_tracker import compute_arc_stability
-from trust_system.trust_engine import TrustEngine
 
 
 def normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
@@ -26,9 +23,7 @@ def normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
     Ensure component weights sum to 1.0.
     """
     total = sum(weights.values())
-    if total == 0:
-        return weights  # fallback: all zero
-    return {k: v / total for k, v in weights.items()}
+    return weights if total == 0 else {k: v / total for k, v in weights.items()}
 
 
 def compute_alignment_index(
@@ -75,12 +70,11 @@ def compute_alignment_index(
     try:
         if "retrodiction_score" in forecast:
             retrodiction = forecast["retrodiction_score"]
+        elif current_state is not None:
+            from learning.learning import compute_retrodiction_error  # moved import here to avoid circular import
+            retrodiction = 1.0 - compute_retrodiction_error(forecast, current_state)
         else:
-            # fallback: try to compute if possible
-            if current_state is not None:
-                retrodiction = 1.0 - compute_retrodiction_error(forecast, current_state)
-            else:
-                retrodiction = 0.0
+            retrodiction = 0.0
         if not isinstance(retrodiction, (float, int)):
             retrodiction = 0.0
         retrodiction = max(0.0, min(float(retrodiction), 1.0))
@@ -104,17 +98,18 @@ def compute_alignment_index(
         if tag_match is None:
             tag = forecast.get("symbolic_tag", "").lower()
             trusted_tags = {"hope", "trust", "recovery", "neutral"}
-            tag_match = 1.0 if tag in trusted_tags else 0.0
+            tag_match_val = 1.0 if tag in trusted_tags else 0.0
         else:
-            tag_match = float(tag_match)
-        tag_match = max(0.0, min(tag_match, 1.0))
+            tag_match_val = float(tag_match)
+        tag_match_val = max(0.0, min(tag_match_val, 1.0))
     except Exception:
-        tag_match = 0.0
+        tag_match_val = 0.0
 
     # --- Novelty Score ---
     try:
         novelty = 1.0
         if memory and isinstance(memory, list):
+            tag = forecast.get("symbolic_tag", "").lower()
             tags = [f.get("symbolic_tag", "").lower() for f in memory if isinstance(f, dict)]
             novelty = 1.0 - (tags.count(tag) / max(1, len(tags)))
             novelty = max(0.0, min(novelty, 1.0))
@@ -126,7 +121,7 @@ def compute_alignment_index(
         "confidence": confidence,
         "retrodiction": retrodiction,
         "arc_stability": arc_stability,
-        "tag_match": tag_match,
+        "tag_match": tag_match_val,
         "novelty": novelty
     }
     alignment_score = sum(components[k] * weights[k] for k in components)

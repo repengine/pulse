@@ -1,6 +1,6 @@
 # dev_tools/run_symbolic_sweep.py
 
-from scheduler.symbolic_sweep_scheduler import run_sweep_now, summarize_sweep_log
+from learning.symbolic_sweep_scheduler import run_sweep_now, summarize_sweep_log
 import argparse
 
 parser = argparse.ArgumentParser(description="Pulse Symbolic Sweep CLI")

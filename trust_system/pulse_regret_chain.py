@@ -112,6 +112,21 @@ def mark_regret_reviewed(trace_id: str, status: str = "Operator-Reviewed") -> bo
         logger.error(f"Failed to mark regret reviewed: {e}")
     return updated
 
+def score_symbolic_regret() -> dict:
+    """
+    Analyze the regret chain and return normalized regret scores per arc_label.
+    Returns:
+        dict: { 'regret_scores': {arc_label: regret_score, ...}, 'total_regrets': int }
+    """
+    regrets = get_regret_chain()
+    arc_count = {}
+    for r in regrets:
+        arc = r.get("arc_label", "Unknown")
+        arc_count[arc] = arc_count.get(arc, 0) + 1
+    total = sum(arc_count.values())
+    regret_scores = {arc: round(count / total, 4) if total else 0.0 for arc, count in arc_count.items()}
+    return {"regret_scores": regret_scores, "total_regrets": total}
+
 # --- Unit test for regret logging and summary ---
 def _test_regret_chain():
     log_regret_event("t1", "Test reason", arc_label="Hope Surge", rule_id="R001")

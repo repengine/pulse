@@ -52,6 +52,18 @@ def plot_alignment_scores(forecasts, path):
     print(f"📊 Alignment plot saved to {path}")
 
 
+def analyze_arc_alignment(forecasts):
+    """
+    Analyze symbolic arc alignment in a batch of forecasts.
+    Returns a dictionary with arc label counts.
+    """
+    arc_counts = {}
+    for fc in forecasts:
+        arc = fc.get("arc_label", "unknown")
+        arc_counts[arc] = arc_counts.get(arc, 0) + 1
+    return arc_counts
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pulse Batch Alignment Analyzer")
     parser.add_argument("--batch", type=str, required=True, help="Forecast batch (.jsonl)")

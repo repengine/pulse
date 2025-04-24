@@ -14,7 +14,7 @@ import os
 from typing import Dict, List, Any
 
 from core.path_registry import PATHS
-from simulation_engine.rule_cluster_engine import score_rule_volatility
+from memory.rule_cluster_engine import score_rule_volatility
 from simulation_engine.rules.rule_registry import RuleRegistry
 from core.pulse_learning_log import log_learning_event
 from datetime import datetime

@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
-from learning.learning.py import compute_retrodiction_error
 from core.path_registry import PATHS
 from memory.trace_memory import TraceMemory
 from core.variable_registry import get_default_variable_state, validate_variables
@@ -110,6 +109,7 @@ def simulate_forward(state: WorldState, steps: int = 30, cache_key: Optional[str
     return history
 
 def compare_to_actual(sim_steps: List[Dict], truth_steps: List[Dict]) -> List[Dict]:
+    from learning.learning import compute_retrodiction_error  # moved import here to avoid circular import
     comparisons = []
     for sim, truth in zip(sim_steps, truth_steps):
         if not truth["variables"]:

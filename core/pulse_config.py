@@ -1,22 +1,54 @@
 """
-pulse_config.py
+Pulse Engine Configuration File
 
-Centralized configuration constants and runtime flags for Pulse.
-
-- All simulation constants and toggles are defined here for maintainability.
-- Add new config values here to avoid hardcoding in modules.
-- For environment- or scenario-specific overrides, see config/simulation_config.yaml.
+This configuration file contains settings for the Pulse Engine.
 """
-from typing import Dict
-from core.path_registry import PATHS
-import json
-import os
 
+DEBUG = False
+LOG_LEVEL = "INFO"
+
+# Data and Simulation Settings
+DATA_SOURCE = "historical"
+SIMULATION_MODE = "default"
+
+# AI Forecasting Settings
+AI_FORECAST_ENABLED = True
+
+# AI Training Parameters
+TRAINING_FREQUENCY = 24  # frequency in hours for retraining the AI model
+LEARNING_RATE = 0.001
+
+# Ensemble Forecasting Settings
+ENSEMBLE_WEIGHTS = {
+    "simulation": 0.7,
+    "ai": 0.3
+}
+
+# --- Pulse Startup Banner ---
+STARTUP_BANNER = r"""
+ ____        _ _       
+|  _ \ _   _| | |_ ___ 
+| |_) | | | | | __/ _ \
+|  __/| |_| | | ||  __/
+|_|    \__,_|_|\__\___|
+Pulse Engine v0.2
+"""
+
+# Other configuration settings can be added below as needed.
+
+# --- Additional Simulation and Threshold Config (merged) ---
+
+import os
+import json
+from typing import Dict
+
+# Directory for trace outputs
+from core.path_registry import PATHS
 TRACE_OUTPUT_DIR = PATHS.get("TRACE_OUTPUT_DIR", "logs/traces")
 
 # Simulation settings
-DEFAULT_DECAY_RATE: float = 0.1  #: Default decay rate for symbolic overlays
-MAX_SIMULATION_FORKS: int = 1000  #: Controls fork depth for forecasts
+DEFAULT_DECAY_RATE: float = 0.1  # Default decay rate for symbolic overlays
+MAX_SIMULATION_FORKS: int = 1000  # Controls fork depth for forecasts
 
 THRESHOLD_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "thresholds.json")
 
@@ -53,16 +85,14 @@ MODULES_ENABLED: Dict[str, bool] = {
 USE_SYMBOLIC_OVERLAYS = True
 
 # Trust and despair weights for capital/symbolic calculations
-TRUST_WEIGHT: float = 1.0  #: Weight for trust overlay in capital calculations
-DESPAIR_WEIGHT: float = 1.0  #: Weight for despair overlay in capital calculations
-
-# Startup banner (displayed at launch)
-STARTUP_BANNER: str = "\U0001f9e0 Starting Pulse v0.4..."
+TRUST_WEIGHT: float = 1.0  # Weight for trust overlay in capital calculations
+DESPAIR_WEIGHT: float = 1.0  # Weight for despair overlay in capital calculations
 
 # Simulation run settings
 ENABLE_TRACE_LOGGING = True
-#: Enable trace logging for audit trail
-#: Set to False to disable trace logging for performance
+# Enable trace logging for audit trail
+# Set to False to disable trace logging for performance
+
 # To add a new config value:
 # - Add it here with a type annotation and comment
 # - Import from core.pulse_config in your module

@@ -10,10 +10,9 @@ import logging
 import math
 from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
-from symbolic_system.symbolic_utils import symbolic_fragility_index
 from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
-from learning.learning.py import retrospective_analysis_batch
+from learning.learning import retrospective_analysis_batch
 
 logger = logging.getLogger("pulse.trust")
 
@@ -479,7 +478,7 @@ def _enrich_fragility(forecast):
 def _enrich_retrodiction(forecast, current_state):
     if current_state:
         try:
-            from learning.learning.py import retrodict_error_score, reconstruct_past_state
+            from learning.learning import retrodict_error_score, reconstruct_past_state
             past_state = reconstruct_past_state(forecast)
             forecast["retrodiction_error"] = retrodict_error_score(past_state, current_state)
         except Exception as e:

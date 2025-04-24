@@ -26,13 +26,13 @@ except Exception:
     zero_shot = None
 
 try:
-    from learning.pulsegrow import PulseGrow
+    from memory.pulsegrow import PulseGrow
     pulse_grow = PulseGrow()
 except Exception:
     pulse_grow = None
 
 try:
-    from learning.signal_gating import gate_signals
+    from irldata.signal_gating import gate_signals
 except Exception:
     gate_signals = None
 

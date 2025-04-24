@@ -15,7 +15,6 @@ from typing import List, Dict
 
 from trust_system.license_explainer import explain_forecast_license
 from trust_system.forecast_licensing_shell import license_forecast
-from trust_system.trust_engine import TrustEngine
 from trust_system.forecast_audit_trail import generate_forecast_audit
 
 
@@ -90,6 +89,7 @@ def full_trust_license_audit_pipeline(
     Each forecast is updated in-place with trust, license, and audit metadata.
     Returns the updated forecasts.
     """
+    from trust_system.trust_engine import TrustEngine  # moved import here to avoid circular import
     for fc in forecasts:
         TrustEngine.apply_all([fc])  # TrustEngine.apply_all mutates in-place
         annotate_forecasts([fc])

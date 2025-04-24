@@ -22,7 +22,7 @@ import os
 import yaml
 
 try:
-    from learning.pulsegrow import PulseGrow
+    from memory.pulsegrow import PulseGrow
     pulse_grow = PulseGrow()
 except Exception:
     pulse_grow = None

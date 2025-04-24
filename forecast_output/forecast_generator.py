@@ -1,88 +1,51 @@
 """
-forecast_generator.py
+Forecast Generator Module
 
-Creates a structured foresight object by combining symbolic overlays, capital forks,
-and alignment tagging. This forms the core output of each shortview simulation cycle.
-
-Author: Pulse v3.5
+This module generates final forecasts by optionally incorporating AI forecaster adjustments
+into simulation-based forecasts.
 """
 
-from forecast_output.forecast_age_tracker import attach_timestamp
-from simulation_engine.worldstate import WorldState
-from capital_engine.capital_layer import run_shortview_forecast
-from capital_engine.capital_layer import summarize_exposure, portfolio_alignment_tags
-from trust_system.trust_engine import score_forecast
-from symbolic_system.symbolic_utils import symbolic_fragility_index
-from symbolic_system.symbolic_state_tagger import tag_symbolic_state
-from symbolic_system.pulse_symbolic_arc_tracker import compute_arc_label
-from typing import Dict, Any
-from utils.log_utils import get_logger
-from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, TRUST_WEIGHT, DESPAIR_WEIGHT, USE_SYMBOLIC_OVERLAYS
+import logging
+from typing import Dict
 
-logger = get_logger(__name__)
+import core.pulse_config as pulse_config
+from forecast_engine import ai_forecaster, forecast_ensemble
 
-def generate_forecast(
-    state: WorldState,
-    assets: list = None,
-    horizon_days: int = 2
-) -> Dict[str, Any]:
+logger = logging.getLogger(__name__)
+
+def generate_simulation_forecast() -> Dict:
     """
-    Produces a single foresight forecast object.
-
-    Parameters:
-        state (WorldState): the current simulation state
-        assets (list): assets to include in fork logic
-        horizon_days (int): number of days to simulate (1–7 typical)
-
+    Dummy function to simulate simulation-based forecast.
     Returns:
-        Dict: structured foresight forecast
-
-    Note:
-        Symbolic overlays (symbolic_tag, arc_label) are only included if USE_SYMBOLIC_OVERLAYS is True.
+        A dictionary with forecast value.
     """
-    try:
-        forecast = run_shortview_forecast(state, asset_subset=assets, duration_days=horizon_days)
-    except Exception as e:
-        logger.error(f"[ERROR] Forecast engine failed: {e}")
-        return {}
+    # For demonstration purposes, we simulate a static forecast value.
+    return {"value": 100.0}
 
-    # Defensive: check for symbolic_fragility
-    fragility = forecast.get("symbolic_fragility", 1.0)
-
-    output = {
-        "horizon_days": horizon_days,
-        "forecast": forecast,
-        "fragility": fragility,
-        "exposure": summarize_exposure(state),
-        "alignment": portfolio_alignment_tags(state),
-        "confidence": None,
-        "trace_id": f"fcast_turn_{state.turn}",
-        "origin_turn": state.turn,
-        "status": "experimental"
-    }
-
-    # 🔐 Add trust score + status label
-    output["confidence"] = score_forecast(output)
-
-    # Use config thresholds for status
-    if output["confidence"] >= CONFIDENCE_THRESHOLD:
-        output["status"] = "🟢 Trusted"
-    elif output["confidence"] >= DEFAULT_FRAGILITY_THRESHOLD:
-        output["status"] = "⚠️ Moderate"
+def generate_forecast(input_features: Dict) -> Dict:
+    """
+    Generate the final forecast by combining simulation-based forecast with AI forecaster adjustments.
+    
+    Args:
+        input_features: Dictionary containing relevant input features for forecasting.
+        
+    Returns:
+        Combined forecast dictionary.
+    """
+    # Generate simulation-based forecast.
+    simulation_forecast = generate_simulation_forecast()
+    
+    # Optionally invoke AI forecaster if enabled.
+    if getattr(pulse_config, "AI_FORECAST_ENABLED", True):
+        ai_forecast = ai_forecaster.predict(input_features)
+        combined = forecast_ensemble.ensemble_forecast(simulation_forecast, ai_forecast)
+        return combined
     else:
-        output["status"] = "🔴 Fragile"
+        return simulation_forecast
 
-    # Add symbolic overlays if enabled
-    if USE_SYMBOLIC_OVERLAYS:
-        try:
-            # Use tag_symbolic_state and compute_arc_label instead of classify_symbolic_state and compute_arc
-            forecast.update(tag_symbolic_state(forecast))
-            forecast["arc_label"] = compute_arc_label(forecast)
-            # ...other symbolic overlay logic...
-        except Exception as e:
-            logger.warning(f"Symbolic overlay logic failed: {e}")
-
-    state.log_event(f"[FORECAST] Foresight generated. Turn: {state.turn} | Horizon: {horizon_days}d")
-    output = attach_timestamp(output)
-    return output
-
+# For demonstration purposes, run a sample forecast generation if executed as main.
+if __name__ == "__main__":
+    features = {"example_feature": 1}
+    forecast = generate_forecast(features)
+    logger.info("Generated Forecast: %s", forecast)
+    print("Forecast:", forecast)

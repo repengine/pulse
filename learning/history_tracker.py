@@ -5,7 +5,7 @@ Purpose: Log the evolution of each variable across simulation steps.
 Supports introspection, graphing, and long-term memory of Pulse foresight activity.
 
 Usage:
-    from history_tracker import track_variable_history
+    from learning.history_tracker import track_variable_history
     track_variable_history(run_id, state_snapshots)
 
 Each variable's timeline is saved to a structured JSONL per simulation run.

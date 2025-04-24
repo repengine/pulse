@@ -1,7 +1,7 @@
 # test_trust_engine.py
 
 import unittest
-from trust_engine import TrustEngine
+from trust_system.trust_engine import TrustEngine
 
 # This test suite verifies that the Pulse TrustEngine functions correctly.
 # It tests tagging, confidence scoring, trust gating, audit summaries,

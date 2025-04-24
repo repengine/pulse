@@ -8,7 +8,7 @@ Author: Pulse v0.39
 """
 
 import os
-from core.variable_cluster_engine import summarize_clusters
+from memory.variable_cluster_engine import summarize_clusters
 
 def highlight_volatility(score: float) -> str:
     if score > 0.7:

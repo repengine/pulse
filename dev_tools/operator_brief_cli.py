@@ -11,7 +11,7 @@ Usage:
 """
 
 import argparse
-from operator.operator_brief_generator import generate_operator_brief
+from operator_interface.operator_brief_generator import generate_operator_brief
 from trust_system.license_explainer import explain_forecast_license
 
 def main():
