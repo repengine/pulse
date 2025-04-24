@@ -28,8 +28,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 sys.path.append(os.path.abspath("pulse"))
 
 from simulation_engine.worldstate import WorldState
-from output.forecast_batch_runner import run_forecast_batch
-from output.strategos_tile_formatter import format_strategos_tile
+from forecast_output.forecast_batch_runner import run_forecast_batch
+from forecast_output.strategos_tile_formatter import format_strategos_tile
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
@@ -1038,7 +1038,7 @@ class PulseControlApp:
     def analyze_symbolic_flips(self):
         """Analyze symbolic arc/tag transitions for loop patterns."""
         from tkinter import filedialog
-        from symbolic.symbolic_flip_classifier import analyze_flip_patterns, detect_loops_or_cycles
+        from symbolic_system.symbolic_flip_classifier import analyze_flip_patterns, detect_loops_or_cycles
         from memory.forecast_episode_tracer import build_episode_chain
 
         path = filedialog.askopenfilename(title="Select forecast archive")
@@ -1068,7 +1068,7 @@ class PulseControlApp:
     def show_symbolic_transition_graph(self):
         """Render symbolic transition graph from forecast archive."""
         from tkinter import filedialog
-        from symbolic.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
+        from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
 
         path = filedialog.askopenfilename(title="Select forecast archive (.jsonl)")
         if not path:

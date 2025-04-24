@@ -17,7 +17,7 @@ import os
 import logging
 from typing import List, Dict
 from collections import defaultdict
-from output.forecast_cluster_classifier import classify_forecast_cluster
+from forecast_output.forecast_cluster_classifier import classify_forecast_cluster
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

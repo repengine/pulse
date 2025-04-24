@@ -1,0 +1,8 @@
+stages:
+  run-learning:
+    cmd: python main.py
+    deps:
+      - main.py
+      - learning/
+    outs:
+      - logs/

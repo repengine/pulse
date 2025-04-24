@@ -50,12 +50,12 @@ except ImportError:
     learn_from_tuning_log = None
 
 try:
-    from output.mutation_compression_engine import summarize_mutation_log
+    from forecast_output.mutation_compression_engine import summarize_mutation_log
 except ImportError:
     summarize_mutation_log = None
 
 try:
-    from output.capital_symbolic_trends import generate_capital_trends_report
+    from forecast_output.capital_symbolic_trends import generate_capital_trends_report
 except ImportError:
     generate_capital_trends_report = None
 
@@ -280,8 +280,8 @@ def build_digest(
 
     # --- Dual Narrative Scenarios ---
     try:
-        from output.dual_narrative_compressor import generate_dual_scenarios
-        from output.strategic_fork_resolver import resolve_all_forks
+        from forecast_output.dual_narrative_compressor import generate_dual_scenarios
+        from forecast_output.strategic_fork_resolver import resolve_all_forks
         dual_narrative_scenarios = generate_dual_scenarios(flattened)
         fork_decisions = resolve_all_forks(dual_narrative_scenarios)
     except Exception as e:
@@ -373,7 +373,7 @@ def build_digest(
         clusters = dict(get_top_clusters(clusters, n=top_n, sort_by=sort_clusters_by))
 
     # --- Compressed Cluster Memory Section ---
-    from output.cluster_memory_compressor import compress_by_cluster
+    from forecast_output.cluster_memory_compressor import compress_by_cluster
     compressed_cluster_forecasts = compress_by_cluster(flattened)
 
     try:

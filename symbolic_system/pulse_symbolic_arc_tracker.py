@@ -84,7 +84,7 @@ def export_arc_summary(arc_counts: Dict[str, int], path: str) -> None:
 
     Args:
         arc_counts (Dict[str, int]): Arc label count dictionary.
-        path (str): Path to save JSON output.
+        path (str): Path to save JSON forecast_output.
     """
     try:
         with open(path, "w") as f:

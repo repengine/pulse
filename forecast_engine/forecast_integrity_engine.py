@@ -1,7 +1,7 @@
 """ 
 forecast_integrity_engine.py
 
-Final validation layer for Pulse forecast output.
+Final validation layer for Pulse forecast forecast_output.
 Rejects or flags forecasts based on:
 - Low confidence
 - High fragility

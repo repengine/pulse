@@ -20,6 +20,8 @@ import os
 import json
 import pandas as pd
 from typing import List, Dict, Optional
+from core.schemas import ForecastRecord, OverlayLog, TrustScoreLog, CapitalOutcome, DigestTag
+from pydantic import ValidationError
 
 class OutputDataReader:
     def __init__(self, base_path: str):
@@ -41,7 +43,14 @@ class OutputDataReader:
                         records.extend(data)
                     elif isinstance(data, dict):
                         records.append(data)
-        return pd.DataFrame(records)
+        valid_records = []
+        for rec in records:
+            try:
+                ForecastRecord(**rec)
+                valid_records.append(rec)
+            except ValidationError as ve:
+                print(f"[OutputDataReader] Invalid forecast record: {ve}")
+        return pd.DataFrame(valid_records)
 
     def load_symbolic_overlays(self) -> pd.DataFrame:
         """Extract symbolic overlays with success/failure attribution."""
@@ -51,7 +60,14 @@ class OutputDataReader:
             if fname.endswith(".json"):
                 with open(os.path.join(overlay_path, fname)) as f:
                     data.extend(json.load(f))
-        return pd.DataFrame(data)
+        valid_data = []
+        for rec in data:
+            try:
+                OverlayLog(**rec)
+                valid_data.append(rec)
+            except ValidationError as ve:
+                print(f"[OutputDataReader] Invalid overlay log: {ve}")
+        return pd.DataFrame(valid_data)
 
     def load_trust_scores(self) -> pd.DataFrame:
         """Load trust scoring metadata per forecast."""
@@ -61,7 +77,14 @@ class OutputDataReader:
             if fname.endswith(".json"):
                 with open(os.path.join(trust_path, fname)) as f:
                     results.extend(json.load(f))
-        return pd.DataFrame(results)
+        valid_results = []
+        for rec in results:
+            try:
+                TrustScoreLog(**rec)
+                valid_results.append(rec)
+            except ValidationError as ve:
+                print(f"[OutputDataReader] Invalid trust score log: {ve}")
+        return pd.DataFrame(valid_results)
 
     def load_capital_outcomes(self) -> pd.DataFrame:
         """Aggregate capital simulation results per scenario."""
@@ -71,7 +94,14 @@ class OutputDataReader:
             if fname.endswith(".json"):
                 with open(os.path.join(capital_path, fname)) as f:
                     outputs.extend(json.load(f))
-        return pd.DataFrame(outputs)
+        valid_outputs = []
+        for rec in outputs:
+            try:
+                CapitalOutcome(**rec)
+                valid_outputs.append(rec)
+            except ValidationError as ve:
+                print(f"[OutputDataReader] Invalid capital outcome: {ve}")
+        return pd.DataFrame(valid_outputs)
 
     def load_digest_tags(self) -> pd.DataFrame:
         """Pull Strategos Digest tags or narrative summaries."""
@@ -81,7 +111,14 @@ class OutputDataReader:
             if fname.endswith(".json"):
                 with open(os.path.join(tag_path, fname)) as f:
                     tags.extend(json.load(f))
-        return pd.DataFrame(tags)
+        valid_tags = []
+        for rec in tags:
+            try:
+                DigestTag(**rec)
+                valid_tags.append(rec)
+            except ValidationError as ve:
+                print(f"[OutputDataReader] Invalid digest tag: {ve}")
+        return pd.DataFrame(valid_tags)
 
     def get_all_metadata(self) -> pd.DataFrame:
         """

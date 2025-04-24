@@ -304,7 +304,7 @@ def parse_args():
     Parse command-line arguments.
 
     Example:
-        python pulse_forecast_lineage.py --forecasts forecasts.json --summary --export-graph lineage.dot --color-by arc --save output.json
+        python pulse_forecast_lineage.py --forecasts forecasts.json --summary --export-graph lineage.dot --color-by arc --save forecast_output.json
     """
     parser = argparse.ArgumentParser(description="Pulse Forecast Lineage CLI")
     parser.add_argument("--forecasts", type=str, required=True, help="Path to forecasts JSON file")
@@ -325,7 +325,7 @@ def main():
     Main entry point.
 
     Example:
-        python pulse_forecast_lineage.py --forecasts forecasts.json --summary --export-graph lineage.dot --color-by arc --save output.json
+        python pulse_forecast_lineage.py --forecasts forecasts.json --summary --export-graph lineage.dot --color-by arc --save forecast_output.json
     """
     args = parse_args()
     logging.basicConfig(level=logging.INFO)

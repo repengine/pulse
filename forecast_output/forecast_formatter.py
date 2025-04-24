@@ -1,7 +1,7 @@
 """
 forecast_formatter.py
 
-Formats structured forecast objects into human-readable foresight output.
+Formats structured forecast objects into human-readable foresight forecast_output.
 Supports Strategos Tile and Digest formatting for strategic capital-symbolic clarity.
 
 Author: Pulse v3.5
@@ -17,7 +17,7 @@ forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
 
 def format_forecast_tile(forecast_obj: Dict) -> str:
     """
-    Formats a forecast into a Strategos Forecast Tile-style output.
+    Formats a forecast into a Strategos Forecast Tile-style forecast_output.
 
     Parameters:
         forecast_obj (Dict): structured forecast from forecast_generator

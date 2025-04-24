@@ -13,12 +13,12 @@ from collections import defaultdict
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
-from trust_system.forecast_retrospector import retrospective_analysis_batch
+from learning.learning.py import retrospective_analysis_batch
 
 logger = logging.getLogger("pulse.trust")
 
 TRUST_ENRICHMENT_PLUGINS = []
-
+# Plugins may now supply additional micro scoring metrics for trust evaluation.
 def register_trust_enrichment_plugin(plugin_fn):
     """
     Register a plugin function for custom trust enrichment.
@@ -75,6 +75,50 @@ def compute_symbolic_attention_score(forecast: Dict, arc_drift: Dict[str, int]) 
     arc = forecast.get("arc_label", "unknown")
     delta = abs(arc_drift.get(arc, 0))
     return round(min(delta / 10.0, 1.0), 3)
+
+def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
+    """
+    Compute a risk sub-score based on volatility measures,
+    historical forecast consistency, and an ML adjustment placeholder.
+    Returns a float between 0 and 1, where higher values indicate higher risk.
+    """
+    fcast = forecast.get("forecast", {})
+    # Volatility measure: assess capital movement volatility
+    capital_start = fcast.get("start_capital", {})
+    capital_end = fcast.get("end_capital", {})
+    risk_volatility = 0.0
+    if capital_start and capital_end:
+        delta_values = [
+            abs(capital_end.get(asset, 0) - capital_start.get(asset, 0))
+            for asset in ["nvda", "msft", "ibit", "spy"]
+        ]
+        risk_volatility = min(sum(delta_values) / 2000.0, 1.0)
+    # Historical performance measure: compare recent symbolic_change differences
+    historical_component = 0.0
+    if memory and len(memory) > 0:
+        similarities = []
+        current_change = fcast.get("symbolic_change", {})
+        for past in memory[-3:]:
+            past_change = past.get("forecast", {}).get("symbolic_change", {})
+            if current_change and past_change:
+                common_keys = set(current_change.keys()).intersection(set(past_change.keys()))
+                if common_keys:
+                    diff = sum(abs(current_change.get(k, 0) - past_change.get(k, 0)) for k in common_keys)
+                    similarity = 1.0 - min(diff / len(common_keys), 1.0)
+                else:
+                    similarity = 0.5
+            else:
+                similarity = 0.5
+            similarities.append(similarity)
+        avg_similarity = sum(similarities) / len(similarities)
+        historical_component = 1.0 - avg_similarity  # lower similarity implies higher risk
+    else:
+        historical_component = 0.0
+
+    # ML model component placeholder (constant adjustment)
+    ml_adjustment = 0.1
+    risk_score = (risk_volatility * 0.5 + historical_component * 0.4 + ml_adjustment * 0.1)
+    return round(min(max(risk_score, 0.0), 1.0), 3)
 
 def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
     """
@@ -141,10 +185,11 @@ class TrustEngine:
     # ---- Confidence Classification ----
 
     @staticmethod
-    def confidence_gate(forecast: Dict, conf_threshold=0.5, fragility_threshold=0.7) -> str:
+    def confidence_gate(forecast: Dict, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5) -> str:
         conf = forecast.get("confidence", 0.0)
         frag = forecast.get("fragility", 0.0)
-        if conf >= conf_threshold and frag <= fragility_threshold:
+        risk = forecast.get("risk_score", 0.0)
+        if conf >= conf_threshold and frag <= fragility_threshold and risk <= risk_threshold:
             return "🟢 Trusted"
         elif conf >= conf_threshold:
             return "🟡 Unstable"
@@ -157,14 +202,14 @@ class TrustEngine:
     def score_forecast(
         forecast: Dict,
         memory: Optional[List[Dict]] = None,
-        fragility_weight: float = 0.4,
-        delta_weight: float = 0.4,
-        novelty_weight: float = 0.2
+        baseline_weight: float = 0.4,
+        risk_weight: float = 0.3,
+        historical_weight: float = 0.2,
+        novelty_weight: float = 0.1
     ) -> float:
         fcast = forecast.get("forecast", {})
         fragility = forecast.get("fragility", 1.0)
         symbolic_penalty = min(fragility, 1.0)
-
         capital_start = fcast.get("start_capital", {})
         capital_end = fcast.get("end_capital", {})
         movement_score = 0.0
@@ -174,6 +219,31 @@ class TrustEngine:
                 for asset in ["nvda", "msft", "ibit", "spy"]
             )
             movement_score = min(delta_sum / 1000.0, 1.0) if delta_sum else 0.0
+        # Baseline confidence: average of capital movement and inverse fragility
+        baseline_confidence = ((1.0 - symbolic_penalty) + movement_score) / 2.0
+
+        risk_score = compute_risk_score(forecast, memory)
+        forecast["risk_score"] = risk_score
+
+        if memory:
+            similarities = []
+            for past in memory[-3:]:
+                curr_change = fcast.get("symbolic_change", {})
+                past_change = past.get("forecast", {}).get("symbolic_change", {})
+                if curr_change and past_change:
+                    common = set(curr_change.keys()).intersection(set(past_change.keys()))
+                    if common:
+                        diff = sum(abs(curr_change[k] - past_change[k]) for k in common)
+                        sim = 1.0 - min(diff / len(common), 1.0)
+                    else:
+                        sim = 0.5
+                else:
+                    sim = 0.5
+                similarities.append(sim)
+            historical_consistency = sum(similarities) / len(similarities)
+        else:
+            historical_consistency = 1.0
+        forecast["historical_consistency"] = historical_consistency
 
         is_duplicate = False
         if memory:
@@ -185,14 +255,17 @@ class TrustEngine:
                     break
         novelty_score = 0.0 if is_duplicate else 1.0
 
-        confidence = (
-            (1.0 - symbolic_penalty) * fragility_weight +
-            movement_score * delta_weight +
-            novelty_score * novelty_weight
+        final_confidence = (
+            baseline_weight * baseline_confidence +
+            risk_weight * (1 - risk_score) +
+            historical_weight * historical_consistency +
+            novelty_weight * novelty_score
         )
         if USE_SYMBOLIC_OVERLAYS:
-            confidence -= compute_symbolic_drift_penalty(forecast)
-        return round(min(max(confidence, CONFIDENCE_THRESHOLD), 1.0), 3)
+            final_confidence -= compute_symbolic_drift_penalty(forecast)
+        final_confidence = round(min(max(final_confidence, CONFIDENCE_THRESHOLD), 1.0), 3)
+        logger.info(f"[TrustEngine] Scores for trace_id {forecast.get('trace_id', 'unknown')}: baseline={baseline_confidence}, risk={risk_score}, historical={historical_consistency}, novelty={novelty_score}, final_confidence={final_confidence}")
+        return final_confidence
 
     # ---- Symbolic Conflict / Mirror ----
 
@@ -406,7 +479,7 @@ def _enrich_fragility(forecast):
 def _enrich_retrodiction(forecast, current_state):
     if current_state:
         try:
-            from trust_system.forecast_retrospector import retrodict_error_score, reconstruct_past_state
+            from learning.learning.py import retrodict_error_score, reconstruct_past_state
             past_state = reconstruct_past_state(forecast)
             forecast["retrodiction_error"] = retrodict_error_score(past_state, current_state)
         except Exception as e:
@@ -512,9 +585,8 @@ def score_forecasts(
         score = TrustEngine.score_forecast(
             fc,
             memory=memory,
-            fragility_weight=fragility_weight,
-            delta_weight=delta_weight,
-            novelty_weight=novelty_weight
+            # When using the new scoring, these weights are overridden by the new micro-component weights.
+            baseline_weight=0.4, risk_weight=0.3, historical_weight=0.2, novelty_weight=0.1
         )
         fc["confidence"] = score
         results.append(fc)

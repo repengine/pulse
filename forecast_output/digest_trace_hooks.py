@@ -44,9 +44,9 @@ def summarize_trace_for_digest(trace_id: str, overlays_maxlen: int = 120) -> Opt
             return None
 
         output = trace["output"]
-        overlays = output.get("overlays", {})
-        trust = output.get("trust", "N/A")
-        forks = output.get("forks", [])
+        overlays = forecast_output.get("overlays", {})
+        trust = forecast_output.get("trust", "N/A")
+        forks = forecast_output.get("forks", [])
 
         # Truncate overlays if too large for summary
         overlays_str = str(overlays)

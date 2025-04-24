@@ -1,6 +1,6 @@
 # tools/visualize_symbolic_graph.py
 
-from symbolic.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
+from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
 import argparse
 import json
 

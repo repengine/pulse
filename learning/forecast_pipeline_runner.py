@@ -16,15 +16,15 @@ Author: Pulse v0.23
 
 from typing import List, Dict, Optional, Any
 from core.pulse_config import USE_SYMBOLIC_OVERLAYS
-from output.forecast_compressor import compress_forecasts
-from output.forecast_summary_synthesizer import summarize_forecasts
-from output.strategos_digest_builder import build_digest
+from forecast_output.forecast_compressor import compress_forecasts
+from forecast_output.forecast_summary_synthesizer import summarize_forecasts
+from forecast_output.strategos_digest_builder import build_digest
 from trust_system.trust_engine import score_forecasts
 from trust_system.fragility_detector import tag_fragility
 from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import log_info
-from output.forecast_prioritization_engine import select_top_forecasts
+from forecast_output.forecast_prioritization_engine import select_top_forecasts
 import os, json
 
 # Add memory promoter imports
@@ -33,14 +33,14 @@ from memory.forecast_memory_promotor import select_promotable_forecasts, export_
 # --- Capital Layer Imports ---
 from capital_engine.capital_layer import run_capital_forks, summarize_exposure, portfolio_alignment_tags
 
-from output.forecast_confidence_gate import filter_by_confidence
+from forecast_output.forecast_confidence_gate import filter_by_confidence
 from memory.trace_memory import TraceMemory
 
 # Step 1: Import the Tracker
 from memory.variable_performance_tracker import VariablePerformanceTracker
 
 # Add contradiction detector import
-from output.forecast_contradiction_detector import detect_forecast_contradictions
+from forecast_output.forecast_contradiction_detector import detect_forecast_contradictions
 from core.pulse_learning_log import log_learning_event
 
 def run_forecast_pipeline(
@@ -55,7 +55,7 @@ def run_forecast_pipeline(
     Args:
         forecasts (List[Dict]): Raw forecast objects. Each should be a dict with at least 'confidence' and 'symbolic_tag'.
         batch_id (str, optional): Optional batch label.
-        enable_digest (bool): Whether to generate digest output.
+        enable_digest (bool): Whether to generate digest forecast_output.
         save_to_memory (bool): Whether to write to memory.
 
     Returns:

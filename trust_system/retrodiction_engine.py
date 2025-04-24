@@ -175,7 +175,7 @@ def save_forecast(forecast_obj: Dict):
 
 # === Local test ===
 def simulate_retrodiction_test():
-    from output.pfpa_logger import PFPA_ARCHIVE
+    from forecast_output.pfpa_logger import PFPA_ARCHIVE
     if not PFPA_ARCHIVE:
         logger.info("No forecasts in PFPA archive; skipping retrodiction.")
         return

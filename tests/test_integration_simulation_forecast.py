@@ -5,7 +5,7 @@ Integration test: run a simulation turn and check forecast licensing end-to-end.
 import pytest
 from simulation_engine.worldstate import WorldState
 from simulation_engine.turn_engine import run_turn
-from output.forecast_licenser import license_forecast
+from forecast_output.forecast_licenser import license_forecast
 
 def test_simulation_turn_and_license():
     state = WorldState()

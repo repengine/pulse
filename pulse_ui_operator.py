@@ -72,7 +72,7 @@ def run_forecast_pipeline_ui(last_batch=None, log=None):
     """UI helper to run the forecast pipeline on last batch or file."""
     import tkinter
     from tkinter import filedialog, messagebox
-    from output.forecast_pipeline_runner import run_forecast_pipeline
+    from forecast_output.forecast_pipeline_runner import run_forecast_pipeline
 
     if last_batch and isinstance(last_batch, list) and last_batch:
         forecasts = last_batch

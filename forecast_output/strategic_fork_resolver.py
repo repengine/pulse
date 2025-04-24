@@ -11,8 +11,8 @@ Version: v1.0.0
 """
 
 from typing import Dict, List
-from output.forecast_prioritization_engine import score_forecast
-from output.forecast_cluster_classifier import classify_forecast_cluster
+from forecast_output.forecast_prioritization_engine import score_forecast
+from forecast_output.forecast_cluster_classifier import classify_forecast_cluster
 
 
 def score_fork_options(a: Dict, b: Dict) -> Dict[str, float]:

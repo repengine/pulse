@@ -58,6 +58,13 @@ from symbolic_system.symbolic_contradiction_cluster import cluster_symbolic_conf
 from operator_interface.symbolic_contradiction_digest import export_contradiction_digest_md  # ✅ PATCH A Step 1
 from learning.output_data_reader import OutputDataReader  # Local integration
 from learning.learning_profile import LearningProfile
+from learning.engines.anomaly_remediation import AnomalyRemediationEngine
+from learning.engines.feature_discovery import FeatureDiscoveryEngine
+from learning.engines.audit_reporting import AuditReportingEngine
+from learning.engines.causal_inference import CausalInferenceEngine
+from learning.engines.continuous_learning import ContinuousLearningEngine
+from learning.engines.external_integration import ExternalIntegrationEngine
+from learning.engines.active_experimentation import ActiveExperimentationEngine
 
 # Configure logging
 logging.basicConfig(
@@ -77,6 +84,21 @@ class AdvancedLearningEngine:
         if source_df is None:
             source_df = self.data_loader.get_all_metadata()
         logging.info("[LearningEngine] Integrating data with %d records", len(source_df))
+        # Concept drift detection and semi-supervised blending
+        try:
+            import pandas as pd
+            retdf = pd.read_json("logs/retrodiction_result_log.jsonl", lines=True)
+            error_changes = retdf["error_score"].diff().abs()
+            if (error_changes > 0.1).any():
+                logging.info("[LearningEngine] Concept drift detected: retrodiction error shifts")
+            blended = pd.concat([
+                source_df.assign(source="live"),
+                retdf.assign(source="retrodiction")
+            ], ignore_index=True)
+            logging.info(f"[LearningEngine] Blended live and retrodicted data: {blended.shape[0]} records")
+            source_df = blended
+        except Exception as e:
+            logging.warning(f"[LearningEngine] Concept drift blending failed: {e}")
         if {'fragility', 'trust_score'}.issubset(source_df.columns):
             self.analyze_trust_patterns(source_df)
         if {'symbolic_overlay', 'forecast_success'}.issubset(source_df.columns):
@@ -153,6 +175,8 @@ class LearningEngine:
     The core meta-learning engine for Pulse.
     Handles memory analysis, variable trust updates, symbolic arc scoring,
     overlay mutation planning, and revision triggers.
+    Integrates advanced analytics, anomaly detection, feature discovery, audit reporting,
+    causal inference, continuous learning, external integration, and experimentation engines.
     """
     def __init__(self) -> None:
         self.trace = TraceMemory()
@@ -160,6 +184,21 @@ class LearningEngine:
         self.registry = VariableRegistry()
         self.advanced_engine = AdvancedLearningEngine()
         self.worldstate = None
+        # --- Integrated Engines ---
+        self.anomaly_remediator = AnomalyRemediationEngine()
+        self.feature_discoverer = FeatureDiscoveryEngine()
+        self.audit_reporter = AuditReportingEngine()
+        self.causal_inferencer = CausalInferenceEngine()
+        self.continuous_learner = ContinuousLearningEngine()
+        self.external_integrator = ExternalIntegrationEngine()
+        self.active_experimenter = ActiveExperimentationEngine()
+        # Register as plugins for analytics/interpretability
+        self.advanced_engine.register_plugin(self.anomaly_remediator)
+        self.advanced_engine.register_plugin(self.feature_discoverer)
+        self.advanced_engine.register_plugin(self.causal_inferencer)
+        self.advanced_engine.register_plugin(self.continuous_learner)
+        self.advanced_engine.register_plugin(self.external_integrator)
+        self.advanced_engine.register_plugin(self.active_experimenter)
 
     def attach_worldstate(self, state):
         """
@@ -307,7 +346,8 @@ class LearningEngine:
 
     def run_meta_update(self) -> None:
         """
-        Runs the full meta-learning update loop.
+        Runs the full meta-learning update loop, including advanced analytics, anomaly detection,
+        feature discovery, audit reporting, causal inference, continuous learning, and experimentation.
         """
         logging.info("🧠 Running Pulse Learning Loop...")
         try:
@@ -324,6 +364,56 @@ class LearningEngine:
             self.audit_rule_clusters()
             forecasts = []  # TODO: Replace with actual forecast retrieval
             self.audit_symbolic_contradictions(forecasts)
+            # --- New: Anomaly Detection ---
+            try:
+                anomaly_result = self.anomaly_remediator.detect_and_remediate(self.tracker.score_variable_effectiveness())
+                if anomaly_result.get("status") == "success":
+                    log_learning_event("anomaly_remediation", anomaly_result)
+            except Exception as e:
+                logging.warning(f"Anomaly remediation failed: {e}")
+            # --- New: Feature Discovery ---
+            try:
+                df = pd.DataFrame(self.tracker.score_variable_effectiveness()).T
+                feature_result = self.feature_discoverer.discover_features(df)
+                if feature_result.get("status") == "success":
+                    log_learning_event("feature_discovery", feature_result)
+            except Exception as e:
+                logging.warning(f"Feature discovery failed: {e}")
+            # --- New: Continuous Learning ---
+            try:
+                cl_result = self.continuous_learner.update_trust_weights(self.tracker.score_variable_effectiveness())
+                if cl_result.get("status") == "success":
+                    log_learning_event("continuous_learning", cl_result)
+            except Exception as e:
+                logging.warning(f"Continuous learning update failed: {e}")
+            # --- New: External Integration ---
+            try:
+                ext_result = self.external_integrator.ingest_data("external_data.csv")
+                if ext_result.get("status") == "success":
+                    log_learning_event("external_integration", ext_result)
+            except Exception as e:
+                logging.warning(f"External integration failed: {e}")
+            # --- New: Active Experimentation (optional, can be CLI-triggered) ---
+            try:
+                exp_result = self.active_experimenter.run_experiment({"example_param": 42})
+                if exp_result.get("status") == "success":
+                    log_learning_event("active_experimentation", exp_result)
+            except Exception as e:
+                logging.warning(f"Active experimentation failed: {e}")
+            # --- New: Audit Reporting ---
+            try:
+                audit_result = self.audit_reporter.generate_report("logs/pulse_learning_log.jsonl")
+                if audit_result.get("status") == "success":
+                    log_learning_event("audit_report", audit_result)
+            except Exception as e:
+                logging.warning(f"Audit reporting failed: {e}")
+            # --- New: Causal Inference ---
+            try:
+                causal_result = self.causal_inferencer.analyze_causality(self.tracker.score_variable_effectiveness())
+                if causal_result.get("status") == "success":
+                    log_learning_event("causal_inference", causal_result)
+            except Exception as e:
+                logging.warning(f"Causal inference failed: {e}")
         except Exception as e:
             logging.exception(f"Meta update failed: {e}")
         try:
@@ -610,6 +700,90 @@ class LearningEngine:
 
         export_full_digest()
         export_contradiction_digest_md()
+
+# --- Retrodiction/Retrospective Analysis Utilities ---
+from typing import Dict, List, Optional
+import math
+
+# Symbolic/overlay error (from learning/forecast_retrospector.py)
+def compute_retrodiction_error(forecast: Dict, current_state: Dict, keys: Optional[List[str]] = None) -> float:
+    """
+    Compute symbolic/variable delta between forecast's initial assumption
+    and what the current_state actually contains now.
+    Args:
+        forecast (Dict): The forecast being evaluated
+        current_state (Dict): Ground truth snapshot
+        keys (Optional[List[str]]): Specific overlays or variables to score (default: all)
+    Returns:
+        float: Normalized mean squared error (0–1+)
+    """
+    f_init = forecast.get("forecast", {}).get("start_state", {}).get("overlays", {})
+    c_now = current_state.get("overlays", {})
+    if not isinstance(f_init, dict) or not isinstance(c_now, dict):
+        return 0.0
+    keys = keys or list(set(f_init.keys()) & set(c_now.keys()))
+    if not keys:
+        return 0.0
+    deltas = []
+    for k in keys:
+        try:
+            a = float(f_init.get(k, 0))
+            b = float(c_now.get(k, 0))
+            deltas.append((a - b) ** 2)
+        except Exception:
+            continue
+    if not deltas:
+        return 0.0
+    return round(sum(deltas) / len(deltas), 4)
+
+# Past state reconstruction (from trust_system/forecast_retrospector.py)
+def reconstruct_past_state(forecast: Dict) -> Dict:
+    """
+    Generate a synthetic approximation of the past state implied by a given forecast.
+    Uses symbolic overlays and capital snapshot to infer the forecast's assumptions.
+    """
+    overlays = forecast.get("overlays", {})
+    capital = forecast.get("forecast", {}).get("start_capital", {})
+    return {
+        "hope": overlays.get("hope", 0.5),
+        "despair": overlays.get("despair", 0.5),
+        "fatigue": overlays.get("fatigue", 0.5),
+        "rage": overlays.get("rage", 0.5),
+        "capital_snapshot": capital,
+    }
+
+# Symbolic + capital error (from trust_system/forecast_retrospector.py)
+def retrodict_error_score(past_state: Dict, current_state: Dict, symbolic_weight: float = 1.0, capital_weight: float = 1.0) -> float:
+    """
+    Compute an error score between a reconstructed past and the current believed state.
+    Combines symbolic and capital deviations into a single metric.
+    """
+    symbolic_keys = ["hope", "despair", "rage", "fatigue"]
+    error_sum = 0.0
+    for k in symbolic_keys:
+        error_sum += symbolic_weight * (past_state.get(k, 0.5) - current_state.get(k, 0.5)) ** 2
+    capital_keys = set(past_state.get("capital_snapshot", {}).keys()) | set(current_state.get("capital_snapshot", {}).keys())
+    for k in capital_keys:
+        p_val = past_state.get("capital_snapshot", {}).get(k, 0)
+        c_val = current_state.get("capital_snapshot", {}).get(k, 0)
+        error_sum += capital_weight * ((p_val - c_val) / 1000.0) ** 2
+    return round(math.sqrt(error_sum), 4)
+
+# Batch analysis (from trust_system/forecast_retrospector.py)
+def retrospective_analysis_batch(forecasts: List[Dict], current_state: Dict, threshold: float = 1.5) -> List[Dict]:
+    """
+    Perform retrodiction error scoring across a batch of forecasts.
+    Appends 'retrodiction_error' and optional trust flag if above threshold.
+    """
+    for f in forecasts:
+        past_state = reconstruct_past_state(f)
+        score = retrodict_error_score(past_state, current_state)
+        f["retrodiction_error"] = score
+        if score > threshold:
+            f["retrodiction_flag"] = "⚠️ Symbolic misalignment"
+    return forecasts
+
+# --- End Retrodiction/Retrospective Analysis Utilities ---
 
 if __name__ == "__main__":
     engine = LearningEngine()

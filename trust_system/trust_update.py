@@ -7,7 +7,7 @@ Forecasts that score well increase influence on future trust weighting.
 Author: Pulse v0.3
 """
 
-from output.pfpa_logger import PFPA_ARCHIVE
+from forecast_output.pfpa_logger import PFPA_ARCHIVE
 from memory.forecast_memory import ForecastMemory
 from typing import Dict, List, Callable
 import logging

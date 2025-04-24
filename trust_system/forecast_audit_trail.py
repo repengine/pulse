@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from trust_system.alignment_index import compute_alignment_index
-from learning.forecast_retrospector import compute_retrodiction_error
+from learning.learning.py import compute_retrodiction_error
 
 AUDIT_LOG_PATH = "logs/forecast_audit_trail.jsonl"
 

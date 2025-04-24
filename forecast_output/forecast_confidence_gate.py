@@ -72,7 +72,7 @@ def filter_by_confidence(
         except Exception as e:
             print(f"[ConfidenceGate] Log error: {e}")
 
-        output.append(f)
+        forecast_output.append(f)
 
     return output
 

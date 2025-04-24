@@ -43,7 +43,7 @@ from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from core.pulse_config import MODULES_ENABLED
 from core.variable_registry import VARIABLE_REGISTRY
-from trust_system.forecast_retrospector import retrospective_analysis_batch
+from learning.learning.py import retrospective_analysis_batch
 from trust_system.trust_engine import TrustEngine
 import core.pulse_config
 

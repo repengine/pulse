@@ -288,3 +288,19 @@ See `docs/deprecation_policy.md` for the detailed timeline and migration guide f
 ## Deprecation & Milestone Policy
 
 See `docs/deprecation_policy.md`.
+
+---
+
+# Pulse Meta-Learning: DVC & MLflow Experiment Tracking
+
+## DVC Setup
+1. Install DVC: `pip install dvc`
+2. Initialize: `dvc init`
+3. Track pipeline: `dvc repro`
+
+## MLflow Setup
+1. Install MLflow: `pip install mlflow`
+2. Run tracking example: `python mlflow_tracking_example.py`
+3. Start UI: `mlflow ui`
+
+See `dvc.yaml` and `mlflow_tracking_example.py` for details.

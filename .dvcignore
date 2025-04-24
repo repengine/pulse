@@ -1,0 +1,8 @@
+# DVC ignores
+__pycache__/
+*.pyc
+*.pkl
+*.tmp
+logs/
+outputs/
+.cache/

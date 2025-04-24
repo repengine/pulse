@@ -1,65 +1,45 @@
 {
-  "trace_id": "4c296190-8a1e-4a5c-827b-b05f437332c4",
-  "input": {
-    "state": {
-      "turn": 1,
-      "variables": {
-        "fed_funds_rate": 0.05,
-        "inflation_index": 0.03,
-        "unemployment_rate": 0.05,
-        "market_volatility_index": 0.2,
-        "public_trust_level": 0.6,
-        "crypto_instability": 0.3,
-        "ai_policy_risk": 0.2,
-        "energy_price_index": 0.5,
-        "geopolitical_stability": 0.7,
-        "media_sentiment_score": 0.4,
-        "hope": 0.5,
-        "despair": 0.5,
-        "rage": 0.5,
-        "fatigue": 0.5
-      },
-      "overlays": {
-        "hope": 0.49,
-        "despair": 0.49,
-        "rage": 0.49,
-        "fatigue": 0.49,
-        "trust": 0.49
-      },
-      "capital": {
-        "nvda": 0.0,
-        "msft": 0.0,
-        "ibit": 0.0,
-        "spy": 0.0,
-        "cash": 100000.0
-      },
-      "log": [
-        "Overlay 'hope' decayed from 0.500 to 0.490",
-        "Overlay 'despair' decayed from 0.500 to 0.490",
-        "Overlay 'rage' decayed from 0.500 to 0.490",
-        "Overlay 'fatigue' decayed from 0.500 to 0.490",
-        "Overlay 'trust' decayed from 0.500 to 0.490",
-        "[TURN 0] init: Symbolic decay applied to overlays.",
-        "[TURN 0] init: Causal rules applied.",
-        "Rule checked but not triggered: R001_EnergySpike",
-        "Rule checked but not triggered: R002_TrustRebound",
-        "[TURN 0] init: Structured rule engine executed.",
-        "Turn advanced to 1",
-        "[TURN 1] init: Turn advanced to 1",
-        "[TURN 1] init: Turn incremented."
-      ],
-      "schema_version": "1.0.0",
-      "timestamp": "init"
-    },
-    "decay_rate": 0.01,
-    "rule_fn": null
+  "timestamp": "2025-04-24T01:36:39.735424",
+  "trace_id": "fcast_turn_5",
+  "origin_turn": 5,
+  "horizon_days": 2,
+  "fragility": 0.506,
+  "confidence": 0.6,
+  "status": "\ud83d\udfe2 Trusted",
+  "trust_label": "\ud83d\udfe1 Unlabeled",
+  "alignment": {
+    "bias": "neutral"
   },
-  "output": {
-    "overlays": {
-      "hope": 0.49,
-      "despair": 0.49,
-      "rage": 0.49,
-      "fatigue": 0.49,
-      "trust": 0.49
-    },
-    "variables": 
+  "symbolic_snapshot": {
+    "hope": 0.0,
+    "despair": 0.0,
+    "rage": 0.0,
+    "fatigue": 0.0,
+    "trust": 0.0
+  },
+  "exposure_start": {
+    "nvda": -190.0,
+    "msft": -608.0,
+    "ibit": -456.0,
+    "spy": -171.00000000000003,
+    "cash": 100000.0
+  },
+  "exposure_end": {
+    "nvda": -235.0,
+    "msft": -752.0,
+    "ibit": -564.0,
+    "spy": -211.50000000000003,
+    "cash": 100000.0
+  },
+  "retrodiction_score": 0.0,
+  "symbolic_score": null,
+  "retrodiction_hits": {
+    "nvda": false,
+    "msft": false,
+    "ibit": false,
+    "spy": false
+  },
+  "symbolic_hits": {},
+  "outcome": {},
+  "status_tag": "open"
+}

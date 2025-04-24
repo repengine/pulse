@@ -32,7 +32,7 @@ def overlay_to_dict(overlay):
     return dict(overlay)
 
 def assign_trace_metadata(sim_input: Dict[str, Any], sim_output: Dict[str, Any]) -> Dict[str, Any]:
-    """Attaches trace ID and metadata to a simulation output."""
+    """Attaches trace ID and metadata to a simulation forecast_output."""
     trace_id = generate_trace_id()
     # Ensure overlays are serializable
     if "overlays" in sim_output:

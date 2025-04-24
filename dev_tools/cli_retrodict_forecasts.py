@@ -2,12 +2,12 @@
 """
 Command-line tool to apply retrodiction scoring to forecast files.
 Usage:
-    python cli_retrodict_forecasts.py --forecasts input.jsonl --state state.json --output output.jsonl
+    python cli_retrodict_forecasts.py --forecasts input.jsonl --state state.json --output forecast_output.jsonl
 """
 
 import argparse
 import json
-from forecast_retrospector import retrospective_analysis_batch
+from lear import retrospective_analysis_batch
 
 parser = argparse.ArgumentParser(description="Retrodiction audit for forecast batches.")
 parser.add_argument("--forecasts", type=str, required=True, help="Path to forecasts (.jsonl)")

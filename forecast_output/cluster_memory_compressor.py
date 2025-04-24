@@ -14,7 +14,7 @@ import json
 import os
 import logging
 from typing import List, Dict
-from output.forecast_cluster_classifier import classify_forecast_cluster
+from forecast_output.forecast_cluster_classifier import classify_forecast_cluster
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
