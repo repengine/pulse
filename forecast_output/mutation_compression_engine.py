@@ -146,3 +146,44 @@ def plot_symbolic_trajectory(
         print(f"📤 Symbolic trajectory plot saved to {export_path}")
     else:
         plt.show()
+
+# Add this to mutation_compression_engine.py
+
+def summarize_mutation_log(forecast_batch: List[Dict], fmt: str = "markdown") -> str:
+    """
+    Summarize mutation lineage for a batch of forecasts.
+
+    Args:
+        forecast_batch (List[Dict]): List of forecast episodes.
+        fmt (str): Output format ("markdown" or "json").
+
+    Returns:
+        str: Mutation log as Markdown or JSON string.
+    """
+    compressed = []
+    for forecast in forecast_batch:
+        if (lineage := forecast.get("lineage", [])) and (compressed_forecast := compress_episode_chain(lineage)):
+            compressed.append(compressed_forecast)
+
+    if not compressed:
+        return "No mutation lineage data available."
+
+    if fmt == "json":
+        import json
+        return json.dumps(compressed, indent=2)
+
+    # Default: Markdown
+    lines = ["## 🔧 Mutation Summary Log\n"]
+    for fc in compressed:
+        trace_id = fc.get("trace_id", "unknown")
+        stability = fc.get("symbolic_stability_score", "N/A")
+        flips = fc.get("arc_flips", "N/A")
+        total_versions = fc.get("total_versions", "N/A")
+        lines.extend([
+            f"### Forecast {trace_id}",
+            f"- Symbolic Stability Score: {stability}",
+            f"- Arc Flips: {flips}",
+            f"- Total Versions: {total_versions}",
+            ""
+        ])
+    return "\n".join(lines)
