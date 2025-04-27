@@ -12,7 +12,6 @@ from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
 from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
-from learning.learning import retrospective_analysis_batch
 
 logger = logging.getLogger("pulse.trust")
 
@@ -350,18 +349,23 @@ class TrustEngine:
 
     @staticmethod
     def lineage_arc_summary(forecasts: List[Dict]) -> Dict:
+        # Build lineage and lookup maps
         lineage = {f["trace_id"]: f.get("parent_id") for f in forecasts if f.get("trace_id") and f.get("parent_id")}
         by_id = {f["trace_id"]: f for f in forecasts if "trace_id" in f}
         score_map = {k: 0 for k in ["same", "inverted", "rebound", "diverged", "unknown"]}
         score_map["total"] = 0
-        score_map["avg_drift"] = 0.0
+        score_map["avg_drift"] = 0.0  # Initialize as float to match expected type
         drifts = []
         for child_id, parent_id in lineage.items():
             child = by_id.get(child_id)
             parent = by_id.get(parent_id)
             if child and parent:
                 rel, drift = TrustEngine._score_arc_integrity(child, parent)
-                score_map[rel] += 1
+                # Safeguard: increment only if rel is a known key
+                if rel in score_map:
+                    score_map[rel] += 1
+                else:
+                    score_map["unknown"] += 1
                 drifts.append(drift)
                 score_map["total"] += 1
         if drifts:
@@ -405,6 +409,70 @@ class TrustEngine:
             "lineage_summary": lineage
         }
 
+    # ---- Trust Metadata Enrichment ----
+
+    @staticmethod
+    def enrich_trust_metadata(
+        forecast: Dict,
+        current_state: Optional[Dict] = None,
+        memory: Optional[List[Dict]] = None,
+        arc_drift: Optional[Dict[str, int]] = None,
+        regret_log: Optional[List[Dict]] = None,
+        license_enforcer=None,
+        license_explainer=None
+    ):
+        """
+        Compute all trust metrics and attach to forecast.
+
+        Args:
+            forecast (Dict): Forecast to enrich.
+            current_state (Optional[Dict]): Current worldstate for retrodiction.
+            memory (Optional[List[Dict]]): Past forecasts for novelty/alignment.
+            arc_drift (Optional[Dict[str, int]]): Arc drift deltas.
+            regret_log (Optional[List[Dict]]): Regret events for repeat flagging.
+            license_enforcer (callable): Function to assign license status.
+            license_explainer (callable): Function to explain license status.
+
+        Returns:
+            Dict: Enriched forecast with trust metadata.
+
+        Example:
+            enrich_trust_metadata(forecast, current_state, memory, arc_drift, regret_log)
+
+        Security:
+            No sensitive data is logged or exposed. All enrichment is local to the forecast object.
+        """
+        forecast = TrustEngine.tag_forecast(forecast)
+        forecast["confidence"] = TrustEngine.score_forecast(forecast, memory)
+        _enrich_fragility(forecast)
+        _enrich_retrodiction(forecast, current_state)
+        _enrich_alignment(forecast, current_state, memory)
+        _enrich_attention(forecast, arc_drift)
+        _enrich_regret(forecast, regret_log)
+        _enrich_license(forecast, license_enforcer, license_explainer)
+        run_trust_enrichment_plugins(forecast)
+        # Add summary/explanation for operator interpretability
+        explanations = []
+        if forecast.get("trust_label") != "🟢 Trusted":
+            explanations.append(f"Trust label: {forecast.get('trust_label')}")
+        if forecast.get("confidence", 1.0) < 0.6:
+            explanations.append(f"Low confidence: {forecast.get('confidence')}")
+        if forecast.get("alignment_score", 100) < 70:
+            explanations.append(f"Low alignment: {forecast.get('alignment_score')}")
+        if forecast.get("fragility", 0.0) > 0.6:
+            explanations.append(f"High fragility: {forecast.get('fragility')}")
+        if forecast.get("license_status") and forecast.get("license_status") != "✅ Approved":
+            explanations.append(f"License: {forecast.get('license_status')}")
+        forecast["trust_summary"] = (
+            f"Trust: {forecast.get('trust_label', 'N/A')}, "
+            f"Conf: {forecast.get('confidence', 'N/A')}, "
+            f"Align: {forecast.get('alignment_score', 'N/A')}, "
+            f"Fragility: {forecast.get('fragility', 'N/A')}, "
+            f"License: {forecast.get('license_status', 'N/A')}"
+            + (f"\nExplanation(s): {'; '.join(explanations)}" if explanations else "")
+        )
+        return forecast
+
     # ---- Batch Application ----
 
     @staticmethod
@@ -430,6 +498,9 @@ class TrustEngine:
         Returns:
             List of processed forecast dicts with trust metadata.
         """
+        
+        from learning.learning import retrospective_analysis_batch
+
         # Optional: run retrodiction check before tagging
         if current_state:
             try:
@@ -507,71 +578,11 @@ def _enrich_license(forecast, license_enforcer, license_explainer):
     if license_enforcer and license_explainer:
         forecast["license_status"] = license_enforcer(forecast)
         forecast["license_explanation"] = license_explainer(forecast)
-
-def enrich_trust_metadata(
-    forecast: Dict,
-    current_state: Optional[Dict] = None,
-    memory: Optional[List[Dict]] = None,
-    arc_drift: Optional[Dict[str, int]] = None,
-    regret_log: Optional[List[Dict]] = None,
-    license_enforcer=None,
-    license_explainer=None
-) -> Dict:
-    """
-    Compute all trust metrics and attach to forecast.
-
-    Args:
-        forecast (Dict): Forecast to enrich.
-        current_state (Optional[Dict]): Current worldstate for retrodiction.
-        memory (Optional[List[Dict]]): Past forecasts for novelty/alignment.
-        arc_drift (Optional[Dict[str, int]]): Arc drift deltas.
-        regret_log (Optional[List[Dict]]): Regret events for repeat flagging.
-        license_enforcer (callable): Function to assign license status.
-        license_explainer (callable): Function to explain license status.
-
-    Returns:
-        Dict: Enriched forecast with trust metadata.
-
-    Example:
-        enrich_trust_metadata(forecast, current_state, memory, arc_drift, regret_log)
-
-    Security:
-        No sensitive data is logged or exposed. All enrichment is local to the forecast object.
-    """
-    forecast = TrustEngine.tag_forecast(forecast)
-    forecast["confidence"] = TrustEngine.score_forecast(forecast, memory)
-    _enrich_fragility(forecast)
-    _enrich_retrodiction(forecast, current_state)
-    _enrich_alignment(forecast, current_state, memory)
-    _enrich_attention(forecast, arc_drift)
-    _enrich_regret(forecast, regret_log)
-    _enrich_license(forecast, license_enforcer, license_explainer)
-    run_trust_enrichment_plugins(forecast)
-    # Add summary/explanation for operator interpretability
-    explanations = []
-    if forecast.get("trust_label") != "🟢 Trusted":
-        explanations.append(f"Trust label: {forecast.get('trust_label')}")
-    if forecast.get("confidence", 1.0) < 0.6:
-        explanations.append(f"Low confidence: {forecast.get('confidence')}")
-    if forecast.get("alignment_score", 100) < 70:
-        explanations.append(f"Low alignment: {forecast.get('alignment_score')}")
-    if forecast.get("fragility", 0.0) > 0.6:
-        explanations.append(f"High fragility: {forecast.get('fragility')}")
-    if forecast.get("license_status") and forecast.get("license_status") != "✅ Approved":
-        explanations.append(f"License: {forecast.get('license_status')}")
-    forecast["trust_summary"] = (
-        f"Trust: {forecast.get('trust_label', 'N/A')}, "
-        f"Conf: {forecast.get('confidence', 'N/A')}, "
-        f"Align: {forecast.get('alignment_score', 'N/A')}, "
-        f"Fragility: {forecast.get('fragility', 'N/A')}, "
-        f"License: {forecast.get('license_status', 'N/A')}"
-        + (f"\nExplanation(s): {'; '.join(explanations)}" if explanations else "")
-    )
-    return forecast
+from typing import Optional, List
 
 def score_forecasts(
     forecasts: list,
-    memory: list = None,
+    memory: Optional[List] = None,
     fragility_weight: float = 0.4,
     delta_weight: float = 0.4,
     novelty_weight: float = 0.2
@@ -593,6 +604,8 @@ def score_forecasts(
 
 # Add this at the end of the file to allow direct import
 score_forecast = TrustEngine.score_forecast
+
+enrich_trust_metadata = TrustEngine.enrich_trust_metadata
 
 # --- Unit test for enrich_trust_metadata ---
 def _test_enrich_trust_metadata():

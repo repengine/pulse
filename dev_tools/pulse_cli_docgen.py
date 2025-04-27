@@ -21,7 +21,7 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from typing import Dict, List
 
 CONFIG = "dev_tools/pulse_hooks_config.json"
-DEFAULT_OUTFILE = PATHS["CLI_DOC"]
+DEFAULT_OUTFILE = str(PATHS["CLI_DOC"])
 
 logger = get_logger(__name__)
 

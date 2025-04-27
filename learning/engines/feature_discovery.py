@@ -23,7 +23,7 @@ class FeatureDiscoveryResult(BaseModel):
     features: list
     clusters: dict = {}
     top_variables: list = []
-    error: str = None
+    error: Optional{str} = None
 
 class FeatureDiscoveryEngine:
     """

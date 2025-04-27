@@ -1,7 +1,7 @@
 # test_forecast_retrospector.py
 
 import unittest
-from forecast_retrospector import reconstruct_past_state, retrodict_error_score, retrospective_analysis_batch
+from learning.learning import reconstruct_past_state, retrodict_error_score, retrospective_analysis_batch
 
 class TestForecastRetrospector(unittest.TestCase):
     def setUp(self):

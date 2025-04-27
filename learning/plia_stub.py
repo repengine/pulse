@@ -9,8 +9,8 @@ Author: Pulse v3.5
 
 from simulation_engine.worldstate import WorldState
 from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score
-from capital_engine.portfolio_state import total_exposure
-from typing import Dict
+from capital_engine.capital_layer import total_exposure
+from typing import Dict, Any
 from utils.log_utils import get_logger
 
 logger = get_logger(__name__)
@@ -26,7 +26,7 @@ def set_diagnostics_enabled(enabled: bool):
     DIAGNOSTICS_ENABLED = enabled
 
 
-def run_plia_stub(state: WorldState) -> Dict[str, any]:
+def run_plia_stub(state: WorldState) -> Dict[str, Any]:
     """
     Basic integrity snapshot for symbolic overlays and capital totals.
 

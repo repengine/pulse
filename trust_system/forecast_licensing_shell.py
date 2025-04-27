@@ -15,7 +15,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def license_forecast(forecast: Dict, thresholds: Dict = None) -> str:
+def license_forecast(forecast: Optional[Dict], thresholds: Optional[Dict] = None) -> str:
     """
     Determines the licensing status of a forecast based on confidence, trust, alignment, and drift.
     

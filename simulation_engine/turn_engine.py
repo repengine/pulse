@@ -55,43 +55,44 @@ def run_turn(
         # Step 1: Symbolic decay (for each overlay variable)
         for overlay_name in state.overlays.as_dict():
             decay_overlay(state, overlay_name, rate=decay_rate)
-        state.log_state_change("Symbolic decay applied to overlays.")
+        state.log_event("Symbolic decay applied to overlays.")
     except Exception as e:
-        state.log_state_change(f"[ERROR] Symbolic decay failed: {e}")
+        state.log_event(f"[ERROR] Symbolic decay failed: {e}")
 
     try:
         # Step 2: Apply symbolic and capital shifts (non-audited)
         apply_causal_rules(state)
-        state.log_state_change("Causal rules applied.")
+        state.log_event("Causal rules applied.")
     except Exception as e:
-        state.log_state_change(f"[ERROR] Causal rules failed: {e}")
+        state.log_event(f"[ERROR] Causal rules failed: {e}")
 
     try:
         # Step 3: Run structured rule engine and capture audit log
         rule_execution_log = run_rules(state, verbose=verbose)
-        state.log_state_change("Structured rule engine executed.")
+        state.log_event("Structured rule engine executed.")
     except Exception as e:
-        state.log_state_change(f"[ERROR] Rule engine failed: {e}")
+        state.log_event(f"[ERROR] Rule engine failed: {e}")
         rule_execution_log = []
 
     # Step 4: Optional injected logic (for testing or external simulation branches)
     if rule_fn:
         try:
             rule_fn(state)
-            state.log_state_change("Custom rule_fn executed.")
+            state.log_event("Custom rule_fn executed.")
         except Exception as e:
-            state.log_state_change(f"[ERROR] Custom rule_fn failed: {e}")
+            state.log_event(f"[ERROR] Custom rule_fn failed: {e}")
 
     # Step 5: Advance the simulation
-    state.increment_turn()
-    state.log_state_change("Turn incremented.")
+    state.advance_turn()
+    state.log_event("Turn incremented.")
 
     # Optional: Post-turn license enforcement (if enabled)
-    if AUTO_ENFORCE:
-        from trust_system.license_enforcer import annotate_forecasts, filter_licensed
-        if hasattr(state, "forecasts"):
-            state.forecasts = annotate_forecasts(state.forecasts)
-            state.forecasts = filter_licensed(state.forecasts)
+    # Removed state.forecasts logic because WorldState has no 'forecasts' attribute
+    # if AUTO_ENFORCE:
+    #     from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+    #     if hasattr(state, "forecasts"):
+    #         state.forecasts = annotate_forecasts(state.forecasts)
+    #         state.forecasts = filter_licensed(state.forecasts)
 
     # Call learning hook with a snapshot of the state
     if learning_engine is not None:

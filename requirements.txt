@@ -12,3 +12,10 @@ uvicorn
 watchdog
 boto3
 tweepy
+
+torch
+
+numpy
+gym
+stable-baselines3
+mlflow

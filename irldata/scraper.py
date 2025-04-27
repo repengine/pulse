@@ -13,7 +13,7 @@ Author: Pulse v0.308
 import logging
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from typing import List, Dict, Optional, Callable
 import pandas as pd
 import numpy as np
@@ -50,8 +50,17 @@ class SignalScraper:
         self.zscore_window = []
 
     def ingest_signal(self, name: str, value: float, source: str, timestamp: Optional[datetime] = None) -> Optional[Dict[str, float]]:
+        if timestamp is not None and not isinstance(timestamp, datetime):
+            try:
+                # If timestamp is a float, treat as unix timestamp
+                if isinstance(timestamp, float):
+                    timestamp = datetime.fromtimestamp(timestamp, timezone.utc)
+                else:
+                    timestamp = datetime.fromisoformat(str(timestamp))
+            except Exception:
+                timestamp = datetime.now(timezone.utc)
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         recency_score = self._score_recency(timestamp)
         anomaly_flag = self._detect_anomaly_zscore(value)
@@ -95,7 +104,7 @@ class SignalScraper:
         return log_entry
 
     def _score_recency(self, timestamp: datetime) -> float:
-        age = (datetime.utcnow() - timestamp).total_seconds()
+        age = (datetime.now(timezone.utc) - timestamp).total_seconds()
         tau = 86400.0
         return float(np.exp(-age / tau))
 
@@ -106,13 +115,23 @@ class SignalScraper:
         if len(self.zscore_window) > 50:
             self.zscore_window = self.zscore_window[-50:]
         z = (value - np.mean(self.zscore_window)) / (np.std(self.zscore_window) + 1e-6)
-        return abs(z) > 3.0
+        return bool(abs(z) > 3.0)
 
     def _infer_symbolic(self, name: str) -> Optional[str]:
         if zero_shot:
             try:
                 result = zero_shot(name, SYMBOLIC_CATEGORIES)
-                return result["labels"][0] if result["scores"][0] > 0.5 else None
+                # If result is a generator or iterable (but not dict), convert to list and get first item
+                if not isinstance(result, dict):
+                    if result is not None and hasattr(result, '__iter__'):
+                        result = list(result)[0]
+                    else:
+                        result = {}
+                if result and isinstance(result, dict) and "labels" in result and "scores" in result:
+                    if result["scores"][0] > 0.5:
+                        return str(result["labels"][0])
+                    else:
+                        return None
             except Exception as e:
                 logger.warning("[Scraper] Symbolic inference failed: %s", e)
         return None
@@ -138,11 +157,26 @@ class SignalScraper:
             try:
                 results = plugin()
                 for entry in results:
+                    name = str(entry["name"]) if "name" in entry else ""
+                    value = entry["value"]
+                    source = str(entry.get("source", "plugin"))
+                    timestamp = entry.get("timestamp")
+                    # Only allow timestamp if None or datetime; convert float to datetime
+                    if isinstance(timestamp, float):
+                        try:
+                            timestamp = datetime.fromtimestamp(timestamp, timezone.utc)
+                        except Exception:
+                            timestamp = None
+                    elif not (timestamp is None or isinstance(timestamp, datetime)):
+                        try:
+                            timestamp = datetime.fromisoformat(str(timestamp))
+                        except Exception:
+                            timestamp = None
                     self.ingest_signal(
-                        name=entry["name"],
-                        value=entry["value"],
-                        source=entry.get("source", "plugin"),
-                        timestamp=entry.get("timestamp")
+                        name=name,
+                        value=value,
+                        source=source,
+                        timestamp=timestamp
                     )
             except Exception as e:
                 logger.error("[Scraper] Plugin %s failed: %s", plugin.__name__, e)

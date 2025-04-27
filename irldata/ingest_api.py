@@ -5,7 +5,7 @@ import os
 import logging
 from irldata.scraper import SignalScraper
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ValidationError
 from typing import List, Optional
 import uvicorn
@@ -45,7 +45,7 @@ def startup_event():
 
 @app.get("/metrics")
 def metrics():
-    return JSONResponse(content=generate_latest().decode(), media_type=CONTENT_TYPE_LATEST)
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.post("/ingest", dependencies=[Depends(get_api_key)])
 async def ingest_signal(signal: SignalIn):
@@ -54,8 +54,15 @@ async def ingest_signal(signal: SignalIn):
         logger.info(f"Submitted to Celery: {signal.dict()}")
         return {"status": "submitted"}
     except Exception as e:
-        logger.error(f"API ingest error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"API ingest error for signal {signal.dict()}: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "error": str(e),
+                "signal": signal.dict()
+            }
+        )
 
 @app.post("/ingest_batch", dependencies=[Depends(get_api_key)])
 async def ingest_batch(signals: List[SignalIn]):
@@ -65,8 +72,13 @@ async def ingest_batch(signals: List[SignalIn]):
             celery_app.send_task("ingest_and_score_signal", args=[signal.dict()])
             results.append({"name": signal.name, "status": "submitted"})
         except Exception as e:
-            logger.error(f"Batch ingest error: {e}")
-            results.append({"name": signal.name, "status": "error", "error": str(e)})
+            logger.error(f"Batch ingest error for signal {signal.dict()}: {e}")
+            results.append({
+                "name": signal.name,
+                "status": "error",
+                "error": str(e),
+                "signal": signal.dict()
+            })
     return {"results": results}
 
 if __name__ == "__main__":

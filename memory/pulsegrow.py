@@ -27,14 +27,16 @@ class PulseGrow:
         self.promoted: List[str] = []
         self.rejected: List[str] = []
 
-    def register_variable(self, name: str, metadata: Optional[Dict] = None):
-        """Register a new variable for evaluation"""
+    def register_variable(self, name: str, meta: Optional[Dict] = None, metadata: Optional[Dict] = None, **kwargs):
+        """Register a new variable for evaluation. Accepts both 'meta' and 'metadata' for compatibility."""
+        # Prefer 'meta' if provided, else 'metadata'
+        meta = meta or metadata or {}
         if name in self.candidates:
             logger.warning("[PulseGrow] Variable %s already registered.", name)
             return
         self.candidates[name] = {
             "name": name,
-            "metadata": metadata or {},
+            "metadata": meta,
             "scores": [],
             "symbolic_links": [],
             "attempts": 0
@@ -109,7 +111,7 @@ class PulseGrow:
         logger.info(f"[PulseGrow] Logging failed candidate: {name} | Reason: {reason}")
         # Example: PulseMemory.add_failed_candidate(name, reason)
 
-    def track_anomaly(self, name: str, sti: float = None, volatility: float = None):
+    def track_anomaly(self, name: str, sti: Optional[float] = None, volatility: Optional[float] = None):
         """Flag variable as anomaly-prone based on STI/volatility."""
         if name in self.candidates:
             self.candidates[name]["anomaly_flag"] = True

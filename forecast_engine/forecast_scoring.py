@@ -38,7 +38,7 @@ def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
         for tag in rule.get("symbolic_tags", []):
             symbolic_counts[tag] = symbolic_counts.get(tag, 0) + 1
 
-    symbolic_driver = max(symbolic_counts, key=symbolic_counts.get, default="unknown")
+    symbolic_driver = max(symbolic_counts.keys(), default="unknown", key=symbolic_counts.get)
 
     # Confidence: more diverse symbolic signals = more believable
     diversity_factor = len(symbolic_counts)

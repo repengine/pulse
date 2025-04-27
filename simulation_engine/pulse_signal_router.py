@@ -111,16 +111,16 @@ def route_signal(state: WorldState, signal: str) -> bool:
         return False
 
 def _test_route_signal():
-    class DummyVars:
-        ai_policy_risk = 0.0
-        fed_funds_rate = 1.0
-        crypto_instability = 0.0
-        media_sentiment_score = 0.0
-        energy_price_index = 0.0
-        public_trust_level = 1.0
-    class DummyState:
-        variables = DummyVars()
-    s = DummyState()
+    # Use the actual WorldState class for type correctness
+    from simulation_engine.worldstate import WorldState
+    s = WorldState()
+    # Set required variables for testing
+    s.variables.ai_policy_risk = 0.0
+    s.variables.fed_funds_rate = 1.0
+    s.variables.crypto_instability = 0.0
+    s.variables.media_sentiment_score = 0.0
+    s.variables.energy_price_index = 0.0
+    s.variables.public_trust_level = 1.0
     assert route_signal(s, "ai_panic")
     assert route_signal(s, "fed_cut")
     assert not route_signal(s, "unknown_signal")

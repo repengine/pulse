@@ -51,8 +51,8 @@ def render_rule_mutation_summary(log: List[Dict]):
         print(f" - Rule `{mut['rule']}`: {mut['from']} → {mut['to']}")
 
 if __name__ == "__main__":
-    learning_events = load_log(LEARNING_LOG)
+    learning_events = load_log(str(LEARNING_LOG))
     render_learning_summary(learning_events)
 
-    rule_mutations = load_log(RULE_LOG)
+    rule_mutations = load_log(str(RULE_LOG))
     render_rule_mutation_summary(rule_mutations)

@@ -1,37 +1,23 @@
 """
 rule_fingerprint_expander.py
 
-Expands and suggests new rules based on symbolic overlays and trust weighting.
-Supports approval workflow for new rules (stub).
+Suggests and validates new rule fingerprints based on observed deltas and forecast confidence.
 
-Usage:
-    python rule_fingerprint_expander.py --delta key1=val1 key2=val2 --rule-id NEW_RULE
-    python rule_fingerprint_expander.py --validate rules/rule_fingerprints.json
-    python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7
-    submit_rule_for_approval(rule)  # New: submit rule for approval
+Responsibilities:
+- Suggest new rule fingerprints from deltas or forecast batches
+- Validate fingerprints using centralized validation logic
+- Support approval workflow for new rules
 
-Author: Pulse AI Engine
+All rule access and validation should use shared utilities from rule_matching_utils and rule_coherence_checker.
 """
 
 import json
-from simulation_engine.rules.rule_registry import RuleRegistry
+from typing import Optional
+from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints, validate_fingerprint_schema
 
-# Use RuleRegistry for unified rule access
-_registry = RuleRegistry()
-_registry.load_all_rules()
+# Use centralized get_all_rule_fingerprints for unified rule access
 
-def get_all_rule_fingerprints() -> list:
-    """Return all rule fingerprints from the unified registry."""
-    return [r for r in _registry.rules if r.get("effects") or r.get("effect")]
-
-def validate_fingerprint_schema(fingerprints: list) -> list:
-    errors = []
-    for i, rule in enumerate(fingerprints):
-        if "rule_id" not in rule and "id" not in rule or "effects" not in rule:
-            errors.append(f"Entry {i} missing required fields: {rule}")
-    return errors
-
-def suggest_fingerprint_from_delta(delta: dict, rule_id: str = None) -> dict:
+def suggest_fingerprint_from_delta(delta: dict, rule_id: Optional[str] = None) -> dict:
     """
     Suggest a new fingerprint entry from an observed delta.
     """
@@ -58,14 +44,12 @@ def suggest_fingerprints(forecasts: list, min_conf: float = 0.7) -> list:
         conf = f.get("confidence", 0)
         if conf >= min_conf:
             suggestions.append({"trace_id": f["trace_id"], "weight": conf, "effects": f.get("effects", {})})
-    # Sort by weight
     return sorted(suggestions, key=lambda x: -x["weight"])
 
 def validate_fingerprints_file(path: str):
     try:
         fps = get_all_rule_fingerprints()
-        errors = validate_fingerprint_schema(fps)
-        if errors:
+        if errors := validate_fingerprint_schema(fps):
             print("❌ Errors:")
             for e in errors:
                 print(" -", e)
@@ -94,7 +78,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def submit_rule_for_approval(rule, approver: str = None):
+def submit_rule_for_approval(rule, approver: Optional[str] = None):
     """Stub: Submit a new rule for approval. In production, this would route to a review queue or require multi-party signoff."""
     logger.info(f"Rule submitted for approval: {rule} (approver: {approver})")
     # Placeholder for approval workflow logic

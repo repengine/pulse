@@ -11,7 +11,12 @@ Version: v0.4.3
 import argparse
 import json
 import os
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+    print("❌ matplotlib is not installed. Please install it with 'pip install matplotlib' to enable plotting.")
+
 from typing import List, Dict, Union
 
 
@@ -33,13 +38,11 @@ def extract_series(trace: List[Dict], mode: str, key: str) -> List[Union[float, 
         key: variable/overlay name to extract
 
     Returns:
-        List of values (float or None for missing entries)
-    """
-    return [step.get(mode, {}).get(key, None) for step in trace]
-
-
-def plot_series(values: List[Union[float, None]], title: str, ylabel: str, export_path: str = None):
+def plot_series(values: List[Union[float, None]], title: str, ylabel: str, export_path: Optional{str} = None):
     """Plot a series of float values over simulation steps and optionally export to image."""
+    if plt is None:
+        print("❌ Plotting is unavailable because matplotlib is not installed.")
+        return
     try:
         filtered = [v if isinstance(v, (int, float)) else None for v in values]
         x = list(range(len(filtered)))
@@ -57,9 +60,14 @@ def plot_series(values: List[Union[float, None]], title: str, ylabel: str, expor
             plt.show()
     except Exception as e:
         print(f"❌ Plotting failed: {e}")
+            print(f"📤 Plot exported to {export_path}")
+        else:
+            plt.show()
+    except Exception as e:
+        print(f"❌ Plotting failed: {e}")
 
 
-def replay_trace(path: str, mode: str, key: str, export_data: str = None, export_plot: str = None):
+def replay_trace(path: str, mode: str, key: str, export_data: Optional{str} = None, export_plot: Optional{str} = None):
     """Load trace and display or export selected variable/overlay as a graph or JSON series."""
     try:
         trace = load_trace(path)
@@ -77,7 +85,7 @@ def replay_trace(path: str, mode: str, key: str, export_data: str = None, export
         print(f"❌ Replay error: {e}")
 
 
-def print_symbolic_tags(path: str, export_path: str = None):
+def print_symbolic_tags(path: str, export_path: Optional{str} = None):
     """Print or export symbolic tag sequence from a trace."""
     try:
         trace = load_trace(path)

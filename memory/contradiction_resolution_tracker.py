@@ -50,7 +50,7 @@ def log_resolution_outcome(tid1: str, tid2: str, status: str):
         }) + "\n")
 
 
-def summarize_resolution_outcomes(path: str = RESOLUTION_LOG) -> Dict[str, int]:
+def summarize_resolution_outcomes(path: str = str(RESOLUTION_LOG)) -> Dict[str, int]:
     if not os.path.exists(path):
         return {}
     counts = {"✅ Resolved": 0, "↔️ Still Contradictory": 0, "🌀 Partial Alignment": 0}

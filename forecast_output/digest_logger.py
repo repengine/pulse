@@ -14,8 +14,11 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
-def save_digest_to_file(digest: str, tag: str = None) -> None:
-    folder = PATHS.get("DIGEST_DIR", os.path.dirname(PATHS["LOG_FILE"]))
+from typing import Optional
+
+def save_digest_to_file(digest: str, tag: Optional[str] = None) -> None:
+    log_file = PATHS.get("LOG_FILE", "default.log")
+    folder = PATHS.get("DIGEST_DIR", os.path.dirname(log_file))
     os.makedirs(folder, exist_ok=True)
 
     if not digest.strip():

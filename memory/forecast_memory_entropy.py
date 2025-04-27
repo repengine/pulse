@@ -52,8 +52,8 @@ def compare_against_memory(new_batch, memory, key: str = "arc_label") -> float:
     Returns:
         float: 0 = all symbols already exist in memory, 1 = completely new
     """
-    new_syms = set(f.get(key, "unknown") for f in new_batch)
-    mem_syms = set(f.get(key, "unknown") for f in memory)
+    new_syms = {f.get(key, "unknown") for f in new_batch}
+    mem_syms = {f.get(key, "unknown") for f in memory}
     novel = new_syms - mem_syms
     return round(len(novel) / max(len(new_syms), 1), 3)
 
@@ -69,7 +69,7 @@ def flag_memory_duplication(new_batch, memory, key: str = "arc_label") -> List[D
     Returns:
         List[Dict]: forecasts with 'symbolic_duplicate': true
     """
-    memory_labels = set(f.get(key, "unknown") for f in memory)
+    memory_labels = {f.get(key, "unknown") for f in memory}
     for fc in new_batch:
         fc["symbolic_duplicate"] = fc.get(key, "unknown") in memory_labels
     return new_batch

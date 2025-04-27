@@ -1,1 +1,0 @@
-Get-ChildItem -Path . -Filter *.py -Recurse | Where-Object { $_.Length -eq 0 } | Remove-Item

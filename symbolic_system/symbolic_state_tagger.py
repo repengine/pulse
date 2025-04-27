@@ -95,7 +95,7 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
         "turn": turn,
         "symbolic_tag": label,
         "symbolic_tag_enum": tag.name,
-        "symbolic_overlays": overlays.as_dict() if hasattr(overlays, "as_dict") else overlays,
+        "symbolic_overlays": overlays,
         "timestamp": datetime.utcnow().isoformat(),
         "metadata": {
             "version": "v0.30.1",
@@ -104,9 +104,13 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
         }
     }
 
-    ensure_log_dir(TAG_LOG_PATH)
+    ensure_log_dir(str(TAG_LOG_PATH))
+    log_path = str(TAG_LOG_PATH)
+    # If TAG_LOG_PATH is a directory, append a default filename
+    if os.path.isdir(log_path):
+        log_path = os.path.join(log_path, "symbolic_state_tags.jsonl")
     try:
-        with open(TAG_LOG_PATH, "a") as f:
+        with open(log_path, "a") as f:
             f.write(json.dumps(result) + "\n")
     except Exception as e:
         logger.error(f"[SymbolicTagger] Logging error: {e}")

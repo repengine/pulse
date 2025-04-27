@@ -12,24 +12,21 @@ from simulation_engine.worldstate import WorldState
 # Removed hardcoded DEFAULT_DECAY_RATE import; using YAML config via config_loader instead.
 
 
-def linear_decay(value: float, rate: float = None) -> float:
+from typing import Optional
+
+def linear_decay(value: float, rate: Optional[float] = None) -> float:
     """
     Reduces a value by a fixed rate, bounded at zero.
-
-    Parameters:
-        value (float): current value
-        rate (float): amount to decay
-
-    Returns:
-        float: decayed value
     """
     if rate is None:
         from core.pulse_config import config_loader
         rate = config_loader.get_config_value("core_config.yaml", "default_decay_rate", 0.1)
-    return max(0.0, value - rate)
+    if rate is None:
+        raise ValueError("Decay rate must be a float, got None.")
+    return max(0.0, value - float(rate))
 
 
-def apply_overlay_decay(state: WorldState, decay_rate: float = None):
+def apply_overlay_decay(state: WorldState, decay_rate: Optional[float] = None):
     """
     Applies linear decay to all symbolic overlays.
     Use this when not running via `turn_engine.py`.
@@ -45,7 +42,7 @@ def apply_overlay_decay(state: WorldState, decay_rate: float = None):
             state.log_event(f"[DECAY] {overlay_name}: {current_value:.3f} → {decayed:.3f}")
 
 
-def decay_variable(state: WorldState, name: str, rate: float = None, floor: float = 0.0):
+def decay_variable(state: WorldState, name: str, rate: Optional[float] = None, floor: float = 0.0):
     """
     Applies decay to a numeric variable in state.variables.
 
@@ -58,7 +55,8 @@ def decay_variable(state: WorldState, name: str, rate: float = None, floor: floa
     if rate is None:
         from core.pulse_config import config_loader
         rate = config_loader.get_config_value("core_config.yaml", "default_decay_rate", 0.1)
-    current = state.get_variable(name, 0.0)
+    current = state.variables.get(name, 0.0)
     decayed = max(floor, current - rate)
+    state.variables[name] = decayed
     state.update_variable(name, decayed)
     state.log_event(f"[DECAY] Variable '{name}': {current:.3f} → {decayed:.3f}")

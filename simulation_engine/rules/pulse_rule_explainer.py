@@ -1,37 +1,27 @@
 """
-Module: pulse_rule_explainer.py
-Pulse Version: v0.100.8
-Location: simulation_engine/rules/
+pulse_rule_explainer.py
 
-Purpose:
 Explains which rule fingerprints contributed to a forecast.
-Detects matched triggers, aligned effects, and symbolic alignment.
 
-Features:
+Responsibilities:
 - Match forecast triggers and outcomes to rule fingerprints
 - Return best rule matches with confidence scores
-- CLI and JSONL batch support
+- Use centralized rule access from rule_matching_utils
 
-Author: Pulse AI Engine
+All rule access should use get_all_rule_fingerprints from rule_matching_utils.
 """
 
 import json
 from typing import Dict, List, Tuple
-from simulation_engine.rules.rule_registry import RuleRegistry
-
-# Use RuleRegistry for all rule access
-_registry = RuleRegistry()
-_registry.load_all_rules()
-
-def get_all_rule_fingerprints() -> Dict:
-    # Return a dict keyed by rule_id for compatibility
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
+from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
 
 def match_forecast_to_rules(forecast: Dict, rules: Dict) -> List[Dict]:
     """
     Score all rules against a single forecast.
-    Returns ranked list of rule matches.
-    """
+    Returns ranked list of rule matches
+# Use centralized get_all_rule_fingerprints for all rule access
+
+"""
     trigger = forecast.get("trigger", forecast.get("alignment", {}))
     outcome = forecast.get("forecast", {}).get("symbolic_change", {})
     score_list = []
@@ -76,6 +66,15 @@ def explain_forecast(forecast: Dict, rules: Dict) -> Dict:
         "symbolic_tag": forecast.get("symbolic_tag"),
         "top_rules": top_rules
     }
+
+def load_rule_fingerprints(rule_file=None):
+    if rule_file:
+        with open(rule_file, "r") as f:
+            rules = json.load(f)
+        return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(rules) if r.get("effects") or r.get("effect")}
+    else:
+        # Use centralized get_all_rule_fingerprints
+        return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
 
 def explain_forecast_batch(forecasts: List[Dict], rule_file=None) -> List[Dict]:
     rules = load_rule_fingerprints(rule_file)

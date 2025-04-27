@@ -57,8 +57,10 @@ def run_batch_from_config(
             for _ in range(cfg.get("turns", 1)):
                 run_turn(state, learning_engine=learning_engine)
             # Step 2: Generate forecasts
-            forecasts = generate_forecast(state)
+            forecasts = generate_forecast(state.to_dict() if hasattr(state, "to_dict") else vars(state))
             # Step 3: Run forecast pipeline
+            if isinstance(forecasts, dict):
+                forecasts = [forecasts]
             result = run_forecast_pipeline(forecasts)
             result["config"] = cfg
             result["batch_index"] = i
@@ -101,4 +103,4 @@ if __name__ == "__main__":
         {"state_overrides": {"hope": 0.6, "despair": 0.2}, "turns": 1},
         {"state_overrides": {"hope": 0.3, "despair": 0.5}, "turns": 1},
     ]
-    run_batch_from_config(sample_config, export_path=DEFAULT_BATCH_OUTPUT)
+    run_batch_from_config(sample_config, export_path=str(DEFAULT_BATCH_OUTPUT))

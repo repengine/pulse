@@ -33,7 +33,7 @@ def compute_alignment_index(
     arc_volatility: Optional[float] = None,
     tag_match: Optional[float] = None,
     weights: Optional[Dict[str, float]] = None
-) -> Dict[str, float]:
+) -> Dict[str, object]:
     """
     Compute the alignment index for a given forecast.
 

@@ -16,7 +16,7 @@ class EnsembleManager:
         self._models: Dict[str, Callable[..., Dict[str, Any]]] = {}
         self._weights: Dict[str, float] = {}
         # initialize ensemble weights from configuration
-        self._weights.update(ENSEMBLE_WEIGHTS)
+        self._weights |= ENSEMBLE_WEIGHTS
 
     def register_model(self, name: str, model_fn: Callable[..., Dict[str, Any]], weight: float = 1.0):
         """

@@ -24,7 +24,7 @@ from operator_interface.variable_cluster_digest_formatter import format_variable
 from operator_interface.mutation_digest_exporter import export_full_digest
 from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md
 
-def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
+def run_cycle_comparison(prev_path: str, curr_path: str, output: Optional{str} = None):
     print("🔁 Comparing recursive forecast batches...")
     with open(prev_path, "r") as f:
         previous = [json.loads(line.strip()) for line in f if line.strip()]
@@ -39,7 +39,7 @@ def run_cycle_comparison(prev_path: str, curr_path: str, output: str = None):
         print(f"📤 Report saved to {output}")
 
 
-def run_variable_plot(trace_path: str, variables: list, export: str = None):
+def run_variable_plot(trace_path: str, variables: list, export: Optional{str} = None):
     traces = load_variable_trace(trace_path, variables)
     if any(steps for steps, _ in traces.values()):
         plot_variables(traces, export_path=export)

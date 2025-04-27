@@ -28,7 +28,7 @@ from forecast_output.forecast_prioritization_engine import select_top_forecasts
 import os, json
 
 # Add memory promoter imports
-from memory.forecast_memory_promotor import select_promotable_forecasts, export_promoted
+from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
 
 # --- Capital Layer Imports ---
 from capital_engine.capital_layer import run_capital_forks, summarize_exposure, portfolio_alignment_tags
@@ -42,6 +42,12 @@ from memory.variable_performance_tracker import VariablePerformanceTracker
 # Add contradiction detector import
 from forecast_output.forecast_contradiction_detector import detect_forecast_contradictions
 from core.pulse_learning_log import log_learning_event
+
+# --- Epistemic Mirror Imports ---
+from GPT.gpt_causal_translator import extract_rules_from_gpt_output, label_symbolic_arcs, identify_missing_domains
+from GPT.gpt_rule_fingerprint_extractor import extract_fingerprint_from_gpt_rationale, match_fingerprint_to_pulse_rules, archive_foreign_fingerprint
+from GPT.gpt_symbolic_convergence_loss import compute_symbolic_convergence_loss
+from GPT.gpt_forecast_divergence_logger import tag_divergence_type, log_forecast_divergence
 
 def run_forecast_pipeline(
     forecasts: List[Dict[str, Any]],
@@ -148,6 +154,44 @@ def run_forecast_pipeline(
         except Exception as e:
             log_info(f"[PIPELINE] Trace assignment/registration failed: {e}")
 
+    # Step 3.5: Epistemic Mirror Integration (after scoring, before compression)
+    for f in scored:
+        # 1. Extract rules/arcs/missing domains from GPT output if present
+        gpt_output = f.get("gpt_output") or f.get("gpt_narrative") or f.get("gpt_forecast")
+        pulse_domains = f.get("pulse_domains") or []
+        if gpt_output:
+            f["gpt_extracted_rules"] = extract_rules_from_gpt_output(gpt_output)
+            f["gpt_symbolic_arcs"] = label_symbolic_arcs(gpt_output)
+            f["gpt_missing_domains"] = identify_missing_domains(gpt_output, pulse_domains)
+        # 2. Extract and archive causal fingerprints from GPT rationale if present
+        gpt_rationale = f.get("gpt_rationale") or gpt_output
+        if gpt_rationale:
+            fingerprint = extract_fingerprint_from_gpt_rationale(gpt_rationale)
+            f["gpt_causal_fingerprint"] = fingerprint
+            # Try to match to Pulse rules if available
+            pulse_rules = f.get("pulse_rules") or []
+            match = match_fingerprint_to_pulse_rules(fingerprint, pulse_rules)
+            if not match:
+                archive_foreign_fingerprint(fingerprint)
+                f["gpt_fingerprint_status"] = "foreign"
+            else:
+                f["gpt_fingerprint_status"] = "matched"
+        # 3. Compute symbolic convergence loss if both Pulse and GPT outputs are present
+        pulse_output = f.get("pulse_output") or f
+        gpt_struct = f.get("gpt_struct") or f.get("gpt_output_struct") or f
+        try:
+            loss = compute_symbolic_convergence_loss(pulse_output, gpt_struct)
+            f["symbolic_convergence_loss"] = loss
+        except Exception:
+            f["symbolic_convergence_loss"] = None
+        # 4. Log divergence type
+        try:
+            div_type = tag_divergence_type(pulse_output, gpt_struct)
+            f["diverggence_type"] = div_type
+            log_forecast_divergence(pulse_output, gpt_struct, div_type)
+        except Exception:
+            f["diverggence_type"] = None
+
     # Step 4: Compress forecasts
     try:
         compressed = compress_forecasts(scored)
@@ -165,7 +209,7 @@ def run_forecast_pipeline(
     digest_result = None
     if enable_digest:
         try:
-            digest_result = build_digest(forecast_batch=compressed, tag="auto", export=True)
+            digest_result = build_digest(forecast_batch=compressed)
         except Exception as e:
             log_info(f"[PIPELINE] Digest failed: {e}")
 

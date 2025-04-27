@@ -10,8 +10,9 @@ Pulse Version: v0.28
 
 import json
 import os
-from typing import Dict, Any, Tuple, Set, List, Optional
+from typing import Dict, Any, Tuple, Set, List, Optional, Callable
 from core.path_registry import PATHS
+from contextlib import suppress
 
 # === Canonical Static Variable Dictionary ===
 VARIABLE_REGISTRY: Dict[str, Dict[str, Any]] = {
@@ -100,18 +101,18 @@ class VariableRegistry:
     def _load(self):
         if os.path.exists(self.path):
             with open(self.path, "r", encoding="utf-8") as f:
-                try:
+                with suppress(Exception):
                     updated = json.load(f)
                     self.variables.update(updated)
-                except Exception:
-                    pass
 
     def _save(self):
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(self.variables, f, indent=2)
 
-    def register_variable(self, name: str, meta: Dict[str, Any]):
+    def register_variable(self, name: str, meta: Optional[Dict[str, Any]] = None, metadata: Optional[Dict[str, Any]] = None):
+        """Register a variable, accepting both 'meta' and 'metadata' for compatibility."""
+        meta = meta or metadata or {}
         self.variables[name] = meta
         self._save()
 
@@ -130,7 +131,7 @@ class VariableRegistry:
     def list_trust_ranked(self) -> List[str]:
         return sorted(self.variables.keys(), key=lambda k: self.variables[k].get("trust_weight", 1.0), reverse=True)
 
-    def bind_data_source(self, signal_provider_fn: callable):
+    def bind_data_source(self, signal_provider_fn: Callable[[], Dict[str, Any]]):
         """
         Attach a signal-fetching function that returns {var_name: value} dicts.
         """

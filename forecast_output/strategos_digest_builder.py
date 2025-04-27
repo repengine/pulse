@@ -23,18 +23,13 @@ import os, json
 from collections import defaultdict
 import logging
 from forecast_output.digest_trace_hooks import summarize_trace_for_digest
+from forecast_output.pulse_forecast_lineage import get_prompt_hash
 
 # Add import for divergence detector
 from forecast_output.forecast_divergence_detector import (
     generate_divergence_report,
     group_conflicting_forecasts
 )
-
-try:
-    from operator_interface.pulse_prompt_logger import get_prompt_hash
-except ImportError:
-    def get_prompt_hash(trace_id: str) -> Optional[str]:
-        return None
 
 logger = logging.getLogger("strategos_digest_builder")
 
@@ -53,11 +48,6 @@ try:
     from forecast_output.mutation_compression_engine import summarize_mutation_log
 except ImportError:
     summarize_mutation_log = None
-
-try:
-    from forecast_output.capital_symbolic_trends import generate_capital_trends_report
-except ImportError:
-    generate_capital_trends_report = None
 
 # ✅ PATCH B Step 1: Import contradiction digest formatter
 try:
@@ -198,6 +188,7 @@ def build_digest(
         - "short"
         - "symbolic_only"
     """
+    config = config or {}
     if not forecast_batch:
         if fmt == "json":
             return "[]"
@@ -206,12 +197,13 @@ def build_digest(
         return "# Strategos Digest\n\n_No forecasts available._"
 
     # Template support
+    # Ensure fields is always a list
     if template == "short":
         fields = ["trace_id", "confidence", "symbolic_tag"]
     elif template == "symbolic_only":
         fields = ["trace_id", "symbolic_tag", "overlays"]
     else:
-        fields = config.get("fields") if config and "fields" in config else DEFAULT_FIELDS
+        fields = config.get("fields") if config.get("fields") is not None else DEFAULT_FIELDS
 
     tag_filter = config.get("tag_filter") if config else None
     overlay_key = config.get("consensus_overlay", "hope") if config else "hope"
@@ -378,6 +370,8 @@ def build_digest(
 
     try:
         if fmt == "json":
+            if fields is None:
+                fields = DEFAULT_FIELDS
             digest_json = [{k: f.get(k) for k in fields} for f in flattened]
             # Add most evolved section, divergence report, dual narrative scenarios, fork decisions, and entropy report
             return json.dumps({
@@ -403,7 +397,15 @@ def build_digest(
                 for k, v in divergence_report["cluster_sizes"].items():
                     lines.append(f"<li>{k}: {v}</li>")
                 lines.append("</ul>")
-            for label, cluster in clusters.items():
+            # Fix clusters.items() usage for when clusters is a list
+            if isinstance(clusters, dict):
+                cluster_items = clusters.items()
+            else:
+                cluster_items = []
+            # Ensure fields is not None before iteration
+            if fields is None:
+                fields = DEFAULT_FIELDS
+            for label, cluster in cluster_items:
                 lines.append(f"<h2>{label}</h2>")
                 lines.append(f"<b>Consensus ({overlay_key} rising):</b> {consensus_score(cluster, overlay_key)*100:.0f}%<br>")
                 if show_drivers:
@@ -416,6 +418,10 @@ def build_digest(
                     for k in fields:
                         v = f.get(k, "N/A")
                         lines.append(f"<b>{k}:</b> {v}<br>")
+                    # --- Causal Explanation (HTML) ---
+                    if "causal_explanation" in f:
+                        ce = f["causal_explanation"]
+                        lines.append(f"<b>Causal Explanation:</b> {ce.get('variable', '')} &rarr; Parents: {', '.join(ce.get('parents', []))}<br>")
                 lines.append("<hr>")
             if not clusters:
                 lines.append("<i>No forecasts available.</i>")
@@ -560,17 +566,32 @@ def build_digest(
                 lines.append(f"- {a.get('arc', 'A')} vs {b.get('arc', 'B')} → ✅ {winner}")
                 lines.append(f"  - Winner: {winner_id} (Align: {winner_align})\n")
 
-        for label, cluster in clusters.items():
+        if isinstance(clusters, dict):
+            cluster_items = clusters.items()
+        elif isinstance(clusters, list):
+            # If clusters is a list, treat each element as a cluster with a generated label
+            cluster_items = [(f"Cluster {i+1}", cluster) for i, cluster in enumerate(clusters)]
+        else:
+            cluster_items = []
+        for label, cluster in cluster_items:
             lines.append(f"==== {label} ====")
-            lines.append(f"Consensus ({overlay_key} rising): {consensus_score(cluster, overlay_key)*100:.0f}%")
+            # Ensure cluster is a list before passing to consensus_score
+            cluster_list = cluster if isinstance(cluster, list) else []
+            lines.append(f"Consensus ({overlay_key} rising): {consensus_score(cluster_list, overlay_key)*100:.0f}%")
             if show_drivers:
-                drivers = summarize_drivers(cluster)
-                if drivers:
+                drivers = summarize_drivers(cluster_list)
+                if drivers and isinstance(drivers, list) and len(drivers) > 0:
                     lines.append(f"Top Drivers: {', '.join(drivers)}")
-            for f in cluster:
-                prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
-                f["prompt_hash"] = prompt_hash
-                lines.extend(render_fields(f, fields))
+            for f in cluster_list:
+                get_prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
+                f["prompt_hash"] = get_prompt_hash
+                # Ensure fields is a list before passing to render_fields
+                safe_fields = fields if isinstance(fields, list) else DEFAULT_FIELDS
+                lines.extend(render_fields(f, safe_fields))
+                # --- Causal Explanation (Markdown) ---
+                if "causal_explanation" in f:
+                    ce = f["causal_explanation"]
+                    lines.append(f"Causal Explanation: {ce.get('variable', '')} 2 Parents: {', '.join(ce.get('parents', []))}")
                 lines.append("")
         if not clusters:
             lines.append("_No forecasts available._")
@@ -607,15 +628,7 @@ if __name__ == "__main__":
     parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
     parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
     parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
-    parser.add_argument("--template", type=str, default="full", choices=["full", "short", "symbolic_only"], help="Digest template (UI/CLI parity)")
-    args = parser.parse_args()
-
-    # Load compressed forecasts
-    import json
-    try:
-        with open(args.input, "r", encoding="utf-8") as f:
-            try:
-                forecasts = json.load(f)
+    parser.add_argument("--template
             except Exception:
                 # Try JSONL fallback
                 forecasts = [json.loads(line) for line in f if line.strip()]
@@ -656,7 +669,8 @@ if __name__ == "__main__":
             html = markdown2.markdown(digest)
             try:
                 import bleach
-                html = bleach.clean(html, tags=bleach.sanitizer.ALLOWED_TAGS + ["h1", "h2", "h3"], strip=True)
+                allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ["h1", "h2", "h3"]
+                html = bleach.clean(html, tags=allowed_tags, strip=True)
             except ImportError:
                 print("Warning: bleach not installed, HTML not sanitized.")
             with open(args.output, "w", encoding="utf-8") as f:

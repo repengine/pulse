@@ -11,18 +11,18 @@ Includes:
 Author: Pulse v0.3
 """
 
-import json
-import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional, Union, Any
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from pathlib import Path
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
-forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+# Fix Path type for persist_dir
+forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 retrodiction_memory = ForecastMemory()
 
 
@@ -45,16 +45,9 @@ def compare_outcomes(
         if asset not in start or asset not in expected:
             result[asset] = False
             continue
-
         expected_delta = expected[asset] - start[asset]
         actual_delta = actual_exposure[asset] - start[asset]
-
-        if abs(expected_delta) < 1e-5:
-            result[asset] = abs(actual_delta) < tolerance
-        else:
-            relative_error = abs((actual_delta - expected_delta) / (expected_delta or 1))
-            result[asset] = relative_error <= tolerance
-
+        result[asset] = abs(actual_delta) < tolerance if abs(expected_delta) < 1e-5 else abs((actual_delta - expected_delta) / (expected_delta or 1)) <= tolerance
     return result
 
 
@@ -71,7 +64,6 @@ def match_symbolic_direction(
     """
     deltas = forecast.get("forecast", {}).get("symbolic_change", {})
     result = {}
-
     for key, delta in deltas.items():
         if abs(delta) < 1e-3:
             continue
@@ -79,23 +71,22 @@ def match_symbolic_direction(
         actual_change = actual_overlay.get(key, 0) - forecast.get("symbolic_snapshot", {}).get(key, 0)
         actual_up = actual_change > 0
         result[key] = (predicted_up == actual_up) or abs(actual_change) < tolerance
-
     return result
 
 
 def score_retrodiction_hit_ratio(hit_map: Dict[str, bool]) -> float:
     if not hit_map:
         return 0.0
-    correct = sum(1 for hit in hit_map.values() if hit)
+    correct = sum(hit_map.values())
     return round(correct / len(hit_map), 3)
 
 
 def retrodict_forecast(
     forecast: Dict,
     actual_exposure: Dict[str, float],
-    actual_overlay: Dict[str, float] = None,
+    actual_overlay: Optional[Dict[str, float]] = None,
     tolerance: float = 0.03
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Runs full retrodiction on a forecast using actual exposure + symbolic overlay.
 
@@ -104,37 +95,43 @@ def retrodict_forecast(
     """
     hits = compare_outcomes(forecast, actual_exposure, tolerance)
     score = score_retrodiction_hit_ratio(hits)
-
     symbolic_score = None
     symbolic_hits = {}
     if actual_overlay:
         symbolic_hits = match_symbolic_direction(forecast, actual_overlay)
         symbolic_score = score_retrodiction_hit_ratio(symbolic_hits)
-
     return {
         "trace_id": forecast.get("trace_id", "unknown"),
         "retrodiction_score": score,
         "symbolic_score": symbolic_score,
         "asset_hits": hits,
         "symbolic_hits": symbolic_hits,
-        "forecast_confidence": forecast.get("confidence", None),
+        "forecast_confidence": forecast.get("confidence"),
         "trust_label": forecast.get("trust_label", "🟡 Unlabeled"),
-        "fragility_score": forecast.get("fragility_score", None)
+        "fragility_score": forecast.get("fragility_score")
     }
 
 
 def retrodict_all_forecasts(
     forecasts: List[Dict],
     actual_exposure: Dict[str, float],
-    actual_overlay: Dict[str, float] = None
+    actual_overlay: Optional[Dict[str, float]] = None
 ) -> List[Dict]:
     """
     Batch-mode retrodiction across all forecasts.
     """
+    if actual_exposure is None:
+        actual_exposure = {}
+    else:
+        actual_exposure = {k: float(v) for k, v in actual_exposure.items()}
+    if actual_overlay is None:
+        actual_overlay = {}
+    else:
+        actual_overlay = {k: float(v) for k, v in actual_overlay.items()}
     return [retrodict_forecast(f, actual_exposure, actual_overlay) for f in forecasts]
 
 
-def save_retrodiction_results(results: Dict):
+def save_retrodiction_results(results):
     # PATCH: Ensure overlays are serializable before storing
     def overlay_to_dict(overlay):
         if hasattr(overlay, "as_dict"):
@@ -155,7 +152,11 @@ def save_retrodiction_results(results: Dict):
                 for fork in res["forks"]:
                     if "overlays" in fork:
                         fork["overlays"] = overlay_to_dict(fork["overlays"])
-    retrodiction_memory.store(results)
+    if isinstance(results, list):
+        for res in results:
+            retrodiction_memory.store(res)
+    else:
+        retrodiction_memory.store(results)
 
 
 def save_forecast(forecast_obj: Dict):
@@ -182,9 +183,11 @@ def simulate_retrodiction_test():
 
     # Simulate truth
     actual = {"nvda": 10100, "msft": 9800, "ibit": 5300, "spy": 9600}
+    # Convert int values to float to satisfy type checker
+    actual_float = {k: float(v) for k, v in actual.items()}
     overlay_truth = {"hope": 0.55, "despair": 0.3, "rage": 0.2, "fatigue": 0.5, "trust": 0.6}
 
-    results = retrodict_all_forecasts(PFPA_ARCHIVE[-5:], actual, overlay_truth)
+    results = retrodict_all_forecasts(PFPA_ARCHIVE[-5:], actual_float, overlay_truth)
     for r in results:
         logger.info(f"[RETRO] {r['trace_id']} | Capital: {r['retrodiction_score']} | Symbolic: {r['symbolic_score']}")
     save_retrodiction_results(results)

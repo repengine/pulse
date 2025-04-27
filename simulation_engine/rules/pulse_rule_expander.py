@@ -16,10 +16,9 @@ Author: Pulse AI Engine
 """
 
 import json
-import os
-from pathlib import Path
 from collections import defaultdict
 from typing import List, Dict, Tuple, Optional
+from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
 from simulation_engine.rules.rule_registry import RuleRegistry
 
 REGRET_FILE = "data/regret_chain.jsonl"
@@ -30,24 +29,27 @@ SUGGESTED_FILE = "data/candidate_rules.json"
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
-def get_all_rule_fingerprints() -> list:
-    return [r for r in _registry.rules if r.get("effects") or r.get("effect")]
-
 def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
-    regrets = []
+    """
+    Load regrets from a JSONL file.
+    """
     try:
         with open(path, "r") as f:
-            for line in f:
-                regrets.append(json.loads(line.strip()))
-    except:
-        pass
+            regrets = [json.loads(line.strip()) for line in f]
+    except Exception:
+        regrets = []
     return regrets
 
-def load_rules(path: str = None) -> Dict[str, Dict]:
-    # Return a dict keyed by rule_id for compatibility
+def load_rules(path: Optional[str] = None) -> Dict[str, Dict]:
+    """
+    Return a dict of all rule fingerprints keyed by rule_id.
+    """
     return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
 
-def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[str]:
+def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[Tuple[str, int]]:
+    """
+    Find arcs in regrets not covered by any rule.
+    """
     covered_arcs = {r.get("arc_label") for r in rules.values() if r.get("arc_label")}
     arc_freq = defaultdict(int)
     for r in regrets:
@@ -57,19 +59,24 @@ def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[
     return sorted(arc_freq.items(), key=lambda x: -x[1])
 
 def generate_candidate_rules(unmatched_arcs: List[Tuple[str, int]]) -> List[Dict]:
+    """
+    Generate candidate rules from unmatched arcs.
+    """
     candidates = []
-    for arc, freq in unmatched_arcs:
+    for arc, _ in unmatched_arcs:
         candidate = {
             "description": f"Generated rule from frequent regret arc: {arc}",
             "trigger": {"symbolic_trace": f"leading to {arc}"},
             "effect": {"arc_label": arc},
-            "trust_weight": 0.5,
-            "source": "pulse_rule_expander.py"
+            "metadata": {"generated": True}
         }
         candidates.append(candidate)
     return candidates
 
-def export_candidate_rules(candidates: List[Dict], path: str = SUGGESTED_FILE):
+def export_candidate_rules(candidates: List[Dict], path: str = SUGGESTED_FILE) -> None:
+    """
+    Export candidate rules to a JSON file.
+    """
     with open(path, "w") as f:
         json.dump(candidates, f, indent=2)
 

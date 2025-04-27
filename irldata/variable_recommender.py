@@ -81,7 +81,7 @@ def register_variables_with_metadata(variables: List[Dict]):
         logger.warning("PulseGrow not available.")
         return
     for var in variables:
-        meta = {
+        metadata = {
             "name": var["variable"],
             "avg_confidence": var.get("avg_confidence"),
             "avg_fragility": var.get("avg_fragility"),
@@ -89,8 +89,8 @@ def register_variables_with_metadata(variables: List[Dict]):
             "avg_alignment": var.get("avg_alignment"),
             "count": var.get("count"),
         }
-        pulse_grow.register_variable(var["variable"], metadata=meta)
-        logger.info(f"Registered variable: {var['variable']} with metadata: {meta}")
+        pulse_grow.register_variable(var["variable"], metadata=metadata)
+        logger.info(f"Registered variable: {var['variable']} with metadata: {metadata}")
 
 def main():
     parser = argparse.ArgumentParser(description="Recommend variables for PulseGrow based on performance logs.")

@@ -1,15 +1,14 @@
 """
-rule_autoevolver.py — Causal Feedback Intelligence Layer
+rule_autoevolver.py
 
-Purpose:
-Meta-learning module to evaluate, mutate, or deprecate rules based on:
-- Forecast regret
-- Symbolic misalignment
-- Volatility/delta divergence
-- Coherence violations
-- PFPA (forecast performance delta)
+Meta-learning module for evaluating, mutating, and deprecating rules based on performance, drift, and coherence.
 
-Author: Pulse AI Engine
+Responsibilities:
+- Score and mutate rules based on forecast regret, drift, and trust
+- Deprecate or promote rules as needed
+- Use centralized rule registry, matching, and validation utilities
+
+All rule access and validation should use shared utilities for consistency.
 """
 
 import json

@@ -71,7 +71,7 @@ class ForecastMemory:
                     self._persist_to_file(f)
                 break
 
-    def prune(self, min_confidence: float = None) -> int:
+    def prune(self, min_confidence: Optional[float] = None) -> int:
         """
         Prune memory entries below a confidence threshold or oldest if over limit.
         Returns the number of pruned entries.
@@ -173,3 +173,10 @@ class ForecastMemory:
                         self._memory.append(json.load(f))
                 except Exception as e:
                     print(f"[ForecastMemory] Skipped corrupted file {fname}: {e}")
+
+    def find_by_trace_id(self, trace_id: str) -> Optional[Dict]:
+        """Find a forecast in memory by its trace_id or forecast_id."""
+        for f in self._memory:
+            if f.get("trace_id") == trace_id or f.get("forecast_id") == trace_id:
+                return f
+        return None

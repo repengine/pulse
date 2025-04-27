@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 def display_overlay_state(state: WorldState) -> None:
     """Prints symbolic overlays to the CLI."""
-    for key in state.overlays.keys():
+    for key in state.overlays.as_dict().keys():
         print(f"{key}: {get_overlay(state, key)}")
 
 def display_capital_exposure(state: WorldState) -> None:
@@ -35,8 +35,12 @@ def display_capital_exposure(state: WorldState) -> None:
 
 def display_variable_state(state: WorldState) -> None:
     """Prints worldstate variables to the CLI using variable accessor."""
-    for key in state.variables.keys():
-        print(f"{key}: {get_variable(state, key)}")
+    variables = state.variables
+    if isinstance(variables, dict):
+        for key in variables.keys():
+            print(f"{key}: {get_variable(state, key)}")
+    else:
+        print(f"variables: {variables}")
 
 def display_deltas(state: WorldState, prev_state: WorldState) -> None:
     """Prints overlay deltas vs previous state."""

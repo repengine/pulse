@@ -20,7 +20,8 @@ import os
 import json
 import uuid
 from typing import Any, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+from contextlib import suppress
 from core.path_registry import PATHS
 # Add import for Bayesian trust tracker
 from core.bayesian_trust_tracker import bayesian_trust_tracker
@@ -29,7 +30,7 @@ def _get_log_path() -> str:
     """
     Returns the path to the learning log file, allowing override via environment variable.
     """
-    return os.environ.get("PULSE_LEARNING_LOG_PATH", PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl"))
+    return os.environ.get("PULSE_LEARNING_LOG_PATH", str(PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")))
 
 LOG_PATH = _get_log_path()
 os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
@@ -38,10 +39,8 @@ def _set_file_permissions(path: str):
     """
     Restricts log file permissions to owner read/write only (where supported).
     """
-    try:
+    with suppress(Exception):
         os.chmod(path, 0o600)
-    except Exception:
-        pass  # Not all OSes support chmod or may not be needed
 
 class PulseLearningLogger:
     """
@@ -73,7 +72,7 @@ class PulseLearningLogger:
         """
         entry = {
             "event_id": str(uuid.uuid4()),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "event_type": event_type,
             "data": data
         }
@@ -150,7 +149,7 @@ class PulseLearningLogger:
         """
         self.log_event("meta_learning_summary", summary)
 
-    def log_rule_activation(self, rule_id: str, variable_id: str, outcome: str, forecast_id: str = None, success: bool = None):
+    def log_rule_activation(self, rule_id: str, variable_id: str, outcome: str, forecast_id: Optional[str] = None, success: Optional[bool] = None):
         """
         Logs a rule/variable activation and outcome for Bayesian trust/confidence tracking.
 
@@ -210,7 +209,7 @@ class PulseLearningLogger:
             "activation_count": activation_count,
             "success_rate": success_rate,
             "impact_score": impact_score,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
     def generate_trust_report(self, min_samples: int = 5) -> Dict[str, Any]:

@@ -19,7 +19,7 @@ default_args = {
 with DAG(
     'historical_retrodiction',
     default_args=default_args,
-    schedule_interval='@daily',
+    schedule_interval='@daily`',
     catchup=False
 ) as dag:
 

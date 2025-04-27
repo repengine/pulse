@@ -12,6 +12,8 @@ from threading import Event
 from trust_system.trust_engine import TrustEngine
 from forecast_engine.forecast_regret_engine import analyze_regret
 from memory.pulse_memory_guardian import prune_memory
+from core.path_registry import PATHS
+from memory.forecast_memory import ForecastMemory
 
 shutdown_event = Event()
 
@@ -68,7 +70,9 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 # --- Resource cleanup ---
 def resource_cleanup():
     try:
-        prune_memory(None, max_entries=1000, dry_run=False)
+        memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+        # Use advanced pruning to support both max_entries and min_confidence if needed
+        prune_memory_advanced(memory, max_entries=1000, dry_run=False)
         logger.info("Memory pruned.")
     except Exception as e:
         logger.warning(f"Memory pruning failed: {e}")

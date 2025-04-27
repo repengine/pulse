@@ -26,8 +26,9 @@ def prompt_hash(prompt: str, config: dict) -> str:
     return hashlib.md5(data.encode("utf-8")).hexdigest()[:12]
 
 def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"):
+    from datetime import timezone
     entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "prompt": prompt,
         "config": config,
         "overlays": overlays

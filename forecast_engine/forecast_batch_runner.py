@@ -39,7 +39,7 @@ from learning.recursion_audit import generate_recursion_report
 
 logger = get_logger(__name__)
 
-SUMMARY_PATH = PATHS["BATCH_FORECAST_SUMMARY"]
+SUMMARY_PATH = str(PATHS["BATCH_FORECAST_SUMMARY"])
 
 
 def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block=None, verbose=True, export_summary=True, enforce_license=False):
@@ -106,7 +106,7 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=None, symbolic_block
         # Collect all accepted forecasts for this batch
         files = tracker.list_forecasts()
         for file in files:
-            path = os.path.join(tracker.log_dir, file)
+            path = os.path.join(str(tracker.log_dir), str(file))
             with open(path, "r") as f:
                 data = json.load(f)
                 forecasts.append(data)

@@ -218,6 +218,12 @@ class WorldState:
             "metadata": self.metadata.copy()
         }
     
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary representation of the WorldState (alias for snapshot).
+        """
+        return self.snapshot()
+    
     def clone(self) -> 'WorldState':
         """
         Create a deep copy of this WorldState.

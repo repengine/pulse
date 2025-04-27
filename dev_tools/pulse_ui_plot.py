@@ -52,7 +52,7 @@ def load_variable_trace(file_path: str, var_names: List[str]) -> Dict[str, Tuple
     return traces
 
 
-def plot_variables(traces: Dict[str, Tuple[List[int], List[float]]], export_path: str = None):
+def plot_variables(traces: Dict[str, Tuple[List[int], List[float]]], export_path: Optional{str} = None):
     """
     Plots one or more variables on a shared timeline.
 
@@ -82,14 +82,15 @@ def plot_variables(traces: Dict[str, Tuple[List[int], List[float]]], export_path
         plt.show()
 
 
-def plot_alignment_scores(path: str, save_path: str = None):
+def plot_alignment_scores(path: str, path_out: Optional{str} = None, **kwargs):
     """
     Plots alignment scores from JSON or JSONL file.
-
     Parameters:
         path (str): Path to JSON or JSONL file containing alignment scores
-        save_path (str): Optional path to save alignment plot image
+        path_out (str): Optional path to save alignment plot image
+        **kwargs: Accepts save_path for backward compatibility
     """
+    save_path = kwargs.get("save_path") or path_out
     with open(path, "r") as f:
         if path.endswith(".jsonl"):
             data = [json.loads(line) for line in f if line.strip()]
@@ -126,7 +127,7 @@ def main():
     args = parser.parse_args()
 
     if args.alignment:
-        plot_alignment_scores(args.alignment, save_path=args.save)
+        plot_alignment_scores(args.alignment, path_out=args.save)
         return
 
     if args.file and args.var:

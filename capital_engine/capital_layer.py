@@ -108,7 +108,7 @@ def portfolio_alignment_tags(state: WorldState) -> Dict[str, str]:
     return tags
 
 # === Short-Term Symbolic Forecast Layer ===
-def run_shortview_forecast(state: WorldState, asset_subset: List[str] = None, duration_days: int = 2) -> Dict[str, Any]:
+def run_shortview_forecast(state: WorldState, asset_subset: Optional[List[str]] = None, duration_days: int = 2) -> Dict[str, Any]:
     """
     Runs a short-term symbolic forecast for the given state and asset subset.
 

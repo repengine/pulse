@@ -74,18 +74,23 @@ def score_drift(before: Dict[str, Dict], after: Dict[str, Dict]) -> Dict:
     }
 
 def compare_forecast_clusters(before_run: List[Dict], after_run: List[Dict], run_id: str = "default", log_path: Optional[str] = None) -> Dict:
-    path = log_path or DRIFT_LOG_PATH
+    path = str(log_path or DRIFT_LOG_PATH)
     ensure_log_dir(path)
 
     before = normalize_forecast_clusters(before_run)
     after = normalize_forecast_clusters(after_run)
     drift_metrics = score_drift(before, after)
 
-    symbolic_flips = []
-    for tag, delta in drift_metrics["tag_deltas"].items():
-        if tag in before and tag in after:
-            if before[tag]["avg_confidence"] > 0.6 and after[tag]["avg_confidence"] < 0.4:
-                symbolic_flips.append(tag)
+    symbolic_flips = [
+        tag
+        for tag in drift_metrics["tag_deltas"]
+        if (
+            tag in before
+            and tag in after
+            and before.get(tag, {}).get("avg_confidence", 0.5) > 0.6
+            and after.get(tag, {}).get("avg_confidence", 0.5) < 0.4
+        )
+    ]
 
     result = {
         "run_id": run_id,
@@ -105,6 +110,43 @@ def compare_forecast_clusters(before_run: List[Dict], after_run: List[Dict], run
         logger.error(f"[DriftMonitor] Logging error: {e}")
 
     return result
+
+# --- Drift Detectors: ADWIN and KSWIN (river) ---
+try:
+    from river.drift import ADWIN, KSWIN
+except ImportError:
+    ADWIN = None
+    KSWIN = None
+
+def detect_adwin_drift(series, delta=0.002):
+    """
+    Run ADWIN drift detection on a numeric series.
+    Returns indices where drift is detected.
+    """
+    if ADWIN is None:
+        raise ImportError("river[drift] is required for ADWIN drift detection.")
+    adwin = ADWIN(delta=delta)
+    drift_points = []
+    for i, val in enumerate(series):
+        in_drift, _ = adwin.update(val), adwin.drift_detected
+        if adwin.drift_detected:
+            drift_points.append(i)
+    return drift_points
+
+def detect_kswin_drift(series, window_size=20, stat_size=5, alpha=0.005):
+    """
+    Run KSWIN drift detection on a numeric series.
+    Returns indices where drift is detected.
+    """
+    if KSWIN is None:
+        raise ImportError("river[drift] is required for KSWIN drift detection.")
+    kswin = KSWIN(window_size=window_size, stat_size=stat_size, alpha=alpha)
+    drift_points = []
+    for i, val in enumerate(series):
+        kswin.update(val)
+        if kswin.change_detected:
+            drift_points.append(i)
+    return drift_points
 
 # Example usage
 if __name__ == "__main__":

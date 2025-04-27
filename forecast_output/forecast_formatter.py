@@ -12,7 +12,7 @@ from memory.forecast_memory import ForecastMemory
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
-forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 
 
 def format_forecast_tile(forecast_obj: Dict) -> str:

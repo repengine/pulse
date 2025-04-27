@@ -70,11 +70,13 @@ def run_check(search_paths: List[str], verbose: bool = False) -> None:
     """
     files_checked = 0
     total_issues = 0
-    for root in search_paths:
-        for dirpath, _, files in os.walk(root):
+    for root_dir in search_paths:
+        for root, dirs, files in os.walk(root_dir):
+            # Ignore all directories starting with a dot
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
             for file in files:
                 if file.endswith(".py") and not file.startswith("__"):
-                    path = os.path.join(dirpath, file)
+                    path = os.path.join(root, file)
                     files_checked += 1
                     try:
                         issues = check_keyword_args(path)

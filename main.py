@@ -16,7 +16,7 @@ Options:
 import sys
 import os
 import argparse
-from datetime import datetime
+from datetime import datetime, UTC
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.log_utils import get_logger
@@ -55,9 +55,11 @@ def run_pulse_simulation(turns: int = 5):
 
     for _ in range(turns):
         logger.info(f"\n🔄 Running Turn {state.turn + 1}...")
-        run_turn(state, rule_fn=apply_causal_rules)
+        # Use a lambda that returns None to satisfy the type
+        run_turn(state, rule_fn=lambda s: (apply_causal_rules(s), None)[1])
         try:
-            forecast = generate_forecast(state)
+            # Always pass a dict to generate_forecast
+            forecast = generate_forecast(state.to_dict())
             memory.store(forecast)
             log_forecast_to_pfpa(forecast)
         except Exception as e:
@@ -90,6 +92,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Simulation Engine")
     parser.add_argument("--turns", type=int, default=5, help="Number of simulation turns to run")
     parser.add_argument("--output", type=str, default=None, help="Optional output file for digest")
+    parser.add_argument("--auto-upgrade", action="store_true", help="Automatically generate epistemic upgrade plan after run")
     args = parser.parse_args()
     run_pulse_simulation(turns=args.turns)
     if args.output:
@@ -101,3 +104,27 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"Failed to export digest: {e}")
             log_learning_event("exception", {"error": str(e), "context": "digest_export", "timestamp": datetime.utcnow().isoformat()})
+    # --- Epistemic Mirror Curriculum Learning ---
+    if getattr(args, "auto_upgrade", False):
+        try:
+            import subprocess
+            upgrade_path = "plans/epistemic_upgrade_plan.json"
+            batch_path = "logs/strategic_batch_output.jsonl"
+            revised_path = "logs/revised_forecasts.jsonl"
+            # Step 1: Generate upgrade plan
+            subprocess.run([
+                sys.executable, "dev_tools/propose_epistemic_upgrades.py", "--output", upgrade_path
+            ], check=True)
+            logger.info(f"Epistemic upgrade plan generated at {upgrade_path}")
+            # Step 2: Apply upgrade plan to latest batch
+            if os.path.exists(batch_path) and os.path.exists(upgrade_path):
+                subprocess.run([
+                    sys.executable, "dev_tools/apply_symbolic_upgrades.py",
+                    "--batch", batch_path, "--plan", upgrade_path, "--out", revised_path
+                ], check=True)
+                logger.info(f"Applied epistemic upgrade plan to {batch_path}, output: {revised_path}")
+            else:
+                logger.warning(f"Batch or upgrade plan not found for application: {batch_path}, {upgrade_path}")
+        except Exception as e:
+            logger.error(f"Failed to generate/apply epistemic upgrade plan: {e}")
+"""

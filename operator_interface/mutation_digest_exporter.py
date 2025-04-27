@@ -12,7 +12,7 @@ Author: Pulse v0.39
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md
 from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md
 from operator_interface.mutation_log_viewer import load_log
@@ -23,7 +23,7 @@ DIGEST_OUT = "logs/full_mutation_digest.md"
 
 
 def render_learning_summary_md(limit: int = 15) -> str:
-    entries = load_log(LEARNING_LOG)[-limit:]
+    entries = load_log(str(LEARNING_LOG))[-limit:]
     lines = ["### 🔧 Recent Learning Events\n"]
     for e in entries:
         lines.append(f"- `{e.get('timestamp', '?')}` **{e.get('event_type')}**")
@@ -36,7 +36,7 @@ def render_learning_summary_md(limit: int = 15) -> str:
 def export_full_digest():
     digest = [
         "# 🧠 Pulse Mutation Digest",
-        f"**Generated:** {datetime.utcnow().isoformat()} UTC\n",
+        f"**Generated:** {datetime.now(timezone.utc).isoformat()} UTC\n",
         format_cluster_digest_md(limit=5),
         format_variable_cluster_digest_md(limit=5),
         render_learning_summary_md(limit=15),

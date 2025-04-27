@@ -1,70 +1,28 @@
 """
 reverse_rule_engine.py
 
-Builds a reverse causal graph from rule fingerprints.
-Given observed deltas, traces possible rule chains that could have produced them.
-Supports fuzzy matching for approximate rule identification.
-Ranks rules by trust/frequency and suggests new rules if no match is found.
+Builds reverse causal chains from observed deltas using rule fingerprints.
 
-Usage:
-    python reverse_rule_engine.py --delta key1=val1 key2=val2 --max-depth 3 --fuzzy
-    python reverse_rule_engine.py --delta key1=val1 key2=val2 --fingerprints path/to/fingerprints.json --tol 0.05
+Responsibilities:
+- Trace possible rule chains that could explain a delta
+- Support fuzzy and trust-weighted matching
+- Use centralized matching logic from rule_matching_utils
 
-Related:
-    - simulation_engine.rules.reverse_rule_mapper
-    - simulation_engine.rules.rule_fingerprint_expander
-
-Author: Pulse AI Engine
+All matching logic should be imported from rule_matching_utils.
 """
 
-from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta
-from simulation_engine.rules.rule_registry import RuleRegistry
+from simulation_engine.rules.rule_matching_utils import (
+    get_all_rule_fingerprints,
+    match_rule_by_delta,
+    fuzzy_match_rule_by_delta
+)
 from typing import Dict, List, Any, Optional
 import logging
 
 logger = logging.getLogger("reverse_rule_engine")
 
-_registry = RuleRegistry()
-_registry.load_all_rules()
-
 def get_fingerprints():
-    return [r for r in _registry.rules if r.get("effects")]
-
-def levenshtein(a: str, b: str) -> int:
-    """Compute Levenshtein distance between two strings."""
-    if a == b: return 0
-    if not a: return len(b)
-    if not b: return len(a)
-    prev = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        curr = [i]
-        for j, cb in enumerate(b, 1):
-            insert = curr[-1] + 1
-            delete = prev[j] + 1
-            replace = prev[j-1] + (ca != cb)
-            curr.append(min(insert, delete, replace))
-        prev = curr
-    return prev[-1]
-
-def fuzzy_match_rule_by_delta(
-    delta: dict, fingerprints: list, tol: float = 0.05, min_conf: float = 0.0, confidence_threshold: float = 0.0
-) -> list:
-    """
-    Fuzzy match: allow numeric differences up to tol (absolute).
-    Returns list of (rule_id, confidence_score) above min_conf and confidence_threshold.
-
-    Example:
-        matches = fuzzy_match_rule_by_delta({"hope": 0.1}, fingerprints, tol=0.1, min_conf=0.7, confidence_threshold=0.5)
-    """
-    matches = []
-    for rule in fingerprints:
-        diffs = [abs(delta.get(k, 0) - rule.get("effects", {}).get(k, 0)) for k in delta]
-        max_diff = max(diffs) if diffs else 0
-        if all(d <= tol for d in diffs):
-            confidence = 1 - max_diff
-            if confidence >= min_conf and confidence >= confidence_threshold:
-                matches.append((rule.get("rule_id", "unknown"), confidence))
-    return sorted(matches, key=lambda x: -x[1])
+    return get_all_rule_fingerprints()
 
 def rank_rules_by_trust(matches: List[tuple], fingerprints: List[Dict]) -> List[tuple]:
     """

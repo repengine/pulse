@@ -51,7 +51,7 @@ def fetch_twitter_signals():
                 except Exception as e:
                     logger.error(f"Failed to submit tweet to Celery: {e}")
             time.sleep(POLL_INTERVAL)
-        except tweepy.TweepError as e:
+        except tweepy.errors.TweepyException as e:
             logger.error(f"Twitter API error: {e}")
             time.sleep(POLL_INTERVAL)
         except KeyboardInterrupt:

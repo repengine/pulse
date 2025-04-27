@@ -39,7 +39,7 @@ def log_episode(forecast: Dict, path: str = EPISODE_LOG_PATH) -> None:
         "forecast_id": forecast.get("trace_id", "unknown"),
         "arc_label": forecast.get("arc_label", "unknown"),
         "symbolic_tag": forecast.get("symbolic_tag", "unknown"),
-        "confidence": forecast.get("confidence", None),
+        "confidence": forecast.get("confidence"),
         "timestamp": datetime.utcnow().isoformat(),
         "overlays": overlays
     }

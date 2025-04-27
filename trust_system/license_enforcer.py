@@ -79,10 +79,12 @@ def export_rejected_forecasts(forecasts: List[Dict], path: str) -> None:
         print(f"❌ Failed to save rejected forecasts: {e}")
 
 
+from typing import Optional
+
 def full_trust_license_audit_pipeline(
     forecasts: List[Dict],
-    current_state: Dict = None,
-    memory: List[Dict] = None
+    current_state: Optional[Dict] = None,
+    memory: Optional[List[Dict]] = None
 ) -> List[Dict]:
     """
     Run trust processing, licensing, and audit trail generation on a batch of forecasts.

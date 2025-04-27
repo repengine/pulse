@@ -65,7 +65,10 @@ def filter_licensed_forecasts(
         if isinstance(f, dict):
             flat.append(f)
         elif isinstance(f, list):
-            flat.extend([x for x in f if isinstance(x, dict)])
+            if all(isinstance(x, dict) for x in f):
+                flat.extend(f)
+            else:
+                logger.warning(f"Skipped non-dict items in nested list: {f}")
         # else: ignore non-dict, non-list items
 
     labeled = [license_forecast(f) for f in flat]

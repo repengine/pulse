@@ -1,33 +1,42 @@
 """
-Module: rule_coherence_checker.py
-Pulse Version: v0.100.3
-Location: simulation_engine/rules/
+rule_coherence_checker.py
 
-Purpose:
-Scans rule_fingerprints.json to detect logical inconsistencies, loops, or contradictory effects.
-Also surfaces duplicate and redundant rules for review.
+Scans all rule fingerprints for logical, structural, and schema errors.
 
-Features:
-- Detect conflicting triggers (e.g., same input causes opposite symbolic changes)
-- Detect contradictory effects across similar rules
-- Detect cycles in causal rule chains (TBD)
-- Report redundant or duplicate rules
+Responsibilities:
+- Central source for schema, uniqueness, and logical validation
+- Detects conflicting triggers, opposite effects, and duplicate rules
+- Used by all rule modules for validation
 
-Author: Pulse AI Engine
+All validation logic should be added here for consistency.
 """
 
 import json
 from typing import List, Dict, Tuple, Optional
 from pathlib import Path
-from simulation_engine.rules.rule_registry import RuleRegistry
+from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
 
-# Use RuleRegistry for all rule access
-_registry = RuleRegistry()
-_registry.load_all_rules()
+# Use centralized get_all_rule_fingerprints for all rule access
 
-def get_all_rule_fingerprints() -> dict:
-    """Retrieve all rule fingerprints using RuleRegistry."""
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules) if r.get("effects") or r.get("effect")}
+def get_all_rule_fingerprints_dict() -> dict:
+    """Retrieve all rule fingerprints as a dict keyed by rule_id."""
+    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
+
+def validate_rule_schema(rules: Dict[str, Dict]) -> List[str]:
+    """Validate schema and uniqueness for all rules."""
+    errors = []
+    seen_ids = set()
+    for i, (rid, rule) in enumerate(rules.items()):
+        rule_id = rule.get("rule_id") or rule.get("id")
+        if not rule_id:
+            errors.append(f"Rule {i} missing id/rule_id: {rule}")
+        elif rule_id in seen_ids:
+            errors.append(f"Duplicate rule id: {rule_id}")
+        else:
+            seen_ids.add(rule_id)
+        if not rule.get("effects") and not rule.get("effect"):
+            errors.append(f"Rule {rule_id} missing effects/effect field")
+    return errors
 
 def detect_conflicting_triggers(rules: Dict[str, Dict]) -> List[Tuple[str, str, str]]:
     """Detect rules with conflicting symbolic triggers on the same input."""
@@ -38,9 +47,11 @@ def detect_conflicting_triggers(rules: Dict[str, Dict]) -> List[Tuple[str, str, 
         if trig not in trigger_map:
             trigger_map[trig] = [rid]
         else:
-            for existing in trigger_map[trig]:
-                if rule.get("effect") != rules[existing].get("effect"):
-                    conflicts.append((existing, rid, "Same trigger, different effects"))
+            conflicts.extend(
+                (existing, rid, "Same trigger, different effects")
+                for existing in trigger_map[trig]
+                if rule.get("effect") != rules[existing].get("effect")
+            )
             trigger_map[trig].append(rid)
     return conflicts
 
@@ -53,7 +64,11 @@ def detect_opposite_effects(rules: Dict[str, Dict]) -> List[Tuple[str, str, str]
             eff1 = r1.get("effect", {})
             eff2 = r2.get("effect", {})
             for k in eff1:
-                if k in eff2 and eff1[k] != eff2[k] and eff1[k].startswith("+-") or eff2[k].startswith("-+"):
+                if (
+                    k in eff2
+                    and eff1[k] != eff2[k]
+                    and (eff1[k].startswith("+-") or eff2[k].startswith("-+"))
+                ):
                     conflicts.append((id1, id2, f"Opposite effect on {k}"))
     return conflicts
 
@@ -64,15 +79,15 @@ def detect_duplicate_rules(rules: Dict[str, Dict]) -> List[Tuple[str, str]]:
     for rid, rule in rules.items():
         sig = json.dumps({"trigger": rule.get("trigger"), "effect": rule.get("effect")}, sort_keys=True)
         if sig in seen:
-            dups.append((seen[sig], rid))
+            dups.extend([(seen[sig], rid)])
         else:
             seen[sig] = rid
     return dups
 
 def scan_rule_coherence() -> Dict:
-    """Run all rule coherence scans."""
-    rules = get_all_rule_fingerprints()
+    rules = get_all_rule_fingerprints_dict()
     result = {
+        "schema_errors": validate_rule_schema(rules),
         "conflicting_triggers": detect_conflicting_triggers(rules),
         "opposite_effects": detect_opposite_effects(rules),
         "duplicate_rules": detect_duplicate_rules(rules),
@@ -84,6 +99,5 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Pulse Rule Coherence Checker")
     args = parser.parse_args()
-
     result = scan_rule_coherence()
     print(json.dumps(result, indent=2))

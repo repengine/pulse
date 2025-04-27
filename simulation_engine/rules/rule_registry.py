@@ -1,15 +1,14 @@
-""" 
+"""
 rule_registry.py
 
-Planned future unification point for all rule types in Pulse:
-- Symbolic rules
-- Capital rules
-- Causal rules
-- Strategic triggers
+Central registry for all rule types in Pulse (static, fingerprint, candidate).
 
-This module will allow rule lookup, grouping, versioning, and validation.
+Responsibilities:
+- Load, store, and export all rules
+- Provide lookup and grouping by type or tag
+- Delegate all validation to rule_coherence_checker
 
-Author: Pulse v0.20 (scaffolded at v0.10)
+All rule access should go through this registry for consistency.
 """
 
 from core.path_registry import PATHS
@@ -23,6 +22,7 @@ RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 import importlib
 import json
 from pathlib import Path
+from simulation_engine.rules.rule_coherence_checker import validate_rule_schema, get_all_rule_fingerprints_dict
 
 STATIC_RULES_MODULE = "simulation_engine.rules.static_rules"
 FINGERPRINTS_PATH = Path(PATHS.get("RULE_FINGERPRINTS", "simulation_engine/rules/rule_fingerprints.json"))
@@ -72,19 +72,9 @@ class RuleRegistry:
         return [r for r in self.rules if r.get("type") == rule_type]
 
     def validate(self):
-        errors = []
-        seen_ids = set()
-        for i, rule in enumerate(self.rules):
-            rid = rule.get("id") or rule.get("rule_id")
-            if not rid:
-                errors.append(f"Rule {i} missing id/rule_id: {rule}")
-            elif rid in seen_ids:
-                errors.append(f"Duplicate rule id: {rid}")
-            else:
-                seen_ids.add(rid)
-            if not rule.get("effects") and not rule.get("effect"):
-                errors.append(f"Rule {rid} missing effects/effect field")
-        return errors
+        # Use centralized schema/uniqueness validation
+        rules_dict = {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(self.rules)}
+        return validate_rule_schema(rules_dict)
 
     def export_rules(self, path: str):
         with open(path, "w", encoding="utf-8") as f:

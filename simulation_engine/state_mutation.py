@@ -18,9 +18,9 @@ def update_numeric_variable(state: WorldState, name: str, delta: float, min_val:
     Increment or decrement a numeric variable safely within [min_val, max_val].
     Creates the variable if it doesn't exist.
     """
-    current = state.get_variable(name, 0.0)
+    current = getattr(state.variables, name, 0.0)
     updated = max(min(current + delta, max_val), min_val)
-    state.update_variable(name, updated)
+    setattr(state.variables, name, updated)
     state.log_event(f"Variable '{name}' changed by {delta:.3f} to {updated:.3f}")
 
 

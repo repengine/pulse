@@ -9,8 +9,8 @@ Author: Pulse v3.5
 
 from simulation_engine.worldstate import WorldState
 from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_fragility_index
-from capital_engine.portfolio_state import summarize_exposure, exposure_percentages
-from typing import Dict
+from capital_engine.capital_layer import summarize_exposure, exposure_percentages
+from typing import Dict, Any
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
 
@@ -21,7 +21,7 @@ LOG_PATH = PATHS["DIAGNOSTICS_LOG"]
 logger = get_logger(__name__)
 
 
-def run_diagnostics() -> Dict[str, any]:
+def run_diagnostics() -> Dict[str, Any]:
     """
     Performs basic symbolic and capital diagnostic checks.
 

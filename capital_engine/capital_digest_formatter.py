@@ -42,9 +42,12 @@ def format_shortview_markdown(forecast: Dict[str, Any]) -> str:
 
     # Fragility Index
     fragility = forecast.get('symbolic_fragility')
-    try:
-        fragility_str = f"{float(fragility):.3f}"
-    except (TypeError, ValueError):
+    if fragility is not None:
+        try:
+            fragility_str = f"{float(fragility):.3f}"
+        except (TypeError, ValueError):
+            fragility_str = "?"
+    else:
         fragility_str = "?"
     lines.append(f"**Fragility Index:** {fragility_str}")
 
@@ -84,12 +87,14 @@ def format_shortview_markdown(forecast: Dict[str, Any]) -> str:
 
     return "\n".join(lines)
 
-def render_portfolio_snapshot(snapshot: Dict[str, float]) -> str:
+from typing import Union
+
+def render_portfolio_snapshot(snapshot: Dict[str, Union[float, str]]) -> str:
     """
     Renders a markdown snapshot of the portfolio.
 
     Args:
-        snapshot (Dict[str, float]): Asset-value mapping.
+        snapshot (Dict[str, Union[float, str]]): Asset-value mapping.
 
     Returns:
         str: Markdown-formatted snapshot.

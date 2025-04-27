@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, List, Dict, Any
 from forecast_output.forecast_licenser import filter_licensed_forecasts
-from forecast_output.forecast_compressor import compress_forecasts
+# from forecast_output.forecast_compressor import compress_forecasts  # Removed unused import
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from forecast_output.strategos_digest_builder import build_digest
 from memory.forecast_memory import ForecastMemory
@@ -15,7 +15,7 @@ from trust_system.license_enforcer import annotate_forecasts, filter_licensed, s
 from forecast_output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
 from memory.forecast_episode_tracer import build_episode_chain
 from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
-from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs
+# from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs  # Removed unused import
 import matplotlib.pyplot as plt
 import os
 import json
@@ -115,7 +115,7 @@ def flag_drift_sensitive_forecasts(
     unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold}
 
     for fc in forecasts:
-        arc = fc.get("arc_label", "unknown")
+        # arc = fc.get("arc_label", "unknown")  # Removed unused variable
         rules = fc.get("fired_rules", [])
         overlays = fc.get("forecast", {}).get("symbolic_change", {})
 
@@ -130,14 +130,14 @@ def flag_drift_sensitive_forecasts(
             fc["drift_flag"] = "✅ Stable"
     return forecasts
 
-def _extract_symbolic_flip_patterns(forecasts: List[Dict[str, Any]]) -> List[str]:
+def _extract_symbolic_flip_patterns(_: List[Dict[str, Any]]) -> List[str]:
     """
     Placeholder: Extract symbolic flip patterns from forecasts.
     """
     # TODO: Implement actual pattern detection
     return ["ARC: Despair → ARC: Rage (4x)", "TAG: Neutral → TAG: Collapse Risk (3x)"]
 
-def _extract_detected_loops(forecasts: List[Dict[str, Any]]) -> List[str]:
+def _extract_detected_loops(_: List[Dict[str, Any]]) -> List[str]:
     """
     Placeholder: Extract detected loops from forecasts.
     """
@@ -228,10 +228,11 @@ def generate_strategos_digest(
     digest["compressed_episodes"] = []
     trace_ids = [f.get("trace_id") for f in forecasts if "lineage" in f]
     for root in trace_ids:
-        chain = build_episode_chain(forecasts, root_id=root)
-        if len(chain) > 1:
-            compressed = compress_episode_chain(chain)
-            digest["compressed_episodes"].append(compressed)
+        if root is not None:
+            chain = build_episode_chain(forecasts, root_id=root)
+            if len(chain) > 1:
+                compressed = compress_episode_chain(chain)
+                digest["compressed_episodes"].append(compressed)
 
     # --- Symbolic learning profile integration ---
     from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
@@ -253,7 +254,7 @@ def generate_strategos_digest(
 
     digest["symbolic_tuning_summary"] = {}
 
-    tuning_log = "logs/tuning_results.jsonl"
+    # upgrade_log = "plans/symbolic_upgrade_plan.json"  # Removed unused variable
     upgrade_log = "plans/symbolic_upgrade_plan.json"
 
     # Learn
@@ -614,15 +615,15 @@ def live_digest_ui(
 def _test_digest():
     """Basic test for strategos digest generation."""
     import unittest
-
-    class DummyMemory:
-        def get_recent(self, n):
+    class DummyMemory(ForecastMemory):
+        def get_recent(self, n, domain=None):
             # Add a malformed entry for robustness
             return [
                 {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "priority_score": 1, "retrodiction_score": 0.9, "symbolic_score": 0.8, "age_hours": 2},
                 {"confidence": 0.6, "alignment_score": 60, "trust_label": "⚠️ Moderate", "priority_score": 0.5, "retrodiction_score": 0.7, "symbolic_score": 0.6, "age_hours": 5},
                 {"confidence": 0.4, "alignment_score": 40, "trust_label": "🔴 Fragile", "priority_score": 0.2, "retrodiction_score": 0.5, "symbolic_score": 0.4, "age_hours": 10},
                 {},  # malformed
+            ]
             ]
 
     class StrategosDigestTest(unittest.TestCase):
@@ -631,8 +632,7 @@ def _test_digest():
             self.assertIn("Test Digest", digest)
             self.assertIn("🛡️ Trust Enforcement Report", digest)
             self.assertIn("Strategos Forecast Digest", digest or "")
-
-    unittest.TextTestRunner().run(unittest.makeSuite(StrategosDigestTest))
+    unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(StrategosDigestTest))
 
 if __name__ == "__main__":
     _test_digest()

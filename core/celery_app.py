@@ -7,6 +7,7 @@ from core.pulse_config import get_config
 from core.metrics import signal_ingest_counter, signal_score_histogram
 from irldata.scraper import SignalScraper
 import logging
+from datetime import datetime, timezone
 
 BROKER_URL = os.getenv("PULSE_CELERY_BROKER", "redis://localhost:6379/0")
 BACKEND_URL = os.getenv("PULSE_CELERY_BACKEND", "redis://localhost:6379/1")
@@ -19,10 +20,9 @@ scraper = SignalScraper()
 @celery_app.task(bind=True, name="ingest_and_score_signal")
 def ingest_and_score_signal(self, signal_data):
     """Celery task: ingest, score, and enrich a signal."""
-    import time
     import traceback
-    from trust_system.trust_engine import TrustEngine
-    from trust_system.alignment_index import compute_alignment_index
+    trust_score = 0.0
+    alignment_score = 0.0
     try:
         # Ingest
         result = scraper.ingest_signal(
@@ -31,25 +31,43 @@ def ingest_and_score_signal(self, signal_data):
             source=signal_data.get("source", "celery"),
             timestamp=signal_data.get("timestamp")
         )
-        signal_ingest_counter.labels(source=result["source"]).inc()
-        # Score
-        trust_score = None
-        alignment_score = None
+        if result is not None:
+            signal_ingest_counter.labels(source=result["source"]).inc()
+            # If this is a forecast (has 'forecast' key), enrich trust metadata
+            if "forecast" in result:
+                from trust_system.trust_engine import enrich_trust_metadata
+                try:
+                    enriched = enrich_trust_metadata(result)
+                    result.update(enriched)
+                    trust_score = result.get("confidence", 0.0) or 0.0
+                    alignment_score = result.get("alignment_score", 0.0) or 0.0
+                except Exception as e:
+                    logging.error(f"Trust enrichment failed: {e}")
+                    trust_score = 0.0
+                    alignment_score = 0.0
+                result["trust_score"] = float(trust_score)
+                result["alignment_score"] = float(alignment_score)
+                signal_score_histogram.observe(float(trust_score))
+            else:
+                # For raw signals, you may want to attach a simple quality score or skip scoring
+                result["trust_score"] = 0.0
+                result["alignment_score"] = 0.0
+        else:
+            logging.error("Result is None, skipping trust and alignment scoring.")
+        # Real-time model update
         try:
-            trust_score = TrustEngine().score(result)
-        except Exception:
-            trust_score = None
-        try:
-            alignment_score = compute_alignment_index(result)["alignment_score"]
-        except Exception:
-            alignment_score = None
-        result["trust_score"] = trust_score
-        result["alignment_score"] = alignment_score
-        signal_score_histogram.observe(trust_score or 0)
+            from core.feature_store import feature_store
+            from forecast_engine.ai_forecaster import update as ai_update
+            feature_store.clear_cache()
+            feature_names = feature_store.list_features()
+            features_values = [feature_store.get(name).iloc[-1] for name in feature_names]
+            ai_update([{"features": features_values, "adjustment": trust_score}])
+        except Exception as e:
+            logging.getLogger("pulse.celery").error(f"Real-time update error: {e}")
         # Optionally: save to DB, log, or further process
         return result
     except Exception as e:
-        logging.error(f"Celery ingest_and_score_signal error: {e}\n{traceback.format_exc()}")
+        logging.getLogger("pulse.celery").error(f"Celery ingest_and_score_signal error: {e}\n{traceback.format_exc()}")
         raise self.retry(exc=e, countdown=10, max_retries=3)
 
 # Example periodic task (for Celery beat)

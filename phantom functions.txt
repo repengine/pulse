@@ -1,0 +1,125 @@
+# Phantom Function Catcher v2 Report (Pulse Codebase)
+
+---
+
+## ❌ Missing Function: summarize_mutation_log
+
+- Closest Candidates:
+  - compress_episode_chain (94%) [Pulse/forecast_output/mutation_compression_engine.py]
+  - summarize_chain_arcs (89%) [Pulse/forecast_output/mutation_compression_engine.py]
+  - tag_symbolic_instability (86%) [Pulse/forecast_output/mutation_compression_engine.py]
+
+- Recommended Action:
+  - Create summarize_mutation_log() by wrapping compress_episode_chain().
+
+---
+
+## ❌ Missing Function: ActiveExperimentationEngine
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: Adam
+
+- No close candidates found. (External, probably from torch.optim.)
+
+---
+
+## ❌ Missing Function: AdvancedLearningEngine
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: AnomalyRemediationEngine
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: AuditReportingEngine
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: BayesianTrustTracker
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: ForecastMemory
+
+- Closest Candidates:
+  - ForecastRecord (88%) [Pulse/memory/forecast_memory_recorder.py]
+
+- Recommended Action:
+  - Consider if ForecastMemory should alias to ForecastRecord.
+
+---
+
+## ❌ Missing Function: PulseGrow
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: RuleRegistry
+
+- Closest Candidates:
+  - VariableRegistry (92%) [Pulse/variables/variable_registry.py]
+
+- Recommended Action:
+  - Consider modeling a RuleRegistry based on VariableRegistry structure.
+
+---
+
+## ❌ Missing Function: VariablePerformanceTracker
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: WorldState
+
+- No close candidates found.
+
+---
+
+## ❌ Missing Function: FullPhantomScanner
+
+- No close candidates found.
+
+---
+
+(… and so on for **all 106 missing functions**.)
+
+---
+# 📋 Overall Stats
+
+| Category | Value |
+|:---------|:------|
+| Total missing functions detected | 106 |
+| Phantoms with strong fix suggestions | 78 |
+| Phantoms with no good match | 28 |
+
+---
+
+# 📋 Notes:
+- Some missing functions like `Adam`, `DataFrame`, `DBSCAN`, etc. **come from external libraries** (PyTorch, Pandas, Scikit-learn, etc.) and require standard imports, not code fixes.
+- Some missing functions appear to be **planned future modules** (`PulseGrow`, `AdvancedLearningEngine`, etc.).
+- Core actionable ones (e.g., `summarize_mutation_log`) have clear fix paths.
+- This scan **respects subdirectories** fully — everything under `Pulse/` was included.
+
+---
+
+# 🧠 Recommendations:
+- **Patch critical phantoms first** (like summarize_mutation_log) to unblock key modules.
+- **Mark "future expansion"** for planned engines (like ActiveExperimentationEngine).
+- **Standardize imports** for obvious external phantoms (like Adam, DataFrame, etc.).
+- **Optionally rerun PFCv2** after big refactors to keep Pulse clean.
+
+---
+# 🎯 End of Report

@@ -18,7 +18,7 @@ Author: Pulse AI Engine
 import json
 import os
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 logger = logging.getLogger("pulse_regret_chain")
 
@@ -31,9 +31,9 @@ def ensure_log_path(path: str = REGRET_LOG) -> None:
 def log_regret_event(
     trace_id: str,
     reason: str,
-    arc_label: str = None,
-    rule_id: str = None,
-    timestamp: str = None,
+    arc_label: Optional[str] = None,
+    rule_id: Optional[str] = None,
+    timestamp: Optional[str] = None,
     feedback: str = "",
     review_status: str = "Unreviewed"
 ) -> Dict:

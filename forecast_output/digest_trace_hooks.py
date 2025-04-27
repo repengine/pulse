@@ -13,7 +13,7 @@ Note: Overlays may contain sensitive or verbose data. Consider filtering/redacti
 """
 
 from memory.trace_audit_engine import load_trace
-from typing import Optional, Dict, Any
+from typing import Optional
 from core.pulse_config import USE_SYMBOLIC_OVERLAYS
 import logging
 
@@ -44,17 +44,16 @@ def summarize_trace_for_digest(trace_id: str, overlays_maxlen: int = 120) -> Opt
             return None
 
         output = trace["output"]
-        overlays = forecast_output.get("overlays", {})
-        trust = forecast_output.get("trust", "N/A")
-        forks = forecast_output.get("forks", [])
+        overlays = output.get("overlays", {})
+        trust = output.get("trust", "N/A")
+        forks = output.get("forks", [])
 
         # Truncate overlays if too large for summary
         overlays_str = str(overlays)
         if len(overlays_str) > overlays_maxlen:
-            overlays_str = overlays_str[:overlays_maxlen-3] + "..."
+            overlays_str = f"{overlays_str[:overlays_maxlen-3]}..."
 
-        summary = f"(Trust: {trust}, Forks: {len(forks)}, Overlays: {overlays_str})"
-        return summary
+        return f"(Trust: {trust}, Forks: {len(forks)}, Overlays: {overlays_str})"
     except Exception as e:
         logger.warning(f"Failed to summarize trace {trace_id}: {e}")
         return None
@@ -70,6 +69,7 @@ def symbolic_digest_section(*args, **kwargs) -> str:
     if not USE_SYMBOLIC_OVERLAYS:
         return ""
     # ...existing code...
+    return ""
 
 
 # --- Simple test for manual validation ---

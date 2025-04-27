@@ -54,7 +54,7 @@ def generate_operator_brief(
     episodes = load_jsonl(episode_log_file) if episode_log_file else []
 
     drift_summary = {}
-    if previous_episode_log and os.path.exists(previous_episode_log):
+    if previous_episode_log and os.path.exists(previous_episode_log) and episode_log_file:
         previous = summarize_episodes(previous_episode_log)
         current = summarize_episodes(episode_log_file)
         arcs_prev = {k.replace("arc_", ""): v for k, v in previous.items() if k.startswith("arc_")}

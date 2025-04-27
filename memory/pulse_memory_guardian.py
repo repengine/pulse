@@ -78,3 +78,19 @@ def prune_incoherent_forecasts(memory_batch, verbose=True):
             for issue in issues:
                 logger.warning("  - %s", issue)
     return retained
+
+def prune_memory_advanced(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False, min_confidence: float = None):
+    """
+    Prunes memory to retain only the most recent max_entries forecasts, or by confidence if min_confidence is set.
+    If dry_run is True, only prints what would be pruned.
+    """
+    if min_confidence is not None:
+        before = len(memory._memory)
+        if dry_run:
+            to_prune = [f for f in memory._memory if float(f.get("confidence", 0)) < min_confidence]
+            logger.info(f"[MemoryGuardian] Would prune {len(to_prune)} forecasts below confidence {min_confidence}.")
+        else:
+            memory._memory = [f for f in memory._memory if float(f.get("confidence", 0)) >= min_confidence]
+            logger.info(f"[MemoryGuardian] Pruned forecasts below confidence {min_confidence}.")
+    else:
+        prune_memory(memory, max_entries=max_entries, dry_run=dry_run)

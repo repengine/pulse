@@ -12,14 +12,20 @@ from core.variable_accessor import get_variable, set_variable, get_overlay
 from core.path_registry import PATHS
 # from forecast_tags import ... # Uncomment and use if forecast_tags are needed
 
-def build_static_rules():
-    # Use config constants and module gating
+def build_static_rules(param_overrides=None):
+    """
+    Build static rules with optional parameter overrides.
+    param_overrides: dict of {rule_id: {param_name: value}}
+    """
+    param_overrides = param_overrides or {}
     rules = [
         {
             "id": "R001_EnergySpike",
             "description": "High energy costs lead to rising inflation",
-            "condition": lambda s: get_variable(s, "energy_price_index") > CONFIDENCE_THRESHOLD,
-            "effects": lambda s: set_variable(s, "inflation_index", get_variable(s, "inflation_index") + 0.01),
+            "threshold": param_overrides.get("R001_EnergySpike", {}).get("threshold", CONFIDENCE_THRESHOLD),
+            "effect_size": param_overrides.get("R001_EnergySpike", {}).get("effect_size", 0.01),
+            "condition": lambda s, th=None: get_variable(s, "energy_price_index") > (th if th is not None else CONFIDENCE_THRESHOLD),
+            "effects": lambda s, eff=None: set_variable(s, "inflation_index", get_variable(s, "inflation_index") + (eff if eff is not None else 0.01)),
             "symbolic_tags": ["fear", "despair"],
             "type": "economic",
             "enabled": True
@@ -27,8 +33,10 @@ def build_static_rules():
         {
             "id": "R002_TrustRebound",
             "description": "High public trust reduces AI regulatory pressure",
-            "condition": lambda s: get_variable(s, "public_trust_level") > 0.65,  # Could add to config if reused
-            "effects": lambda s: set_variable(s, "ai_policy_risk", max(0, get_variable(s, "ai_policy_risk") - 0.02)),
+            "threshold": param_overrides.get("R002_TrustRebound", {}).get("threshold", 0.65),
+            "effect_size": param_overrides.get("R002_TrustRebound", {}).get("effect_size", 0.02),
+            "condition": lambda s, th=None: get_variable(s, "public_trust_level") > (th if th is not None else 0.65),
+            "effects": lambda s, eff=None: set_variable(s, "ai_policy_risk", max(0, get_variable(s, "ai_policy_risk") - (eff if eff is not None else 0.02))),
             "symbolic_tags": ["hope", "stability"],
             "type": "regulatory",
             "enabled": True

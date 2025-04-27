@@ -3,6 +3,7 @@ Hyperparameter tuner for Pulse forecasting models using Optuna.
 """
 import optuna
 from typing import Dict, Any, Callable
+import mlflow
 
 class HyperparameterTuner:
     """
@@ -16,8 +17,9 @@ class HyperparameterTuner:
 
     def optimize(self, n_trials: int = 50) -> optuna.study.Study:
         """
-        Run hyperparameter optimization.
+        Run hyperparameter optimization and log each trial to MLflow.
         """
+        mlflow.set_experiment("PulseHyperparameterTuning")
         def objective(trial):
             params = {}
             for name, spec in self.param_space.items():
@@ -30,7 +32,12 @@ class HyperparameterTuner:
                     params[name] = trial.suggest_categorical(name, spec["choices"])
                 else:
                     raise ValueError(f"Unsupported param type: {ptype}")
-            return self.objective_fn(params)
+            value = self.objective_fn(params)
+            with mlflow.start_run(nested=True):
+                for k, v in params.items():
+                    mlflow.log_param(k, v)
+                mlflow.log_metric("objective", value)
+            return value
         self.study.optimize(objective, n_trials=n_trials)
         return self.study
 

@@ -18,7 +18,7 @@ Author: Pulse v0.10
 import os
 import json
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Any, Optional, List
 from core.pulse_config import MODULES_ENABLED
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
@@ -28,11 +28,11 @@ from utils.log_utils import get_logger
 if not MODULES_ENABLED.get("memory_guardian", True):
     raise RuntimeError("Forecast memory module is disabled in config.")
 
-forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 logger = get_logger(__name__)
 
 
-def save_forecast_to_memory(forecast_id: str, metadata: dict, domain: str = None):
+def save_forecast_to_memory(forecast_id: str, metadata: Dict[str, Any], domain: Optional[str] = None) -> Dict[str, Any]:
     """
     Stores a forecast and its metadata to memory.
 
@@ -40,6 +40,8 @@ def save_forecast_to_memory(forecast_id: str, metadata: dict, domain: str = None
         forecast_id (str): Identifier for the forecast
         metadata (dict): Associated trust, symbolic, and scoring info
         domain (str): Optional domain tag (e.g., capital, nfl)
+    Returns:
+        dict: The stored entry
     """
     entry = {
         "forecast_id": forecast_id,
@@ -49,8 +51,7 @@ def save_forecast_to_memory(forecast_id: str, metadata: dict, domain: str = None
     forecast_memory.store(entry)
     return entry
 
-
-def load_forecast_history(limit=10, domain_filter=None):
+def load_forecast_history(limit: int = 10, domain_filter: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Loads up to N recent forecast memory entries.
 

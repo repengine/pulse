@@ -1,19 +1,14 @@
-""" 
+"""
 rule_audit_layer.py
 
 Logs detailed audit traces for each rule executed during a simulation turn.
-Captures:
-- Rule ID and timestamp
-- Symbolic tags
-- Variable deltas (pre/post)
-- Symbolic overlay deltas (pre/post)
 
-This enables:
-- Forecast scoring
-- Drift monitoring
-- Forecast memory justification
+Responsibilities:
+- Capture rule execution metadata (ID, tags, deltas, overlays)
+- Enable forecast scoring, drift monitoring, and justification
+- Should be used by simulation/forecast engines for traceability
 
-Author: Pulse v0.20
+This module does not perform rule matching or validation.
 """
 
 from simulation_engine.worldstate import WorldState
@@ -32,15 +27,21 @@ def audit_rule(
     """
     var_deltas = {}
     for key, before_val in state_before.variables.as_dict().items():
-        after_val = state_after.variables.get(key)
+        after_val = state_after.variables.as_dict().get(key)
         if after_val != before_val:
-            var_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+            if before_val is not None and after_val is not None:
+                var_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+            else:
+                var_deltas[key] = {"from": before_val, "to": after_val}
 
     overlay_deltas = {}
     for key, before_val in state_before.overlays.as_dict().items():
         after_val = state_after.overlays.as_dict().get(key)
         if after_val != before_val:
-            overlay_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+            if before_val is not None and after_val is not None:
+                overlay_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+            else:
+                overlay_deltas[key] = {"from": before_val, "to": after_val}
 
     return {
         "rule_id": rule_id,

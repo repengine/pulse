@@ -91,7 +91,7 @@ def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, th
 def compress_forecasts(
     forecasts: List[Dict],
     cluster_key: str = "symbolic_tag",
-    top_n: int = None,
+    top_n: Optional[int] = None,
     summarize: bool = True,
     arc_drift: Optional[Dict[str, int]] = None,
     drift_report: Optional[Dict] = None

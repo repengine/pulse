@@ -23,7 +23,7 @@ def rolling_window(df: pd.DataFrame, window: int = 5, features: Optional[List[st
     
     result = df[features].rolling(window=window).mean()
     # Fill NaN values that occur at the beginning of the window
-    result = result.fillna(method='bfill')
+    result = result.bfill()
     
     # Return the first column if multiple, or the series if single column
     if len(features) == 1:
@@ -53,7 +53,7 @@ def lag_features(df: pd.DataFrame, lags: List[int] = [1, 3, 7], features: Option
             result[f"{feature}_lag_{lag}"] = df[feature].shift(lag)
     
     # Fill NaN values that occur at the beginning due to shifting
-    result = result.fillna(method='bfill')
+    result = result.bfill()
     
     # Return the mean across all lagged features
     return result.mean(axis=1)

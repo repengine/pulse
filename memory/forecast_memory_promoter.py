@@ -1,4 +1,4 @@
-# forecast_memory/forecast_memory_promoter.py
+# memory/forecast_memory_promoter.py
 
 """
 Forecast Memory Promoter

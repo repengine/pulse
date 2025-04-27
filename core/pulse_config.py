@@ -48,7 +48,7 @@ MODULES_ENABLED: Dict[str, bool] = {
     "symbolic_overlay": True,
     "forecast_tracker": True,
     "rule_engine": True,
-    "memory_guardian": False,
+    "memory_guardian": True,  # <-- Enabled for forecast memory
     "estimate_missing_variables": False,
 }
 
@@ -56,7 +56,7 @@ MODULES_ENABLED: Dict[str, bool] = {
 FEATURE_PIPELINES: Dict[str, Any] = {
     "market_data": {
         "raw_loader": "learning.output_data_reader.load_market_data",
-        "transform": "learning.transforms.basic_transforms.rolling_window"
+        "transform": "learning.transforms.data_pipeline.preprocess_pipeline"
     },
     "social_data": {
         "raw_loader": "learning.output_data_reader.load_social_data",
@@ -65,6 +65,10 @@ FEATURE_PIPELINES: Dict[str, Any] = {
     "ecological_data": {
         "raw_loader": "learning.output_data_reader.load_ecological_data",
         "transform": "learning.transforms.basic_transforms.lag_features"
+    },
+    "market_rolling_mean": {
+        "raw_loader": "learning.output_data_reader.load_market_data",
+        "transform": "learning.transforms.rolling_features.rolling_mean_feature"
     }
 }
 
@@ -118,3 +122,30 @@ class ConfigLoader:
         return self.load_config(filename)
 
 config_loader = ConfigLoader()
+
+def get_config(filename, key=None, default=None):
+    """
+    Retrieve a config dictionary or a specific value from a YAML config file.
+    If key is None, returns the whole config dict.
+    """
+    config = config_loader.load_config(filename)
+    return config if key is None else config.get(key, default)
+
+# --- Model registry for MLOps ---
+MODEL_REGISTRY = {
+    "symbolic_model": {
+        "type": "symbolic",
+        "path": "models/symbolic_model.pkl",
+        "description": "Rule-based symbolic forecaster"
+    },
+    "statistical_model": {
+        "type": "statistical",
+        "path": "models/statistical_model.pkl",
+        "description": "ARIMA/ETS statistical model"
+    },
+    "ml_model": {
+        "type": "ml",
+        "path": "models/ml_model.pt",
+        "description": "LSTM/MLP neural network forecaster"
+    }
+}

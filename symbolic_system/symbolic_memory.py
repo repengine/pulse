@@ -41,6 +41,8 @@ def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "
         raise ValueError("Overlays must be a dictionary of floats.")
 
     path = log_path or PATHS["WORLDSTATE_LOG_DIR"]
+    if not isinstance(path, str):
+        path = str(path)
     ensure_log_dir(path)
 
     entry = {

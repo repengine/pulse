@@ -7,7 +7,7 @@ Usage:
 
 import argparse
 import json
-from lear import retrospective_analysis_batch
+from learning.learning import retrospective_analysis_batch
 
 parser = argparse.ArgumentParser(description="Retrodiction audit for forecast batches.")
 parser.add_argument("--forecasts", type=str, required=True, help="Path to forecasts (.jsonl)")

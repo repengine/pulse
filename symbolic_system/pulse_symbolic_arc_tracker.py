@@ -108,7 +108,8 @@ def plot_arc_distribution(arc_counts: Dict[str, int], title: Optional[str] = "Sy
         values = list(arc_counts.values())
         plt.figure(figsize=(8, 4))
         plt.bar(labels, values, color="skyblue", edgecolor="black")
-        plt.title(title)
+        safe_title = title if title is not None else "Symbolic Arc Distribution"
+        plt.title(safe_title)
         plt.xlabel("Arc Label")
         plt.ylabel("Count")
         plt.xticks(rotation=45, ha="right")

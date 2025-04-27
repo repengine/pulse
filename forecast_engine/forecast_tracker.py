@@ -11,6 +11,7 @@ Author: Pulse v0.20
 import os
 import json
 from datetime import datetime
+from typing import Optional
 from forecast_engine.forecast_scoring import score_forecast
 from forecast_engine.forecast_memory import save_forecast_to_memory
 from forecast_engine.forecast_integrity_engine import validate_forecast
@@ -22,19 +23,19 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
-forecast_memory = ForecastMemory(persist_dir=PATHS["FORECAST_HISTORY"])
+forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 
 class ForecastTracker:
     def __init__(self, log_dir=None):
-        self.log_dir = log_dir or None
-        os.makedirs(self.log_dir, exist_ok=True)
+        self.log_dir = str(log_dir) if log_dir else str(PATHS["BATCH_FORECAST_SUMMARY"]).rsplit("/", 1)[0]
+        os.makedirs(str(self.log_dir), exist_ok=True)
 
     def _generate_filename(self, forecast_id: str) -> str:
         safe_id = forecast_id.replace(" ", "_")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return os.path.join(self.log_dir, f"{safe_id}_{timestamp}.json")
+        return os.path.join(str(self.log_dir), f"{safe_id}_{timestamp}.json")
 
-    def record_forecast(self, forecast_id: str, state: WorldState, rule_log: list[dict], domain: str = None):
+    def record_forecast(self, forecast_id: str, state: WorldState, rule_log: list[dict], domain: Optional[str] = None):
         """
         Scores, validates, and records a forecast if trusted.
 

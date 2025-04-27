@@ -33,12 +33,8 @@ def detect_symbolic_opposition(forecasts: List[Dict], key: str = "arc_label") ->
     Returns:
         List of (a, b) arc/tag opposition pairs both present
     """
-    labels = set(f.get(key, "unknown") for f in forecasts)
-    conflicts = []
-    for a, b in OPPOSING_ARCS.items():
-        if a in labels and b in labels:
-            conflicts.append((a, b))
-    return conflicts
+    labels = {f.get(key, "unknown") for f in forecasts}
+    return [(a, b) for a, b in OPPOSING_ARCS.items() if a in labels and b in labels]
 
 
 def score_batch_divergence(forecasts: List[Dict], key: str = "arc_label") -> float:

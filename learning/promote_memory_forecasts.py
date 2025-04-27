@@ -6,10 +6,7 @@ Usage:
 """
 
 import argparse, json
-from forecast_output.forecast_memory_promoter import (
-    select_promotable_forecasts,
-    export_promoted
-)
+from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
 
 def load_jsonl(path):
     with open(path, "r") as f:

@@ -74,7 +74,9 @@ def analyze_misses(forecasts: List[Dict], actuals: Dict) -> List[Dict]:
     logger.info(f"Miss analysis: {len(misses)} misses found.")
     return misses
 
-def feedback_loop(regrets: List[Dict], log_path: str = None):
+from typing import Optional
+
+def feedback_loop(regrets: List[Dict], log_path: Optional[str] = None):
     """
     Adjust symbolic weights/rules based on regret analysis (stub).
     Optionally logs regrets to a file.

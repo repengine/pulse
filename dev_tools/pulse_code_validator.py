@@ -64,7 +64,9 @@ def collect_all_function_defs(root_dir: str = ".") -> Dict[str, List[Dict[str, A
     """
     func_map = {}
     files_checked = 0
-    for root, _, files in os.walk(root_dir):
+    for root, dirs, files in os.walk(root_dir):
+        # Ignore all directories starting with a dot (in-place modification)
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
         for f in files:
             if f.endswith(".py") and not f.startswith("__"):
                 full_path = os.path.join(root, f)
@@ -74,7 +76,7 @@ def collect_all_function_defs(root_dir: str = ".") -> Dict[str, List[Dict[str, A
                 files_checked += 1
     return func_map
 
-def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any]]], root_dir: str = ".", filter_func: str = None, verbose: bool = False) -> List[Dict[str, Any]]:
+def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any]]], root_dir: str = ".", filter_func: str | None = None, verbose: bool = False) -> List[Dict[str, Any]]:
     """
     Validate keyword arguments in function calls against known definitions.
     Args:
@@ -87,7 +89,9 @@ def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any
     """
     issues = []
     files_checked = 0
-    for root, _, files in os.walk(root_dir):
+    for root, dirs, files in os.walk(root_dir):
+        # Ignore all directories starting with a dot (in-place modification)
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
         for f in files:
             if f.endswith(".py") and not f.startswith("__"):
                 full_path = os.path.join(root, f)
@@ -114,14 +118,13 @@ def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any
 
                         if func_name in func_map:
                             valid_args = func_map[func_name][0]["args"]
-                            for kw in node.keywords:
-                                if kw.arg not in valid_args:
-                                    issues.append({
-                                        "file": full_path,
-                                        "function": func_name,
-                                        "invalid_kw": kw.arg,
-                                        "valid_args": valid_args
-                                    })
+                            invalids = [kw for kw in node.keywords if kw.arg not in valid_args]
+                            issues.extend({
+                                "file": full_path,
+                                "function": func_name,
+                                "invalid_kw": kw.arg,
+                                "valid_args": valid_args
+                            } for kw in invalids)
                 if verbose:
                     logger.info(f"Checked: {full_path}")
     return issues

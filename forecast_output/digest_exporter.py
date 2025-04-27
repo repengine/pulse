@@ -23,6 +23,7 @@ warnings.warn(
 
 import json
 import logging
+from typing import Any, List
 
 logger = logging.getLogger("digest_exporter")
 
@@ -43,41 +44,43 @@ def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_ht
                 if sanitize_html:
                     try:
                         import bleach
-                        html = bleach.clean(html, tags=bleach.sanitizer.ALLOWED_TAGS + ["h1", "h2", "h3"], strip=True)
+                        # Use set() to avoid TypeError with + on lists/sets
+                        allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {"h1", "h2", "h3"}
+                        html = bleach.clean(html, tags=allowed_tags, strip=True)
                     except ImportError:
                         logger.warning("bleach not installed, HTML not sanitized.")
-                with open(path, "w", encoding="utf-8") as f:
+                with open(str(path), "w", encoding="utf-8") as f:
                     f.write(html)
                 logger.info(f"Digest HTML exported to {path}")
             except ImportError:
-                with open(path, "w", encoding="utf-8") as f:
+                with open(str(path), "w", encoding="utf-8") as f:
                     f.write("<pre>\n" + digest_str + "\n</pre>")
                 logger.info(f"Digest HTML exported to {path} (preformatted, markdown2 not installed)")
         else:
-            with open(path, "w", encoding="utf-8") as f:
+            with open(str(path), "w", encoding="utf-8") as f:
                 f.write(digest_str)
             logger.info(f"Digest exported to {path}")
     except Exception as e:
         logger.error(f"Export error: {e}")
 
-def export_digest_json(forecast_batch, path: str):
+def export_digest_json(forecast_batch: List[Any], path: str) -> None:
     """
     Export forecast batch as JSON.
     """
     try:
-        with open(path, "w", encoding="utf-8") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             json.dump(forecast_batch, f, indent=2)
         logger.info(f"Digest JSON exported to {path}")
     except Exception as e:
         logger.error(f"Export error: {e}")
 
-def export_digest_pdf(digest_str: str, path: str):
+def export_digest_pdf(digest_str: str, path: str) -> None:
     """
     Export digest as PDF (stub).
     """
     try:
         # TODO: Integrate ReportLab or WeasyPrint for real PDF export
-        with open(path, "w", encoding="utf-8") as f:
+        with open(str(path), "w", encoding="utf-8") as f:
             f.write("PDF export not implemented.\n\n")
             f.write(digest_str)
         logger.info(f"Digest PDF (stub) exported to {path}")

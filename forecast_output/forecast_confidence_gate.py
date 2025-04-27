@@ -23,10 +23,10 @@ Log Output:
 
 import json
 from typing import List, Dict, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, update_threshold
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
 
 CONFIDENCE_LOG_PATH = PATHS.get("CONFIDENCE_LOG_PATH", "logs/forecast_confidence_filter_log.jsonl")
 
@@ -34,18 +34,20 @@ def ensure_log_dir(path: str):
     import os
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
+from typing import Optional
+
 def filter_by_confidence(
     forecasts: Union[List[Dict], Dict],
-    min_confidence: float = None,
-    max_fragility: float = None
+    min_confidence: Optional[float] = None,
+    max_fragility: Optional[float] = None
 ) -> List[Dict]:
     min_confidence = min_confidence if min_confidence is not None else CONFIDENCE_THRESHOLD
     max_fragility = max_fragility if max_fragility is not None else DEFAULT_FRAGILITY_THRESHOLD
-    ensure_log_dir(CONFIDENCE_LOG_PATH)
+    ensure_log_dir(str(CONFIDENCE_LOG_PATH))
     if isinstance(forecasts, dict):
         forecasts = [forecasts]
 
-    output = []
+    result = []
     for f in forecasts:
         conf = f.get("confidence", 0.0)
         frag = f.get("fragility", 0.5)
@@ -63,7 +65,7 @@ def filter_by_confidence(
                     "confidence": conf,
                     "fragility": frag,
                     "status": f["confidence_status"],
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "metadata": {
                         "source": "forecast_confidence_gate.py",
                         "version": "v0.018.0"
@@ -72,9 +74,9 @@ def filter_by_confidence(
         except Exception as e:
             print(f"[ConfidenceGate] Log error: {e}")
 
-        forecast_output.append(f)
+        result.append(f)
 
-    return output
+    return result
 
 # === Example usage
 if __name__ == "__main__":

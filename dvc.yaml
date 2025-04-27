@@ -6,3 +6,12 @@ stages:
       - learning/
     outs:
       - logs/
+  tune-model:
+    cmd: python forecast_engine/hyperparameter_tuner.py
+    deps:
+      - forecast_engine/hyperparameter_tuner.py
+      - learning/
+    outs:
+      - logs/tuning_results.jsonl
+    params:
+      - params.yaml: [tuning]

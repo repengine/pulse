@@ -83,7 +83,8 @@ def gate_signals(signals: List[Dict[str, Any]]) -> Tuple[List[Dict], List[Dict],
             logger.warning("[Gate] Escalated signal: %s (STI %.2f, symbolic %s)", name, sti, symbolic)
             if pulse_grow:
                 try:
-                    pulse_grow.register_variable(name, {
+                    safe_name = name if isinstance(name, str) and name else "unknown_signal"
+                    pulse_grow.register_variable(safe_name, {
                         "symbolic": symbolic,
                         "reason": "Escalated from signal_gating",
                         "sti": sti

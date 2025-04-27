@@ -38,11 +38,12 @@ def score_rule_volatility(rules: Dict[str, Dict], log_path: Optional[str] = None
     Uses historical mutation frequency to assess rule instability.
     Returns a normalized volatility score for each rule (0–1).
     """
-    log_path = log_path or RULE_MUTATION_LOG
+    if log_path is None:
+        log_path = str(RULE_MUTATION_LOG)
     volatility = defaultdict(int)
-    if os.path.exists(log_path):
+    if log_path is not None and os.path.exists(str(log_path)):
         try:
-            with open(log_path, "r", encoding="utf-8") as f:
+            with open(str(log_path), "r", encoding="utf-8") as f:
                 for line in f:
                     entry = json.loads(line)
                     rule_id = entry.get("mutation", {}).get("rule")

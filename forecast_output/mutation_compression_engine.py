@@ -99,8 +99,8 @@ def compress_episode_chain(chain: List[Dict]) -> Dict:
 
 def export_compressed_episode(forecast: Dict, path: str) -> None:
     """
-    Save compressed forecast to disk.
 
+        Save compressed forecast to disk.
     Args:
         forecast: single forecast dict
         path: .jsonl destination

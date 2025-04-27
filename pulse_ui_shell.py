@@ -57,14 +57,29 @@ if os.path.exists(HOOKS_JSON):
 
 # --- Utility: List all available simulation domains ---
 def list_domains() -> None:
-    """Print all available simulation domains and their descriptions."""
-    if hasattr(VARIABLE_REGISTRY, 'DOMAINS'):
-        print("Available domains:")
-        for d, meta in VARIABLE_REGISTRY.DOMAINS.items():
-            desc = meta.get("description", "")
-            print(f"  {d:<12} {desc}")
-    else:
-        print("Domain registry not found.")
+    """Print all available simulation domains (types) and their variable descriptions."""
+    if not isinstance(VARIABLE_REGISTRY, dict):
+        logger.error("VARIABLE_REGISTRY is not a dict (got %r)", type(VARIABLE_REGISTRY))
+        print("Error: unable to list domains.")
+        return
+
+    # Group variables by their 'type' (domain)
+    domains = {}
+    for var, meta in VARIABLE_REGISTRY.items():
+        domain = meta.get("type", "unknown")
+        if domain not in domains:
+            domains[domain] = []
+        domains[domain].append((var, meta.get("description", "No description provided")))
+
+    if not domains:
+        print("No domains available.")
+        return
+
+    print("Available domains (variable types):")
+    for domain in sorted(domains):
+        print(f"\nDomain: {domain}")
+        for var, desc in sorted(domains[domain]):
+            print(f"  - {var}: {desc}")
 
 def safe_hook_import(hook_name: str) -> None:
     """Safely import and run a CLI hook module by name."""
