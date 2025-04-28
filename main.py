@@ -45,19 +45,13 @@ from pipeline.ingestion_service import IngestionService
 from core.variable_registry import registry   # shared singleton :contentReference[oaicite:2]{index=2}&#8203;:contentReference[oaicite:3]{index=3}
 from core.variable_accessor import set_variable
 
-try:
-    import importlib.util, dotenv
-    from dotenv import load_dotenv
-    load_dotenv()
-except ModuleNotFoundError:
-    print("[Pulse] python-dotenv not installed; skipping .env")
 
 ingester = IngestionService()
 
-sig_path = ingester.ingest_once()
-for sig in ingester.latest_signals():
-    set_variable(registry, sig["name"], sig["value"])  # or registry.set()
-    logger.info(f"Signal ingested: {sig['name']} = {sig['value']}")
+#sig_path = ingester.ingest_once()
+#for sig in ingester.latest_signals():
+ #   set_variable(registry, sig["name"], sig["value"])  # or registry.set()
+  #  logger.info(f"Signal ingested: {sig['name']} = {sig['value']}")
 def run_pulse_simulation(turns: int = 1):
     """
     Run the main Pulse simulation loop.

@@ -25,16 +25,19 @@ def get_variable(state: Any, name: str, default: float = 0.0) -> float:
 
 def set_variable(state: Any, name: str, value: float) -> None:
     """
-    Safely set a variable in state.variables dict.
+    Safely set a variable in state.variables dict or object.
     Args:
-        state: The simulation state object (must have .variables dict).
+        state: The simulation state object (must have .variables dict or object).
         name: Variable name (should be in VARIABLE_REGISTRY).
         value: Value to set.
     """
     if name not in VARIABLE_REGISTRY:
         # Optionally log or warn about unknown variable
         pass
-    setattr(state.variables, name, value)
+    if isinstance(state.variables, dict):
+        state.variables[name] = value
+    else:
+        setattr(state.variables, name, value)
 
 def get_overlay(state: Any, name: str, default: float = 0.0) -> float:
     """

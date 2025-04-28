@@ -3,9 +3,9 @@
 Set `enabled=True` when ready and fill in `fetch_signals`.
 """
 from typing import List, Dict, Any
-from iris.iris_plugins import IrisScraper
+from iris.iris_plugins import IrisPluginManager
 
-class CdcSocrataPlugin(IrisScraper):
+class CdcSocrataPlugin(IrisPluginManager):
     plugin_name = "cdc_socrata_plugin"
     enabled = False     # flip to True and provide API key to activate
     concurrency = 2
