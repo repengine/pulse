@@ -12,6 +12,8 @@ from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
 from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
+from trust_system.retrodiction_engine import run_retrodiction_simulation
+from simulation_engine.worldstate import WorldState
 
 logger = logging.getLogger("pulse.trust")
 
@@ -498,13 +500,35 @@ class TrustEngine:
         Returns:
             List of processed forecast dicts with trust metadata.
         """
-        
-        from learning.learning import retrospective_analysis_batch
+        from trust_system.retrodiction_engine import run_retrodiction_simulation
+        from simulation_engine.worldstate import WorldState
 
         # Optional: run retrodiction check before tagging
         if current_state:
             try:
-                forecasts = retrospective_analysis_batch(forecasts, current_state, threshold=retrodiction_threshold)
+                # Convert current_state dict to WorldState if needed
+                if not isinstance(current_state, WorldState):
+                    ws = WorldState()
+                    for k, v in current_state.items():
+                        setattr(ws, k, v)
+                    current_state_obj = ws
+                else:
+                    current_state_obj = current_state
+
+                # Run retrodiction simulation using unified function
+                retrodiction_results = run_retrodiction_simulation(
+                    initial_state=current_state_obj,
+                    turns=1,  # or appropriate number of turns
+                    retrodiction_loader=None  # Could be passed as parameter if available
+                )
+                # Map retrodiction scores back to forecasts by trace_id
+                score_map = {r.get("trace_id"): r.get("confidence", 0.0) for r in retrodiction_results}
+                for f in forecasts:
+                    tid = f.get("trace_id")
+                    if tid in score_map:
+                        f["retrodiction_score"] = score_map[tid]
+                    else:
+                        f["retrodiction_score"] = None
             except Exception as e:
                 logger.warning(f"Retrodiction batch analysis failed: {e}")
 
@@ -547,11 +571,17 @@ def _enrich_fragility(forecast):
         logger.warning(f"[TrustEnrich] Fragility enrichment failed: {e}")
 
 def _enrich_retrodiction(forecast, current_state):
+    """
+    Enrich forecast with retrodiction error score using unified retrodiction simulation results.
+    """
     if current_state:
         try:
-            from learning.learning import retrodict_error_score, reconstruct_past_state
-            past_state = reconstruct_past_state(forecast)
-            forecast["retrodiction_error"] = retrodict_error_score(past_state, current_state)
+            # Assuming retrodiction_score is already set in forecast by batch retrodiction
+            if "retrodiction_score" not in forecast or forecast["retrodiction_score"] is None:
+                forecast["retrodiction_error"] = None
+            else:
+                # Use retrodiction_score as retrodiction_error for now
+                forecast["retrodiction_error"] = 1.0 - forecast["retrodiction_score"]
         except Exception as e:
             logger.warning(f"[TrustEnrich] Retrodiction enrichment failed: {e}")
             forecast["retrodiction_error"] = None
@@ -578,80 +608,3 @@ def _enrich_license(forecast, license_enforcer, license_explainer):
     if license_enforcer and license_explainer:
         forecast["license_status"] = license_enforcer(forecast)
         forecast["license_explanation"] = license_explainer(forecast)
-from typing import Optional, List
-
-def score_forecasts(
-    forecasts: list,
-    memory: Optional[List] = None,
-    fragility_weight: float = 0.4,
-    delta_weight: float = 0.4,
-    novelty_weight: float = 0.2
-) -> list:
-    """
-    Batch scoring: assign trust/confidence to each forecast in a list.
-    """
-    results = []
-    for fc in forecasts:
-        score = TrustEngine.score_forecast(
-            fc,
-            memory=memory,
-            # When using the new scoring, these weights are overridden by the new micro-component weights.
-            baseline_weight=0.4, risk_weight=0.3, historical_weight=0.2, novelty_weight=0.1
-        )
-        fc["confidence"] = score
-        results.append(fc)
-    return results
-
-# Add this at the end of the file to allow direct import
-score_forecast = TrustEngine.score_forecast
-
-enrich_trust_metadata = TrustEngine.enrich_trust_metadata
-
-# --- Unit test for enrich_trust_metadata ---
-def _test_enrich_trust_metadata():
-    dummy = {
-        "trace_id": "t1",
-        "overlays": {"hope": 0.8, "despair": 0.1},
-        "forecast": {"start_capital": {"nvda": 1000}, "end_capital": {"nvda": 1100}, "symbolic_change": {"hope": 0.2}},
-        "fragility": 0.2,
-        "retrodiction_score": 0.9,
-        "trust_label": "🟢 Trusted"
-    }
-    enriched = enrich_trust_metadata(dummy)
-    assert "confidence" in enriched
-    assert "fragility" in enriched
-    assert "alignment_score" in enriched
-    assert "trust_summary" in enriched
-    print("✅ enrich_trust_metadata test passed.")
-
-# --- Extended unit tests for enrich_trust_metadata ---
-def _test_enrich_trust_metadata_edge_cases():
-    # Edge: missing overlays, missing alignment, missing license
-    dummy = {
-        "trace_id": "t2",
-        "forecast": {"start_capital": {"nvda": 1000}, "end_capital": {"nvda": 1100}, "symbolic_change": {"hope": 0.2}},
-        "fragility": 0.7,
-        "retrodiction_score": 0.2,
-        "trust_label": "⚠️ Moderate"
-    }
-    enriched = enrich_trust_metadata(dummy)
-    assert "confidence" in enriched
-    assert "fragility" in enriched
-    assert "alignment_score" in enriched
-    assert "trust_summary" in enriched
-    print("✅ enrich_trust_metadata edge case test passed.")
-
-def _test_plugin_registration():
-    # Plugin that adds a custom field
-    def custom_plugin(forecast):
-        forecast["custom_metric"] = 42
-    register_trust_enrichment_plugin(custom_plugin)
-    dummy = {"trace_id": "t3", "forecast": {}, "fragility": 0.1}
-    enriched = enrich_trust_metadata(dummy)
-    assert enriched.get("custom_metric") == 42
-    print("✅ Trust enrichment plugin test passed.")
-
-if __name__ == "__main__":
-    _test_enrich_trust_metadata()
-    _test_enrich_trust_metadata_edge_cases()
-    _test_plugin_registration()

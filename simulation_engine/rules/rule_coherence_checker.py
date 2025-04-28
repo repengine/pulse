@@ -14,12 +14,12 @@ All validation logic should be added here for consistency.
 import json
 from typing import List, Dict, Tuple, Optional
 from pathlib import Path
-from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
 
 # Use centralized get_all_rule_fingerprints for all rule access
 
 def get_all_rule_fingerprints_dict() -> dict:
     """Retrieve all rule fingerprints as a dict keyed by rule_id."""
+    from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
     return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
 
 def validate_rule_schema(rules: Dict[str, Dict]) -> List[str]:

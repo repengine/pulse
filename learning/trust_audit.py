@@ -11,7 +11,7 @@ Used as a strategic checkpoint after simulations.
 Author: Pulse v0.2
 """
 
-from forecast_output.pfpa_logger import PFPA_ARCHIVE
+from forecast_output.pfpa_logger import PFPA_ARCHIVE, get_latest_forecasts
 from statistics import mean
 from utils.log_utils import get_logger
 from core.pulse_config import CONFIDENCE_THRESHOLD, MODULES_ENABLED
@@ -65,7 +65,7 @@ def audit_forecasts(memory=None, recent_n: int = 10) -> None:
     """
     logger.info("\n🧭 TRUST AUDIT REPORT\n")
 
-    forecasts = memory or PFPA_ARCHIVE[-recent_n:]
+    forecasts = memory or get_latest_forecasts(recent_n)
     bands = {"🟢 Trusted": 0, "⚠️ Moderate": 0, "🔴 Fragile": 0}
     confidences, fragilities, retros, priorities, ages = [], [], [], [], []
 

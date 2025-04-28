@@ -3,7 +3,7 @@ HTTP API ingestion for Pulse using FastAPI (production-ready)
 """
 import os
 import logging
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ValidationError
@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pulse.ingest_api")
 
 app = FastAPI()
-scraper = SignalScraper()
+scraper = IrisScraper()
 
 class SignalIn(BaseModel):
     name: str

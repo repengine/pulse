@@ -45,7 +45,6 @@ from memory.trace_memory import TraceMemory
 from memory.variable_performance_tracker import VariablePerformanceTracker
 from core.variable_registry import VariableRegistry
 from core.bayesian_trust_tracker import bayesian_trust_tracker
-from trust_system.trust_engine import TrustEngine
 
 # Placeholder classes for undefined engines
 class AnomalyRemediationEngine:
@@ -234,6 +233,7 @@ class LearningEngine:
         self.worldstate = state
 
     def on_simulation_turn_end(self, state_snapshot):
+        from trust_system.trust_engine import TrustEngine
         enriched = TrustEngine.enrich_trust_metadata(state_snapshot)
         self.trace.log_trace_entry(trace_id="sim_turn", forecast=enriched, input_state=state_snapshot)
         if "trust_label" not in enriched or "confidence" not in enriched:

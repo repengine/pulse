@@ -16,7 +16,7 @@ Options:
 import sys
 import os
 import argparse
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.log_utils import get_logger
@@ -64,7 +64,7 @@ def run_pulse_simulation(turns: int = 5):
             log_forecast_to_pfpa(forecast)
         except Exception as e:
             logger.error(f"❌ Forecast error: {e}")
-            log_learning_event("exception", {"error": str(e), "context": "forecast_generation", "timestamp": datetime.utcnow().isoformat()})
+            log_learning_event("exception", {"error": str(e), "context": "forecast_generation", "timestamp": datetime.now(timezone.utc).isoformat()})
             continue
 
     digest = generate_strategos_digest(memory, n=min(turns, 5))
@@ -75,18 +75,18 @@ def run_pulse_simulation(turns: int = 5):
 try:
     from trust_system.retrodiction_engine import simulate_retrodiction_test
     simulate_retrodiction_test()
-    log_learning_event("forecast_scored", {"forecast_id": "retrodiction_test", "score": "success", "timestamp": datetime.utcnow().isoformat()})
+    log_learning_event("forecast_scored", {"forecast_id": "retrodiction_test", "score": "success", "timestamp": datetime.now(timezone.utc).isoformat()})
 except Exception as e:
     logger.warning(f"⚠️ Retrodiction failed: {e}")
-    log_learning_event("exception", {"error": str(e), "context": "retrodiction_test", "timestamp": datetime.utcnow().isoformat()})
+    log_learning_event("exception", {"error": str(e), "context": "retrodiction_test", "timestamp": datetime.now(timezone.utc).isoformat()})
 # Strategic trust audit
 try:
     from learning.trust_audit import audit_forecasts
     audit_forecasts()
-    log_learning_event("symbolic_contradiction", {"details": "audit_success", "timestamp": datetime.utcnow().isoformat()})
+    log_learning_event("symbolic_contradiction", {"details": "audit_success", "timestamp": datetime.now(timezone.utc).isoformat()})
 except Exception as e:
     logger.warning(f"⚠️ Audit failed: {e}")
-    log_learning_event("exception", {"error": str(e), "context": "trust_audit", "timestamp": datetime.utcnow().isoformat()})
+    log_learning_event("exception", {"error": str(e), "context": "trust_audit", "timestamp": datetime.now(timezone.utc).isoformat()})
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Simulation Engine")
@@ -103,7 +103,7 @@ if __name__ == "__main__":
             logger.info(f"Digest exported to {args.output}")
         except Exception as e:
             logger.error(f"Failed to export digest: {e}")
-            log_learning_event("exception", {"error": str(e), "context": "digest_export", "timestamp": datetime.utcnow().isoformat()})
+            log_learning_event("exception", {"error": str(e), "context": "digest_export", "timestamp": datetime.now(timezone.utc).isoformat()})
     # --- Epistemic Mirror Curriculum Learning ---
     if getattr(args, "auto_upgrade", False):
         try:
@@ -127,4 +127,3 @@ if __name__ == "__main__":
                 logger.warning(f"Batch or upgrade plan not found for application: {batch_path}, {upgrade_path}")
         except Exception as e:
             logger.error(f"Failed to generate/apply epistemic upgrade plan: {e}")
-"""

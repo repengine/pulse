@@ -4,7 +4,7 @@ Database polling ingestion for Pulse (production-ready)
 import os
 import time
 import logging
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from core.celery_app import celery_app
@@ -29,7 +29,7 @@ logger = logging.getLogger("pulse.ingest_db")
 def poll_database():
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
-    scraper = SignalScraper()
+    scraper = IrisScraper()
     engine = create_engine(DB_URL)
     last_id = None
     logger.info(f"Polling database at {DB_URL} every {POLL_INTERVAL}s")

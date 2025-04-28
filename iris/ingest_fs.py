@@ -7,7 +7,7 @@ import json
 import shutil
 import logging
 import csv
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from core.celery_app import celery_app
@@ -53,7 +53,7 @@ class SignalFileHandler(FileSystemEventHandler):
 def monitor_directory(path=MONITOR_DIR):
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
-    scraper = SignalScraper()
+    scraper = IrisScraper()
     event_handler = SignalFileHandler(scraper)
     observer = Observer()
     observer.schedule(event_handler, path, recursive=False)

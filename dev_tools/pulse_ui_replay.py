@@ -11,13 +11,15 @@ Version: v0.4.3
 import argparse
 import json
 import os
+import numpy as np
+
 try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
     print("❌ matplotlib is not installed. Please install it with 'pip install matplotlib' to enable plotting.")
 
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 
 def load_trace(path: str) -> List[Dict]:
@@ -38,13 +40,28 @@ def extract_series(trace: List[Dict], mode: str, key: str) -> List[Union[float, 
         key: variable/overlay name to extract
 
     Returns:
-def plot_series(values: List[Union[float, None]], title: str, ylabel: str, export_path: Optional{str} = None):
+        List[Union[float, None]]: sequence of values or None if missing
+    """
+    values = []
+    for entry in trace:
+        if mode == "variables":
+            val = entry.get("variables", {}).get(key)
+        elif mode == "overlays":
+            val = entry.get("overlays", {}).get(key)
+        else:
+            val = None
+        values.append(val if isinstance(val, (int, float)) else None)
+    return values
+
+
+def plot_series(values: List[Union[float, None]], title: str, ylabel: str, export_path: Optional[str] = None):
     """Plot a series of float values over simulation steps and optionally export to image."""
     if plt is None:
         print("❌ Plotting is unavailable because matplotlib is not installed.")
         return
     try:
         filtered = [v if isinstance(v, (int, float)) else None for v in values]
+        filtered = [v if v is not None else np.nan for v in filtered]
         x = list(range(len(filtered)))
         plt.figure(figsize=(8, 4))
         plt.plot(x, filtered, marker="o", linewidth=2)
@@ -60,14 +77,8 @@ def plot_series(values: List[Union[float, None]], title: str, ylabel: str, expor
             plt.show()
     except Exception as e:
         print(f"❌ Plotting failed: {e}")
-            print(f"📤 Plot exported to {export_path}")
-        else:
-            plt.show()
-    except Exception as e:
-        print(f"❌ Plotting failed: {e}")
 
-
-def replay_trace(path: str, mode: str, key: str, export_data: Optional{str} = None, export_plot: Optional{str} = None):
+def replay_trace(path: str, mode: str, key: str, export_data: Optional[str] = None, export_plot: Optional[str] = None):
     """Load trace and display or export selected variable/overlay as a graph or JSON series."""
     try:
         trace = load_trace(path)
@@ -85,7 +96,7 @@ def replay_trace(path: str, mode: str, key: str, export_data: Optional{str} = No
         print(f"❌ Replay error: {e}")
 
 
-def print_symbolic_tags(path: str, export_path: Optional{str} = None):
+def print_symbolic_tags(path: str, export_path: Optional[str] = None):
     """Print or export symbolic tag sequence from a trace."""
     try:
         trace = load_trace(path)

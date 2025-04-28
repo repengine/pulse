@@ -1,0 +1,32 @@
+graphviz
+pyyaml
+
+pandas
+networkx
+pydot
+optuna
+# Ingestion dependencies
+kafka-python
+fastapi
+uvicorn
+watchdog
+boto3
+tweepy
+
+torch
+
+numpy
+gym
+stable-baselines3
+mlflow
+
+yfinance
+fredapi
+pandas_datareader
+newsapi-python
+investpy_reborn
+
+kaggle
+polygon.io
+
+yfinance fredapi pandas_datareader pytrends world_bank_data wikipedia-api beautifulsoup4 requests

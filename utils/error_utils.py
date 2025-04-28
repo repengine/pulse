@@ -22,7 +22,7 @@ class ExternalServiceError(PulseError):
     """Raised when an external service call fails."""
     pass
 
-def log_exception(logger: logging.Logger, exc: Exception, message: Optional{str} = None) -> None:
+def log_exception(logger: logging.Logger, exc: Exception, message: Optional[str] = None) -> None:
     """
     Logs an exception with stack trace for debugging.
     Args:

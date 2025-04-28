@@ -54,8 +54,8 @@ except ImportError:
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path
 from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta, get_all_rule_fingerprints       # updated path
-from src.engine import LearningEngine, log_learning_event
-from trust_system.trust_engine import TrustEngine
+from learning.learning import LearningEngine
+from core.pulse_learning_log import log_learning_event
 
 from typing import Dict, List, Any, Literal, Optional, Callable
 from datetime import datetime
@@ -139,7 +139,8 @@ def simulate_turn(
 
     # Apply decay to overlays
     try:
-        decay_overlay(state)
+        for overlay_name, _ in state.overlays.items():
+            decay_overlay(state, overlay_name)
     except Exception as e:
         error_msg = f"[SIM] Decay error: {str(e)}"
         if logger: logger(error_msg)
@@ -217,6 +218,7 @@ def simulate_turn(
         output["fired_rules"] = getattr(state, 'last_fired_rules', [])
         output["full_state"] = state.snapshot()
 
+    from trust_system.trust_engine import TrustEngine
     # --- Trust enrichment ---
     output = TrustEngine.enrich_trust_metadata(output)
     # Warn if trust_label or confidence missing
@@ -235,10 +237,13 @@ def simulate_forward(
     learning_engine=None,
     checkpoint_every: Optional[int] = None,
     checkpoint_path: Optional[str] = None,
-    parallel: bool = False
+    parallel: bool = False,
+    retrodiction_mode: bool = False,
+    retrodiction_loader: Optional[object] = None,
+    injection_mode: str = "seed_then_free"
 ) -> List[Dict[str, Any]]:
     """
-    Runs multiple turns of forward simulation.
+    Runs multiple turns of forward simulation, supporting both forecasting and retrodiction.
 
     Args:
         state (WorldState): active sim state
@@ -248,6 +253,9 @@ def simulate_forward(
         logger (callable): optional logger for messages
         progress_callback (callable): optional progress reporter (step, total)
         learning_engine: optional learning engine for hooks
+        retrodiction_mode (bool): if True, runs retrodiction with ground truth injection and comparison
+        retrodiction_loader (optional): loader providing ground truth snapshots for retrodiction
+        injection_mode (str): "seed_then_free" or "strict_injection" for retrodiction variable injection
 
     Returns:
         List of Dict per turn
@@ -258,7 +266,48 @@ def simulate_forward(
         raise NotImplementedError("Parallel execution is not yet supported")
     results = []
     for i in range(turns):
+        # Retrodiction injection of ground truth variables if strict injection mode
+        if retrodiction_mode and injection_mode == "strict_injection" and retrodiction_loader:
+            snapshot = retrodiction_loader.get_snapshot_by_turn(i)
+            if snapshot:
+                for var, val in snapshot.items():
+                    # Use core.variable_accessor.set_variable if available, else direct assignment
+                    try:
+                        from core.variable_accessor import set_variable
+                        set_variable(state, var, val)
+                    except ImportError:
+                        if hasattr(state.variables, "__setitem__"):
+                            state.variables[var] = val
+                        else:
+                            setattr(state, var, val)
+                if logger:
+                    logger(f"[RETRO] Injected ground truth variables for turn {i}")
+        # Simulate one turn
         turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger, learning_engine=learning_engine)
+        # Retrodiction ground truth comparison and logging
+        if retrodiction_mode and retrodiction_loader:
+            ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(i)
+            if ground_truth_snapshot:
+                # Compare overlays and variables to ground truth
+                simulated_overlays = getattr(state, 'overlays', {})
+                simulated_vars = getattr(state, 'variables', {})
+                comparison = {
+                    "turn": i,
+                    "overlay_diff": {k: simulated_overlays.get(k, 0.0) - ground_truth_snapshot.get(k, 0.0) for k in ground_truth_snapshot},
+                    "variable_diff": {k: simulated_vars.get(k, 0.0) - ground_truth_snapshot.get(k, 0.0) for k in ground_truth_snapshot}
+                }
+                # Log comparison to learning engine or episode logger
+                if learning_engine:
+                    try:
+                        learning_engine.log_comparison(comparison)
+                    except AttributeError:
+                        pass
+                try:
+                    log_episode_event("retrodiction_comparison", comparison)
+                except Exception:
+                    pass
+                if logger:
+                    logger(f"[RETRO] Compared simulated state to ground truth for turn {i}")
         results.append(turn_data)
         # Checkpointing
         if checkpoint_every and checkpoint_path and (i + 1) % checkpoint_every == 0:
@@ -273,6 +322,7 @@ def simulate_forward(
         if progress_callback:
             progress_callback(i + 1, turns)
     # --- Batch trust enrichment (redundant if already done in simulate_turn, but ensures all are processed) ---
+    from trust_system.trust_engine import TrustEngine
     results = TrustEngine.apply_all(results)
     # Warn if any result missing trust_label/confidence
     for r in results:

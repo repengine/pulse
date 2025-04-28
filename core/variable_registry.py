@@ -7,6 +7,8 @@ and trust/fragility performance tracking.
 
 Pulse Version: v0.28
 """
+from __future__ import annotations
+
 
 import json
 import os
@@ -73,8 +75,7 @@ VARIABLE_REGISTRY: Dict[str, Dict[str, Any]] = {
     **{f"sector_{i}_growth": {"type": "economic", "default": 0.5, "range": [0.0, 2.0], "description": f"Sector {i} growth index"} for i in range(1, 31)},
     **{f"region_{i}_stability": {"type": "governance", "default": 0.7, "range": [0.0, 1.0], "description": f"Region {i} stability index"} for i in range(1, 31)},
 }
-
-# === Default Bootstrap ===
+# === Helpers for defaults / quick validation (unchanged) ===============
 def get_default_variable_state() -> Dict[str, float]:
     return {k: v["default"] for k, v in VARIABLE_REGISTRY.items()}
 
@@ -89,36 +90,48 @@ def get_variables_by_type(var_type: str) -> List[str]:
     return [k for k, v in VARIABLE_REGISTRY.items() if v.get("type") == var_type]
 
 
-# === Extended Runtime Accessor ===
+# === Extended Runtime Accessor =========================================
 REGISTRY_PATH = PATHS.get("VARIABLE_REGISTRY", "configs/variable_registry.json")
 
 class VariableRegistry:
-    def __init__(self, path: Optional[str] = None):
+    """Central catalogue plus live-data bindings."""
+    # Shared containers (class-level → every instance sees same data)
+    _external_ingesters: List[Callable[[], Dict[str, float]]] = []
+
+    def __init__(self, path: Optional[str] = None) -> None:
         self.path = path or REGISTRY_PATH
-        self.variables: Dict[str, Dict] = VARIABLE_REGISTRY.copy()
+        self.variables: Dict[str, Dict[str, Any]] = VARIABLE_REGISTRY.copy()
         self._load()
 
-    def _load(self):
+    # ── persistence ----------------------------------------------------
+    def _load(self) -> None:
         if os.path.exists(self.path):
             with open(self.path, "r", encoding="utf-8") as f:
                 with suppress(Exception):
                     updated = json.load(f)
                     self.variables.update(updated)
 
-    def _save(self):
+    def _save(self) -> None:
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(self.variables, f, indent=2)
 
-    def register_variable(self, name: str, meta: Optional[Dict[str, Any]] = None, metadata: Optional[Dict[str, Any]] = None):
-        """Register a variable, accepting both 'meta' and 'metadata' for compatibility."""
+    # ── registration & lookup -----------------------------------------
+    def register_variable(
+        self,
+        name: str,
+        meta: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Register or update a variable entry (back-compat: meta|metadata)."""
         meta = meta or metadata or {}
         self.variables[name] = meta
         self._save()
 
-    def get(self, name: str) -> Optional[Dict]:
+    def get(self, name: str) -> Optional[Dict[str, Any]]:
         return self.variables.get(name)
 
+    # Convenience listings
     def all(self) -> List[str]:
         return list(self.variables.keys())
 
@@ -129,23 +142,43 @@ class VariableRegistry:
         return [k for k, v in self.variables.items() if v.get("type") == var_type]
 
     def list_trust_ranked(self) -> List[str]:
-        return sorted(self.variables.keys(), key=lambda k: self.variables[k].get("trust_weight", 1.0), reverse=True)
+        return sorted(
+            self.variables.keys(),
+            key=lambda k: self.variables[k].get("trust_weight", 1.0),
+            reverse=True,
+        )
 
-    def bind_data_source(self, signal_provider_fn: Callable[[], Dict[str, Any]]):
-        """
-        Attach a signal-fetching function that returns {var_name: value} dicts.
-        """
+    # ── NEW Phase-1 hooks ———————————————————————————————
+    def bind_external_ingestion(self, loader: Callable[[], Dict[str, float]]) -> None:
+        """Attach a callable that returns a **flat** {var: value} mapping."""
+        if loader not in self._external_ingesters:
+            self._external_ingesters.append(loader)
+
+    def flag_missing_variables(self, snapshot: Dict[str, float]) -> List[str]:
+        """Return registry variables absent from `snapshot`."""
+        return [name for name in self.variables if name not in snapshot]
+
+    def score_variable_activity(self, snapshot: Dict[str, float]) -> Dict[str, float]:
+        """Naive |value| scoring for quick 'most active' ranking."""
+        return {k: abs(v) for k, v in snapshot.items()}
+
+    # ── live-data convenience (optional) ------------------------------
+    def bind_data_source(self, signal_provider_fn: Callable[[], Dict[str, Any]]) -> None:
         self._signal_provider = signal_provider_fn
 
     def get_live_value(self, var_name: str) -> Optional[float]:
         if hasattr(self, "_signal_provider") and var_name in self.variables:
             try:
-                signal_map = self._signal_provider()
-                return signal_map.get(var_name)
-            except Exception as e:
-                print(f"[VariableRegistry] Error fetching {var_name}: {e}")
+                signals = self._signal_provider()
+                return signals.get(var_name)
+            except Exception as exc:  # noqa: BLE001
+                print(f"[VariableRegistry] Error fetching {var_name}: {exc}")
         return None
+
+
+# === Project-wide singleton ============================================
+registry = VariableRegistry()   # import this wherever you need the shared instance
 
 if __name__ == "__main__":
     vr = VariableRegistry()
-    print("Variables loaded:", vr.all())
+    print("Variables loaded:", len(vr.all()))

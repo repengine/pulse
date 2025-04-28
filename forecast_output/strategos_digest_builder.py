@@ -1,7 +1,7 @@
 """
 strategos_digest_builder.py
 
-Combines symbolic arc, capital deltas, and confidence into a foresight digest report.
+Combines symbolic arc, capital deltas, confidence, and retrodiction scoring from the unified simulate_forward function into a foresight digest report.
 Supports user configuration for included fields.
 
 Available digest templates:
@@ -14,6 +14,10 @@ UI integration: The digest builder supports template selection via the `template
 Usage:
     from forecast_output.strategos_digest_builder import build_digest
     digest_md = build_digest(batch, fmt="markdown", config={"fields": ["trace_id", "confidence"]}, template="short")
+
+Note:
+    Retrodiction scores and related fields are expected to be included in the forecast data,
+    produced by the unified simulate_forward function during simulation.
 
 Author: Pulse AI Engine
 """
@@ -88,7 +92,11 @@ def consensus_score(cluster: List[Dict], overlay_key: str = "hope") -> float:
     return round(count / len(cluster), 2) if cluster else 0.0
 
 def summarize_stats(forecasts: List[Dict]) -> Dict[str, Any]:
-    """Compute summary statistics for the digest footer."""
+    """Compute summary statistics for the digest footer.
+
+    Retrodiction scores are expected to be included in the forecast data,
+    produced by the unified simulate_forward function during simulation.
+    """
     stats = {}
     confidences = [f.get("confidence", 0.0) for f in forecasts if isinstance(f.get("confidence", 0.0), (float, int))]
     ret_scores = [f.get("retrodiction_score", 0.0) for f in forecasts if isinstance(f.get("retrodiction_score", 0.0), (float, int))]
@@ -628,10 +636,23 @@ if __name__ == "__main__":
     parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
     parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
     parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
-    parser.add_argument("--template
-            except Exception:
-                # Try JSONL fallback
+    parser.add_argument("--template", type=str, default="full", help="Digest template (full, short, symbolic_only)")
+
+    args = parser.parse_args()
+
+    # Load input file
+    forecasts = []
+    try:
+        with open(args.input, "r", encoding="utf-8") as f:
+            if args.input.endswith(".json"):
+                # Try JSON load
+                forecasts = json.load(f)
+            elif args.input.endswith(".jsonl"):
+                # Try JSONL load
                 forecasts = [json.loads(line) for line in f if line.strip()]
+            else:
+                print("Unsupported file format. Please provide a .json or .jsonl file.")
+                exit(1)
     except Exception as e:
         print(f"Failed to load input file: {e}")
         exit(1)

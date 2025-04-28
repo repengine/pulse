@@ -7,7 +7,7 @@ import json
 import logging
 import csv
 import boto3
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 from core.celery_app import celery_app
 from core.metrics import start_metrics_server
 import threading
@@ -23,7 +23,7 @@ def poll_s3():
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
     s3 = boto3.client('s3')
-    scraper = SignalScraper()
+    scraper = IrisScraper()
     seen = set()
     logger.info(f"Polling S3 bucket '{S3_BUCKET}' every {POLL_INTERVAL}s")
     while True:

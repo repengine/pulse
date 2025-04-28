@@ -13,7 +13,7 @@ from sklearn.feature_selection import SelectKBest, mutual_info_regression
 from pydantic import BaseModel, ValidationError
 from core.pulse_learning_log import log_learning_event
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class FeatureDiscoveryInput(BaseModel):
     data: Any  # Accepts DataFrame or dict
@@ -23,7 +23,7 @@ class FeatureDiscoveryResult(BaseModel):
     features: list
     clusters: dict = {}
     top_variables: list = []
-    error: Optional{str} = None
+    error: Optional[str] = None
 
 class FeatureDiscoveryEngine:
     """

@@ -16,7 +16,7 @@ Version: v1.0.1
 import os
 import json
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import matplotlib.pyplot as plt
 from collections import Counter
 
@@ -129,3 +129,25 @@ def plot_episode_arcs(path: str = EPISODE_LOG_PATH):
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.show()
+
+def log_episode_event(event_type: str, payload: Any, path: str = EPISODE_LOG_PATH) -> None:
+    """
+    Log a generic episode event to disk.
+
+    Args:
+        event_type (str): The name of the event.
+        payload (Any): The associated data for the event.
+        path (str): JSONL output path (defaults to EPISODE_LOG_PATH).
+    """
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        entry = {
+            "event_type": event_type,
+            "payload": payload,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        with open(path, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        print(f"🧠 Episode event logged: {event_type}")
+    except Exception as e:
+        print(f"❌ Failed to log episode event: {e}")

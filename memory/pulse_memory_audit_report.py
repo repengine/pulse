@@ -9,7 +9,7 @@ Usage:
 
 from memory.forecast_memory import ForecastMemory
 
-def audit_memory(memory: ForecastMemory, csv_path: Optional{str} = None):
+def audit_memory(memory: ForecastMemory, csv_path: Optional[str] = None):
     """
     Prints and optionally exports memory audit report.
     """

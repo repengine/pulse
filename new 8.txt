@@ -1,0 +1,21 @@
+use gpt to run historical retrodiction simulations, like its Pulse if Pulse was perfect, to compare notes with Pulse
+
+an intelligence system that links all of the modules together. run any function, streamline the order, run recursive learning and AI training of Pulse with token limit settings.
+
+new ui
+
+REVIEW DATA INGESTION/VARIABLES/RULES/GROUND-TRUTH DATA FOR HISTORICAL RETRODICTION
+
+begin learning?
+
+
+things the intelligence must do:
+
+call all functions as needed. (must decide how?)
+
+"is confidence growth slowing? do i need to adjust trust, symbolism, variables/rules, signal, etc?"
+"is forecast accuracy very high? can i try new variables to predict?"
+
+
+UI where operator can decide. with auto run
+

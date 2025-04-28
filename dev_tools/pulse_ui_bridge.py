@@ -8,6 +8,7 @@ Author: Pulse AI Engine
 
 import json
 import os
+from typing import Optional
 from learning.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 from tkinter import filedialog, simpledialog
@@ -50,7 +51,7 @@ def generate_markdown_brief(report_path: str, out_path: str = "pulse_brief.md") 
         return f"❌ Failed to generate brief: {e}"
 
 
-def run_variable_graph(path: str, variables: list, export_path: Optional{str} = None) -> str:
+def run_variable_graph(path: str, variables: list, export_path: Optional[str] = None) -> str:
     """Plot one or more variables from a history trace."""
     try:
         if not os.path.exists(path):

@@ -1,0 +1,92 @@
+📘 Strategos Forecast Digest
+
+## 🛡️ Trust Enforcement Report
+- Total forecasts: 7
+- Approved: 1
+- Rejected: 6
+- License drop rate: 85.71%
+- ✅ Approved: 1
+⚠️ High license loss rate — trust coherence degraded.
+
+## ✅ Forecast Licensing Summary
+- Approved: 1
+- Rejected: 0
+- Low Alignment: 0
+
+## ✅ Forecast Certification Summary
+- Certified: 0
+- Uncertified: 0
+- Certification Rate: N/A
+
+## 🧠 Narrative Cluster Breakdown
+
+| Cluster             | Count |
+|---------------------|-------|
+| Miscellaneous Forecast | 1     |
+
+## 🔗 Symbolic Resonance
+- Resonance Score: 1.0
+- Dominant Arc: Unknown
+- Top Themes: Unknown
+- Cluster Sizes:
+  - Unknown: 1
+
+## 🧠 Symbolic Tuning Summary
+
+### Learning Insights
+
+### Upgrade Plan
+
+### Results
+- Total Rewritten: 0
+- Repair Quality: Error: [Errno 2] No such file or directory: 'forecasts/revision_candidates.jsonl'
+
+## ♻️ Symbolic Flip Patterns
+- ARC: Despair → ARC: Rage (4x)
+- TAG: Neutral → TAG: Collapse Risk (3x)
+
+## 🔁 Detected Loops
+- TAG: Fatigue ↔ TAG: Despair
+- ARC: Collapse Risk ↔ ARC: Stabilization
+
+==== 🟢 Trusted ====
+[Conf: 0.797 | Align: 38.91]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔮 Strategos Forecast Tile
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Trace ID      : unknown
+Turn          : None
+Duration      : None days
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Exposure Delta:
+  NVDA  → 0.00
+  MSFT  → 0.00
+  IBIT  → 0.00
+  SPY   → 0.00
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Symbolic Drift:
+  None
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fragility     : 0.0
+Confidence    : 0.797
+Trust Label   : 🟢 Trusted
+Status        : unlabeled
+Age           : N/Ah 🕒
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 Avg Retrodiction Score: 0.0 | Symbolic Score: 0.0
+📊 Confidence Sparkline: [0.8]
+🕓 Forecast Age: Avg 0.0h | Max: 0h
+Total Forecasts: 1
+
+## 🧩 Rule Cluster Digest
+
+### 🧠 Rule Cluster Digest
+
+#### 🟢 `unknown`  (size: 4)
+- Volatility Score: **0.000**
+- Rules:
+  - `R001_EnergySpike`
+  - `R002_TrustRebound`
+  - `R001`
+  - `R002`

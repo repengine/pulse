@@ -238,13 +238,14 @@ def generate_strategos_digest(
     from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
     from symbolic_system.symbolic_upgrade_planner import propose_symbolic_upgrades
 
-    tune_log = "logs/tuning_results.jsonl"
-    if os.path.exists(tune_log):
-        results = learn_from_tuning_log(tune_log)
+    tuning_log = "logs/tuning_results.jsonl"
+    os.makedirs(os.path.dirname(tuning_log), exist_ok=True)
+    if os.path.exists(tuning_log):
+        results = learn_from_tuning_log(tuning_log)
         digest["symbolic_learning_profile"] = generate_learning_profile(results)
 
     # --- Symbolic upgrade plan integration ---
-    results = learn_from_tuning_log("logs/tuning_results.jsonl")
+    results = learn_from_tuning_log(tuning_log)
     profile = generate_learning_profile(results)
     digest["symbolic_upgrade_plan"] = propose_symbolic_upgrades(profile)
 
@@ -254,7 +255,6 @@ def generate_strategos_digest(
 
     digest["symbolic_tuning_summary"] = {}
 
-    # upgrade_log = "plans/symbolic_upgrade_plan.json"  # Removed unused variable
     upgrade_log = "plans/symbolic_upgrade_plan.json"
 
     # Learn
@@ -407,7 +407,7 @@ def generate_strategos_digest(
     if drifted:
         sections.append("## 🔥 Drift-Flagged Forecasts")
         for fc in drifted[:10]:
-            sections.append(f"- {fc.get("trace_id", "unknown")} → {fc["drift_flag"]}")
+            sections.append(f"- {fc.get('trace_id', 'unknown')} → {fc['drift_flag']}")
         sections.append("")
 
     # 🧪 Optional Digest Markdown Summary: Compressed Mutation Episodes
@@ -458,10 +458,10 @@ def generate_strategos_digest(
     resonance = digest.get("symbolic_resonance")
     if resonance:
         sections.append("## 🔗 Symbolic Resonance")
-        sections.append(f"- Resonance Score: {resonance.get("resonance_score", "N/A")}")
-        sections.append(f"- Dominant Arc: {resonance.get("dominant_arc", "N/A")}")
+        sections.append(f"- Resonance Score: {resonance.get('resonance_score', 'N/A')}")
+        sections.append(f"- Dominant Arc: {resonance.get('dominant_arc', 'N/A')}")
         if resonance.get("top_themes"):
-            sections.append(f"- Top Themes: {', '.join(resonance["top_themes"])}")
+            sections.append(f"- Top Themes: {', '.join(resonance['top_themes'])}")
         if resonance.get("cluster_sizes"):
             sections.append("- Cluster Sizes:")
             for k, v in resonance["cluster_sizes"].items():
@@ -616,14 +616,13 @@ def _test_digest():
     """Basic test for strategos digest generation."""
     import unittest
     class DummyMemory(ForecastMemory):
-        def get_recent(self, n, domain=None):
+        def get_recent(self, n, domain=None, default=None):
             # Add a malformed entry for robustness
             return [
                 {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "priority_score": 1, "retrodiction_score": 0.9, "symbolic_score": 0.8, "age_hours": 2},
                 {"confidence": 0.6, "alignment_score": 60, "trust_label": "⚠️ Moderate", "priority_score": 0.5, "retrodiction_score": 0.7, "symbolic_score": 0.6, "age_hours": 5},
                 {"confidence": 0.4, "alignment_score": 40, "trust_label": "🔴 Fragile", "priority_score": 0.2, "retrodiction_score": 0.5, "symbolic_score": 0.4, "age_hours": 10},
                 {},  # malformed
-            ]
             ]
 
     class StrategosDigestTest(unittest.TestCase):

@@ -17,7 +17,7 @@ from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import decay_overlay
 from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict
 from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
@@ -25,18 +25,41 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
 from core.pulse_config import ENABLE_TRACE_LOGGING
 
+#imports for retrodiction snapshot injection during turns
+from core.variable_accessor import set_variable
+from simulation_engine.worldstate import WorldState
+from simulation_engine.simulator_core import simulate_forward as RetrodictionLoader
+
+
 TURN_LOG_PATH = PATHS.get("TURN_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 AUTO_ENFORCE = False  # Set to True to enable post-turn license enforcement
 
+# --- quick PulseCore wrapper ---
+
+def initialize_worldstate(start_year: Optional[int] = None, **kwargs) -> WorldState:
+    """
+    Lightweight factory so IntelligenceCore can bootstrap without
+    importing WorldState directly.
+    """
+    state = WorldState(**kwargs)
+    if start_year is not None:
+        state.metadata["start_year"] = start_year
+    return state
 
 def run_turn(
     state: WorldState,
     rule_fn: Optional[Callable[[WorldState], None]] = None,
     decay_rate: float = 0.01,
     verbose: bool = True,
-    learning_engine=None  # <-- Add this parameter
+    learning_engine=None,
+    injection_snapshot: Optional[Dict[str, float]] = None
 ) -> list[dict]:
+    ...
+    if injection_snapshot:
+        for var, val in injection_snapshot.items():
+            set_variable(state, var, val)
+  
     """
     Executes one simulation turn in the Pulse engine.
 
@@ -86,6 +109,7 @@ def run_turn(
     state.advance_turn()
     state.log_event("Turn incremented.")
 
+    
     # Optional: Post-turn license enforcement (if enabled)
     # Removed state.forecasts logic because WorldState has no 'forecasts' attribute
     # if AUTO_ENFORCE:
@@ -115,3 +139,5 @@ def run_turn(
         register_trace_to_memory(trace_metadata)
 
     return rule_execution_log
+
+

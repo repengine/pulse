@@ -27,6 +27,10 @@ class SymbolicOverlays:
     def as_dict(self) -> Dict[str, float]:
         """Convert overlay values to a dictionary."""
         return asdict(self)
+
+    def items(self):
+        """Return overlay items as (name, value) pairs."""
+        return self.as_dict().items()
     
     @staticmethod
     def from_dict(data: Dict[str, float]) -> 'SymbolicOverlays':

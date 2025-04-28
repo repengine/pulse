@@ -4,7 +4,7 @@ Kafka consumer ingestion for Pulse (production-ready)
 import os
 import json
 import logging
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 from kafka import KafkaConsumer, errors as kafka_errors
 from core.celery_app import celery_app
 from core.metrics import start_metrics_server
@@ -21,7 +21,7 @@ logger = logging.getLogger("pulse.ingest_kafka")
 def run_kafka_ingestion():
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
-    scraper = SignalScraper()
+    scraper = IrisScraper()
     try:
         consumer = KafkaConsumer(
             KAFKA_TOPIC,

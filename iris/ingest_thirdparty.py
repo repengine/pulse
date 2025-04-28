@@ -4,7 +4,7 @@ Example third-party API ingestion for Pulse (Twitter via Tweepy, production-read
 import os
 import logging
 import time
-from irldata.scraper import SignalScraper
+from iris.iris_scraper import IrisScraper
 import tweepy
 from core.celery_app import celery_app
 from core.metrics import start_metrics_server
@@ -30,7 +30,7 @@ def fetch_twitter_signals():
         TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET
     )
     api = tweepy.API(auth)
-    scraper = SignalScraper()
+    scraper = IrisScraper()
     seen_ids = set()
     logger.info(f"Polling Twitter for query '{QUERY}' every {POLL_INTERVAL}s")
     while True:
@@ -51,7 +51,7 @@ def fetch_twitter_signals():
                 except Exception as e:
                     logger.error(f"Failed to submit tweet to Celery: {e}")
             time.sleep(POLL_INTERVAL)
-        except tweepy.errors.TweepyException as e:
+        except tweepy.TweepyException as e:
             logger.error(f"Twitter API error: {e}")
             time.sleep(POLL_INTERVAL)
         except KeyboardInterrupt:

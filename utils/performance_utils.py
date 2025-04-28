@@ -26,7 +26,7 @@ def profile(func):
     return wrapper
 
 
-def timeit(label: Optional{str} = None):
+def timeit(label: Optional[str] = None):
     """
     Decorator to time a function and print/log the result with a custom label.
     """
@@ -44,7 +44,7 @@ def timeit(label: Optional{str} = None):
     return decorator
 
 
-def profile_block(label: Optional{str} = None):
+def profile_block(label: Optional[str] = None):
     """
     Context manager for profiling a code block.
     Usage:
