@@ -7,11 +7,41 @@ Patch: Auto-calls forecast_summary_synthesizer after compressing clusters
 import json
 import os
 from typing import List, Dict, Optional
+import numpy as np
 
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
 from trust_system.trust_engine import compute_symbolic_attention_score
+def compress_mc_samples(
+    mc_samples: List[Dict[str, np.ndarray]],
+    alpha: float = 0.9
+) -> Dict[str, Dict[str, np.ndarray]]:
+    """
+    Compress Monte Carlo forecast samples into mean and prediction interval.
+
+    Parameters:
+        mc_samples: List of forecast dictionaries. Each dict maps field names
+                    to 1D numpy arrays of equal length (time steps).
+        alpha:       Coverage probability for the prediction interval (0 < alpha < 1).
+
+    Returns:
+        A dict mapping each field name to a dict with keys:
+            'mean' : np.ndarray of shape (T,), the average across samples.
+            'lower': np.ndarray of shape (T,), the lower percentile at (1-alpha)/2*100.
+            'upper': np.ndarray of shape (T,), the upper percentile at (1+alpha)/2*100.
+    """
+    if not mc_samples:
+        raise ValueError("mc_samples must be a non-empty list of sample dictionaries.")
+
+    result: Dict[str, Dict[str, np.ndarray]] = {}
+    for key in mc_samples[0]:
+        data = np.stack([s[key] for s in mc_samples], axis=0)
+        mean = np.mean(data, axis=0)
+        lower = np.percentile(data, (1 - alpha) / 2 * 100, axis=0)
+        upper = np.percentile(data, (1 + alpha) / 2 * 100, axis=0)
+        result[key] = {"mean": mean, "lower": lower, "upper": upper}
+    return result
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

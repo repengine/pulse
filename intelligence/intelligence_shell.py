@@ -3,103 +3,87 @@
 """
 Pulse Intelligence Shell
 
-Interactive command-line interface for managing Pulse Intelligence Core.
-Allows running standard forecasts, retrodictions, and dynamic module/function execution.
-
+Command-line interface for managing Pulse Intelligence Core with verb-based subcommands.
 Author: Pulse Development Team
-Version: 0.41
+Version: 0.42
 """
 
+import sys
 import json
+import argparse
 from intelligence.intelligence_core import IntelligenceCore
 from intelligence.function_router import FunctionRouter
 
 class IntelligenceShell:
+    verbs = {"forecast", "compress", "retrodict", "train-gpt", "status", "exit"}
+
     def __init__(self):
         self.core = IntelligenceCore()
         self.core.load_standard_modules()
         self.router = self.core.router
-        print("[PulseShell] ✅ Intelligence Core initialized.")
 
-    def run(self):
-        """Main command loop."""
-        while True:
+    def run_cli(self):
+        parser = argparse.ArgumentParser(prog="pulse")
+        subparsers = parser.add_subparsers(dest="verb", required=True, help="Available verbs")
+        # forecast verb
+        forecast_parser = subparsers.add_parser("forecast", help="Run forecast cycle")
+        forecast_parser.add_argument("--start-year", type=int, default=2023, help="Starting year for forecast")
+        forecast_parser.add_argument("--turns", type=int, default=52, help="Number of turns to forecast")
+        forecast_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        # compress verb
+        compress_parser = subparsers.add_parser("compress", help="Compress forecasts")
+        compress_parser.add_argument("--input-file", required=True, help="Path to input forecasts file")
+        compress_parser.add_argument("--output-file", required=True, help="Path to output compressed file")
+        compress_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        # retrodict verb
+        retrodict_parser = subparsers.add_parser("retrodict", help="Run retrodiction cycle")
+        retrodict_parser.add_argument("--start-date", type=str, default="2017-01-01", help="Start date for retrodiction (YYYY-MM-DD)")
+        retrodict_parser.add_argument("--days", type=int, default=30, help="Number of days to retrodict")
+        retrodict_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        # train-gpt verb
+        train_parser = subparsers.add_parser("train-gpt", help="Run GPT training cycle")
+        train_parser.add_argument("--dataset-path", type=str, required=True, help="Path to training dataset")
+        train_parser.add_argument("--epochs", type=int, default=1, help="Number of training epochs")
+        train_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        # status verb
+        status_parser = subparsers.add_parser("status", help="Generate status report")
+        status_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        # exit verb
+        subparsers.add_parser("exit", help="Exit the shell")
+
+        args = parser.parse_args()
+
+        # Build kwargs from explicit flags
+        kwargs = {}
+        for key, value in vars(args).items():
+            if key in ("verb", "args") or value is None:
+                continue
+            kwargs[key] = value
+
+        # Override with --args JSON if provided
+        if getattr(args, "args", None):
             try:
-                command = input("[Pulse> ] ").strip()
-                if not command:
-                    continue
-                if command == "exit":
-                    print("[PulseShell] 👋 Exiting...")
-                    break
-                self.parse_command(command)
+                override = json.loads(args.args)
+                if not isinstance(override, dict):
+                    raise ValueError("Override --args JSON must be an object")
+                kwargs.update(override)
             except Exception as e:
-                print(f"[PulseShell] ❌ Error: {e}")
+                error = {"error": f"Invalid --args JSON: {e}"}
+                print(json.dumps(error))
+                sys.exit(1)
 
-    def parse_command(self, command: str) -> None:
-        """Parse and dispatch user command."""
-        parts = command.split()
-        cmd = parts[0]
+        verb = args.verb
+        if verb == "exit":
+            sys.exit(0)
 
-        def list_modules():
-            self.core.list_modules()
-
-        def list_functions():
-            if len(parts) < 2:
-                print("[PulseShell] ❗ Usage: list-functions <module>")
-                return
-            module_key = parts[1]
-            self.core.available_functions(module_key)
-
-        def forecast():
-            start_year = int(parts[1]) if len(parts) > 1 else 2023
-            turns = int(parts[2]) if len(parts) > 2 else 52
-            snapshot = self.core.run_standard_forecast(start_year=start_year, turns=turns)
-            print("[PulseShell] 📈 Forecast snapshot:", snapshot)
-
-        def retrodict():
-            start_date = parts[1] if len(parts) > 1 else "2017-01-01"
-            days = int(parts[2]) if len(parts) > 2 else 30
-            self.core.run_retrodiction_forecast(start_date=start_date, days=days)
-
-        def load_module():
-            if len(parts) < 2:
-                print("[PulseShell] ❗ Usage: load-module <import_path> [alias]")
-                return
-            import_path = parts[1]
-            alias = parts[2] if len(parts) > 2 else None
-            self.router.load_module(import_path, alias=alias)
-            print(f"[PulseShell] ✅ Loaded module {import_path} as {alias or import_path}")
-
-        def run_function():
-            if len(parts) < 3:
-                print("[PulseShell] ❗ Usage: run-function <module> <function> [args as JSON]")
-                return
-            module_key = parts[1]
-            function_name = parts[2]
-            args_json = parts[3] if len(parts) > 3 else "{}"
-            try:
-                args = json.loads(args_json)
-                if not isinstance(args, dict):
-                    raise ValueError("Arguments must be a JSON object.")
-            except json.JSONDecodeError:
-                raise ValueError("Invalid JSON for arguments.")
-            result = self.router.run_function(module_key, function_name, **args)
-            print(f"[PulseShell] 🔄 Function result: {result}")
-
-        commands = {
-            "list-modules": list_modules,
-            "list-functions": list_functions,
-            "forecast": forecast,
-            "retrodict": retrodict,
-            "load-module": load_module,
-            "run-function": run_function,
-        }
-
-        if cmd in commands:
-            commands[cmd]()
-        else:
-            print(f"[PulseShell] ❓ Unknown command: {cmd}")
+        try:
+            result = self.router.run_function(verb, **kwargs)
+            print(json.dumps({"result": result}))
+            sys.exit(0)
+        except Exception as e:
+            error = {"error": str(e)}
+            print(json.dumps(error))
+            sys.exit(1)
 
 if __name__ == "__main__":
-    shell = IntelligenceShell()
-    shell.run()
+    IntelligenceShell().run_cli()

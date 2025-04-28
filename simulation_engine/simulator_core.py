@@ -308,6 +308,11 @@ def simulate_forward(
                     pass
                 if logger:
                     logger(f"[RETRO] Compared simulated state to ground truth for turn {i}")
+# 4 BayesianTrustTracker Hook: batch update after retrodiction comparison
+            from core.bayesian_trust_tracker import bayesian_trust_tracker
+            batch_results = [(k, diff == 0.0) for k, diff in comparison["overlay_diff"].items()]
+            batch_results += [(k, diff == 0.0) for k, diff in comparison["variable_diff"].items()]
+            bayesian_trust_tracker.batch_update(batch_results)
         results.append(turn_data)
         # Checkpointing
         if checkpoint_every and checkpoint_path and (i + 1) % checkpoint_every == 0:

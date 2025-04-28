@@ -14,7 +14,7 @@ import os
 import sys
 import time
 from types import ModuleType
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class PulseImportError(ImportError):
@@ -24,6 +24,15 @@ class PulseImportError(ImportError):
 class FunctionRouter:
     MAX_RETRIES = 3
     RETRY_SLEEP = 1.5  # seconds
+
+    # Mapping of CLI verbs to module paths and functions
+    verbs: Dict[str, Tuple[str, str]] = {
+        "forecast": ("intelligence.simulation_executor", "run_chunked_forecast"),
+        "compress": ("forecast_output.forecast_compressor", "compress_forecasts"),
+        "retrodict": ("intelligence.simulation_executor", "run_retrodiction_forecast"),
+        "train-gpt": ("GPT.gpt_alignment_trainer", "run_alignment_cycle"),
+        "status": ("intelligence.intelligence_core", "assemble_status_report"),
+    }
 
     def __init__(self, additional_paths: Optional[List[str]] = None):
         self.modules: Dict[str, ModuleType] = {}
@@ -61,13 +70,19 @@ class FunctionRouter:
         else:
             self._log("❌ Module not loaded", module_key)
 
-    def run_function(self, module_key: str, function_name: str, *args, **kwargs) -> Any:  # noqa: ANN401
-        module = self._get_module(module_key)
-        func = getattr(module, function_name, None)
+    def run_function(self, verb: str, **kwargs) -> Any:  # noqa: ANN401
+        # Route CLI verb to its configured module and function
+        if verb not in self.verbs:
+            raise KeyError(f"Unknown verb: {verb}")
+        module_path, func_name = self.verbs[verb]
+        # Load module under alias equal to verb
+        self.load_module(module_path, alias=verb)
+        module = self._get_module(verb)
+        func = getattr(module, func_name, None)
         if not callable(func):
-            raise AttributeError(f"{function_name} is not callable in {module_key}")
-        self._log("🔄 Running", f"{module_key}.{function_name}()")
-        return func(*args, **kwargs)
+            raise AttributeError(f"{func_name} is not callable for verb {verb}")
+        self._log("🔄 Running verb", f"{verb} -> {module_path}.{func_name}()")
+        return func(**kwargs)
 
     def available_functions(self, module_key: str) -> List[str]:
         module = self._get_module(module_key)
@@ -88,5 +103,5 @@ class FunctionRouter:
 
     @staticmethod
     def _log(prefix: str, msg: str) -> None:
-        print(f"[Router] {prefix}: {msg}")
+        print(f"[Router] {prefix}: {msg}", file=sys.stderr)
 

@@ -71,7 +71,9 @@ FEATURE_PIPELINES: Dict[str, Any] = {
         "transform": "learning.transforms.rolling_features.rolling_mean_feature"
     }
 }
-
+FRED_API_KEY = "c27e6f29a670e4a918620f63911bb49c"
+ALPHA_VANTAGE_KEY = "BC0G20JHHY2IGHGA"
+FINNHUB_API_KEY = "d07fm79r01qrslho2k80d07fm79r01qrslho2k8g"
 # --- Ensemble & AI forecasting settings ---
 AI_FORECAST_ENABLED: bool = True
 ENSEMBLE_WEIGHTS: Dict[str, float] = {"simulation": 0.7, "ai": 0.3}

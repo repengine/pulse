@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 SIGNAL_LOG_DIR = "data/iris_signals"
 SIGNAL_LOG_FILE = os.path.join(SIGNAL_LOG_DIR, "signals_latest.jsonl")
 
+
 class IrisScraper:
     def __init__(self):
         """
@@ -118,6 +119,6 @@ if __name__ == "__main__":
             {"name": "despair_spike", "value": 0.3, "source": "mock_plugin"},
         ]
 
-    iris.plugin_manager.register_plugin(dummy_plugin)
+    iris = IrisScraper()
+    iris.plugin_manager.autoload()   # <- new line
     iris.batch_ingest_from_plugins()
-    iris.export_signal_log()

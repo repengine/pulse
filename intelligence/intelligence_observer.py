@@ -63,15 +63,17 @@ class Observer:
     def observe_batch_contradictions(self, forecasts: List[Dict]) -> List[Dict]:
         """Detect contradictions within a forecast batch."""
         try:
-            contradictions = router.run_function("contradiction", "detect_forecast_contradictions", forecasts)
+            func = router.run_function("contradiction.detect_forecast_contradictions")
+            contradictions = func(forecasts)
         except (KeyError, AttributeError) as e:
             print(f"[Observer] ⚠️ Contradiction detection failed: {e}")
             contradictions = []
         return contradictions
-
     def observe_symbolic_divergence(self, forecasts: List[Dict]) -> Dict:
         """Analyze symbolic divergence within a forecast batch."""
-        return router.run_function("divergence", "generate_divergence_report", forecasts)
+        func = router.run_function("divergence.generate_divergence_report")
+        return func(forecasts)
+        return router.run_function("divergence.generate_divergence_report", forecasts)
 
     def compare_forecasts_to_ground_truth(self, forecasts: List[Dict], truth_snapshots: List[Dict]) -> List[Dict]:
         """Directly compare forecasts to ground-truth snapshots."""

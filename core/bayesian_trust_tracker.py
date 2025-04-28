@@ -20,7 +20,7 @@ class BayesianTrustTracker:
     Thread-safe for concurrent updates.
     """
     def __init__(self):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.stats: Dict[str, Tuple[float, float]] = defaultdict(lambda: (1.0, 1.0))  # (alpha, beta) priors
         self.last_update: Dict[str, float] = defaultdict(float)  # Track last update time
         self.timestamps: Dict[str, List[Tuple[float, float]]] = defaultdict(list)  # Track (time, trust) over time
@@ -44,24 +44,15 @@ class BayesianTrustTracker:
             self.last_update[key] = current_time
             self.timestamps[key].append((current_time, self.get_trust(key)))
 
-    def batch_update(self, updates: Dict[str, List[Tuple[bool, float]]]):
+    def batch_update(self, results: List[Tuple[str, bool]]) -> None:
         """
-        Apply multiple updates at once.
+        Batch update trust for multiple keys.
         Args:
-            updates: Dictionary mapping keys to lists of (success, weight) tuples.
+            results: List of tuples (key, success) to update.
         """
         with self.lock:
-            for key, results in updates.items():
-                alpha, beta = self.stats[key]
-                for success, weight in results:
-                    if success:
-                        alpha += weight
-                    else:
-                        beta += weight
-                self.stats[key] = (alpha, beta)
-                current_time = time.time()
-                self.last_update[key] = current_time
-                self.timestamps[key].append((current_time, self.get_trust(key)))
+            for key, success in results:
+                self.update(key, success)
 
     def apply_decay(self, key: str, decay_factor: float = 0.99, min_count: int = 5):
         """

@@ -27,6 +27,51 @@ Memory and trace persistence are core: all simulation cycles are scored, pruned,
 - Prints Strategos Digest grouped by trust level
 - Saves optional `digest.txt` if logging is enabled
 
+## ⚙️ Verbs
+
+All output is emitted as JSON.
+
+- **forecast**: Run forecast cycle  
+  Example:
+  ```bash
+  pulse forecast --start-year 2025 --turns 10
+  # => {"result": {...}}
+  ```
+
+- **compress**: Compress forecasts  
+  Example:
+  ```bash
+  pulse compress --input-file forecasts.json --output-file compressed.json
+  # => {"result": {...}}
+  ```
+
+- **retrodict**: Run retrodiction cycle  
+  Example:
+  ```bash
+  pulse retrodict --start-date 2017-01-01 --days 30
+  # => {"result": {...}}
+  ```
+
+- **train-gpt**: Run GPT training cycle  
+  Example:
+  ```bash
+  pulse train-gpt --dataset-path data/train.json --epochs 5
+  # => {"result": {...}}
+  ```
+
+- **status**: Generate status report  
+  Example:
+  ```bash
+  pulse status
+  # => {"result": {...}}
+  ```
+
+- **exit**: Exit the shell  
+  Example:
+  ```bash
+  pulse exit
+  # (shell exits)
+  ```
 ---
 
 ## 📂 Module Overview

@@ -24,13 +24,9 @@ yfinance
 fredapi
 pandas_datareader
 newsapi-python
-investpy_reborn
-
 kaggle
 polygon.io
-
 pytrends
 world_bank_data 
 wikipedia-api 
 beautifulsoup4 
-requests

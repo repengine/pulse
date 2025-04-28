@@ -307,10 +307,15 @@ class WorldState:
         try:
             data = json.loads(json_str)
             
-            # Create and validate components
-            overlays = SymbolicOverlays.from_dict(data.get("overlays", {}))
-            capital = CapitalExposure.from_dict(data.get("capital", {}))
-            variables = Variables(data.get("variables", {}))
+            # Create and validate components, ensuring dicts even if fields are null
+            overlays_data = data.get("overlays") or {}
+            overlays = SymbolicOverlays.from_dict(overlays_data)
+
+            capital_data = data.get("capital") or {}
+            capital = CapitalExposure.from_dict(capital_data)
+
+            variables_data = data.get("variables") or {}
+            variables = Variables(variables_data)
             
             # Create WorldState
             state = WorldState(

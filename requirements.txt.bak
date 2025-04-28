@@ -24,9 +24,10 @@ yfinance
 fredapi
 pandas_datareader
 newsapi-python
-investpy_reborn
-
 kaggle
 polygon.io
-
-yfinance fredapi pandas_datareader pytrends world_bank_data wikipedia-api beautifulsoup4 requests
+pytrends
+world_bank_data 
+wikipedia-api 
+beautifulsoup4 
+requestspython-dotenv>=1.0.0

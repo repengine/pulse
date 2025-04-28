@@ -34,7 +34,7 @@ def set_variable(state: Any, name: str, value: float) -> None:
     if name not in VARIABLE_REGISTRY:
         # Optionally log or warn about unknown variable
         pass
-    state.variables[name] = value
+    setattr(state.variables, name, value)
 
 def get_overlay(state: Any, name: str, default: float = 0.0) -> float:
     """

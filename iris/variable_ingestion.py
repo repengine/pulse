@@ -14,12 +14,14 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import os
+import sys
 import yfinance as yf
 from fredapi import Fred
 
 from core.variable_registry import registry
 
-
+print(f"[DEBUG] Python executable: {sys.executable}")
+print(f"[DEBUG] sys.path: {sys.path}")
 # Register YOUR FRED_KEY as env var; skip if not present.
 _FRED = Fred(api_key=os.getenv("FRED_KEY", "")) if "FRED_KEY" in os.environ else None
 _NOW = datetime.now(timezone.utc)
@@ -70,3 +72,5 @@ def ingest_live_variables() -> dict[str, float]:
     registry.bind_external_ingestion(lambda: out.copy())  # simple read-through
 
     return out
+
+

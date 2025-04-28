@@ -41,8 +41,24 @@ from forecast_output.strategos_digest_builder import build_digest
 from operator_interface.pulse_prompt_logger import log_prompt
 from forecast_engine.forecast_regret_engine import analyze_regret, analyze_misses, feedback_loop
 from core.pulse_learning_log import log_learning_event
+from pipeline.ingestion_service import IngestionService
+from core.variable_registry import registry   # shared singleton :contentReference[oaicite:2]{index=2}&#8203;:contentReference[oaicite:3]{index=3}
+from core.variable_accessor import set_variable
 
-def run_pulse_simulation(turns: int = 5):
+try:
+    import importlib.util, dotenv
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    print("[Pulse] python-dotenv not installed; skipping .env")
+
+ingester = IngestionService()
+
+sig_path = ingester.ingest_once()
+for sig in ingester.latest_signals():
+    set_variable(registry, sig["name"], sig["value"])  # or registry.set()
+    logger.info(f"Signal ingested: {sig['name']} = {sig['value']}")
+def run_pulse_simulation(turns: int = 1):
     """
     Run the main Pulse simulation loop.
 

@@ -9,13 +9,13 @@ from datetime import datetime
 
 class ForecastRecord(BaseModel):
     forecast_id: str
-    timestamp: str
-    variables: Dict[str, Any]
-    confidence: Optional[float]
-    fragility: Optional[float]
-    symbolic_overlay: Optional[str]
-    trust_score: Optional[float]
-    domain: Optional[str]
+    timestamp: Optional[str] = None
+    variables: Optional[Dict[str, Any]] = None
+    confidence: Optional[float] = None
+    fragility: Optional[float] = None
+    symbolic_overlay: Optional[str] = None
+    trust_score: Optional[float] = None
+    domain: Optional[str] = None
     # Add more fields as needed
 
 class OverlayLog(BaseModel):

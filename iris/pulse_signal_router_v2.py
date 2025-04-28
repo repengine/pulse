@@ -11,7 +11,7 @@ Author: Pulse-IRIS Development Team
 Version: 0.427A (Corrected)
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Corrected imports for actual IRIS Core
@@ -61,7 +61,7 @@ class PulseSignalRouter:
             raise ValueError(f"Incoming signal missing required fields: {required_keys}")
 
         signal_metadata = {
-            'timestamp': signal.get('timestamp', datetime.utcnow().isoformat()),
+            'timestamp': signal.get('timestamp', datetime.now(timezone.utc).isoformat()),
             'source': signal['source'],
             'type': signal['type']
         }
@@ -81,8 +81,7 @@ class PulseSignalRouter:
             # Use IrisTrustScorer to compute trust metrics
             payload = signal['payload']
             value = payload.get('value', 0.0)
-            timestamp = signal.get('timestamp', datetime.utcnow().isoformat())
-            from datetime import timezone
+            timestamp = signal.get('timestamp', datetime.now(timezone.utc).isoformat())
             try:
                 ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
             except Exception:
