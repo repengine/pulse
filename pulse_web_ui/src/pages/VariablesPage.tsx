@@ -1,100 +1,108 @@
-import React, { useState } from 'react';
+import React from 'react';
 import useFetchData from '../hooks/useApi';
-import { Variables } from '../types';
+
+// Define types for the new API endpoints
+interface CurrentVariablesData {
+  [key: string]: any; // Assuming keys are strings and values can be anything for now
+}
+
+interface HistoricalVariablesData {
+  [key: string]: any; // Assuming keys are strings and values can be anything for now
+}
+
+// Basic value formatter - can be expanded later
+const formatValue = (value: any): string => {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value, null, 2); // Pretty print objects
+  }
+  return String(value);
+};
 
 /**
- * VariablesPage component to display and edit variables.
- * Fetches variables using the useFetchData hook and allows updating them.
+ * VariablesPage component to display current and historical variables.
+ * Fetches data using the useFetchData hook from the /api/variables/current and /api/variables/historical endpoints.
  */
 function VariablesPage() {
-  const { data: variables, loading, error, refetch } = useFetchData<Variables>('/api/variables');
-  const [editingVariable, setEditingVariable] = useState<string | null>(null);
-  const [editedValue, setEditedValue] = useState<any>(null);
-  const [updateStatus, setUpdateStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  // Fetch current variable data
+  const { data: currentVariables, loading: loadingCurrent, error: errorCurrent } = useFetchData<CurrentVariablesData>('/api/variables/current');
 
-  const handleEditClick = (name: string, value: any) => {
-    setEditingVariable(name);
-    setEditedValue(value);
-    setUpdateStatus(null); // Clear previous status
-  };
-
-  const handleSaveClick = async (name: string) => {
-    setIsUpdating(true);
-    setUpdateStatus(null); // Clear previous status
-    try {
-      const response = await fetch(`/api/variables/${name}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ value: editedValue }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUpdateStatus({ type: 'success', message: data.message });
-        setEditingVariable(null); // Exit editing mode
-        setEditedValue(null);
-        refetch(); // Refetch variables to show updated value
-      } else {
-        setUpdateStatus({ type: 'error', message: data.error || 'Failed to update variable.' });
-      }
-    } catch (err: any) {
-      setUpdateStatus({ type: 'error', message: err.message || 'An error occurred during update.' });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleCancelClick = () => {
-    setEditingVariable(null);
-    setEditedValue(null);
-    setUpdateStatus(null); // Clear previous status
-  };
+  // Fetch historical variable data
+  const { data: historicalVariables, loading: loadingHistorical, error: errorHistorical } = useFetchData<HistoricalVariablesData>('/api/variables/historical');
 
   return (
     <div>
       <h1>Variables</h1>
-      <div style={{ border: '1px solid black', padding: '20px', margin: '20px' }}>
-        <h2>Variables Content</h2>
-        {loading && <p>Loading variables...</p>}
-        {error && <p>Error loading variables: {error.message}</p>}
-        {updateStatus && (
-          <p style={{ color: updateStatus.type === 'success' ? 'green' : 'red' }}>
-            {updateStatus.message}
-          </p>
+      {/* Current Variables Panel */}
+      <div className="data-panel">
+        <h2>Current Variables</h2>
+        {loadingCurrent && <p>Loading current variables...</p>}
+        {errorCurrent && <p>Error fetching current variables: {errorCurrent.message}</p>}
+        {!loadingCurrent && !errorCurrent && (!currentVariables || Object.keys(currentVariables).length === 0) && (
+          <p>No current variable data available.</p>
         )}
-        {variables && (
-          <ul>
-            {Object.entries(variables).map(([name, variable]) => (
-              <li key={name}>
-                <strong>{name}:</strong>{' '}
-                {editingVariable === name ? (
-                  <>
-                    <input
-                      type={variable.type === 'boolean' ? 'checkbox' : 'text'}
-                      checked={variable.type === 'boolean' ? editedValue : undefined}
-                      value={variable.type !== 'boolean' ? editedValue : ''}
-                      onChange={(e) => setEditedValue(variable.type === 'boolean' ? e.target.checked : e.target.value)}
-                      disabled={isUpdating}
-                    />
-                    <button onClick={() => handleSaveClick(name)} disabled={isUpdating}>Save</button>
-                    <button onClick={handleCancelClick} disabled={isUpdating}>Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    Value: {variable.type === 'boolean' ? String(variable.value) : variable.value}, Type: {variable.type}
-                    <button onClick={() => handleEditClick(name, variable.value)} disabled={isUpdating}>Edit</button>
-                  </>
-                )}
-              </li>
+        {currentVariables && (
+          <div>
+            {/* Structured display of current variable data */}
+            <table>
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(currentVariables || {}).map(([key, value]) => (
+                  <tr key={key}>
+                    <td>{key}</td>
+                    <td>{formatValue(value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Historical Variables Panel */}
+      <div className="data-panel" style={{ marginTop: '20px' }}>
+        <h2>Historical Variables</h2>
+        {loadingHistorical && <p>Loading historical variables...</p>}
+        {errorHistorical && <p>Error fetching historical variables: {errorHistorical.message}</p>}
+        {!loadingHistorical && !errorHistorical && (!historicalVariables || Object.keys(historicalVariables).length === 0) && (
+          <p>No historical variable data available.</p>
+        )}
+        {historicalVariables && (
+          <div>
+            {/* Structured display of historical variable data */}
+            {/* Assuming historicalVariables is an object where keys are variable names and values are arrays of historical data points */}
+            {Object.entries(historicalVariables || {}).map(([variableName, historicalData]) => (
+              <div key={variableName}>
+                <h4>{variableName} History</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      {/* Assuming historicalData is an array of objects, use keys from the first object as headers */}
+                      {Array.isArray(historicalData) && historicalData.length > 0 && Object.keys(historicalData[0]).map(key => (
+                        <th key={key}>{key}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(historicalData) && historicalData.map((dataPoint, index) => (
+                      <tr key={index}>
+                        {Object.values(dataPoint).map((value, valIndex) => (
+                          <td key={valIndex}>{formatValue(value)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ))}
-          </ul>
-        )}
-        {!loading && !error && !variables && (
-          <p>No variables data available.</p>
+          </div>
         )}
       </div>
     </div>

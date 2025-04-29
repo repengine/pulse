@@ -6,7 +6,7 @@ import os
 # Import the Flask app object using a relative path
 try:
     # Assuming run_desktop_ui.py is in the project root (one level above pulse_web_ui)
-    from pulse_web_ui.app import app as flask_app
+    from app import app as flask_app
 except ImportError as e:
     print(f"Error importing Flask app from pulse_web_ui.app: {e}")
     print("Ensure 'pulse_web_ui/app.py' exists and the script is run from the project root.")

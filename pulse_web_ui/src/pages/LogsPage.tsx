@@ -20,7 +20,7 @@ function LogsPage() {
   return (
     <div>
       <h1>Logs</h1>
-      <div style={{ border: '1px solid black', padding: '20px', margin: '20px' }}>
+      <div className="data-panel">
         <h2>Filter Logs</h2>
         <div style={{ marginBottom: '10px' }}>
           <label htmlFor="severityFilter">Severity:</label>

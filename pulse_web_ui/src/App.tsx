@@ -4,10 +4,11 @@ import DataOverviewPage from './pages/DataOverviewPage';
 import LogsPage from './pages/LogsPage';
 import VariablesPage from './pages/VariablesPage';
 import ForecastsPage from './pages/ForecastsPage';
+import './App.css'; // Import the CSS file
 
 function App() {
   return (
-    <div>
+    <div className="container"> {/* Apply container class */}
       <nav>
         <ul>
           <li><Link to="/">Data Overview</Link></li>
@@ -17,12 +18,14 @@ function App() {
         </ul>
       </nav>
 
-      <Routes>
-        <Route path="/" element={<DataOverviewPage />} />
-        <Route path="/logs" element={<LogsPage />} />
-        <Route path="/variables" element={<VariablesPage />} />
-        <Route path="/forecasts" element={<ForecastsPage />} />
-      </Routes>
+      <div className="page-content"> {/* Apply page-content class */}
+        <Routes>
+          <Route path="/" element={<DataOverviewPage />} />
+          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/variables" element={<VariablesPage />} />
+          <Route path="/forecasts" element={<ForecastsPage />} />
+        </Routes>
+      </div>
     </div>
   );
 }

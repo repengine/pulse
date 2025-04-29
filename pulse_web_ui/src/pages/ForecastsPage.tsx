@@ -1,82 +1,64 @@
 import React from 'react';
 import useFetchData from '../hooks/useApi';
-import { Forecasts } from '../types';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+// Define a basic interface for forecast data points
+interface ForecastDataPoint {
+  [key: string]: any; // Assuming keys are strings and values can be anything for now
+}
+
+// Basic value formatter - can be expanded later
+const formatValue = (value: any): string => {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value, null, 2); // Pretty print objects
+  }
+  return String(value);
+};
 
 /**
  * ForecastsPage component to display forecasts.
- * Fetches forecasts using the useFetchData hook.
+ * Fetches forecasts using the useFetchData hook from the /api/forecasts endpoint.
  */
 function ForecastsPage() {
-  const { data: forecasts, loading, error } = useFetchData<Forecasts>('/api/forecasts');
+  // Fetch forecast data from the new endpoint
+  const { data: forecasts, loading, error } = useFetchData<ForecastDataPoint[]>('/api/forecasts');
 
   return (
     <div>
       <h1>Forecasts</h1>
       {/* Forecasts Panel */}
-      <div style={{ border: '1px solid black', padding: '20px', margin: '20px' }}>
-        <h2>Forecasts Content</h2>
+      <div className="data-panel">
+        <h2>Forecast Data</h2>
         {loading && <p>Loading forecasts...</p>}
         {error && <p>Error fetching forecasts: {error.message}</p>}
+        {!loading && !error && (!forecasts || forecasts.length === 0) && (
+          <p>No forecast data available.</p>
+        )}
         {forecasts && (
           <div>
-            {Object.keys(forecasts).map((forecastName) => (
-              <div key={forecastName} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-                <h3>{forecastName}</h3>
-                {/* Display a chart for array data */}
-                {Array.isArray(forecasts[forecastName]) ? (
-                  <div style={{ width: '100%', height: '200px' }}>
-                    <Line
-                      data={{
-                        labels: forecasts[forecastName].map((_, index) => index.toString()), // Simple index labels
-                        datasets: [
-                          {
-                            label: forecastName,
-                            data: forecasts[forecastName],
-                            fill: false,
-                            backgroundColor: 'rgb(75, 192, 192)',
-                            borderColor: 'rgba(75, 192, 192, 0.2)',
-                          },
-                        ],
-                      }}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          title: {
-                            display: true,
-                            text: `${forecastName} Forecast`,
-                          },
-                        },
-                        scales: {
-                          x: {
-                            title: {
-                              display: true,
-                              text: 'Time Step',
-                            },
-                          },
-                          y: {
-                            title: {
-                              display: true,
-                              text: 'Value',
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <p>Data type: {typeof forecasts[forecastName]}</p>
-                )}
-              </div>
-            ))}
+            {/* Structured display of forecast data */}
+            <table>
+              <thead>
+                <tr>
+                  {/* Assuming forecasts is an array of objects, use keys from the first object as headers */}
+                  {forecasts.length > 0 && Object.keys(forecasts[0]).map(key => (
+                    <th key={key}>{key}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {forecasts.map((forecast, index) => (
+                  <tr key={index}>
+                    {Object.values(forecast).map((value, valIndex) => (
+                      <td key={valIndex}>{formatValue(value)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-        {!loading && !error && !forecasts && (
-          <p>No forecasts available.</p>
         )}
       </div>
     </div>
