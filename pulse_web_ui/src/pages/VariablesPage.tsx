@@ -1,5 +1,5 @@
 import React from 'react';
-import useFetchData from '../hooks/useApi';
+import useApi from '../hooks/useApi';
 
 // Define types for the new API endpoints
 interface CurrentVariablesData {
@@ -27,10 +27,10 @@ const formatValue = (value: any): string => {
  */
 function VariablesPage() {
   // Fetch current variable data
-  const { data: currentVariables, loading: loadingCurrent, error: errorCurrent } = useFetchData<CurrentVariablesData>('/api/variables/current');
+  const { data: currentVariables, loading: loadingCurrent, error: errorCurrent } = useApi<CurrentVariablesData>('/api/variables/current');
 
   // Fetch historical variable data
-  const { data: historicalVariables, loading: loadingHistorical, error: errorHistorical } = useFetchData<HistoricalVariablesData>('/api/variables/historical');
+  const { data: historicalVariables, loading: loadingHistorical, error: errorHistorical } = useApi<HistoricalVariablesData>('/api/variables/historical');
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useFetchData from '../hooks/useApi';
+import useApi from '../hooks/useApi';
 import { Logs } from '../types';
 
 /**
@@ -15,7 +15,7 @@ function LogsPage() {
   // Construct the API URL with query parameters
   const apiUrl = `/api/logs?severity=${severityFilter}&startDate=${startDateFilter}&endDate=${endDateFilter}&search=${encodeURIComponent(searchQuery)}`;
 
-  const { data: logs, loading, error } = useFetchData<Logs>(apiUrl);
+  const { data: logs, loading, error } = useApi<Logs>(apiUrl);
 
   return (
     <div>
@@ -49,7 +49,7 @@ function LogsPage() {
         {error && <p style={{ color: 'red' }}>Error fetching logs: {error.message}</p>}
         {logs && logs.length > 0 ? (
           <ul>
-            {logs.map((log, index) => (
+            {logs.map((log: any, index: number) => (
               <li key={index} style={{ marginBottom: '10px', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>
                 <strong>[{log.timestamp}]</strong> <span style={{ color: log.severity === 'ERROR' ? 'red' : log.severity === 'WARN' ? 'orange' : 'black' }}>{log.severity}</span>: {log.message}
               </li>

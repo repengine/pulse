@@ -29,3 +29,15 @@ def api_autopilot_stop():
     success, message = stop_autopilot_run()
     status_code = 200 if success else 400
     return jsonify({"message": message, "status": get_autopilot_status()}), status_code
+
+@autopilot_bp.route('/api/autopilot/status', methods=['GET'])
+def api_autopilot_status():
+    """API endpoint to get the current autopilot status."""
+    status = get_autopilot_status()
+    return jsonify(status)
+
+@autopilot_bp.route('/api/autopilot/history', methods=['GET'])
+def api_autopilot_history():
+    """API endpoint to get the autopilot run history."""
+    history = get_autopilot_run_history()
+    return jsonify(history)

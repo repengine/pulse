@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, jsonify
 import plotly.graph_objects as go
 import plotly.io as pio
 from ..simulated_data import get_forecast_sets, get_forecast_data
-from ..utils import get_latest_forecast_from_log
+from ..utils import get_latest_forecast_from_log, get_latest_forecast_all_variables
 
 forecasting_bp = Blueprint('forecasting', __name__)
 
@@ -88,3 +88,25 @@ def api_forecast_data_variable(variable_name):
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Failed to generate chart: {e}"}), 500
+
+@forecasting_bp.route('/api/forecasts/latest/all', methods=['GET'])
+def api_forecasts_latest_all():
+    """
+    API endpoint to get the latest forecast data for all variables
+    by parsing the 'examples' list from the last line of the compressed log file.
+    Returns a JSON object mapping variable names to their forecast data.
+    """
+    print("API request received for latest forecasts for all variables.")
+    all_forecast_data, error_msg = get_latest_forecast_all_variables()
+
+    if error_msg:
+        status_code = 404 if "not found" in error_msg.lower() or "empty" in error_msg.lower() else 500
+        print(f"API Error for all variables: {error_msg} (Status: {status_code})")
+        return jsonify({"error": error_msg}), status_code
+
+    if not all_forecast_data:
+        print("API Error for all variables: Unknown error retrieving data.")
+        return jsonify({"error": "Failed to retrieve forecast data for all variables."}), 500
+
+    print(f"Successfully retrieved forecast data for {len(all_forecast_data)} variables.")
+    return jsonify(all_forecast_data)

@@ -1,5 +1,5 @@
 import React from 'react';
-import useFetchData from '../hooks/useApi';
+import useApi from '../hooks/useApi';
 import { DataOverview } from '../types';
 
 // Define a basic interface for retrodiction data points
@@ -24,7 +24,7 @@ const formatValue = (value: any): string => {
  */
 function DataOverviewPage() {
   // Fetch retrodiction data
-  const { data: retrodictionData, loading: loadingRetrodiction, error: errorRetrodiction } = useFetchData<RetrodictionDataPoint[] | RetrodictionDataPoint>('/api/retrodiction');
+  const { data: retrodictionData, loading: loadingRetrodiction, error: errorRetrodiction } = useApi<RetrodictionDataPoint[] | RetrodictionDataPoint>('/api/retrodiction');
 
   return (
     <div>

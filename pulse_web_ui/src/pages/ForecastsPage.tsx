@@ -1,5 +1,5 @@
 import React from 'react';
-import useFetchData from '../hooks/useApi';
+import useApi from '../hooks/useApi';
 
 // Define a basic interface for forecast data points
 interface ForecastDataPoint {
@@ -23,7 +23,7 @@ const formatValue = (value: any): string => {
  */
 function ForecastsPage() {
   // Fetch forecast data from the new endpoint
-  const { data: forecasts, loading, error } = useFetchData<ForecastDataPoint[]>('/api/forecasts');
+  const { data: forecasts, loading, error } = useApi<ForecastDataPoint[]>('/api/forecasts/latest/all');
 
   return (
     <div>
@@ -49,7 +49,7 @@ function ForecastsPage() {
                 </tr>
               </thead>
               <tbody>
-                {forecasts.map((forecast, index) => (
+                {forecasts.map((forecast: any, index: number) => (
                   <tr key={index}>
                     {Object.values(forecast).map((value, valIndex) => (
                       <td key={valIndex}>{formatValue(value)}</td>

@@ -4,6 +4,9 @@ import DataOverviewPage from './pages/DataOverviewPage';
 import LogsPage from './pages/LogsPage';
 import VariablesPage from './pages/VariablesPage';
 import ForecastsPage from './pages/ForecastsPage';
+import RetrodictionPage from './pages/RetrodictionPage';
+import AutopilotPage from './pages/AutopilotPage';
+import LearningPage from './pages/LearningPage';
 import './App.css'; // Import the CSS file
 
 function App() {
@@ -15,6 +18,9 @@ function App() {
           <li><Link to="/logs">Logs</Link></li>
           <li><Link to="/variables">Variables</Link></li>
           <li><Link to="/forecasts">Forecasts</Link></li>
+          <li><Link to="/retrodiction">Retrodiction</Link></li>
+          <li><Link to="/autopilot">Autopilot</Link></li>
+          <li><Link to="/learning">Learning</Link></li>
         </ul>
       </nav>
 
@@ -24,6 +30,9 @@ function App() {
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/variables" element={<VariablesPage />} />
           <Route path="/forecasts" element={<ForecastsPage />} />
+          <Route path="/retrodiction" element={<RetrodictionPage />} />
+          <Route path="/autopilot" element={<AutopilotPage />} />
+          <Route path="/learning" element={<LearningPage />} />
         </Routes>
       </div>
     </div>

@@ -1,3 +1,5 @@
+from pulse_web_ui.routes.autopilot import autopilot_bp
+import traceback
 from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
 from waitress import serve # Import waitress
 import random
@@ -9,6 +11,9 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import typing # Import typing
+import uuid # Import uuid for generating unique run IDs
+import threading # Import threading for running simulations in the background
+import time # Import time for simulating progress
 
 # Attempt simulation engine imports
 try:
@@ -50,9 +55,20 @@ except ImportError:
              return pd.Series(dtype=float) # Return empty series on error
 import os # Added import
 
+# Import learning audit function
+try:
+    from learning.recursion_audit import generate_recursion_report
+except ImportError:
+    print("WARNING: Could not import generate_recursion_report from learning.recursion_audit. Learning audit functionality will be skipped.")
+    if 'generate_recursion_report' not in globals(): generate_recursion_report = None
+
+
 # Initialize Flask App
 app = Flask(__name__)
 app.secret_key = 'dev_secret_key' # Required for flash messages - use a proper secret in production!
+
+# Register blueprints
+app.register_blueprint(autopilot_bp)
 
 # --- Simulated Global State ---
 # Replace with a more robust state management solution later
@@ -76,6 +92,11 @@ SIMULATED_VARIABLE_STATE = {
     "Recursive_Learning_Enabled": {"value": True, "type": "boolean"}
 }
 
+# --- Global state for tracking retrodiction runs ---
+# In a real application, this would be a database or more persistent storage
+RETRODICTION_RUNS = {}
+RETRODICTION_STATUS = {}
+
 
 # --- Placeholder Backend Functions ---
 # These simulate fetching data from the core Pulse system.
@@ -98,18 +119,35 @@ def get_active_processes():
 
 def get_retrodiction_runs():
     """Simulates fetching a list of available retrodiction run IDs/names."""
-    return [
+    # Combine simulated runs with actual completed runs
+    simulated = [
         {"id": "retro_run_001", "timestamp": "2025-04-27 10:00:00", "name": "Initial Baseline"},
         {"id": "retro_run_002", "timestamp": "2025-04-28 09:30:00", "name": "Post-Parameter Tuning"},
         {"id": "retro_run_003", "timestamp": "2025-04-28 14:15:00", "name": "Latest Analysis"},
     ]
+    # Add completed runs from the global state
+    completed_runs = [{"id": run_id, "timestamp": run_data["completion_time"], "name": f"Run {run_id[:8]}"} for run_id, run_data in RETRODICTION_RUNS.items() if run_data.get("status") == "Completed"]
+
+    # Return unique runs, prioritizing completed ones if IDs overlap (unlikely with UUIDs)
+    all_runs = {run["id"]: run for run in simulated + completed_runs}
+    return list(all_runs.values())
+
 
 def get_retrodiction_data(run_id: str):
     """
     Simulates fetching detailed data for a specific retrodiction run
     and generating a Plotly figure.
     """
-    print(f"Simulating data fetch for run_id: {run_id}") # Log to console
+    # First, check the global state for actual run data
+    data = RETRODICTION_RUNS.get(run_id)
+    if data:
+        print(f"Fetching actual data for run_id: {run_id}")
+        # For actual runs, the data structure is already suitable (historical/retrodictive timestamps/values)
+        # No need for chart_data key in the old format
+        return data
+
+    # If not found in global state, fallback to simulated data for old IDs
+    print(f"Fetching simulated data for run_id: {run_id}") # Log to console
     if run_id == "retro_run_001":
         base_data = {
             "run_id": run_id, "name": "Initial Baseline", "timestamp": "2025-04-27 10:00:00",
@@ -135,6 +173,7 @@ def get_retrodiction_data(run_id: str):
             "detailed_data": [{"feature": "X1", "importance": 0.48}, {"feature": "X2", "importance": 0.32}, {"feature": "X3", "importance": 0.20}]
         }
     return base_data # Return base data, figure generation moved to API route
+
 
 def get_forecast_sets():
     """Simulates fetching a list of available forecast sets."""
@@ -453,6 +492,270 @@ def get_latest_forecast_from_log(variable_name: str):
         traceback.print_exc()
         return None, f"Failed to read or process log file: {e}"
 
+def get_latest_forecast_all_variables():
+    """
+    Reads the *last line* of logs/forecast_output_compressed.jsonl,
+    parses the JSON, and extracts forecast data for all variables
+    from the 'examples' list within that JSON object.
+    Returns a dictionary mapping variable names to their forecast data.
+    """
+    last_line_data = None
+    log_file_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'forecast_output_compressed.jsonl')
+    print(f"Attempting to read forecast log for all variables: {log_file_path}")
+
+    try:
+        if not os.path.exists(log_file_path):
+            print(f"Error: Log file not found at {log_file_path}")
+            return None, "Log file not found."
+
+        with open(log_file_path, 'rb') as f:
+            try:
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b'\n':
+                    f.seek(-2, os.SEEK_CUR)
+            except OSError:
+                f.seek(0)
+            last_line = f.readline().decode('utf-8')
+
+        if not last_line.strip():
+             print(f"Error: Last line of log file is empty or invalid.")
+             return None, "Last line of log file is empty or invalid."
+
+        try:
+            last_line_data = json.loads(last_line)
+        except json.JSONDecodeError:
+            print(f"Error: Failed to decode JSON from the last line: {last_line.strip()}")
+            return None, "Failed to decode JSON from the last log entry."
+
+        if not isinstance(last_line_data, dict) or 'examples' not in last_line_data or not isinstance(last_line_data['examples'], list):
+            print(f"Error: Last log entry JSON does not contain a valid 'examples' list.")
+            return None, "Last log entry JSON does not contain a valid 'examples' list."
+
+        examples = last_line_data['examples']
+        if not examples:
+            print(f"Error: 'examples' list in the last log entry is empty.")
+            return None, "'examples' list in the last log entry is empty."
+
+        all_variables_data = {}
+        variable_names = set()
+
+        # First pass to collect all variable names and timestamps
+        timestamps = []
+        for example in examples:
+            try:
+                timestamps.append(example['timestamp'])
+                if 'exposure' in example and isinstance(example['exposure'], dict):
+                    variable_names.update(example['exposure'].keys())
+            except KeyError as e:
+                print(f"Warning: Skipping example due to missing key: {e}. Example: {example}")
+                continue
+            except TypeError:
+                 print(f"Warning: Skipping example due to unexpected structure. Example: {example}")
+                 continue
+
+        if not timestamps:
+             print(f"Error: No valid timestamps found in the 'examples' of the last log entry.")
+             return None, "No valid timestamps found in the latest log entry."
+
+        # Initialize data structure for all variables
+        for var_name in variable_names:
+            all_variables_data[var_name] = {
+                "timestamps": timestamps,
+                "values": [None] * len(timestamps), # Initialize with None
+                "upper_bound": [None] * len(timestamps),
+                "lower_bound": [None] * len(timestamps)
+            }
+
+        # Second pass to populate values for each variable
+        for i, example in enumerate(examples):
+            if 'exposure' in example and isinstance(example['exposure'], dict):
+                for var_name, value in example['exposure'].items():
+                    if var_name in all_variables_data:
+                        all_variables_data[var_name]["values"][i] = value
+                        # Assuming upper/lower bounds are not in this log format, keep as None
+                        # If they were, you would extract them here similarly
+
+        if not all_variables_data:
+             print(f"Error: No variable data found in the 'exposure' of the last log entry.")
+             return None, "No variable data found in the latest log entry."
+
+        print(f"Successfully extracted data for {len(variable_names)} variables from the last log entry.")
+        return all_variables_data, None
+
+    except FileNotFoundError:
+        print(f"Error: Log file not found at {log_file_path}")
+        return None, "Log file not found."
+    except Exception as e:
+        print(f"Error: Failed to read or process log file {log_file_path}: {e}")
+        traceback.print_exc()
+        return None, f"Failed to read or process log file: {e}"
+
+# --- Retrodiction Helper Class ---
+class HistoricalDataLoader:
+    """Simple loader to provide historical data snapshots for retrodiction."""
+    def __init__(self, historical_series: pd.Series):
+        # Keep the original series to easily access values by integer index later
+        self.historical_data = historical_series
+        # Ensure the index is sorted if it's a DatetimeIndex, crucial for iloc lookup
+        if isinstance(self.historical_data.index, pd.DatetimeIndex):
+            self.historical_data = self.historical_data.sort_index()
+
+
+    def get_snapshot_by_turn(self, turn_index: int) -> dict | None:
+        """
+        Returns the historical ground truth for the prediction made *at* the given turn index.
+        The prediction made at turn_index 't' is for the state at turn 't+1'.
+        Therefore, we need to provide the actual historical value from turn 't+1'.
+        """
+        # Calculate the index corresponding to the ground truth needed for the prediction made at turn_index
+        ground_truth_index = turn_index + 1
+
+        if 0 <= ground_truth_index < len(self.historical_data):
+            try:
+                # Use iloc for integer-based indexing on the Series
+                ground_truth_value = self.historical_data.iloc[ground_truth_index]
+                # The key here must match the variable name used in WorldState
+                return {'nvidia_stock': ground_truth_value}
+            except IndexError:
+                 # This should theoretically not happen due to the length check, but added for safety
+                 print(f"Error: Internal IndexError accessing historical data at index {ground_truth_index}.")
+                 return None
+            except Exception as e: # Catch other potential errors during access
+                 print(f"Error accessing historical data at index {ground_truth_index}: {e}")
+                 return None
+        else:
+            # This occurs when the simulation asks for the ground truth for the turn *after* the last historical point
+            # Or if the turn_index itself is invalid.
+            # print(f"Debug: Requested ground truth for turn {turn_index} (needs index {ground_truth_index}), which is out of bounds for historical data (length {len(self.historical_data)}).")
+            return None
+
+# --- Helper function to run simulation in background ---
+def run_simulation_in_background(run_id, start_date, days, variables_of_interest):
+    """Simulates running a retrodiction simulation."""
+    RETRODICTION_STATUS[run_id] = {"status": "Running", "progress": 0, "message": "Starting simulation..."}
+    print(f"Starting background simulation for run_id: {run_id}")
+
+    # Initialize variables to ensure they are always defined
+    hist_timestamps = []
+    hist_values = []
+    retrodictive_timestamps = []
+    retrodictive_values = []
+    accuracy_metrics = {}
+
+    try:
+        # Simulate fetching historical data
+        end_date_dt = start_date + datetime.timedelta(days=days)
+        hist_data = fetch_historical_yfinance_close(ticker="NVDA", start_date=start_date, end_date=end_date_dt) # Using NVDA as a placeholder
+
+        if hist_data is None or hist_data.empty:
+            RETRODICTION_STATUS[run_id] = {"status": "Error", "progress": 0, "message": "Failed to fetch historical data."}
+            print(f"Simulation failed for run_id {run_id}: Failed to fetch historical data.")
+            return
+
+        loader = HistoricalDataLoader(hist_data)
+        # Check if WorldState is available before calling it
+        if 'WorldState' not in globals() or WorldState is None:
+             print("Error: WorldState component not available. Cannot run simulation.")
+             RETRODICTION_STATUS[run_id] = {"status": "Error", "progress": 0, "message": "Simulation engine components not loaded."}
+             return
+
+        initial_state = WorldState() # Assuming WorldState can be initialized without parameters for a new run
+        initial_state.turn = 0
+
+        num_simulation_turns = len(hist_data) - 1
+        simulation_results = []
+
+        if 'simulate_forward' in globals() and simulate_forward is not None:
+            # Simulate progress updates
+            for i in range(num_simulation_turns):
+                # In a real scenario, simulate_forward would ideally yield progress
+                # For now, we simulate progress based on turns
+                time.sleep(0.1) # Simulate work
+                RETRODICTION_STATUS[run_id]["progress"] = int(((i + 1) / num_simulation_turns) * 100)
+                RETRODICTION_STATUS[run_id]["message"] = f"Simulating turn {i+1}/{num_simulation_turns}..."
+
+            # Call the actual simulate_forward once (or in chunks if it supports it)
+            # This is a simplification; a real implementation might need to handle large simulations differently
+            simulation_results = simulate_forward(
+                state=initial_state,
+                turns=num_simulation_turns,
+                retrodiction_mode=True,
+                retrodiction_loader=loader,
+                return_mode='full'
+            )
+            print(f"simulate_forward completed for run_id {run_id} with {len(simulation_results)} results.")
+
+        else:
+            print("Simulation engine components not available. Skipping actual simulation.")
+            # Simulate some dummy results if simulation engine is not available
+            simulation_results = [{"full_state": {"variables": {"nvidia_stock": random.uniform(100, 300)}}} for _ in range(num_simulation_turns)]
+            RETRODICTION_STATUS[run_id]["progress"] = 100
+            RETRODICTION_STATUS[run_id]["message"] = "Simulation engine not available, generated dummy results."
+
+
+        # Process results and store
+        hist_values = hist_data.values.tolist()
+
+        # Corrected strftime usage
+        if isinstance(hist_data.index, pd.DatetimeIndex):
+             hist_timestamps = hist_data.index.strftime('%Y-%m-%dT%H:%M:%S').tolist()
+        else:
+             hist_timestamps = hist_data.index.astype(str).tolist()
+
+
+        for result in simulation_results:
+            try:
+                # Extract retrodictive value for a placeholder variable (e.g., nvidia_stock)
+                # In a real scenario, this would depend on variables_of_interest
+                retro_value = result['full_state']['variables'].get('nvidia_stock') # Use .get for safety
+                retrodictive_values.append(retro_value)
+            except (KeyError, TypeError):
+                retrodictive_values.append(None)
+
+        # Calculate accuracy metrics (simplified)
+        # Adjust actuals_for_comparison to match the length of retrodictive_values
+        actuals_for_comparison = hist_values[1:len(retrodictive_values) + 1]
+        predictions_for_comparison = [v for v in retrodictive_values if v is not None]
+
+        if len(actuals_for_comparison) == len(predictions_for_comparison) and len(predictions_for_comparison) > 0:
+            try:
+                actuals_np = np.array(actuals_for_comparison)
+                predictions_np = np.array(predictions_for_comparison)
+                mae = mean_absolute_error(actuals_np, predictions_np)
+                rmse = mean_squared_error(actuals_np, predictions_np, squared=False)
+                accuracy_metrics = {'mae': round(float(mae), 4), 'rmse': round(float(rmse), 4)}
+            except Exception as metric_e:
+                print(f"Error calculating accuracy metrics for run {run_id}: {metric_e}")
+                accuracy_metrics = {"error": f"Could not calculate metrics: {metric_e}"}
+        elif len(predictions_for_comparison) == 0:
+             accuracy_metrics = {"error": "No valid predictions available."}
+        else:
+             accuracy_metrics = {"error": "Length mismatch between actuals and predictions."}
+
+
+        RETRODICTION_RUNS[run_id] = {
+            "run_id": run_id,
+            "start_date": start_date.strftime('%Y-%m-%d'),
+            "days": days,
+            "variables_of_interest": variables_of_interest,
+            "historical_timestamps": hist_timestamps,
+            "historical_values": hist_values,
+            "retrodictive_timestamps": retrodictive_timestamps,
+            "retrodictive_values": retrodictive_values,
+            "accuracy_metrics": accuracy_metrics,
+            "status": "Completed",
+            "completion_time": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        RETRODICTION_STATUS[run_id] = {"status": "Completed", "progress": 100, "message": "Simulation completed."}
+        print(f"Simulation completed successfully for run_id: {run_id}")
+
+    except Exception as e:
+        print(f"Error during background simulation for run_id {run_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        RETRODICTION_STATUS[run_id] = {"status": "Error", "progress": RETRODICTION_STATUS[run_id].get("progress", 0), "message": f"Simulation failed: {e}"}
+
+
 # --- Routes ---
 
 @app.route('/')
@@ -472,7 +775,8 @@ def dashboard():
 @app.route('/retrodiction')
 def retrodiction():
     """Renders the retrodiction view page."""
-    runs = get_retrodiction_runs()
+    # This view function might need to be updated to list runs from RETRODICTION_RUNS
+    runs = get_retrodiction_runs() # This function is updated to include new runs
     return render_template('retrodiction.html', runs=runs)
 
 @app.route('/forecasting')
@@ -560,17 +864,43 @@ def get_memory_item_details(item_id):
                     details['attributes'] = {"attr1": "value1", "attr2": "value2"}
                 return details
     return None # Not found
-@app.route('/api/retrodiction_data/<run_id>')
+
+
+@app.route('/api/retrodiction_data/<run_id>', methods=['GET']) # Specify GET method
 def api_retrodiction_data(run_id):
     """API endpoint to get data for a specific retrodiction run."""
-    data = get_retrodiction_data(run_id)
+    # This existing endpoint will now fetch from the global RETRODICTION_RUNS dictionary
+    data = RETRODICTION_RUNS.get(run_id) # Fetch from global state
     if not data:
-        return jsonify({"error": "Run not found"}), 404
+        # Fallback to simulated_data if not found in global state (for existing simulated runs)
+        data = get_retrodiction_data(run_id)
+        if not data:
+             return jsonify({"error": "Run not found"}), 404
 
-    # Generate Plotly Figure based on chart_data
+    # Generate Plotly Figure based on the data structure
     fig = None
-    chart_info = data.get("chart_data")
-    if chart_info:
+    chart_json = None
+
+    # Prioritize the new data structure (historical/retrodictive)
+    if 'historical_timestamps' in data and 'retrodictive_timestamps' in data and \
+       data.get('historical_timestamps') is not None and data.get('retrodictive_timestamps') is not None:
+         fig = go.Figure()
+         if data.get('historical_timestamps') and data.get('historical_values'):
+              fig.add_trace(go.Scatter(x=data['historical_timestamps'], y=data['historical_values'], mode='lines+markers', name='Historical'))
+         if data.get('retrodictive_timestamps') and data.get('retrodictive_values'):
+              fig.add_trace(go.Scatter(x=data['retrodictive_timestamps'], y=data['retrodictive_values'], mode='lines+markers', name='Retrodictive'))
+
+         fig.update_layout(
+             title=f"Retrodiction Run {data.get('name', run_id)}", # Use name from data if available
+             xaxis_title="Timestamp",
+             yaxis_title="Value",
+             hovermode="x unified"
+         )
+         chart_json = pio.to_json(fig) if fig else None
+
+    # Fallback to the old chart_data structure if the new one is not present
+    elif "chart_data" in data and isinstance(data["chart_data"], dict):
+        chart_info = data["chart_data"]
         chart_type = chart_info.get("type")
         labels = chart_info.get("labels")
         values = chart_info.get("values")
@@ -581,12 +911,12 @@ def api_retrodiction_data(run_id):
         elif chart_type == "scatter":
              fig = go.Figure(data=[go.Scatter(x=labels, y=values, mode='markers')])
         if fig:
-             fig.update_layout(title=f"Chart for {data['name']}")
+             fig.update_layout(title=f"Chart for {data.get('name', run_id)}") # Use run_id if name is missing
+        chart_json = pio.to_json(fig) if fig else None
 
-    # Convert figure to JSON string if it exists
-    chart_json = pio.to_json(fig) if fig else None
-    data['chart_json'] = chart_json # Add the JSON string to the response
-    data.pop("chart_data", None) # Remove original chart_data dict
+
+    data['chart_json'] = chart_json
+    # data.pop("chart_data", None) # Remove old chart_data if it exists - might not be necessary if we prioritize new structure
 
     return jsonify(data)
 
@@ -658,13 +988,20 @@ def api_forecast_data_variable(variable_name):
     try:
         fig = go.Figure()
 
-        fig.add_trace(go.Scatter(
-            name='Forecast',
-            x=forecast_data['timestamps'], # From the 'examples' list
-            y=forecast_data['values'],     # From the 'examples' list
-            mode='lines+markers',          # Show markers as well
-            line=dict(color='rgb(31, 119, 180)')
-        ))
+        # Check if forecast_data is not None before accessing keys
+        if forecast_data and 'timestamps' in forecast_data and 'values' in forecast_data:
+            fig.add_trace(go.Scatter(
+                name='Forecast',
+                x=forecast_data['timestamps'], # From the 'examples' list
+                y=forecast_data['values'],     # From the 'examples' list
+                mode='lines+markers',          # Show markers as well
+                line=dict(color='rgb(31, 119, 180)')
+            ))
+        else:
+             print(f"Warning: Invalid forecast_data structure for {variable_name}. Cannot generate chart.")
+             # Optionally return an error or empty chart JSON here
+             return jsonify({"error": f"Invalid forecast data structure for {variable_name}."}), 500
+
 
         # Confidence bounds are NOT plotted as they are not in the 'examples' structure
         fig.update_layout(
@@ -685,434 +1022,111 @@ def api_forecast_data_variable(variable_name):
         traceback.print_exc()
         return jsonify({"error": f"Failed to generate chart: {e}"}), 500
 
-@app.route('/api/autopilot/start', methods=['POST'])
-def api_autopilot_start():
-    """API endpoint to start an autopilot run."""
-    if not request.is_json: return jsonify({"error": "Request must be JSON"}), 415
+@app.route('/api/forecasts/latest/all', methods=['GET'])
+def api_forecasts_latest_all():
+    """
+    API endpoint to get the latest forecast data for all variables
+    by parsing the 'examples' list from the last line of the compressed log file.
+    Returns a JSON object mapping variable names to their forecast data.
+    """
+    print("API request received for latest forecasts for all variables.")
+    all_forecast_data, error_msg = get_latest_forecast_all_variables()
+
+    if error_msg:
+        status_code = 404 if "not found" in error_msg.lower() or "empty" in error_msg.lower() else 500
+        print(f"API Error for all variables: {error_msg} (Status: {status_code})")
+        return jsonify({"error": error_msg}), status_code
+
+    if not all_forecast_data:
+        print("API Error for all variables: Unknown error retrieving data.")
+        return jsonify({"error": "Failed to retrieve forecast data for all variables."}), 500
+
+    print(f"Successfully retrieved forecast data for {len(all_forecast_data)} variables.")
+    return jsonify(all_forecast_data)
+
+
+@app.route('/api/retrodiction/run', methods=['POST'])
+def api_retrodiction_run():
+    """
+    API endpoint to start a retrodiction simulation run in the background.
+    Accepts 'start_date', 'days', and optionally 'variables_of_interest' in the request body.
+    Returns a unique 'run_id'.
+    """
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 415
+
     data = request.get_json()
-    goal = data.get('goal')
-    constraints = data.get('constraints', 'None') # Default constraints
-    if not goal: return jsonify({"error": "Goal is required"}), 400
+    start_date_str = data.get('start_date')
+    days = data.get('days')
+    variables_of_interest = data.get('variables_of_interest', []) # Default to empty list
 
-    success, message = start_autopilot_run(goal, constraints)
-    status_code = 200 if success else (409 if "already running" in message else 400)
-    return jsonify({"message": message, "status": get_autopilot_status()}), status_code
+    if not start_date_str or days is None:
+        return jsonify({"error": "'start_date' and 'days' are required."}), 400
 
-@app.route('/api/autopilot/stop', methods=['POST'])
-def api_autopilot_stop():
-    """API endpoint to stop the current autopilot run."""
-    success, message = stop_autopilot_run()
-    status_code = 200 if success else 400
-    return jsonify({"message": message, "status": get_autopilot_status()}), status_code
-
-@app.route('/api/memory_item/<item_id>')
-def api_memory_item_details(item_id):
-    """API endpoint to get details for a specific memory item."""
-    details = get_memory_item_details(item_id)
-    if details:
-        return jsonify(details)
-    else:
-        return jsonify({"error": "Memory item not found"}), 404
-
-@app.route('/api/system_status')
-def api_system_status():
-    """API endpoint to get system status."""
-    status_data = {
-        "status": get_system_status(),
-        "active_processes": get_active_processes(),
-        "recursive_learning": get_recursive_learning_status(),
-        "cpu_usage": round(random.uniform(5, 50), 1), # Example metric
-        "memory_usage": round(random.uniform(100, 1000), 1) # Example metric
-    }
-    return jsonify(status_data)
-@app.route('/api/variables/list')
-def api_variables_list():
-    """API endpoint to get the list of available variable names."""
-    variable_names = get_all_variable_names()
-    return jsonify(variable_names)
-
-@app.route('/api/variables/data/<variable_name>')
-def api_variable_data(variable_name):
-    """API endpoint to get historical data and chart for a specific variable."""
-    data = get_variable_data(variable_name)
-    if not data:
-        return jsonify({"error": "Variable not found"}), 404
-
-    # Generate Plotly Figure
-    fig = None
-    timestamps = data.get("timestamps")
-    values = data.get("values")
-
-    if timestamps and values:
-        fig = go.Figure(data=[go.Scatter(x=timestamps, y=values, mode='lines+markers', name=variable_name)])
-        fig.update_layout(
-            title=f"Historical Data for {variable_name}",
-            xaxis_title="Timestamp",
-            yaxis_title="Value",
-            hovermode="x unified"
-        )
-
-    # Convert figure to JSON string if it exists
-    chart_json = pio.to_json(fig) if fig else None
-
-    # Prepare response
-    response_data = {
-        "name": variable_name,
-        "chart_json": chart_json
-    }
-
-    return jsonify(response_data)
-
-
-@app.route('/api/data/overview')
-def api_data_overview():
-    """API endpoint to get an overview of available data."""
-    data_overview = {
-      "overview": [
-        "System Status",
-        "Active Processes",
-        "Recent Activity",
-        "Available Variables",
-        "Forecast Sets",
-        "Retrodiction Runs"
-      ]
-    }
-    return jsonify(data_overview)
-
-@app.route('/api/logs')
-def api_logs():
-    """API endpoint to get logs with optional filtering and search."""
-    severity_filter = request.args.get('severity')
-    start_date_str = request.args.get('startDate')
-    end_date_str = request.args.get('endDate')
-    search_query = request.args.get('search', '').lower() # Case-insensitive search
-
-    # --- Simulated Log Data ---
-    # Generate a more extensive list of simulated logs for testing filters
-    simulated_logs = []
-    now = datetime.datetime.now()
-    log_messages = [
-        "System initialized successfully.",
-        "User 'admin' logged in.",
-        "Database connection established.",
-        "Processing data batch 101.",
-        "Warning: Disk space low on volume C:.",
-        "Error: Failed to connect to external API.",
-        "Forecast model updated.",
-        "Starting daily backup.",
-        "User 'guest' logged out.",
-        "INFO: Data sync completed.",
-        "WARN: High memory usage detected.",
-        "ERROR: Unhandled exception in process X.",
-        "System shutdown initiated.",
-        "INFO: Report generated successfully.",
-        "WARN: API response time slow.",
-        "DEBUG: Variable 'temp' value is 25.5.", # Add DEBUG level for completeness
-        "INFO: Configuration reloaded.",
-        "ERROR: File not found: config.yaml.",
-        "WARN: Potential data inconsistency detected.",
-        "INFO: Scheduled task 'cleanup' finished.",
-    ]
-    severity_levels = ["INFO", "WARN", "ERROR", "DEBUG"] # Include DEBUG
-
-    for i in range(50): # Generate 50 simulated logs
-        timestamp = now - datetime.timedelta(minutes=random.randint(1, 60*24*7)) # Logs from last 7 days
-        severity = random.choice(severity_levels)
-        message = random.choice(log_messages)
-        simulated_logs.append({
-            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "severity": severity,
-            "message": message
-        })
-
-    # Sort logs by timestamp (most recent first)
-    simulated_logs.sort(key=lambda x: x['timestamp'], reverse=True)
-
-    # --- Filtering ---
-    filtered_logs = simulated_logs
-
-    if severity_filter:
-        filtered_logs = [log for log in filtered_logs if log['severity'] == severity_filter.upper()]
-
-    if start_date_str:
-        try:
-            start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
-            # Include logs from the start of the start_date
-            filtered_logs = [log for log in filtered_logs if datetime.datetime.strptime(log['timestamp'], "%Y-%m-%d %H:%M:%S") >= start_date]
-        except ValueError:
-            # Ignore invalid date filter
-            pass
-
-    if end_date_str:
-        try:
-            end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
-            # Include logs up to the end of the end_date
-            end_date = end_date.replace(hour=23, minute=59, second=59)
-            filtered_logs = [log for log in filtered_logs if datetime.datetime.strptime(log['timestamp'], "%Y-%m-%d %H:%M:%S") <= end_date]
-        except ValueError:
-            # Ignore invalid date filter
-            pass
-
-    # --- Searching ---
-    if search_query:
-        filtered_logs = [log for log in filtered_logs if search_query in log['message'].lower()]
-
-    return jsonify(filtered_logs)
-
-
-# --- Retrodiction Helper Class ---
-class HistoricalDataLoader:
-    """Simple loader to provide historical data snapshots for retrodiction."""
-    def __init__(self, historical_series: pd.Series):
-        # Keep the original series to easily access values by integer index later
-        self.historical_data = historical_series
-        # Ensure the index is sorted if it's a DatetimeIndex, crucial for iloc lookup
-        if isinstance(self.historical_data.index, pd.DatetimeIndex):
-            self.historical_data = self.historical_data.sort_index()
-
-
-    def get_snapshot_by_turn(self, turn_index: int) -> dict | None:
-        """
-        Returns the historical ground truth for the prediction made *at* the given turn index.
-        The prediction made at turn_index 't' is for the state at turn 't+1'.
-        Therefore, we need to provide the actual historical value from turn 't+1'.
-        """
-        # Calculate the index corresponding to the ground truth needed for the prediction made at turn_index
-        ground_truth_index = turn_index + 1
-
-        if 0 <= ground_truth_index < len(self.historical_data):
-            try:
-                # Use iloc for integer-based indexing on the Series
-                ground_truth_value = self.historical_data.iloc[ground_truth_index]
-                # The key here must match the variable name used in WorldState
-                return {'nvidia_stock': ground_truth_value}
-            except IndexError:
-                 # This should theoretically not happen due to the length check, but added for safety
-                 print(f"Error: Internal IndexError accessing historical data at index {ground_truth_index}.")
-                 return None
-            except Exception as e: # Catch other potential errors during access
-                 print(f"Error accessing historical data at index {ground_truth_index}: {e}")
-                 return None
-        else:
-            # This occurs when the simulation asks for the ground truth for the turn *after* the last historical point
-            # Or if the turn_index itself is invalid.
-            # print(f"Debug: Requested ground truth for turn {turn_index} (needs index {ground_truth_index}), which is out of bounds for historical data (length {len(self.historical_data)}).")
-            return None
-
-
-@app.route('/api/retrodiction/compare/nvidia_stock')
-def api_retrodiction_compare_nvidia_stock():
-    """
-    API endpoint to fetch historical NVDA stock data for comparison.
-    Includes placeholders for retrodictive data.
-    """
-    variable_name = "nvidia_stock" # Corresponds to NVDA ticker in the fetch function context
-    ticker = "NVDA" # Ticker for yfinance
-
-    # --- Date Handling ---
     try:
-        # Default dates: today and one year ago
-        end_date_dt = datetime.datetime.now()
-        start_date_dt = end_date_dt - datetime.timedelta(days=365)
-
-        # Override with request args if provided
-        start_date_str = request.args.get('start_date')
-        end_date_str = request.args.get('end_date')
-
-        if start_date_str:
-            start_date_dt = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
-        if end_date_str:
-            end_date_dt = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
-
-        # Basic validation: start date should not be after end date
-        if start_date_dt > end_date_dt:
-            return jsonify({"error": "Start date cannot be after end date."}), 400
-
+        start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
     except ValueError:
-        return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
-    except Exception as e:
-         print(f"Error processing dates: {e}")
-         return jsonify({"error": f"Internal server error processing dates: {e}"}), 500
+        return jsonify({"error": "Invalid 'start_date' format. Please use YYYY-MM-DD."}), 400
 
+    if not isinstance(days, int) or days <= 0:
+        return jsonify({"error": "'days' must be a positive integer."}), 400
 
-    # --- Fetch Historical Data ---
-    hist_timestamps = []
-    hist_values = []
-    hist_data: pd.Series | None = None # Initialize hist_data to None with type hint
+    if not isinstance(variables_of_interest, list):
+         return jsonify({"error": "'variables_of_interest' must be a list."}), 400
+
+    run_id = str(uuid.uuid4())
+    RETRODICTION_STATUS[run_id] = {"status": "Queued", "progress": 0, "message": "Run queued."}
+    RETRODICTION_RUNS[run_id] = {"status": "Queued", "progress": 0, "message": "Run queued."} # Add to runs list immediately
+
+    # Start the simulation in a background thread
+    thread = threading.Thread(target=run_simulation_in_background, args=(run_id, start_date, days, variables_of_interest))
+    thread.start()
+
+    return jsonify({"run_id": run_id, "message": "Retrodiction simulation started in the background."}), 202 # 202 Accepted
+
+@app.route('/api/retrodiction/status/<run_id>', methods=['GET'])
+def api_retrodiction_status(run_id):
+    """
+    API endpoint to get the current status and progress of a retrodiction run.
+    Returns status, progress, and message.
+    """
+    status_data = RETRODICTION_STATUS.get(run_id)
+    if status_data:
+        return jsonify(status_data)
+    else:
+        return jsonify({"error": "Run ID not found."}), 404
+
+@app.route('/api/learning/audit', methods=['POST'])
+def api_learning_audit():
+    """
+    API endpoint to generate a recursion audit report.
+    Accepts 'previous_forecasts' and 'current_forecasts' in the request body.
+    Returns the audit report as a JSON object.
+    """
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 415
+
+    data = request.get_json()
+    previous_forecasts = data.get('previous_forecasts')
+    current_forecasts = data.get('current_forecasts')
+
+    if not isinstance(previous_forecasts, list) or not isinstance(current_forecasts, list):
+        return jsonify({"error": "'previous_forecasts' and 'current_forecasts' must be lists."}), 400
+
+    # Check if generate_recursion_report was imported successfully
+    if 'generate_recursion_report' not in globals() or generate_recursion_report is None:
+         return jsonify({"error": "Learning audit functionality is not available."}), 501 # 501 Not Implemented
+
     try:
-        print(f"Fetching historical data for {ticker} from {start_date_dt.strftime('%Y-%m-%d')} to {end_date_dt.strftime('%Y-%m-%d')}")
-        # Use the (potentially dummy) imported function
-        hist_data = fetch_historical_yfinance_close(ticker=ticker, start_date=start_date_dt, end_date=end_date_dt)
-
-        if hist_data is not None and not hist_data.empty:
-            # Convert pandas Series to lists for JSON
-            # Ensure index is datetime before formatting
-            if isinstance(hist_data.index, pd.DatetimeIndex):
-                 hist_timestamps = hist_data.index.strftime('%Y-%m-%dT%H:%M:%S').tolist() # ISO 8601 format often preferred for JS
-            else:
-                 # Handle non-datetime index if necessary, though yfinance usually returns DatetimeIndex
-                 hist_timestamps = hist_data.index.astype(str).tolist()
-            hist_values = hist_data.values.tolist()
-            print(f"Successfully fetched {len(hist_values)} historical data points for {ticker}.")
-        else:
-            print(f"No historical data returned for {ticker} in the specified range.")
-            # Keep lists empty if no data
-
+        audit_report = generate_recursion_report(previous_forecasts, current_forecasts)
+        return jsonify(audit_report)
     except Exception as e:
-        print(f"Error fetching historical data for {ticker}: {e}")
-        # Return error but still with the basic structure and empty historical lists
-        # Don't return 500 here, just log the error and return empty data for now
-        # return jsonify({"error": f"Failed to fetch historical data: {e}"}), 500
-        pass # Keep lists empty
+        print(f"Error generating recursion audit report: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Failed to generate audit report: {e}"}), 500
 
 
-    # --- Retrodiction Simulation ---
-    retrodictive_values = []
-    accuracy_metrics = {}
-    retrodictive_timestamps = [] # Will align with historical[1:]
-
-    # Only run simulation if we have historical data (at least 2 points needed for 1 simulation step)
-    if hist_values and len(hist_values) > 1:
-        # Check if simulation components were imported successfully
-        if 'WorldState' not in globals() or WorldState is None or 'simulate_forward' not in globals() or simulate_forward is None:
-             print("Error: Simulation components not available. Skipping retrodiction.")
-             accuracy_metrics = {"error": "Simulation engine components not loaded."}
-        else:
-            # Proceed with simulation only if components are available
-            try: # Main try block for simulation
-                # 1. WorldState Initialization - Basic initialization
-                initial_state = WorldState()
-                initial_state.turn = 0
-                # We cannot reliably set .variables or .overlays without knowing WorldState's structure.
-                # Assume the simulation engine handles seeding based on the first step or loader.
-                # We will rely on the simulation *output* structure later.
-                print(f"Initialized WorldState for retrodiction: Turn {initial_state.turn}. Initial variable seeding relies on simulation engine behavior.")
-
-
-                # Indent the following block to be inside the main try:
-                # 2. Instantiate Loader (Only if hist_data is a valid Series)
-                loader = None
-                if isinstance(hist_data, pd.Series) and not hist_data.empty:
-                    loader = HistoricalDataLoader(hist_data) # Pass the original Series
-                    print("HistoricalDataLoader instantiated.")
-                else:
-                     print("Error: Cannot instantiate HistoricalDataLoader because hist_data is not a valid pandas Series.")
-                     # Set accuracy error early if loader cannot be created
-                     accuracy_metrics = {"error": "Failed to load historical data for simulation loader."}
-                     # Skip simulation if loader failed
-                     simulation_results = [] # Ensure simulation_results is defined
-
-                # 3. Call simulate_forward (Only if loader was created)
-                num_simulation_turns = len(hist_values) - 1 # Simulate up to the last point
-                # Ensure loader was created (implies hist_data was valid)
-                # No need to check simulate_forward again, already checked above
-                if loader:
-                     print(f"Calling simulate_forward for {num_simulation_turns} turns...")
-                     simulation_results = simulate_forward(
-                         state=initial_state,
-                         turns=num_simulation_turns,
-                         retrodiction_mode=True,
-                         retrodiction_loader=loader,
-                         return_mode='full' # Need full state to extract variables
-                     )
-                     print(f"simulate_forward returned {len(simulation_results)} results.")
-
-                     # 4. Extract Retrodictive Series
-                     if simulation_results:
-                         for result in simulation_results:
-                             # Adjust path based on actual WorldState structure if needed
-                             try:
-                                 # The result for turn 't' contains the state *after* the simulation step for that turn
-                                 # This state includes the prediction for the *next* turn's variable value.
-                                 # Revert to dictionary access within try/except
-                                 try:
-                                     retro_value = result['full_state']['variables']['nvidia_stock']
-                                     retrodictive_values.append(retro_value)
-                                 except KeyError:
-                                     print(f"Warning: Could not find 'nvidia_stock' via path ['full_state']['variables']['nvidia_stock'] in simulation result for a turn. Result: {result}")
-                                     retrodictive_values.append(None) # Append None if extraction failed
-                                 except Exception as extract_e: # Catch other potential errors during extraction (e.g., None values)
-                                     print(f"Warning: Error extracting retro value from result: {extract_e}. Result: {result}")
-                                     retrodictive_values.append(None)
-                             except TypeError:
-                                 print(f"Warning: Unexpected result structure. Result: {result}")
-                                 retrodictive_values.append(None)
-
-                         # Align timestamps: Retrodictive values correspond to historical values from index 1 onwards
-                         # Ensure retrodictive_timestamps has the same length as retrodictive_values
-                         if len(hist_timestamps) > 1:
-                              retrodictive_timestamps = hist_timestamps[1:len(retrodictive_values) + 1]
-
-                         print(f"Extracted {len(retrodictive_values)} retrodictive values.")
-
-                         # 5. Calculate Accuracy
-                         # Compare historical values (from index 1) with retrodictive values
-                         actuals_for_comparison = hist_values[1:len(retrodictive_values) + 1] # Ground truth corresponding to predictions
-                         predictions_for_comparison = [v for v in retrodictive_values if v is not None] # Filter out potential Nones if errors occurred
-
-                         # Adjust actuals length if predictions are shorter due to Nones
-                         if len(actuals_for_comparison) > len(predictions_for_comparison):
-                             actuals_for_comparison = actuals_for_comparison[:len(predictions_for_comparison)]
-
-
-                         # Ensure lengths match after filtering Nones before calculating metrics
-                         if len(actuals_for_comparison) == len(predictions_for_comparison) and len(predictions_for_comparison) > 0:
-                             # Corrected indentation for try/except/elif/else block
-                             try:
-                                 # Convert to numpy arrays for robust calculation
-                                 actuals_np = np.array(actuals_for_comparison)
-                                 predictions_np = np.array(predictions_for_comparison)
-
-                                 mae = mean_absolute_error(actuals_np, predictions_np)
-                                 rmse = mean_squared_error(actuals_np, predictions_np, squared=False) # Calculate RMSE
-                                 # Explicitly cast to float before rounding
-                                 accuracy_metrics = {'mae': round(float(mae), 4), 'rmse': round(float(rmse), 4)}
-                                 print(f"Calculated Accuracy Metrics: MAE={accuracy_metrics['mae']}, RMSE={accuracy_metrics['rmse']}")
-                             except Exception as metric_e: # Correct indentation for except
-                                 print(f"Error calculating accuracy metrics: {metric_e}")
-                                 accuracy_metrics = {"error": f"Could not calculate metrics: {metric_e}"}
-                         elif len(predictions_for_comparison) == 0: # Correct indentation for elif
-                             print("Warning: No valid predictions to calculate accuracy.")
-                             accuracy_metrics = {"error": "No valid predictions available."}
-                         else: # Correct indentation for else
-                             # This case should ideally not be reached after length adjustment, but kept for safety
-                             print(f"Warning: Length mismatch between actuals ({len(actuals_for_comparison)}) and valid predictions ({len(predictions_for_comparison)}). Cannot calculate accuracy.")
-                             accuracy_metrics = {"error": "Length mismatch between actuals and predictions."}
-
-                     else:
-                          print("simulate_forward returned no results.")
-                          accuracy_metrics = {"error": "Simulation produced no results."}
-                # Handle case where loader wasn't created
-                elif not loader:
-                     # Error message already set when loader creation failed
-                     pass # accuracy_metrics should already contain the error
-                 # Removed the 'else' for simulate_forward check as it's done earlier
-
-            except Exception as sim_e: # Catch simulation-specific errors
-                print(f"Error during retrodiction simulation or processing: {sim_e}")
-                import traceback
-                traceback.print_exc()
-                accuracy_metrics = {"error": f"Simulation failed: {sim_e}"}
-
-    elif not hist_values:
-         print("No historical data fetched, skipping retrodiction.")
-         accuracy_metrics = {"error": "No historical data available."}
-    else: # Only 1 data point
-         print("Only one historical data point, skipping retrodiction (need at least two).")
-         accuracy_metrics = {"error": "Insufficient historical data for retrodiction (need >= 2 points)."}
-
-
-    # --- Prepare Response ---
-    response_data = {
-        "variable_name": variable_name,
-        "historical_timestamps": hist_timestamps,
-        "historical_values": hist_values,
-        "retrodictive_timestamps": retrodictive_timestamps, # Use aligned timestamps
-        "retrodictive_values": retrodictive_values,
-        "accuracy_metrics": accuracy_metrics
-    }
-
-    return jsonify(response_data)
 # --- Main Execution ---
 
 if __name__ == '__main__':
