@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Autopilot Control - Pulse UI{% endblock %}
+
+{% block header %}Autopilot Control{% endblock %}
+
+{% block content %}
+
+{# --- Display Flashed Messages --- #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="autopilot-grid">
+
+    {# --- Status Display --- #}
+    <div id="autopilot-status-card" class="autopilot-card status-card">
+        <h3>Current Status</h3>
+        <p><strong>State:</strong> <span id="ap-state" class="status-{{ status.state.lower() }}">{{ status.state }}</span></p>
+        {% if status.current_run %}
+        <div id="ap-current-run">
+            <p><strong>Current Run ID:</strong> {{ status.current_run.id }}</p>
+            <p><strong>Goal:</strong> {{ status.current_run.goal }}</p>
+            <p><strong>Constraints:</strong> {{ status.current_run.constraints }}</p>
+            <p><strong>Started:</strong> {{ status.current_run.start_time }}</p>
+        </div>
+        {% else %}
+        <div id="ap-current-run">
+            <p><i>No run currently active.</i></p>
+        </div>
+        {% endif %}
+    </div>
+
+    {# --- Controls --- #}
+    <div id="autopilot-controls-card" class="autopilot-card controls-card">
+        <h3>Controls</h3>
+        <div id="start-form" {% if status.state == 'Running' %}style="display: none;"{% endif %}>
+            <h4>Start New Run</h4>
+            <div class="form-group">
+                <label for="ap-goal">Goal:</label>
+                <input type="text" id="ap-goal" name="goal" placeholder="e.g., Maximize Accuracy">
+            </div>
+            <div class="form-group">
+                <label for="ap-constraints">Constraints:</label>
+                <input type="text" id="ap-constraints" name="constraints" placeholder="e.g., Max CPU 75%">
+            </div>
+            <button onclick="startAutopilot()">Start Run</button>
+        </div>
+        <div id="stop-button" {% if status.state != 'Running' %}style="display: none;"{% endif %}>
+             <button onclick="stopAutopilot()">Stop Current Run</button>
+        </div>
+    </div>
+
+    {# --- Run History --- #}
+    <div class="autopilot-card history-card">
+        <h3>Run History</h3>
+        <table id="ap-history-table">
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Goal</th>
+                    <th>Constraints</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if history %}
+                    {% for run in history %}
+                    <tr>
+                        <td>{{ run.id }}</td>
+                        <td>{{ run.start_time }}</td>
+                        <td>{{ run.end_time if run.end_time else 'N/A' }}</td>
+                        <td>{{ run.goal }}</td>
+                        <td>{{ run.constraints }}</td>
+                        <td>{{ run.status }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6"><i>No history available.</i></td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    /* General Autopilot Styles */
+    .autopilot-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .autopilot-card { background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e0e0e0; }
+    .autopilot-card h3 { margin-top: 0; color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; }
+
+    /* Status Card */
+    .status-card p { margin: 5px 0; }
+    .status-card #ap-state { font-weight: bold; padding: 2px 5px; border-radius: 3px; color: white; }
+    .status-idle { background-color: #7f8c8d; } /* Grey */
+    .status-running { background-color: #2ecc71; } /* Green */
+    .status-stopped { background-color: #e74c3c; } /* Red */
+    .status-completed { background-color: #3498db; } /* Blue */
+    .status-error { background-color: #e74c3c; } /* Red */
+
+    /* Controls Card */
+    .controls-card .form-group { margin-bottom: 15px; }
+    .controls-card label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .controls-card input[type="text"] { width: calc(100% - 22px); padding: 10px; border: 1px solid #ccc; border-radius: 3px; }
+    .controls-card button { padding: 10px 15px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 1em; }
+    .controls-card button:hover { background-color: #2980b9; }
+    #stop-button button { background-color: #e74c3c; }
+    #stop-button button:hover { background-color: #c0392b; }
+
+    /* History Card */
+    .history-card table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .history-card th, .history-card td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+    .history-card th { background-color: #f2f2f2; font-weight: bold; }
+    .history-card tr:nth-child(even) { background-color: #f9f9f9; }
+
+    /* Flash Message Styling (if not moved to base.html/style.css) */
+    .flash-messages { margin-bottom: 15px; }
+    .alert { padding: 10px 15px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 4px; }
+    .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+    .alert-error { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+
+    /* Responsive Grid (Optional) */
+    @media (min-width: 768px) {
+        .autopilot-grid { grid-template-columns: repeat(2, 1fr); }
+        .history-card { grid-column: span 2; } /* Make history span full width */
+    }
+</style>
+
+<script>
+    // Function to update the status display based on API response
+    function updateAutopilotStatus(statusData) {
+        const stateSpan = document.getElementById('ap-state');
+        const currentRunDiv = document.getElementById('ap-current-run');
+        const startForm = document.getElementById('start-form');
+        const stopButton = document.getElementById('stop-button');
+
+        if (!stateSpan || !currentRunDiv || !startForm || !stopButton) {
+            console.error("One or more autopilot UI elements not found.");
+            return;
+        }
+
+        stateSpan.textContent = statusData.state;
+        stateSpan.className = `status-${statusData.state.toLowerCase()}`; // Update class for color
+
+        if (statusData.state === 'Running' && statusData.current_run) {
+            currentRunDiv.innerHTML = `
+                <p><strong>Current Run ID:</strong> ${statusData.current_run.id}</p>
+                <p><strong>Goal:</strong> ${statusData.current_run.goal}</p>
+                <p><strong>Constraints:</strong> ${statusData.current_run.constraints}</p>
+                <p><strong>Started:</strong> ${statusData.current_run.start_time}</p>
+            `;
+            startForm.style.display = 'none';
+            stopButton.style.display = 'block';
+        } else {
+            currentRunDiv.innerHTML = '<p><i>No run currently active.</i></p>';
+            startForm.style.display = 'block';
+            stopButton.style.display = 'none';
+            // Clear form fields if needed when stopping/idle
+            const goalInput = document.getElementById('ap-goal');
+            const constraintsInput = document.getElementById('ap-constraints');
+            if(goalInput) goalInput.value = '';
+            if(constraintsInput) constraintsInput.value = '';
+        }
+    }
+
+    // Function to add a row to the history table
+    function addHistoryRow(run) {
+        const tableBody = document.getElementById('ap-history-table')?.querySelector('tbody');
+        if (!tableBody) return;
+
+        // Remove placeholder if it exists
+        const placeholder = tableBody.querySelector('td[colspan="6"]');
+        if (placeholder) placeholder.parentElement.remove();
+
+        const newRow = tableBody.insertRow(0); // Insert at the top
+        newRow.innerHTML = `
+            <td>${run.id}</td>
+            <td>${run.start_time}</td>
+            <td>${run.end_time || 'N/A'}</td>
+            <td>${run.goal}</td>
+            <td>${run.constraints}</td>
+            <td>${run.status}</td>
+        `;
+    }
+
+    // --- API Call Functions ---
+
+    function startAutopilot() {
+        const goalInput = document.getElementById('ap-goal');
+        const constraintsInput = document.getElementById('ap-constraints');
+        const goal = goalInput ? goalInput.value : '';
+        const constraints = constraintsInput ? constraintsInput.value : '';
+
+        if (!goal) {
+            alert('Please enter a goal for the Autopilot run.');
+            return;
+        }
+
+        fetch('/api/autopilot/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goal: goal, constraints: constraints || 'None' }) // Send 'None' if constraints are empty
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Try to parse error message from backend if available
+                return response.json().then(err => { throw new Error(err.error || `HTTP error! status: ${response.status}`) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Start response:", data);
+            if (data.status) {
+                updateAutopilotStatus(data.status);
+                // Add the newly started run to the history table visually
+                if (data.status.current_run) {
+                    // Ensure the run object passed has a 'status' field for the history table
+                    const runForHistory = { ...data.status.current_run, status: data.status.state };
+                    addHistoryRow(runForHistory);
+                }
+                // Optionally flash message via JS or rely on backend redirect/flash
+                // Example: displayFlashMessage('Autopilot started successfully!', 'success');
+            } else {
+                // This path might not be reached if errors are thrown above
+                alert(`Error starting Autopilot: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error starting Autopilot:', error);
+            alert(`Failed to start Autopilot run: ${error.message}`);
+        });
+    }
+
+    function stopAutopilot() {
+        if (!confirm('Are you sure you want to stop the current Autopilot run?')) {
+            return;
+        }
+
+        fetch('/api/autopilot/stop', { method: 'POST' })
+        .then(response => {
+             if (!response.ok) {
+                // Try to parse error message from backend if available
+                return response.json().then(err => { throw new Error(err.error || `HTTP error! status: ${response.status}`) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Stop response:", data);
+            if (data.status) {
+                // Update status display immediately
+                updateAutopilotStatus(data.status);
+                // Reload the page to get the updated history table from the server
+                alert('Autopilot stopped successfully. Refreshing page...'); // Give user feedback before reload
+                window.location.reload();
+            } else {
+                 // This path might not be reached if errors are thrown above
+                alert(`Error stopping Autopilot: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error stopping Autopilot:', error);
+            alert(`Failed to stop Autopilot run: ${error.message}`);
+        });
+    }
+
+    // --- Optional: Function to display flash-like messages via JS ---
+    /*
+    function displayFlashMessage(message, category) {
+        const container = document.querySelector('.flash-messages'); // Assuming you have this container
+        if (!container) return;
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${category}`;
+        alertDiv.textContent = message;
+
+        container.appendChild(alertDiv);
+
+        // Optional: Remove the message after some time
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000); // Remove after 5 seconds
+    }
+    */
+
+</script>
+
+{% endblock %}

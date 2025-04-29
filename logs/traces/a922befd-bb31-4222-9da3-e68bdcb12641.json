@@ -1,0 +1,41 @@
+{
+  "trace_id": "a922befd-bb31-4222-9da3-e68bdcb12641",
+  "input": {
+    "state": {
+      "turn": 4,
+      "sim_id": "d220d06f-d9c1-42f6-91c5-c7375bbe950e",
+      "timestamp": "2025-04-28T19:05:29.979710",
+      "overlays": {
+        "hope": 0.45999999999999996,
+        "despair": 0.45999999999999996,
+        "rage": 0.45999999999999996,
+        "fatigue": 0.45999999999999996,
+        "trust": 0.45999999999999996
+      },
+      "capital": {
+        "nvda": 0.0,
+        "msft": 0.0,
+        "ibit": 0.0,
+        "spy": 0.0,
+        "cash": 100000.0
+      },
+      "variables": {},
+      "event_count": 92,
+      "metadata": {}
+    },
+    "decay_rate": 0.01,
+    "rule_fn": "<lambda>"
+  },
+  "output": {
+    "overlays": {
+      "hope": 0.45999999999999996,
+      "despair": 0.45999999999999996,
+      "rage": 0.45999999999999996,
+      "fatigue": 0.45999999999999996,
+      "trust": 0.45999999999999996
+    },
+    "variables": {},
+    "trust": null,
+    "forks": []
+  }
+}

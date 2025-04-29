@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pulse UI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Add links to CSS frameworks or Plotly JS if needed later -->
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Pulse UI</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('retrodiction') }}">Retrodiction</a></li>
+                    <li><a href="{{ url_for('forecasting') }}">Forecasting</a></li>
+                    <li><a href="{{ url_for('memory_explorer') }}">Memory Explorer</a></li>
+                    <li><a href="{{ url_for('autopilot') }}">Autopilot Control</a></li>
+<li><a href="{{ url_for('variable_explorer') }}">Variable Explorer</a></li>
+                    <li><a href="{{ url_for('settings') }}">Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>{% block header %}{% endblock %}</h1>
+            </header>
+            <section class="content-area">
+                {% block content %}{% endblock %}
+            </section>
+        </main>
+    </div>
+    <!-- Add script tags if needed later -->
+</body>
+</html>

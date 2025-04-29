@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Variable Explorer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Variable Explorer</h2>
+    <p>Select a variable to view its data and chart.</p>
+
+    <div class="mb-3">
+        <label for="variableSearchInput" class="form-label">Search Variable:</label>
+        <input class="form-control" list="variableOptions" id="variableSearchInput" placeholder="Type or select a variable...">
+        <datalist id="variableOptions">
+            <!-- Options will be populated by JavaScript -->
+        </datalist>
+        <button id="loadVariableButton" class="btn btn-primary mt-2">Load Variable</button>
+    </div>
+
+    <div id="chartStatus" class="mt-3">
+        <!-- Status messages like loading/error will appear here -->
+    </div>
+
+    <div id="plotlyChart" class="mt-3" style="min-height: 400px;">
+        <!-- Plotly chart will be rendered here -->
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('variableSearchInput');
+        const dataList = document.getElementById('variableOptions');
+        const loadButton = document.getElementById('loadVariableButton');
+        const chartDiv = document.getElementById('plotlyChart');
+        const statusDiv = document.getElementById('chartStatus');
+        let variableNames = []; // To store fetched variable names
+
+        // 1. Fetch variable list on page load
+        fetch('/api/variables/list')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                variableNames = data.variables; // Assuming the API returns { "variables": [...] }
+                variableNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    dataList.appendChild(option);
+                });
+                console.log("Variable list loaded:", variableNames);
+            })
+            .catch(error => {
+                console.error('Error fetching variable list:', error);
+                statusDiv.innerHTML = `<div class="alert alert-danger" role="alert">Error loading variable list: ${error.message}</div>`;
+            });
+
+        // Function to load and display chart
+        function loadChart(variableName) {
+            if (!variableName || !variableNames.includes(variableName)) {
+                 statusDiv.innerHTML = `<div class="alert alert-warning" role="alert">Please select a valid variable from the list.</div>`;
+                 chartDiv.innerHTML = ''; // Clear previous chart
+                 return;
+            }
+
+            statusDiv.innerHTML = `<div class="alert alert-info" role="alert">Loading data for ${variableName}...</div>`;
+            chartDiv.innerHTML = ''; // Clear previous chart
+
+            fetch(`/api/variables/data/${encodeURIComponent(variableName)}`)
+                .then(response => {
+                    if (!response.ok) {
+                         throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.chart_json) {
+                        const chartData = JSON.parse(data.chart_json);
+                        Plotly.newPlot(chartDiv, chartData.data, chartData.layout);
+                        statusDiv.innerHTML = `<div class="alert alert-success" role="alert">Displaying chart for ${variableName}.</div>`;
+                    } else {
+                        throw new Error("Chart data not found in response.");
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching data for ${variableName}:`, error);
+                    statusDiv.innerHTML = `<div class="alert alert-danger" role="alert">Error loading chart for ${variableName}: ${error.message}</div>`;
+                    chartDiv.innerHTML = ''; // Clear chart area on error
+                });
+        }
+
+        // 2. Event listener for the load button
+        loadButton.addEventListener('click', function() {
+            const selectedVariable = searchInput.value.trim();
+            loadChart(selectedVariable);
+        });
+
+        // Optional: Load chart when pressing Enter in the input field
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission if it were in a form
+                const selectedVariable = searchInput.value.trim();
+                loadChart(selectedVariable);
+            }
+        });
+
+         // Optional: Load chart when selecting from datalist (might need adjustments based on browser behavior)
+         searchInput.addEventListener('input', function(event) {
+             // Check if the input value exactly matches an option after selection
+             if (variableNames.includes(searchInput.value)) {
+                 // Debounce or add a small delay if needed to avoid rapid firing
+                 // setTimeout(() => loadChart(searchInput.value), 100); // Example debounce
+             }
+         });
+
+    });
+</script>
+{% endblock %}

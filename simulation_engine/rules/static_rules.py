@@ -12,9 +12,11 @@ from core.variable_accessor import get_variable, set_variable, get_overlay
 from core.path_registry import PATHS
 # from forecast_tags import ... # Uncomment and use if forecast_tags are needed
 
+from pipeline.rule_applier import load_proposed_rule_changes, apply_rule_changes
+
 def build_static_rules(param_overrides=None):
     """
-    Build static rules with optional parameter overrides.
+    Build static rules with optional parameter overrides and apply proposed changes.
     param_overrides: dict of {rule_id: {param_name: value}}
     """
     param_overrides = param_overrides or {}
@@ -42,4 +44,10 @@ def build_static_rules(param_overrides=None):
             "enabled": True
         }
     ]
+
+    # Load and apply proposed rule changes
+    proposed_changes = load_proposed_rule_changes()
+    if proposed_changes:
+        rules = apply_rule_changes(proposed_changes, rules)
+
     return rules

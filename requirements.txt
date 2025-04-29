@@ -1,5 +1,4 @@
-graphviz
-pyyaml
+schedule
 
 pandas
 networkx
@@ -27,6 +26,15 @@ newsapi-python
 kaggle
 polygon.io
 pytrends
-world_bank_data 
-wikipedia-api 
-beautifulsoup4 
+world_bank_data
+wikipedia-api
+beautifulsoup4
+openai
+
+Flask
+python-dotenv
+plotly
+chromadb
+tree_sitter_python
+tqdm
+

@@ -24,3 +24,11 @@
 #       public_trust_level: 0.3
 #
 # Add additional keys as needed for your simulation modules.
+
+default:
+  # OpenAI Integration Settings
+  # API key can be set directly here or preferably via OPENAI_API_KEY environment variable
+  openai_api_key: ${OPENAI_API_KEY:""} # Reads from env var, defaults to empty string if not set
+  default_model_name: "gpt-4" # Default model for GPTCaller
+
+# Add scenario_presets or other sections below if needed
