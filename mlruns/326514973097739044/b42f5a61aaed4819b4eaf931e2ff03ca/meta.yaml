@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/b42f5a61aaed4819b4eaf931e2ff03ca/artifacts
+end_time: 1745996345773
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: b42f5a61aaed4819b4eaf931e2ff03ca
+run_name: traveling-hog-281
+run_uuid: b42f5a61aaed4819b4eaf931e2ff03ca
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745996345725
+status: 3
+tags: []
+user_id: natew

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/c7b743fd976f42229f72a3dc32b294ac/artifacts
+end_time: 1745994979678
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: c7b743fd976f42229f72a3dc32b294ac
+run_name: sassy-tern-694
+run_uuid: c7b743fd976f42229f72a3dc32b294ac
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994979643
+status: 3
+tags: []
+user_id: natew

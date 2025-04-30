@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/c99560d62ece4e49bf40f0dc7bc4ff43/artifacts
+end_time: 1746001866826
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: c99560d62ece4e49bf40f0dc7bc4ff43
+run_name: placid-ox-508
+run_uuid: c99560d62ece4e49bf40f0dc7bc4ff43
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746001866790
+status: 3
+tags: []
+user_id: natew

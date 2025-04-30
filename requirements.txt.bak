@@ -1,5 +1,4 @@
 schedule
-
 pandas
 networkx
 pydot
@@ -11,14 +10,11 @@ uvicorn
 watchdog
 boto3
 tweepy
-
 torch
-
 numpy
 gym
 stable-baselines3
 mlflow
-
 yfinance
 fredapi
 pandas_datareader
@@ -30,7 +26,14 @@ world_bank_data
 wikipedia-api
 beautifulsoup4
 openai
-
 Flask
 python-dotenv
 plotly
+chromadb
+tree_sitter_python
+tqdm
+google-generative-ai
+celery
+pytest
+prometheus_client
+graphviz

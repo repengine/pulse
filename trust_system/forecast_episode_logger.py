@@ -15,7 +15,7 @@ Version: v1.0.1
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Optional, Any
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -40,7 +40,7 @@ def log_episode(forecast: Dict, path: str = EPISODE_LOG_PATH) -> None:
         "arc_label": forecast.get("arc_label", "unknown"),
         "symbolic_tag": forecast.get("symbolic_tag", "unknown"),
         "confidence": forecast.get("confidence"),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "overlays": overlays
     }
 
@@ -144,7 +144,7 @@ def log_episode_event(event_type: str, payload: Any, path: str = EPISODE_LOG_PAT
         entry = {
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         with open(path, "a") as f:
             f.write(json.dumps(entry) + "\n")

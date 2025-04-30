@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/53acf503ef9945f084fb186139064d02/artifacts
+end_time: 1745995509392
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 53acf503ef9945f084fb186139064d02
+run_name: rare-frog-342
+run_uuid: 53acf503ef9945f084fb186139064d02
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995509347
+status: 3
+tags: []
+user_id: natew

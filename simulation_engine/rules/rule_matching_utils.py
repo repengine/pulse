@@ -41,6 +41,10 @@ def match_rule_by_delta(
     results = []
     for rule in fingerprints:
         effects = rule.get("effects", {})
+        # Check if effects is a dictionary before trying to use it as one
+        if not isinstance(effects, dict):
+            continue
+        
         match_keys = set(delta) & set(effects)
         if not match_keys:
             continue

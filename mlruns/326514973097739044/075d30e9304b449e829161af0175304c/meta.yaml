@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/075d30e9304b449e829161af0175304c/artifacts
+end_time: 1745995296253
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 075d30e9304b449e829161af0175304c
+run_name: delicate-stork-911
+run_uuid: 075d30e9304b449e829161af0175304c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995296214
+status: 3
+tags: []
+user_id: natew

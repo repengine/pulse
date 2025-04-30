@@ -18,12 +18,16 @@ class TestPulseUIPlot(unittest.TestCase):
                 f.write(json.dumps(entry) + "\n")
 
     def test_variable_trace_load(self):
-        steps, values = load_variable_trace(self.temp_file, "hope")
+        result = load_variable_trace(self.temp_file, ["hope"])
+        self.assertIn("hope", result)
+        steps, values = result["hope"]
         self.assertEqual(steps, [0, 1, 2])
         self.assertEqual(values, [0.6, 0.61, 0.58])
 
     def test_missing_variable(self):
-        steps, values = load_variable_trace(self.temp_file, "rage")
+        result = load_variable_trace(self.temp_file, ["rage"])
+        self.assertIn("rage", result)
+        steps, values = result["rage"]
         self.assertEqual(steps, [])
         self.assertEqual(values, [])
 

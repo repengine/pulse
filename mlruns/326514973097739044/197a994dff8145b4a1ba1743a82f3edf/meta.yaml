@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/197a994dff8145b4a1ba1743a82f3edf/artifacts
+end_time: 1746002100955
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 197a994dff8145b4a1ba1743a82f3edf
+run_name: capable-finch-551
+run_uuid: 197a994dff8145b4a1ba1743a82f3edf
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746002100919
+status: 3
+tags: []
+user_id: natew

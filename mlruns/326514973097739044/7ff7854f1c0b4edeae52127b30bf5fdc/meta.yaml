@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/7ff7854f1c0b4edeae52127b30bf5fdc/artifacts
+end_time: 1745995296609
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 7ff7854f1c0b4edeae52127b30bf5fdc
+run_name: wise-flea-292
+run_uuid: 7ff7854f1c0b4edeae52127b30bf5fdc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995296573
+status: 3
+tags: []
+user_id: natew

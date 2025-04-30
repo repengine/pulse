@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/62ca6272bf0e4b8fbf03f970d08b5c85/artifacts
+end_time: 1746002101285
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 62ca6272bf0e4b8fbf03f970d08b5c85
+run_name: righteous-vole-680
+run_uuid: 62ca6272bf0e4b8fbf03f970d08b5c85
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746002101249
+status: 3
+tags: []
+user_id: natew

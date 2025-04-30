@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/e2dd09cc3875412095c746c20715cf2b/artifacts
+end_time: 1745995458422
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: e2dd09cc3875412095c746c20715cf2b
+run_name: skillful-auk-976
+run_uuid: e2dd09cc3875412095c746c20715cf2b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995458366
+status: 3
+tags: []
+user_id: natew

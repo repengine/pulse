@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/baabcecd33c5434d8d30351bdaca02fd/artifacts
+end_time: 1745995010326
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: baabcecd33c5434d8d30351bdaca02fd
+run_name: selective-shoat-857
+run_uuid: baabcecd33c5434d8d30351bdaca02fd
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995010290
+status: 3
+tags: []
+user_id: natew

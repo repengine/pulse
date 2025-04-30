@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/8b69dea44a6b4f14be5be78fe94a0e0b/artifacts
+end_time: 1745996345952
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 8b69dea44a6b4f14be5be78fe94a0e0b
+run_name: invincible-carp-388
+run_uuid: 8b69dea44a6b4f14be5be78fe94a0e0b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745996345908
+status: 3
+tags: []
+user_id: natew

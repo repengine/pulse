@@ -30,7 +30,7 @@ Log Output:
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
@@ -96,7 +96,7 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
         "symbolic_tag": label,
         "symbolic_tag_enum": tag.name,
         "symbolic_overlays": overlays,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "metadata": {
             "version": "v0.30.1",
             "source": "symbolic_state_tagger.py",

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/473840290d0b4d2eb6b00bd2957f2ecc/artifacts
+end_time: 1746001523074
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 473840290d0b4d2eb6b00bd2957f2ecc
+run_name: sedate-fish-317
+run_uuid: 473840290d0b4d2eb6b00bd2957f2ecc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746001523038
+status: 3
+tags: []
+user_id: natew

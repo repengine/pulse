@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/0ce758d408a84a01be90c5b2f7472a72/artifacts
+end_time: 1746002036767
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 0ce758d408a84a01be90c5b2f7472a72
+run_name: smiling-dove-610
+run_uuid: 0ce758d408a84a01be90c5b2f7472a72
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746002036727
+status: 3
+tags: []
+user_id: natew

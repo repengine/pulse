@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/dbabc900890447df88a806fddbd7739e/artifacts
+end_time: 1745997355091
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: dbabc900890447df88a806fddbd7739e
+run_name: able-foal-77
+run_uuid: dbabc900890447df88a806fddbd7739e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745997355056
+status: 3
+tags: []
+user_id: natew

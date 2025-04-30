@@ -53,7 +53,13 @@ def run_batch_from_config(
         try:
             log_info(f"[BATCH] Running batch {i+1}/{len(configs)}")
             # Step 1: Initialize worldstate
-            state = WorldState(**cfg.get("state_overrides", {}))
+            # Step 1: Initialize worldstate
+            state = WorldState() # Initialize without passing overrides to constructor
+            state_overrides = cfg.get("state_overrides", {})
+            if state_overrides:
+                # Apply overrides after initialization
+                from simulation_engine.worldstate import SymbolicOverlays # Import SymbolicOverlays
+                state.overlays = SymbolicOverlays.from_dict(state_overrides) # Corrected attribute name
             for _ in range(cfg.get("turns", 1)):
                 run_turn(state, learning_engine=learning_engine)
             # Step 2: Generate forecasts

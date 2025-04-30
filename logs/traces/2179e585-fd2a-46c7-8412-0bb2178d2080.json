@@ -1,0 +1,14 @@
+{
+  "trace_id": "2179e585-fd2a-46c7-8412-0bb2178d2080",
+  "input": {},
+  "output": {
+    "ensemble_forecast": 100.0,
+    "risk_score": 0.01,
+    "historical_consistency": 1.0,
+    "confidence": 0.6,
+    "fragility": 0.0,
+    "fragility_label": "\ud83d\udfe2 Stable",
+    "confidence_status": "\u2705 Actionable",
+    "arc_label": "arc_unknown"
+  }
+}

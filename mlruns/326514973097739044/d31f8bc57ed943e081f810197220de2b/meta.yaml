@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/d31f8bc57ed943e081f810197220de2b/artifacts
+end_time: 1745994950544
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: d31f8bc57ed943e081f810197220de2b
+run_name: burly-ant-192
+run_uuid: d31f8bc57ed943e081f810197220de2b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994950506
+status: 3
+tags: []
+user_id: natew

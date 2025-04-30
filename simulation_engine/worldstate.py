@@ -12,7 +12,7 @@ import copy
 import json
 import uuid
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 @dataclass
@@ -121,7 +121,9 @@ class Variables:
         return self.data.copy()
     
     def __getattr__(self, name):
-        """Allow dot notation access to variables."""
+        """Allow dot notation access to variables, but avoid recursion for magic attributes."""
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError(f"Special attribute {name} not found")
         if name in self.data:
             return self.data[name]
         raise AttributeError(f"Variable '{name}' not found")
@@ -190,7 +192,7 @@ class WorldState:
         """Add an event to the simulation log."""
         if not isinstance(message, str):
             message = str(message)
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         self.event_log.append(f"[{timestamp}][Turn {self.turn}] {message}")
     
     def advance_turn(self) -> int:
@@ -214,7 +216,7 @@ class WorldState:
         return {
             "turn": self.turn,
             "sim_id": self.sim_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "overlays": self.overlays.as_dict(),
             "capital": self.capital.as_dict(),
             "variables": self.variables.as_dict(),

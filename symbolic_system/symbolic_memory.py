@@ -21,7 +21,7 @@ Status: ✅ Built + Enhanced
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
@@ -46,7 +46,7 @@ def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "
     ensure_log_dir(path)
 
     entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "simulation_id": sim_id,
         "turn": turn,
         "symbolic_overlays": overlays,

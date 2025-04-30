@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/b477643d8f4443bebe6473123eef8386/artifacts
+end_time: 1745997511772
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: b477643d8f4443bebe6473123eef8386
+run_name: puzzled-mink-83
+run_uuid: b477643d8f4443bebe6473123eef8386
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745997511737
+status: 3
+tags: []
+user_id: natew

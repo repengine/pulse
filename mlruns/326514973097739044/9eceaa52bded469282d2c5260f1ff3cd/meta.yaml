@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/9eceaa52bded469282d2c5260f1ff3cd/artifacts
+end_time: 1746001866878
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 9eceaa52bded469282d2c5260f1ff3cd
+run_name: unleashed-moth-703
+run_uuid: 9eceaa52bded469282d2c5260f1ff3cd
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746001866840
+status: 3
+tags: []
+user_id: natew

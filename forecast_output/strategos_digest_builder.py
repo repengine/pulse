@@ -282,6 +282,7 @@ def build_digest(
     try:
         from forecast_output.dual_narrative_compressor import generate_dual_scenarios
         from forecast_output.strategic_fork_resolver import resolve_all_forks
+        from forecast_output.cluster_memory_compressor import score_forecast # Corrected import
         dual_narrative_scenarios = generate_dual_scenarios(flattened)
         fork_decisions = resolve_all_forks(dual_narrative_scenarios)
     except Exception as e:
@@ -343,16 +344,6 @@ def build_digest(
                 mutation_log_md = "## 🔧 Mutation Log\n" + mutation_log_md
         except Exception as e:
             mutation_log_md = f"## 🔧 Mutation Log\n- Error: {e}\n"
-
-    # --- PATCH: Capital/Symbolic Trends ---
-    capital_trends_md = ""
-    if generate_capital_trends_report and config.get("show_capital_trends", True):
-        try:
-            capital_trends_md = generate_capital_trends_report(forecast_batch, fmt="markdown")
-            if capital_trends_md and not capital_trends_md.startswith("##"):
-                capital_trends_md = "## 📊 Capital/Symbolic Trends\n" + capital_trends_md
-        except Exception as e:
-            capital_trends_md = f"## 📊 Capital/Symbolic Trends\n- Error: {e}\n"
 
     # Tag filter
     if tag_filter:
@@ -421,8 +412,8 @@ def build_digest(
                     if drivers:
                         lines.append(f"<b>Top Drivers:</b> {', '.join(drivers)}<br>")
                 for f in cluster:
-                    prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
-                    f["prompt_hash"] = prompt_hash
+                    calculated_prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
+                    f["prompt_hash"] = calculated_prompt_hash
                     for k in fields:
                         v = f.get(k, "N/A")
                         lines.append(f"<b>{k}:</b> {v}<br>")
@@ -487,8 +478,6 @@ def build_digest(
             lines.append(learning_summary_md)
         if mutation_log_md:
             lines.append(mutation_log_md)
-        if capital_trends_md:
-            lines.append(capital_trends_md)
 
         # ✅ PATCH B Step 2: Insert symbolic contradiction digest section
         if format_contradiction_cluster_md and load_symbolic_conflict_events:
@@ -591,8 +580,8 @@ def build_digest(
                 if drivers and isinstance(drivers, list) and len(drivers) > 0:
                     lines.append(f"Top Drivers: {', '.join(drivers)}")
             for f in cluster_list:
-                get_prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
-                f["prompt_hash"] = get_prompt_hash
+                prompt_hash_value = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
+                f["prompt_hash"] = prompt_hash_value
                 # Ensure fields is a list before passing to render_fields
                 safe_fields = fields if isinstance(fields, list) else DEFAULT_FIELDS
                 lines.extend(render_fields(f, safe_fields))

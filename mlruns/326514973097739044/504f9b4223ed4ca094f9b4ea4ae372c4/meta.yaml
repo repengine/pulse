@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/504f9b4223ed4ca094f9b4ea4ae372c4/artifacts
+end_time: 1745996878885
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 504f9b4223ed4ca094f9b4ea4ae372c4
+run_name: welcoming-fowl-656
+run_uuid: 504f9b4223ed4ca094f9b4ea4ae372c4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745996878844
+status: 3
+tags: []
+user_id: natew

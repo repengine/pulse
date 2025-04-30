@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/1859f3085362490d9cf2de7cb54ce4ec/artifacts
+end_time: 1745994950417
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 1859f3085362490d9cf2de7cb54ce4ec
+run_name: treasured-whale-784
+run_uuid: 1859f3085362490d9cf2de7cb54ce4ec
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994950369
+status: 3
+tags: []
+user_id: natew

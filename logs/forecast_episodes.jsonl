@@ -1,0 +1,16 @@
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T07:26:48.242537"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T07:26:48.248070"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:15:23.532780"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:15:23.537630"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:25:22.499520"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:25:22.504819"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:29:46.914803"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:29:46.919903"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:31:06.203903"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:31:06.209189"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:33:13.723769"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:33:13.730965"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:33:56.557999"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:33:56.562903"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 0, "overlay_diff": {"var1": -1.0, "var2": -2.0}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:35:00.693008"}
+{"event_type": "retrodiction_comparison", "payload": {"turn": 1, "overlay_diff": {"var1": -1.1, "var2": -2.1}, "variable_diff": {"var1": 0.0, "var2": 0.0}}, "timestamp": "2025-04-30T08:35:00.698056"}

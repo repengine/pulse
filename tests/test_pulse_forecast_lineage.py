@@ -2,7 +2,7 @@ import os
 import json
 import tempfile
 import pytest
-from output import pulse_forecast_lineage as pfl
+from forecast_output import pulse_forecast_lineage as pfl
 
 @pytest.fixture
 def sample_forecasts():
@@ -34,7 +34,9 @@ def test_fork_count(sample_forecasts):
 
 def test_drift_score(sample_forecasts):
     ds = pfl.drift_score(sample_forecasts, drift_key="symbolic_tag")
-    assert ds == {"A": 1, "B": 1}
+    # Only A has a drift (C has different tag than A)
+    # B doesn't have drifting children (D has same tag as B)
+    assert ds == {"A": 1}
 
 def test_get_symbolic_arc(sample_forecasts):
     arc = pfl.get_symbolic_arc(sample_forecasts[0])
@@ -62,7 +64,8 @@ def test_confidence_color():
 
 def test_export_graphviz_dot_color_by(sample_forecasts):
     if pfl.graphviz is None:
-        pytest.skip("graphviz not installed")
+        pytest.skip("Graphviz not installed. This is an optional dependency. "
+                    "To install: pip install graphviz (and system-level graphviz package)")
     with tempfile.TemporaryDirectory() as tmpdir:
         for color_by in ("arc", "confidence", "none"):
             dot_path = os.path.join(tmpdir, f"lineage_{color_by}.dot")

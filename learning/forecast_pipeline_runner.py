@@ -17,9 +17,11 @@ Author: Pulse v0.23
 from typing import List, Dict, Optional, Any
 from core.pulse_config import USE_SYMBOLIC_OVERLAYS
 from forecast_output.forecast_compressor import compress_forecasts
+from intelligence.forecast_schema import ForecastSchema # Import ForecastSchema
+from pydantic import ValidationError # Import ValidationError
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from forecast_output.strategos_digest_builder import build_digest
-from trust_system.trust_engine import score_forecasts
+from trust_system.trust_engine import TrustEngine
 from trust_system.fragility_detector import tag_fragility
 from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_memory
 from memory.forecast_memory import ForecastMemory
@@ -80,7 +82,10 @@ def run_forecast_pipeline(
 
     # Step 1: Score trust + fragility
     try:
-        scored = score_forecasts(forecasts)
+        # Score each forecast individually
+        for forecast in forecasts:
+            forecast['confidence'] = TrustEngine.score_forecast(forecast)
+        scored = forecasts # Rename for clarity in subsequent steps
         scored = tag_fragility(scored)
         # Apply confidence + fragility filter
         scored = filter_by_confidence(scored)
@@ -177,19 +182,36 @@ def run_forecast_pipeline(
             else:
                 f["gpt_fingerprint_status"] = "matched"
         # 3. Compute symbolic convergence loss if both Pulse and GPT outputs are present
-        pulse_output = f.get("pulse_output") or f
-        gpt_struct = f.get("gpt_struct") or f.get("gpt_output_struct") or f
-        try:
-            loss = compute_symbolic_convergence_loss(pulse_output, gpt_struct)
-            f["symbolic_convergence_loss"] = loss
-        except Exception:
-            f["symbolic_convergence_loss"] = None
+        # Attempt to extract data conforming to ForecastSchema from nested keys
+        pulse_data = f.get("pulse_data") # Assuming 'pulse_data' key holds Pulse output conforming to schema
+        gpt_data = f.get("gpt_data") # Assuming 'gpt_data' key holds GPT output conforming to schema
+
+        loss = None # Initialize loss
+        pulse_forecast_schema = None # Initialize schema objects
+        gpt_forecast_schema = None
+
+        if pulse_data and gpt_data:
+            try:
+                # Validate and compute loss if data conforms to schema
+                pulse_forecast_schema = ForecastSchema(**pulse_data)
+                gpt_forecast_schema = ForecastSchema(**gpt_data)
+                loss = compute_symbolic_convergence_loss(pulse_forecast_schema, gpt_forecast_schema)
+                f["symbolic_convergence_loss"] = loss
+            except (ValidationError, Exception) as e: # Add except block
+                log_info(f"[PIPELINE] Symbolic convergence loss computation failed: {e}")
+                f["symbolic_convergence_loss"] = None
         # 4. Log divergence type
-        try:
-            div_type = tag_divergence_type(pulse_output, gpt_struct)
-            f["diverggence_type"] = div_type
-            log_forecast_divergence(pulse_output, gpt_struct, div_type)
-        except Exception:
+        # 4. Log divergence type
+        if pulse_data and gpt_data: # Only attempt if data is available
+            try:
+                # Use the original data dictionaries for divergence functions
+                div_type = tag_divergence_type(pulse_data, gpt_data)
+                f["diverggence_type"] = div_type
+                log_forecast_divergence(pulse_data, gpt_data, div_type)
+            except Exception as e:
+                log_info(f"[PIPELINE] Divergence tagging/logging failed: {e}")
+                f["diverggence_type"] = None
+        else:
             f["diverggence_type"] = None
 
     # Step 4: Compress forecasts

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/a3c59b488ae6457aa55c04486c62762f/artifacts
+end_time: 1745994950125
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: a3c59b488ae6457aa55c04486c62762f
+run_name: bold-colt-141
+run_uuid: a3c59b488ae6457aa55c04486c62762f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994950034
+status: 3
+tags: []
+user_id: natew

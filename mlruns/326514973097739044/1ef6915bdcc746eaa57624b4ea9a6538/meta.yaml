@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/1ef6915bdcc746eaa57624b4ea9a6538/artifacts
+end_time: 1746000924365
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 1ef6915bdcc746eaa57624b4ea9a6538
+run_name: gifted-moth-485
+run_uuid: 1ef6915bdcc746eaa57624b4ea9a6538
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746000924327
+status: 3
+tags: []
+user_id: natew

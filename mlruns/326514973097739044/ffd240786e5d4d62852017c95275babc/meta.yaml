@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/ffd240786e5d4d62852017c95275babc/artifacts
+end_time: 1745994905517
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: ffd240786e5d4d62852017c95275babc
+run_name: melodic-snipe-459
+run_uuid: ffd240786e5d4d62852017c95275babc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994905478
+status: 3
+tags: []
+user_id: natew

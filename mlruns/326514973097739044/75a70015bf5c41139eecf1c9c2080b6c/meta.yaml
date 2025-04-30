@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/75a70015bf5c41139eecf1c9c2080b6c/artifacts
+end_time: 1745994979377
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 75a70015bf5c41139eecf1c9c2080b6c
+run_name: skittish-wolf-960
+run_uuid: 75a70015bf5c41139eecf1c9c2080b6c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994979342
+status: 3
+tags: []
+user_id: natew

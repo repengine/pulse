@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/882023ee4b444f528a19cd35be5bbe09/artifacts
+end_time: 1745995509740
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 882023ee4b444f528a19cd35be5bbe09
+run_name: luminous-hound-799
+run_uuid: 882023ee4b444f528a19cd35be5bbe09
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995509686
+status: 3
+tags: []
+user_id: natew

@@ -151,11 +151,22 @@ def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, th
             fc["drift_flag"] = "✅ Stable"
     return forecasts
 
+from trust_system.services.trust_enrichment_service import TrustEnrichmentService
+from trust_system.services.trust_scoring_strategy import TrustScoringStrategy, DefaultTrustScoringStrategy
+
 class TrustEngine:
     """
     Main interface for tagging, scoring, gating, and auditing forecasts.
     Produces trust metadata, applies thresholds, and audits symbolic coherence.
+    Now delegates enrichment and scoring to dedicated services (SRP, Strategy Pattern).
     """
+    def __init__(
+        self,
+        enrichment_service: Optional[TrustEnrichmentService] = None,
+        scoring_strategy: Optional[TrustScoringStrategy] = None
+    ):
+        self.enrichment_service = enrichment_service or TrustEnrichmentService()
+        self.scoring_strategy = scoring_strategy or DefaultTrustScoringStrategy()
 
     # ---- Symbolic Tagging ----
 
@@ -354,9 +365,15 @@ class TrustEngine:
         # Build lineage and lookup maps
         lineage = {f["trace_id"]: f.get("parent_id") for f in forecasts if f.get("trace_id") and f.get("parent_id")}
         by_id = {f["trace_id"]: f for f in forecasts if "trace_id" in f}
-        score_map = {k: 0 for k in ["same", "inverted", "rebound", "diverged", "unknown"]}
-        score_map["total"] = 0
-        score_map["avg_drift"] = 0.0  # Initialize as float to match expected type
+        score_map = {
+            "same": 0,
+            "inverted": 0,
+            "rebound": 0,
+            "diverged": 0,
+            "unknown": 0,
+            "total": 0,
+            "avg_drift": 0.0  # avg_drift is always a float
+        }
         drifts = []
         for child_id, parent_id in lineage.items():
             child = by_id.get(child_id)
@@ -371,7 +388,7 @@ class TrustEngine:
                 drifts.append(drift)
                 score_map["total"] += 1
         if drifts:
-            score_map["avg_drift"] = round(sum(drifts) / len(drifts), 4)
+            score_map["avg_drift"] = float(round(sum(drifts) / len(drifts), 4))
         return score_map
 
     @staticmethod
@@ -413,8 +430,8 @@ class TrustEngine:
 
     # ---- Trust Metadata Enrichment ----
 
-    @staticmethod
     def enrich_trust_metadata(
+        self,
         forecast: Dict,
         current_state: Optional[Dict] = None,
         memory: Optional[List[Dict]] = None,
@@ -424,35 +441,19 @@ class TrustEngine:
         license_explainer=None
     ):
         """
-        Compute all trust metrics and attach to forecast.
-
-        Args:
-            forecast (Dict): Forecast to enrich.
-            current_state (Optional[Dict]): Current worldstate for retrodiction.
-            memory (Optional[List[Dict]]): Past forecasts for novelty/alignment.
-            arc_drift (Optional[Dict[str, int]]): Arc drift deltas.
-            regret_log (Optional[List[Dict]]): Regret events for repeat flagging.
-            license_enforcer (callable): Function to assign license status.
-            license_explainer (callable): Function to explain license status.
-
-        Returns:
-            Dict: Enriched forecast with trust metadata.
-
-        Example:
-            enrich_trust_metadata(forecast, current_state, memory, arc_drift, regret_log)
-
-        Security:
-            No sensitive data is logged or exposed. All enrichment is local to the forecast object.
+        Delegates trust enrichment to the configured service.
         """
-        forecast = TrustEngine.tag_forecast(forecast)
-        forecast["confidence"] = TrustEngine.score_forecast(forecast, memory)
-        _enrich_fragility(forecast)
-        _enrich_retrodiction(forecast, current_state)
-        _enrich_alignment(forecast, current_state, memory)
-        _enrich_attention(forecast, arc_drift)
-        _enrich_regret(forecast, regret_log)
-        _enrich_license(forecast, license_enforcer, license_explainer)
-        run_trust_enrichment_plugins(forecast)
+        forecast = self.tag_forecast(forecast)
+        forecast["confidence"] = self.score_forecast(forecast, memory)
+        self.enrichment_service.enrich(
+            forecast,
+            current_state=current_state,
+            memory=memory,
+            arc_drift=arc_drift,
+            regret_log=regret_log,
+            license_enforcer=license_enforcer,
+            license_explainer=license_explainer
+        )
         # Add summary/explanation for operator interpretability
         explanations = []
         if forecast.get("trust_label") != "🟢 Trusted":
@@ -474,6 +475,31 @@ class TrustEngine:
             + (f"\nExplanation(s): {'; '.join(explanations)}" if explanations else "")
         )
         return forecast
+
+    @staticmethod
+    def enrich_trust_metadata_static(
+        forecast: Dict,
+        current_state: Optional[Dict] = None,
+        memory: Optional[List[Dict]] = None,
+        arc_drift: Optional[Dict[str, int]] = None,
+        regret_log: Optional[List[Dict]] = None,
+        license_enforcer=None,
+        license_explainer=None
+    ):
+        """
+        Backward-compatible static method for trust enrichment.
+        Uses a default TrustEngine instance.
+        """
+        engine = TrustEngine()
+        return engine.enrich_trust_metadata(
+            forecast,
+            current_state=current_state,
+            memory=memory,
+            arc_drift=arc_drift,
+            regret_log=regret_log,
+            license_enforcer=license_enforcer,
+            license_explainer=license_explainer
+        )
 
     # ---- Batch Application ----
 

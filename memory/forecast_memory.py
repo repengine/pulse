@@ -32,7 +32,9 @@ class ForecastMemory:
             persist_dir: Directory to persist forecasts. Defaults to PATHS["FORECAST_HISTORY"].
             max_entries: Maximum number of forecasts to retain in memory.
         """
-        self.persist_dir = persist_dir or PATHS["FORECAST_HISTORY"]
+        # Ensure persist_dir is always a string path
+        pd = persist_dir or PATHS["FORECAST_HISTORY"]
+        self.persist_dir = str(pd)
         self._memory: List[Dict] = []
         self.max_entries = max_entries or self.MAX_MEMORY_ENTRIES
         if self.persist_dir:

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/03e45cf617f3463bb83d14e725649a94/artifacts
+end_time: 1745996972901
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 03e45cf617f3463bb83d14e725649a94
+run_name: debonair-ape-183
+run_uuid: 03e45cf617f3463bb83d14e725649a94
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745996972866
+status: 3
+tags: []
+user_id: natew

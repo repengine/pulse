@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/e209f8cade654ea28a4abf8b0a484710/artifacts
+end_time: 1746001994435
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: e209f8cade654ea28a4abf8b0a484710
+run_name: rogue-worm-478
+run_uuid: e209f8cade654ea28a4abf8b0a484710
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746001994393
+status: 3
+tags: []
+user_id: natew

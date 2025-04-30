@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/940d9812ef064c84ab547038056c75a6/artifacts
+end_time: 1745994905880
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 940d9812ef064c84ab547038056c75a6
+run_name: useful-mouse-400
+run_uuid: 940d9812ef064c84ab547038056c75a6
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994905833
+status: 3
+tags: []
+user_id: natew

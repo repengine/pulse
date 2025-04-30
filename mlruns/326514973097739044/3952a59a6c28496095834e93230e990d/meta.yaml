@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/3952a59a6c28496095834e93230e990d/artifacts
+end_time: 1745994905635
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 3952a59a6c28496095834e93230e990d
+run_name: painted-skunk-523
+run_uuid: 3952a59a6c28496095834e93230e990d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994905595
+status: 3
+tags: []
+user_id: natew

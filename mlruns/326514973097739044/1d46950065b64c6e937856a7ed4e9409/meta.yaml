@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/1d46950065b64c6e937856a7ed4e9409/artifacts
+end_time: 1745995331080
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 1d46950065b64c6e937856a7ed4e9409
+run_name: bemused-mink-362
+run_uuid: 1d46950065b64c6e937856a7ed4e9409
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995331031
+status: 3
+tags: []
+user_id: natew

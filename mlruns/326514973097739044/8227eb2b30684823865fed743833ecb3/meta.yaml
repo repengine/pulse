@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/8227eb2b30684823865fed743833ecb3/artifacts
+end_time: 1745995331258
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 8227eb2b30684823865fed743833ecb3
+run_name: victorious-shrew-460
+run_uuid: 8227eb2b30684823865fed743833ecb3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995331220
+status: 3
+tags: []
+user_id: natew

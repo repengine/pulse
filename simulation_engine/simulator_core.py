@@ -58,7 +58,7 @@ from learning.learning import LearningEngine
 from core.pulse_learning_log import log_learning_event
 
 from typing import Dict, List, Any, Literal, Optional, Callable
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 def _validate_overlay(overlay: dict) -> bool:
@@ -79,14 +79,22 @@ def _copy_overlay(overlay: Dict[str, float]) -> Dict[str, float]:
 def reset_state(state: WorldState) -> None:
     """Reset overlays, variables, turn, and events for a fresh simulation."""
     # Optionally, reset capital and log as well if present
-    state.overlays = {k: 0.0 for k in getattr(state, 'overlays', {})}
-    state.variables = {k: 0.0 for k in getattr(state, 'variables', {})}
-    if hasattr(state, 'capital'):
-        state.capital = {k: 0.0 for k in getattr(state, 'capital', {})}
+    # Reset overlays
+    overlays = getattr(state, 'overlays', None)
+    if overlays and hasattr(overlays, "as_dict"):
+        state.overlays = type(overlays)(**{k: 0.0 for k in overlays.as_dict()})
+    # Reset variables
+    variables = getattr(state, 'variables', None)
+    if variables and hasattr(variables, "as_dict"):
+        state.variables = type(variables)({k: 0.0 for k in variables.as_dict()})
+    elif variables and hasattr(variables, "data"):
+        state.variables = type(variables)({k: 0.0 for k in variables.data})
+    # Reset capital
+    capital = getattr(state, 'capital', None)
+    if capital and hasattr(capital, "as_dict"):
+        state.capital = type(capital)(**{k: 0.0 for k in capital.as_dict()})
     state.turn = 0
-    state.events = []
-    if hasattr(state, 'log'):
-        state.log = []
+    state.event_log = []
 
 def simulate_turn(
     state: WorldState,
@@ -187,22 +195,32 @@ def simulate_turn(
         state.log_event(msg)
 
     # Compute overlay deltas for each key in pre_overlay
+    # Ensure overlays_now and pre_overlay are dicts for delta calculation
+    ov_now = overlays_now
+    if not isinstance(ov_now, dict) and hasattr(ov_now, "as_dict"):
+        ov_now = ov_now.as_dict()
+    pre_ov = pre_overlay
+    if not isinstance(pre_ov, dict) and hasattr(pre_ov, "as_dict"):
+        pre_ov = pre_ov.as_dict()
     output = {
         "turn": getattr(state, 'turn', -1),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "overlays": overlays_now,
         "deltas": {
-            k: round(overlays_now.get(k, 0.0) - pre_overlay.get(k, 0.0), 3) 
-            for k in set(pre_overlay) | set(overlays_now)
+            k: round(ov_now.get(k, 0.0) - pre_ov.get(k, 0.0), 3)
+            for k in set(pre_ov) | set(ov_now)
         }
     }
 
     # Apply symbolic tagging
     if use_symbolism:
         try:
+            sim_id_val = getattr(state, 'sim_id', None)
+            if sim_id_val is None:
+                sim_id_val = ""
             tag_result = tag_symbolic_state(
-                overlays_now, 
-                sim_id=getattr(state, 'sim_id', None), 
+                overlays_now,
+                sim_id=sim_id_val,
                 turn=getattr(state, 'turn', -1)
             )
             output.update(tag_result)
@@ -220,7 +238,8 @@ def simulate_turn(
 
     from trust_system.trust_engine import TrustEngine
     # --- Trust enrichment ---
-    output = TrustEngine.enrich_trust_metadata(output)
+    engine = TrustEngine()
+    output = engine.enrich_trust_metadata(output)
     # Warn if trust_label or confidence missing
     if "trust_label" not in output or "confidence" not in output:
         if logger:
@@ -267,33 +286,46 @@ def simulate_forward(
     results = []
     for i in range(turns):
         # Retrodiction injection of ground truth variables if strict injection mode
-        if retrodiction_mode and injection_mode == "strict_injection" and retrodiction_loader:
+        if retrodiction_mode and injection_mode == "strict_injection" and retrodiction_loader and hasattr(retrodiction_loader, "get_snapshot_by_turn"):
             snapshot = retrodiction_loader.get_snapshot_by_turn(i)
             if snapshot:
+                from simulation_engine.state_mutation import update_numeric_variable, adjust_overlay, adjust_capital
                 for var, val in snapshot.items():
-                    # Use core.variable_accessor.set_variable if available, else direct assignment
-                    try:
-                        from core.variable_accessor import set_variable
-                        set_variable(state, var, val)
-                    except ImportError:
-                        if hasattr(state.variables, "__setitem__"):
-                            state.variables[var] = val
-                        else:
-                            setattr(state, var, val)
+                    # Use bounded APIs for overlays, variables, and capital
+                    if hasattr(state.overlays, var):
+                        adjust_overlay(state, var, val - getattr(state.overlays, var, 0.0))
+                    elif hasattr(state.variables, var):
+                        update_numeric_variable(state, var, val - getattr(state.variables, var, 0.0))
+                    elif hasattr(state.capital, var):
+                        adjust_capital(state, var, val - getattr(state.capital, var, 0.0))
+                    else:
+                        # fallback for unknown variable
+                        try:
+                            from core.variable_accessor import set_variable
+                            set_variable(state, var, val)
+                        except ImportError:
+                            if hasattr(state.variables, "__setattr__"):
+                                state.variables.__setattr__(var, val)
+                            else:
+                                setattr(state, var, val)
                 if logger:
                     logger(f"[RETRO] Injected ground truth variables for turn {i}")
         # Simulate one turn
         turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger, learning_engine=learning_engine)
         # Retrodiction ground truth comparison and logging
-        if retrodiction_mode and retrodiction_loader:
+        if retrodiction_mode and retrodiction_loader and hasattr(retrodiction_loader, "get_snapshot_by_turn"):
             ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(i)
             if ground_truth_snapshot:
                 # Compare overlays and variables to ground truth
                 simulated_overlays = getattr(state, 'overlays', {})
                 simulated_vars = getattr(state, 'variables', {})
+                # Ensure simulated_overlays is a dict
+                ov_dict = simulated_overlays
+                if not isinstance(ov_dict, dict) and hasattr(ov_dict, "as_dict"):
+                    ov_dict = ov_dict.as_dict()
                 comparison = {
                     "turn": i,
-                    "overlay_diff": {k: simulated_overlays.get(k, 0.0) - ground_truth_snapshot.get(k, 0.0) for k in ground_truth_snapshot},
+                    "overlay_diff": {k: ov_dict.get(k, 0.0) - ground_truth_snapshot.get(k, 0.0) for k in ground_truth_snapshot},
                     "variable_diff": {k: simulated_vars.get(k, 0.0) - ground_truth_snapshot.get(k, 0.0) for k in ground_truth_snapshot}
                 }
                 # Log comparison to learning engine or episode logger
@@ -308,11 +340,12 @@ def simulate_forward(
                     pass
                 if logger:
                     logger(f"[RETRO] Compared simulated state to ground truth for turn {i}")
-# 4 BayesianTrustTracker Hook: batch update after retrodiction comparison
-            from core.bayesian_trust_tracker import bayesian_trust_tracker
-            batch_results = [(k, diff == 0.0) for k, diff in comparison["overlay_diff"].items()]
-            batch_results += [(k, diff == 0.0) for k, diff in comparison["variable_diff"].items()]
-            bayesian_trust_tracker.batch_update(batch_results)
+                # 4 BayesianTrustTracker Hook: batch update after retrodiction comparison
+                from core.bayesian_trust_tracker import bayesian_trust_tracker
+                if ground_truth_snapshot and 'comparison' in locals():
+                    batch_results = [(k, diff == 0.0) for k, diff in comparison["overlay_diff"].items()]
+                    batch_results += [(k, diff == 0.0) for k, diff in comparison["variable_diff"].items()]
+                    bayesian_trust_tracker.batch_update(batch_results)
         results.append(turn_data)
         # Checkpointing
         if checkpoint_every and checkpoint_path and (i + 1) % checkpoint_every == 0:
@@ -386,7 +419,7 @@ def simulate_backward(
     if hasattr(state.overlays, "as_dict"):
         overlays_now = state.overlays.as_dict()
     else:
-        overlays_now = dict(state.overlays)
+        overlays_now = state.overlays.as_dict()
     trace = []
     prev_overlays = overlays_now.copy()
     symbolic_trace = []
@@ -404,7 +437,10 @@ def simulate_backward(
         symbolic_tag = None
         if use_symbolism:
             try:
-                symbolic_tag = tag_symbolic_state(prior_overlays, sim_id=getattr(state, 'sim_id', None), turn=getattr(state, 'turn', 0) - (step + 1)).get("symbolic_tag", "N/A")
+                sim_id_val = getattr(state, 'sim_id', None)
+                if sim_id_val is None:
+                    sim_id_val = ""
+                symbolic_tag = tag_symbolic_state(prior_overlays, sim_id=sim_id_val, turn=getattr(state, 'turn', 0) - (step + 1)).get("symbolic_tag", "N/A")
             except Exception as e:
                 symbolic_tag = "error"
                 if logger: logger(f"[SIM-BACK] Symbolic tag error: {e}")
@@ -477,14 +513,17 @@ def simulate_counterfactual(
         if hasattr(fork.variables, "as_dict"):
             fork.variables.__dict__[k] = v
         else:
-            fork.variables[k] = v
+            fork.variables.__setattr__(k, v)
     fork_trace = simulate_forward(fork, turns=turns, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger)
     # Compute divergence (overlay delta per turn)
     divergence = []
     for i in range(min(len(base_trace), len(fork_trace))):
         base_ov = base_trace[i]["overlays"]
         fork_ov = fork_trace[i]["overlays"]
-        delta = {k: round(fork_ov.get(k, 0.0) - base_ov.get(k, 0.0), 4) for k in base_ov}
+        # Ensure fork_ov and base_ov are dicts
+        fork_ov_dict = fork_ov.as_dict() if hasattr(fork_ov, "as_dict") else fork_ov
+        base_ov_dict = base_ov.as_dict() if hasattr(base_ov, "as_dict") else base_ov
+        delta = {k: round(fork_ov_dict.get(k, 0.0) - base_ov_dict.get(k, 0.0), 4) for k in base_ov_dict}
         divergence.append({"turn": i, "overlay_delta": delta})
     # Arc scoring
     from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
@@ -506,7 +545,7 @@ def validate_variable_trace(
     var_name: str,
     known_trace: List[float],
     state: WorldState,
-    steps: int = None,
+    steps: Optional[int] = None,
     decay_rate: float = 0.01,
     atol: float = 0.02,
     logger: Optional[Callable[[str], None]] = None
@@ -532,7 +571,7 @@ def validate_variable_trace(
     if hasattr(state.overlays, "as_dict"):
         overlays_now = state.overlays.as_dict()
     else:
-        overlays_now = dict(state.overlays)
+        overlays_now = state.overlays.as_dict()
     if var_name not in overlays_now:
         raise ValueError(f"Variable '{var_name}' not found in overlays.")
     # Rewind
@@ -564,7 +603,18 @@ def get_overlays_dict(state: WorldState) -> Dict[str, float]:
     """Extract overlays as a dict from WorldState, supporting both dict and dataclass."""
     if hasattr(state.overlays, "as_dict"):
         return state.overlays.as_dict()
-    return dict(state.overlays)
+    elif isinstance(state.overlays, dict):
+        return state.overlays
+    else:
+        # Fallback for other cases
+        try:
+            result = {}
+            for key in dir(state.overlays):
+                if not key.startswith("_") and isinstance(getattr(state.overlays, key), (int, float)):
+                    result[key] = float(getattr(state.overlays, key))
+            return result
+        except:
+            return {}
 
 # Stub: Log backtrace/validation results to file (suggested for diagnostics)
 def log_to_file(data: dict, path: str):
@@ -576,11 +626,74 @@ def log_to_file(data: dict, path: str):
 # === Reverse rule engine stub for future extension ===
 def reverse_rule_engine(state: WorldState, overlays: Dict[str, float], variables: Dict[str, float], step: int = 1):
     """
-    Placeholder for future reverse causal rule application.
-    Will attempt to infer plausible prior variable/capital state given overlays.
+    Reverse causal rule application: attempts to infer plausible prior causes (rules)
+    for the observed overlay/variable deltas at a given step.
+
+    Args:
+        state: The current WorldState (not mutated)
+        overlays: The overlays at this step (dict)
+        variables: The variables at this step (dict)
+        step: The backward step index (1 = most recent prior)
+
+    Returns:
+        Dict with:
+            - rule_chains: List of possible rule chains (list of rule_id lists)
+            - symbolic_tags: List of symbolic tags associated with matched rules
+            - trust_scores: List of trust/confidence scores for each chain
+            - suggestions: Any suggested new rules if no match found
     """
-    # TODO: Implement reverse causal logic in future milestone
-    pass
+    from simulation_engine.rules.reverse_rule_engine import trace_causal_paths, get_fingerprints
+    from trust_system.trust_engine import TrustEngine
+    from symbolic_system.symbolic_state_tagger import tag_symbolic_state
+
+    # Compute delta: overlays - previous overlays (approximate, since we don't have prior)
+    # Here, we assume overlays is the "current" and try to explain it as a result of rules.
+    # In practice, deltas should be passed in, but we use overlays as the delta for this step.
+    delta = overlays.copy()
+
+    fingerprints = get_fingerprints()
+    rule_chains = trace_causal_paths(delta, fingerprints=fingerprints, max_depth=3, min_match=0.5)
+
+    # Collect symbolic tags and trust scores for each chain
+    symbolic_tags = []
+    trust_scores = []
+    engine = TrustEngine()
+    for chain in rule_chains:
+        tags = []
+        trust = 0.0
+        for rule_id in chain if isinstance(chain, list) else []:
+            rule = next((r for r in fingerprints if r.get("rule_id") == rule_id or r.get("id") == rule_id), None)
+            if rule:
+                tags.extend(rule.get("symbolic_tags", []))
+                # Optionally, use trust/frequency from fingerprint
+                trust += rule.get("trust", 0) + rule.get("frequency", 0)
+        symbolic_tags.append(list(set(tags)))
+        trust_scores.append(trust)
+    # Optionally, enrich with symbolic tag alignment/confidence
+    symbolic_confidence = []
+    for tags in symbolic_tags:
+        conf = 0.0
+        for tag in tags:
+            try:
+                # Use symbolic tagger to compute alignment/confidence if available
+                conf += tag_symbolic_state({tag: 1.0}).get("symbolic_score", 0.0)
+            except Exception:
+                pass
+        symbolic_confidence.append(conf)
+    # Suggest new rules if no match found
+    suggestions = []
+    if not rule_chains:
+        from simulation_engine.rules.reverse_rule_engine import suggest_new_rule_if_no_match
+        suggestion = suggest_new_rule_if_no_match(delta, fingerprints)
+        if suggestion:
+            suggestions.append(suggestion)
+    return {
+        "rule_chains": rule_chains,
+        "symbolic_tags": symbolic_tags,
+        "trust_scores": trust_scores,
+        "symbolic_confidence": symbolic_confidence,
+        "suggestions": suggestions
+    }
 
 def _self_test():
     """Run a short simulation and print results for validation."""

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/ec8343012a5a4ef69d57da526ff3d4aa/artifacts
+end_time: 1746001522807
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: ec8343012a5a4ef69d57da526ff3d4aa
+run_name: caring-dolphin-993
+run_uuid: ec8343012a5a4ef69d57da526ff3d4aa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746001522770
+status: 3
+tags: []
+user_id: natew

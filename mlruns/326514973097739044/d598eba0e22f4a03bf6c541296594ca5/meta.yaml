@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/d598eba0e22f4a03bf6c541296594ca5/artifacts
+end_time: 1746000924417
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: d598eba0e22f4a03bf6c541296594ca5
+run_name: melodic-bird-203
+run_uuid: d598eba0e22f4a03bf6c541296594ca5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1746000924378
+status: 3
+tags: []
+user_id: natew

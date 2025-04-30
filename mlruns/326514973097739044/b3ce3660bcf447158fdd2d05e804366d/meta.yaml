@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/b3ce3660bcf447158fdd2d05e804366d/artifacts
+end_time: 1745995458695
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: b3ce3660bcf447158fdd2d05e804366d
+run_name: handsome-shad-408
+run_uuid: b3ce3660bcf447158fdd2d05e804366d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995458652
+status: 3
+tags: []
+user_id: natew

@@ -10,7 +10,7 @@ Version: 0.427A (Corrected)
 """
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Corrected imports
 try:
@@ -54,7 +54,7 @@ def main():
         'type': args.type,
         'source': args.source,
         'payload': payload_dict,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }
 
     # Route the signal

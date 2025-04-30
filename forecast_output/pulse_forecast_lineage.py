@@ -234,7 +234,13 @@ def export_graphviz_dot(
         ... ], "lineage.dot", color_by="arc")
     """
     if graphviz is None:
-        raise ImportError("graphviz is not installed. Please install it to use --export-graph.")
+        logger.warning("Graphviz is not installed. Please install it to use graph export functionality:")
+        logger.warning("  1. Install the Python package: pip install graphviz")
+        logger.warning("  2. Install the system-level package:")
+        logger.warning("     - On Ubuntu/Debian: sudo apt-get install graphviz")
+        logger.warning("     - On macOS: brew install graphviz")
+        logger.warning("     - On Windows: Download from https://graphviz.org/download/")
+        return None
     dot = graphviz.Digraph(comment="Forecast Lineage")
     ids = set()
     for f in forecasts:
@@ -265,6 +271,7 @@ def export_graphviz_dot(
         if tid and pid:
             dot.edge(pid, tid)
     dot.save(filepath)
+    return filepath
 
 def print_summary(forecasts: List[Dict]):
     """
@@ -357,8 +364,11 @@ def main():
     if args.summary:
         print_summary(forecasts)
     if args.export_graph:
-        export_graphviz_dot(forecasts, args.export_graph, color_by=args.color_by)
-        print(f"Graph exported to {args.export_graph}")
+        result = export_graphviz_dot(forecasts, args.export_graph, color_by=args.color_by)
+        if result is not None:
+            print(f"Graph exported to {args.export_graph}")
+        else:
+            print("Graph export failed: Graphviz not installed")
     if args.save:
         save_output(output, args.save)
         print(f"Output saved to {args.save}")

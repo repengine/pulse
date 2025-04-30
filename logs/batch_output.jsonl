@@ -1,0 +1,2 @@
+{"status": "complete", "total": 1, "compressed": 1, "digest": null, "top_forecasts": [], "config": {"state_overrides": {"hope": 0.6, "despair": 0.2}, "turns": 1}, "batch_index": 0}
+{"status": "complete", "total": 1, "compressed": 1, "digest": null, "top_forecasts": [], "config": {"state_overrides": {"hope": 0.3, "despair": 0.5}, "turns": 1}, "batch_index": 1}

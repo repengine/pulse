@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/c5d631e396774d9a91392540b87e1a48/artifacts
+end_time: 1745997511630
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: c5d631e396774d9a91392540b87e1a48
+run_name: orderly-calf-152
+run_uuid: c5d631e396774d9a91392540b87e1a48
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745997511590
+status: 3
+tags: []
+user_id: natew

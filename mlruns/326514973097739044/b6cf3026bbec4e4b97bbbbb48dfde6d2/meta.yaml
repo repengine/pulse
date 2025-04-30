@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/b6cf3026bbec4e4b97bbbbb48dfde6d2/artifacts
+end_time: 1745995167378
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: b6cf3026bbec4e4b97bbbbb48dfde6d2
+run_name: persistent-lamb-151
+run_uuid: b6cf3026bbec4e4b97bbbbb48dfde6d2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995167343
+status: 3
+tags: []
+user_id: natew

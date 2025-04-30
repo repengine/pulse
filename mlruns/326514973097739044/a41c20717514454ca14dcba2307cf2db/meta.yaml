@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/a41c20717514454ca14dcba2307cf2db/artifacts
+end_time: 1745994979782
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: a41c20717514454ca14dcba2307cf2db
+run_name: nebulous-lynx-115
+run_uuid: a41c20717514454ca14dcba2307cf2db
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994979746
+status: 3
+tags: []
+user_id: natew

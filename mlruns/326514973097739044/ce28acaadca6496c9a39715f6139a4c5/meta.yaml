@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/ce28acaadca6496c9a39715f6139a4c5/artifacts
+end_time: 1745994979327
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: ce28acaadca6496c9a39715f6139a4c5
+run_name: loud-doe-219
+run_uuid: ce28acaadca6496c9a39715f6139a4c5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745994979293
+status: 3
+tags: []
+user_id: natew

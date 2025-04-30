@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/natew/Pulse/mlruns/326514973097739044/882b83e5d55844c582299d87fb707191/artifacts
+end_time: 1745995010649
+entry_point_name: ''
+experiment_id: '326514973097739044'
+lifecycle_stage: active
+run_id: 882b83e5d55844c582299d87fb707191
+run_name: polite-panda-603
+run_uuid: 882b83e5d55844c582299d87fb707191
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1745995010613
+status: 3
+tags: []
+user_id: natew
