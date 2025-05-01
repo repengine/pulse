@@ -30,8 +30,14 @@ def license_forecast(
     Returns:
         Dict: The forecast dict with .license_status field
     """
-    conf = forecast.get("confidence", 0.0)
-    frag = forecast.get("fragility", 0.0)
+    # Safe type conversion
+    try:
+        conf = float(forecast.get("confidence", 0.0)) if forecast.get("confidence") is not None else 0.0
+        frag = float(forecast.get("fragility", 0.0)) if forecast.get("fragility") is not None else 0.0
+    except (ValueError, TypeError):
+        logger.warning(f"Invalid numeric values in forecast {forecast.get('trace_id', '-')}")
+        conf = 0.0
+        frag = 0.0
 
     if conf >= confidence_threshold and frag < fragility_threshold:
         forecast["license_status"] = "✅ Licensed"

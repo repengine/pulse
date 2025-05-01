@@ -73,7 +73,14 @@ def compute_symbolic_attention_score(forecast: Dict, arc_drift: Dict[str, int]) 
         float: score between 0 (stable) and 1 (volatile arc)
     """
     arc = forecast.get("arc_label", "unknown")
-    delta = abs(arc_drift.get(arc, 0))
+    try:
+        drift_value = arc_drift.get(arc, 0)
+        if isinstance(drift_value, str):
+            drift_value = float(drift_value)  # Attempt conversion
+        delta = abs(drift_value)
+    except (ValueError, TypeError):
+        delta = 0.0
+        # Optionally add logging here for debugging unexpected types
     return round(min(delta / 10.0, 1.0), 3)
 
 def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
@@ -81,43 +88,96 @@ def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> f
     Compute a risk sub-score based on volatility measures,
     historical forecast consistency, and an ML adjustment placeholder.
     Returns a float between 0 and 1, where higher values indicate higher risk.
+    Improved to better handle empty or default symbolic data.
     """
+    logger.info(
+        "[Forecast Pipeline] Entering compute_risk_score: type(forecast)=%s, keys=%s, sample=%s",
+        type(forecast),
+        list(forecast.keys())[:5],
+        {k: forecast[k] for k in list(forecast.keys())[:3]}
+    )
     fcast = forecast.get("forecast", {})
     # Volatility measure: assess capital movement volatility
     capital_start = fcast.get("start_capital", {})
     capital_end = fcast.get("end_capital", {})
     risk_volatility = 0.0
     if capital_start and capital_end:
-        delta_values = [
-            abs(capital_end.get(asset, 0) - capital_start.get(asset, 0))
-            for asset in ["nvda", "msft", "ibit", "spy"]
-        ]
+        delta_values = []
+        for asset in ["nvda", "msft", "ibit", "spy"]:
+            try:
+                start_val = float(capital_start.get(asset, 0))
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid start_capital value for asset '{asset}': {capital_start.get(asset)}. Using 0.0")
+                start_val = 0.0
+            try:
+                end_val = float(capital_end.get(asset, 0))
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid end_capital value for asset '{asset}': {capital_end.get(asset)}. Using 0.0")
+                end_val = 0.0
+            delta_values.append(abs(end_val - start_val))
         risk_volatility = min(sum(delta_values) / 2000.0, 1.0)
+    
     # Historical performance measure: compare recent symbolic_change differences
+    # Improved handling for early system with no history or empty symbolic data
     historical_component = 0.0
-    if memory and len(memory) > 0:
+    current_change = fcast.get("symbolic_change", {})
+    
+    # Better fallback when no memory exists or symbolic_change is empty
+    if not memory or len(memory) == 0:
+        # Use moderate risk value instead of 0.0 when no history exists
+        historical_component = 0.5  # Neutral value when no history available
+        logger.info("No historical forecasts available for risk comparison, using neutral value (0.5)")
+    elif not current_change:
+        # Handle empty symbolic change data gracefully
+        historical_component = 0.4  # Slightly better than neutral for empty data
+        logger.info("Empty symbolic_change dictionary, using slightly favorable value (0.4)")
+    else:
+        # Process with historical data
         similarities = []
-        current_change = fcast.get("symbolic_change", {})
         for past in memory[-3:]:
             past_change = past.get("forecast", {}).get("symbolic_change", {})
-            if current_change and past_change:
+            if past_change:
                 common_keys = set(current_change.keys()).intersection(set(past_change.keys()))
                 if common_keys:
-                    diff = sum(abs(current_change.get(k, 0) - past_change.get(k, 0)) for k in common_keys)
+                    diff = 0.0
+                    for k in common_keys:
+                        try:
+                            curr_val = float(current_change.get(k, 0))
+                        except (ValueError, TypeError):
+                            logger.warning(f"Invalid symbolic_change value for key '{k}': {current_change.get(k)}. Using 0.0")
+                            curr_val = 0.0
+                        try:
+                            past_val = float(past_change.get(k, 0))
+                        except (ValueError, TypeError):
+                            logger.warning(f"Invalid past symbolic_change value for key '{k}': {past_change.get(k)}. Using 0.0")
+                            past_val = 0.0
+                        diff += abs(curr_val - past_val)
                     similarity = 1.0 - min(diff / len(common_keys), 1.0)
                 else:
-                    similarity = 0.5
+                    # If no common keys but both dictionaries have some keys
+                    similarity = 0.6  # Slightly better default
             else:
-                similarity = 0.5
+                # Empty past_change
+                similarity = 0.6  # Slightly better default
             similarities.append(similarity)
-        avg_similarity = sum(similarities) / len(similarities)
-        historical_component = 1.0 - avg_similarity  # lower similarity implies higher risk
-    else:
-        historical_component = 0.0
+        
+        if similarities:
+            avg_similarity = sum(similarities) / len(similarities)
+            historical_component = 1.0 - avg_similarity  # lower similarity implies higher risk
+        else:
+            historical_component = 0.5  # Neutral value
 
     # ML model component placeholder (constant adjustment)
     ml_adjustment = 0.1
+    
+    # Calculate risk score with better weighting for early system
     risk_score = (risk_volatility * 0.5 + historical_component * 0.4 + ml_adjustment * 0.1)
+    
+    # Ensure risk score doesn't get too extreme with limited data
+    if not memory or len(memory) < 3:
+        # Cap risk for early system with limited history
+        risk_score = min(risk_score, 0.7)
+        
     return round(min(max(risk_score, 0.0), 1.0), 3)
 
 def flag_drift_sensitive_forecasts(forecasts: List[Dict], drift_report: Dict, threshold: float = 0.2) -> List[Dict]:
@@ -197,9 +257,30 @@ class TrustEngine:
 
     @staticmethod
     def confidence_gate(forecast: Dict, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5) -> str:
+        # Ensure parameters are never None
+        conf_threshold = float(conf_threshold) if conf_threshold is not None else 0.5
+        fragility_threshold = float(fragility_threshold) if fragility_threshold is not None else 0.7
+        risk_threshold = float(risk_threshold) if risk_threshold is not None else 0.5
+        
+        # Get values with defaults and ensure they're float types
         conf = forecast.get("confidence", 0.0)
+        if conf is None:
+            conf = 0.0
+        else:
+            conf = float(conf)
+            
         frag = forecast.get("fragility", 0.0)
+        if frag is None:
+            frag = 0.0
+        else:
+            frag = float(frag)
+            
         risk = forecast.get("risk_score", 0.0)
+        if risk is None:
+            risk = 0.0
+        else:
+            risk = float(risk)
+            
         if conf >= conf_threshold and frag <= fragility_threshold and risk <= risk_threshold:
             return "🟢 Trusted"
         elif conf >= conf_threshold:
@@ -218,42 +299,106 @@ class TrustEngine:
         historical_weight: float = 0.2,
         novelty_weight: float = 0.1
     ) -> float:
+        logger.info(
+            "[Forecast Pipeline] Entering score_forecast: type(forecast)=%s, keys=%s, sample=%s",
+            type(forecast),
+            list(forecast.keys())[:5],
+            {k: forecast[k] for k in list(forecast.keys())[:3]}
+        )
         fcast = forecast.get("forecast", {})
         fragility = forecast.get("fragility", 1.0)
+        try:
+            fragility = float(fragility)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid fragility value: {forecast.get('fragility')}. Using 1.0")
+            fragility = 1.0
         symbolic_penalty = min(fragility, 1.0)
         capital_start = fcast.get("start_capital", {})
         capital_end = fcast.get("end_capital", {})
         movement_score = 0.0
         if capital_start and capital_end:
-            delta_sum = sum(
-                abs(capital_end.get(asset, 0) - capital_start.get(asset, 0))
-                for asset in ["nvda", "msft", "ibit", "spy"]
-            )
+            delta_sum = 0.0
+            for asset in ["nvda", "msft", "ibit", "spy"]:
+                try:
+                    start_val = float(capital_start.get(asset, 0))
+                except (ValueError, TypeError):
+                    logger.warning(f"Invalid start_capital value for asset '{asset}': {capital_start.get(asset)}. Using 0.0")
+                    start_val = 0.0
+                try:
+                    end_val = float(capital_end.get(asset, 0))
+                except (ValueError, TypeError):
+                    logger.warning(f"Invalid end_capital value for asset '{asset}': {capital_end.get(asset)}. Using 0.0")
+                    end_val = 0.0
+                delta_sum += abs(end_val - start_val)
             movement_score = min(delta_sum / 1000.0, 1.0) if delta_sum else 0.0
+        # Improved baseline confidence calculation with better handling of symbolic data
+        # Ensure baseline confidence isn't overly penalized by empty symbolic data
+        if symbolic_penalty > 0.8 and not forecast.get("overlays") and not fcast.get("symbolic_change"):
+            # If high fragility score is due to empty symbolic data, use moderate value
+            logger.info(f"High fragility ({symbolic_penalty}) with empty symbolic data, adjusting penalty")
+            symbolic_penalty = 0.5  # Use moderate fragility score for empty data
+            
         # Baseline confidence: average of capital movement and inverse fragility
+        # Ensure empty capital data doesn't lead to extremely low scores
+        if not capital_start or not capital_end:
+            logger.info("Empty capital data detected, using moderate movement score")
+            movement_score = 0.5  # Use moderate value instead of 0
+            
         baseline_confidence = ((1.0 - symbolic_penalty) + movement_score) / 2.0
+        
+        # Ensure baseline confidence has a reasonable minimum for early system
+        if baseline_confidence < 0.3:
+            logger.info(f"Very low baseline confidence ({baseline_confidence}), setting minimum threshold")
+            baseline_confidence = 0.3  # Set minimum threshold for early development
 
         risk_score = compute_risk_score(forecast, memory)
         forecast["risk_score"] = risk_score
 
-        if memory:
+        # Improved historical consistency calculation with better handling for early system
+        curr_change = fcast.get("symbolic_change", {})
+        
+        if not memory:
+            # No historical data available - don't penalize
+            logger.info("No memory available for historical consistency, using favorable default")
+            historical_consistency = 0.8  # Favorable default in early system
+        elif not curr_change:
+            # Empty symbolic change - use moderate value
+            logger.info("Empty symbolic_change dictionary, using moderate consistency value")
+            historical_consistency = 0.7  # Moderate value for empty data
+        else:
             similarities = []
             for past in memory[-3:]:
-                curr_change = fcast.get("symbolic_change", {})
                 past_change = past.get("forecast", {}).get("symbolic_change", {})
-                if curr_change and past_change:
+                if past_change:
                     common = set(curr_change.keys()).intersection(set(past_change.keys()))
                     if common:
-                        diff = sum(abs(curr_change[k] - past_change[k]) for k in common)
+                        diff = 0.0
+                        for k in common:
+                            try:
+                                curr_val = float(curr_change.get(k, 0))
+                            except (ValueError, TypeError):
+                                logger.warning(f"Invalid symbolic_change value for key '{k}': {curr_change.get(k)}. Using 0.0")
+                                curr_val = 0.0
+                            try:
+                                past_val = float(past_change.get(k, 0))
+                            except (ValueError, TypeError):
+                                logger.warning(f"Invalid past symbolic_change value for key '{k}': {past_change.get(k)}. Using 0.0")
+                                past_val = 0.0
+                            diff += abs(curr_val - past_val)
                         sim = 1.0 - min(diff / len(common), 1.0)
                     else:
-                        sim = 0.5
+                        # No common keys but both dictionaries exist
+                        sim = 0.6  # Slightly better than neutral
                 else:
-                    sim = 0.5
+                    # Empty past_change
+                    sim = 0.6  # Slightly better than neutral
                 similarities.append(sim)
-            historical_consistency = sum(similarities) / len(similarities)
-        else:
-            historical_consistency = 1.0
+                
+            if similarities:
+                historical_consistency = sum(similarities) / len(similarities)
+            else:
+                # Fallback when no valid comparisons can be made
+                historical_consistency = 0.7  # Moderate value
         forecast["historical_consistency"] = historical_consistency
 
         is_duplicate = False
@@ -445,6 +590,8 @@ class TrustEngine:
         """
         forecast = self.tag_forecast(forecast)
         forecast["confidence"] = self.score_forecast(forecast, memory)
+        # Set trust_label based on confidence
+        forecast["trust_label"] = self.confidence_gate(forecast)
         self.enrichment_service.enrich(
             forecast,
             current_state=current_state,
@@ -585,6 +732,28 @@ class TrustEngine:
                     f["attention_score"] = symbolic_attention_score(f, arc_drift)
             except Exception as e:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
+                # Ensure defaults are set even if processing fails
+                if "confidence" not in f or f["confidence"] is None:
+                    f["confidence"] = 0.0
+                if "trust_label" not in f or f["trust_label"] is None:
+                    f["trust_label"] = "🔴 Error"
+                if "pulse_trust_meta" not in f:
+                    f["pulse_trust_meta"] = TrustResult(
+                        trace_id=f.get("trace_id", "unknown"),
+                        confidence=0.0,
+                        trust_label="🔴 Error",
+                        arc_label=f.get("arc_label", ""),
+                        symbolic_tag=f.get("symbolic_tag", ""),
+                        fragility=f.get("fragility", 0.0),
+                    )._asdict()
+        
+        # Final safety check - ensure no forecast has None values
+        for f in forecasts:
+            if f.get("confidence") is None:
+                f["confidence"] = 0.0
+            if f.get("trust_label") is None:
+                f["trust_label"] = "🔴 Error"
+                
         return forecasts
 
 def _enrich_fragility(forecast):

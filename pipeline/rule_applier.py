@@ -10,7 +10,11 @@ def load_proposed_rule_changes(file_path="pipeline/rule_proposals/proposed_rule_
         return None
     try:
         with open(file_path, 'r') as f:
-            changes = json.load(f)
+            content = f.read().strip()
+            if not content:  # Handle empty file case
+                print(f"Empty file found at {file_path}, treating as empty array")
+                return []
+            changes = json.loads(content)
         print(f"Successfully loaded proposed rule changes from {file_path}")
         return changes
     except json.JSONDecodeError:

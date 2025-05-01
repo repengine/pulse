@@ -1,0 +1,57 @@
+📘 Strategos Forecast Digest
+
+## 🛡️ Trust Enforcement Report
+- Total forecasts: 5
+- Approved: 1
+- Rejected: 4
+- License drop rate: 80.00%
+- ✅ Approved: 1
+⚠️ High license loss rate — trust coherence degraded.
+
+## ✅ Forecast Licensing Summary
+- Approved: 1
+- Rejected: 0
+- Low Alignment: 0
+
+## ✅ Forecast Certification Summary
+- Certified: 0
+- Uncertified: 0
+- Certification Rate: N/A
+
+## 🔗 Symbolic Resonance
+- Resonance Score: 0.0
+- Dominant Arc: unknown
+
+## 🧠 Symbolic Tuning Summary
+
+### Learning Insights
+
+### Upgrade Plan
+
+### Results
+- Total Rewritten: 0
+- Still Unstable: 0
+
+## ♻️ Symbolic Flip Patterns
+- ARC: Despair → ARC: Rage (4x)
+- TAG: Neutral → TAG: Collapse Risk (3x)
+
+## 🔁 Detected Loops
+- TAG: Fatigue ↔ TAG: Despair
+- ARC: Collapse Risk ↔ ARC: Stabilization
+
+🎯 Avg Retrodiction Score: 0.0 | Symbolic Score: 0.0
+📊 Confidence Sparkline: []
+Total Forecasts: 0
+
+## 🧩 Rule Cluster Digest
+
+### 🧠 Rule Cluster Digest
+
+#### 🟢 `unknown`  (size: 4)
+- Volatility Score: **0.000**
+- Rules:
+  - `R001_EnergySpike`
+  - `R002_TrustRebound`
+  - `R001`
+  - `R002`

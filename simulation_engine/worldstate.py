@@ -5,15 +5,19 @@ Core world state representation for the Pulse simulation.
 Contains overlays, capital exposure, variables, turn counter,
 and event log for the current simulation state.
 
-Author: Pulse v3.5
+This module provides functionality to create, validate, and serialize the world state,
+as well as to manage symbolic overlays and capital exposure across different assets.
 """
 
 import copy
 import json
 import uuid
+import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class SymbolicOverlays:
@@ -43,6 +47,7 @@ class SymbolicOverlays:
             try:
                 filtered_data[k] = max(0.0, min(1.0, float(v)))
             except (ValueError, TypeError):
+                logger.warning(f"Invalid overlay value for '{k}': {v}. Using default 0.5")
                 filtered_data[k] = 0.5
         
         # Set defaults for missing keys
@@ -87,6 +92,7 @@ class CapitalExposure:
                 try:
                     filtered_data[k] = float(v)
                 except (ValueError, TypeError):
+                    logger.warning(f"Invalid capital value for '{k}': {v}. Using default 0.0")
                     filtered_data[k] = 0.0
         
         # Set defaults for missing keys
@@ -136,6 +142,7 @@ class Variables:
             try:
                 self.data[name] = float(value)
             except (ValueError, TypeError):
+                logger.warning(f"Invalid variable value for '{name}': {value}. Using default 0.0")
                 self.data[name] = 0.0
 
 @dataclass

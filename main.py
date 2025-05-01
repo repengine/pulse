@@ -16,6 +16,7 @@ Options:
 import sys
 import os
 import argparse
+import uuid
 from datetime import datetime, timezone
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -69,7 +70,59 @@ def run_pulse_simulation(turns: int = 1):
         run_turn(state, rule_fn=lambda s: (apply_causal_rules(s), None)[1])
         try:
             # Always pass a dict to generate_forecast
-            forecast = generate_forecast(state.to_dict())
+            state_dict = state.to_dict()
+            logger.info(
+                "[Forecast Pipeline] After state.to_dict() in main.py: type=%s, keys=%s, sample=%s",
+                type(state_dict),
+                list(state_dict.keys())[:5],
+                {k: state_dict[k] for k in list(state_dict.keys())[:3]}
+            )
+            forecast = generate_forecast(state_dict)
+            
+            # Ensure every forecast has a valid trace_id
+            if not forecast.get("trace_id") or forecast.get("trace_id") == "None" or forecast.get("trace_id") == "unknown":
+                forecast["trace_id"] = str(uuid.uuid4())
+                logger.info(f"Assigned new trace_id: {forecast['trace_id']}")
+
+            # Validate numeric fields before storage/further processing
+            for field in ['confidence', 'fragility']:
+                if field in forecast:
+                    try:
+                        forecast[field] = float(forecast[field]) if forecast[field] is not None else 0.0
+                    except (ValueError, TypeError):
+                        logger.warning(f"Type conversion failed for {field}: {forecast[field]}. Using 0.0")
+                        forecast[field] = 0.0
+
+            # Enhanced logging and validation before storing forecast in memory
+            logger.info("Before storing forecast in memory in main.py")
+            logger.info(f"Type of forecast: {type(forecast)}")
+            if isinstance(forecast, dict):
+                key_fields = ['confidence', 'fragility', 'priority', 'retrodiction_score']
+                # Log and validate top-level fields
+                for field in key_fields:
+                    value = forecast.get(field)
+                    logger.info(f"Field '{field}': type={type(value)}, value={value}")
+                    if not (isinstance(value, (int, float)) or value is None):
+                        logger.warning(f"Field '{field}' is not numeric (type={type(value)}). Attempting conversion.")
+                        try:
+                            forecast[field] = float(value)
+                        except (ValueError, TypeError):
+                            logger.warning(f"Failed to convert field '{field}' to float. Defaulting to 0.0.")
+                            forecast[field] = 0.0
+                # Log and validate nested fields in 'overlays' and 'capital'
+                for container in ['overlays', 'capital']:
+                    sub = forecast.get(container)
+                    if isinstance(sub, dict):
+                        for k, v in sub.items():
+                            logger.info(f"Field '{container}.{k}': type={type(v)}, value={v}")
+                            if not (isinstance(v, (int, float)) or v is None):
+                                logger.warning(f"Field '{container}.{k}' is not numeric (type={type(v)}). Attempting conversion.")
+                                try:
+                                    sub[k] = float(v)
+                                except (ValueError, TypeError):
+                                    logger.warning(f"Failed to convert field '{container}.{k}' to float. Defaulting to 0.0.")
+                                    sub[k] = 0.0
+
             memory.store(forecast)
             log_forecast_to_pfpa(forecast)
         except Exception as e:

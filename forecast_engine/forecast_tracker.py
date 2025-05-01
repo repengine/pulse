@@ -66,7 +66,6 @@ class ForecastTracker:
             json.dump(data, f, indent=2)
 
         save_forecast_to_memory(forecast_id, metadata=metadata, domain=domain)
-        forecast_memory.store(data)
         logger.info(f"✅ Forecast recorded: {forecast_id}")
         return filepath
 

@@ -1,6 +1,32 @@
 # Pulse
 
-**Version:** v0.2 – Trust Foundations
+**Version:** v0.2.1 – Trust Foundations
+---
+## 📝 Patch Notes (v0.2.x) — 2025-04-30
+
+- **Architectural Refactoring:**  
+  - Introduced interface-based architecture for Simulation, Trust, Symbolic, and Core systems.
+  - Implemented adapters, a service registry, event bus, and system facades to reduce tight coupling and improve modularity.
+  - Refactored TrustEngine and Simulator Core using Single Responsibility, Strategy, and Command patterns for clarity and maintainability.
+
+- **Feature Completion:**  
+  - Fully implemented rule-based retrodiction, including the reverse rule engine, rule fingerprinting, and integration with Trust and Symbolic systems.
+  - Added comprehensive unit and integration tests for retrodiction.
+
+- **Test Suite Improvements:**  
+  - Resolved all previously failing and skipped tests (now 144 passing, 0 failures).
+  - Updated retrodiction tests to use new bounded state mutation APIs.
+  - Improved handling of optional Graphviz dependency in forecast lineage tests.
+  - Addressed 51 deprecation warnings (notably `datetime.utcnow()`), ensuring future compatibility.
+  - Fixed "Forecast error: must be real number, not str" in the forecast ensemble module by implementing robust type checking and conversion.
+
+- **Documentation:**  
+  - Added detailed documentation for retrodiction and reverse rule engine features.
+  - Updated CLI and integration guidelines.
+  - Added error handling documentation for the forecast ensemble module.
+
+These changes significantly improve maintainability, testability, and robustness across the Pulse codebase.
+---
 
 Pulse is a symbolic-capital foresight simulator that models emotional overlays, strategic fragility, capital exposure forks, and trust-weighted forecast generation.
 

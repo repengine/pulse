@@ -50,13 +50,19 @@ def build_symbolic_graph(forecasts: List[Dict]) -> nx.DiGraph:
 
 def visualize_symbolic_graph(G: nx.DiGraph, title: str = "Symbolic Transition Graph", highlight_loops: bool = True):
     """
-    Visualize the symbolic transition graph.
+    Visualize the symbolic transition graph and return the matplotlib Figure.
 
     Args:
         G (networkx.DiGraph)
         title (str)
         highlight_loops (bool): bold cycle edges
+
+    Returns:
+        matplotlib.figure.Figure: The created figure object.
     """
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(12, 8))
     pos = nx.spring_layout(G, seed=42)
     edge_weights = nx.get_edge_attributes(G, "weight")
     loop_edges = []
@@ -70,19 +76,19 @@ def visualize_symbolic_graph(G: nx.DiGraph, title: str = "Symbolic Transition Gr
                     if G.has_edge(a, b):
                         loop_edges.append((a, b))
 
-    plt.figure(figsize=(12, 8))
-    nx.draw_networkx_nodes(G, pos, node_color="lightblue", node_size=1000)
-    nx.draw_networkx_labels(G, pos, font_size=9, font_weight="bold")
-    nx.draw_networkx_edges(G, pos, width=1.5, edge_color="gray", arrows=True)
+    nx.draw_networkx_nodes(G, pos, node_color="lightblue", node_size=1000, ax=ax)
+    nx.draw_networkx_labels(G, pos, font_size=9, font_weight="bold", ax=ax)
+    nx.draw_networkx_edges(G, pos, width=1.5, edge_color="gray", arrows=True, ax=ax)
 
     if loop_edges:
-        nx.draw_networkx_edges(G, pos, edgelist=loop_edges, edge_color="crimson", width=2.5)
+        nx.draw_networkx_edges(G, pos, edgelist=loop_edges, edge_color="crimson", width=2.5, ax=ax)
 
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=7)
-    plt.title(title)
-    plt.axis("off")
-    plt.tight_layout()
-    plt.show()
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=7, ax=ax)
+    ax.set_title(title)
+    ax.axis("off")
+    fig.tight_layout()
+    # plt.show()  # Do not show in non-interactive/batch mode
+    return fig
 
 
 def export_graph_dot(G: nx.DiGraph, path: str):

@@ -69,7 +69,22 @@ def audit_forecasts(memory=None, recent_n: int = 10) -> None:
     bands = {"🟢 Trusted": 0, "⚠️ Moderate": 0, "🔴 Fragile": 0}
     confidences, fragilities, retros, priorities, ages = [], [], [], [], []
 
+    # Expand compressed forecasts (with "examples" field) into individual forecasts
+    expanded_forecasts = []
     for f in forecasts:
+        if isinstance(f, dict) and "examples" in f and isinstance(f["examples"], list):
+            # Compressed forecast: add each example
+            for example in f["examples"]:
+                if isinstance(example, dict):
+                    expanded_forecasts.append(example)
+                else:
+                    logger.warning(f"Skipping non-dictionary example in compressed forecast: {type(example)}")
+        elif isinstance(f, dict):
+            expanded_forecasts.append(f)
+        else:
+            logger.warning(f"Skipping non-dictionary forecast of type {type(f)}")
+
+    for f in expanded_forecasts:
         band = trust_band(f)
         bands[band] += 1
         confidences.append(f.get("confidence", 0))
@@ -97,7 +112,7 @@ def audit_forecasts(memory=None, recent_n: int = 10) -> None:
     logger.info(f"Max Age (h)    : {max_age}")
 
     # Trust loop integrity check
-    issues = trust_loop_integrity_issues(forecasts)
+    issues = trust_loop_integrity_issues(expanded_forecasts)
     if issues:
         logger.warning("\n⚠️ TRUST LOOP INTEGRITY ISSUES DETECTED:")
         for issue in issues:

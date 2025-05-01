@@ -67,13 +67,15 @@ def save_retrodiction_results(results: List[Dict[str, Any]]) -> None:
 
     if isinstance(results, list):
         for res in results:
+            if not isinstance(res, dict):
+                logger.warning(f"Skipping non-dictionary result of type {type(res)} in save_retrodiction_results")
+                continue
             if "overlays" in res:
                 res["overlays"] = overlay_to_dict(res["overlays"])
             if "forks" in res:
                 for fork in res["forks"]:
                     if "overlays" in fork:
                         fork["overlays"] = overlay_to_dict(fork["overlays"])
-        for res in results:
             retrodiction_memory.store(res)
     elif isinstance(results, dict):
         if "overlays" in results:

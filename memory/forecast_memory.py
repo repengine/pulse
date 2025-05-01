@@ -4,7 +4,6 @@ forecast_memory.py
 Stores and retrieves recent or historical forecasts during simulation.
 Supports symbolic tagging, replay, and integration with PFPA trust scoring.
 
-Author: Pulse v3.5
 """
 
 from core.path_registry import PATHS
@@ -16,6 +15,9 @@ from typing import List, Dict, Optional
 from trust_system.license_enforcer import annotate_forecasts, filter_licensed
 from core.pulse_learning_log import log_learning_event
 from datetime import datetime
+
+from utils.log_utils import get_logger
+logger = get_logger(__name__)
 
 BLOCKED_MEMORY_LOG = "logs/blocked_memory_log.jsonl"
 
@@ -42,18 +44,58 @@ class ForecastMemory:
         self._enforce_memory_limit()
 
     def store(self, forecast_obj: Dict) -> None:
-        """Adds a forecast object to memory and persists to file. Prunes if over limit."""
+        """
+        Adds a forecast object to memory and persists to file. Prunes if over limit.
+
+        Ensures that forecast_id is always present and is a string (UUID or fallback).
+        This prevents downstream errors where a numeric ID is assumed.
+        """
+        import re
+        import uuid
+        # Type validation: Only allow dict-like objects
+        if not isinstance(forecast_obj, dict):
+            logger.warning(f"Attempted to store non-dictionary forecast of type {type(forecast_obj)}. Skipping.")
+            return
+
+        # Ensure numeric values are properly typed
+        for numeric_field in ['confidence', 'fragility', 'priority', 'retrodiction_score']:
+            if numeric_field in forecast_obj:
+                val = forecast_obj[numeric_field]
+                # Check if it looks like a UUID string
+                uuid_like = isinstance(val, str) and re.match(r"^[0-9a-fA-F-]{32,36}$", str(val))
+                if uuid_like:
+                    logger.warning(f"UUID-like string in numeric field {numeric_field}: {val}. Setting to 0.0")
+                    forecast_obj[numeric_field] = 0.0
+                else:
+                    try:
+                        forecast_obj[numeric_field] = float(val) if val is not None else 0.0
+                    except (ValueError, TypeError):
+                        logger.warning(f"Invalid value for {numeric_field}: {val}. Using 0.0")
+                        forecast_obj[numeric_field] = 0.0
+
+        # Ensure forecast_id is present and is a string (UUID or fallback)
+        if "forecast_id" not in forecast_obj or forecast_obj["forecast_id"] is None:
+            # Use trace_id if available, else fallback to "unknown"
+            forecast_obj["forecast_id"] = str(forecast_obj.get("trace_id", "unknown"))
+        else:
+            forecast_obj["forecast_id"] = str(forecast_obj["forecast_id"])
         # PATCH: Tag drift-prone forecasts as review_only and unlicensed
         if forecast_obj.get("trust_label") == "🔴 Drift-Prone":
             forecast_obj["memory_flag"] = "review_only"
             forecast_obj["license"] = False
+        logger.info(
+            "[Forecast Pipeline] Storing forecast in memory: type=%s, keys=%s, sample=%s",
+            type(forecast_obj),
+            list(forecast_obj.keys())[:5],
+            {k: forecast_obj[k] for k in list(forecast_obj.keys())[:3]}
+        )
         self._memory.append(forecast_obj)
         self._enforce_memory_limit()
         if self.persist_dir:
             self._persist_to_file(forecast_obj)
         log_learning_event("memory_update", {
             "event": "forecast_stored",
-            "forecast_id": forecast_obj.get("trace_id"),
+            "forecast_id": forecast_obj["forecast_id"],
             "timestamp": datetime.utcnow().isoformat()
         })
 

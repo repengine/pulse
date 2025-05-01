@@ -41,16 +41,31 @@ def filter_by_confidence(
     min_confidence: Optional[float] = None,
     max_fragility: Optional[float] = None
 ) -> List[Dict]:
-    min_confidence = min_confidence if min_confidence is not None else CONFIDENCE_THRESHOLD
-    max_fragility = max_fragility if max_fragility is not None else DEFAULT_FRAGILITY_THRESHOLD
+    # Ensure min_confidence and max_fragility are never None
+    min_confidence = float(min_confidence if min_confidence is not None else CONFIDENCE_THRESHOLD)
+    max_fragility = float(max_fragility if max_fragility is not None else DEFAULT_FRAGILITY_THRESHOLD)
+    
     ensure_log_dir(str(CONFIDENCE_LOG_PATH))
     if isinstance(forecasts, dict):
         forecasts = [forecasts]
 
     result = []
     for f in forecasts:
+        # Get values with defaults and ensure they're float types
         conf = f.get("confidence", 0.0)
+        # Explicitly handle None values
+        if conf is None:
+            conf = 0.0
+        else:
+            conf = float(conf)
+            
         frag = f.get("fragility", 0.5)
+        # Explicitly handle None values
+        if frag is None:
+            frag = 0.5
+        else:
+            frag = float(frag)
+            
         if conf >= min_confidence and frag < max_fragility:
             f["confidence_status"] = "✅ Actionable"
         elif conf >= 0.4:

@@ -11,10 +11,13 @@ This file tracks the project's current status, including recent changes, current
 - Current focus is on resolving skipped tests in the Pulse project's test suite.
 - Identified and improved the Graphviz dependency handling in the forecast lineage visualization component.
 - Modified the code to provide clearer installation instructions and gracefully handle missing optional dependencies.
+- Fixed "Forecast error: must be real number, not str" in the forecasting pipeline by implementing proper type conversion and error handling.
 
 ## Recent Changes
 
 *
+- [2025-04-30 12:32:30] - Fixed "Forecast error: must be real number, not str" by implementing robust type checking and conversion in forecast_ensemble.py. Added explicit float() conversion with try/except blocks to handle type conversion errors gracefully with appropriate warning logs.
+- [2025-04-30 17:03:00] - Implemented targeted fix for "Forecast error: must be real number, not str" in forecast_output/forecast_generator.py by filtering input_features to only include numeric values before passing to the AI model. This addresses the underlying issue at the source by removing string values that the model cannot process.
 
 ## Open Questions/Issues
 

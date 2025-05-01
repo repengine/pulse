@@ -1,41 +1,5 @@
 {
-  "trace_id": "70105fcf-93e0-434e-8ab4-d18e0f63395e",
-  "input": {
-    "state": {
-      "turn": 1,
-      "sim_id": "a130f344-681f-4a5e-bc0b-e41d5eedadb0",
-      "timestamp": "2025-04-30T08:35:01.396139",
-      "overlays": {
-        "hope": 0.49,
-        "despair": 0.49,
-        "rage": 0.49,
-        "fatigue": 0.49,
-        "trust": 0.49
-      },
-      "capital": {
-        "nvda": 0.0,
-        "msft": 0.0,
-        "ibit": 0.0,
-        "spy": 0.0,
-        "cash": 100000.0
-      },
-      "variables": {},
-      "event_count": 17,
-      "metadata": {}
-    },
-    "decay_rate": 0.01,
-    "rule_fn": null
-  },
-  "output": {
-    "overlays": {
-      "hope": 0.49,
-      "despair": 0.49,
-      "rage": 0.49,
-      "fatigue": 0.49,
-      "trust": 0.49
-    },
-    "variables": {},
-    "trust": null,
-    "forks": []
-  }
+  "ensemble_forecast": 100.0234185680747,
+  "value": 100.0234185680747,
+  "forecast_id": "unknown"
 }

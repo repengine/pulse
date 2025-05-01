@@ -35,9 +35,31 @@ def generate_forecast(input_features: Dict, causal_model: Optional[StructuralCau
     Returns:
         Combined forecast dictionary, possibly with a causal_explanation field.
     """
+    logger.info(
+        "[Forecast Pipeline] Entering generate_forecast: type(input_features)=%s, keys=%s, sample=%s",
+        type(input_features),
+        list(input_features.keys())[:5],
+        {k: input_features[k] for k in list(input_features.keys())[:3]}
+    )
     simulation_forecast = generate_simulation_forecast()
     if getattr(pulse_config, "AI_FORECAST_ENABLED", True):
-        ai_forecast = ai_forecaster.predict(input_features)
+        # Filter input_features to only include numeric values (flatten nested dicts)
+        numeric_features = {}
+        for key, value in input_features.items():
+            if isinstance(value, (int, float)):
+                numeric_features[key] = value
+            elif isinstance(value, dict):
+                for nested_key, nested_value in value.items():
+                    if isinstance(nested_value, (int, float)):
+                        numeric_features[f"{key}_{nested_key}"] = nested_value
+
+        ai_forecast = ai_forecaster.predict(numeric_features)
+        logger.info(
+            "[Forecast Pipeline] After ai_forecaster.predict(): type(ai_forecast)=%s, keys=%s, sample=%s",
+            type(ai_forecast),
+            list(ai_forecast.keys())[:5] if hasattr(ai_forecast, "keys") else str(ai_forecast)[:50],
+            {k: ai_forecast[k] for k in list(ai_forecast.keys())[:3]} if hasattr(ai_forecast, "keys") else str(ai_forecast)[:100]
+        )
         forecast = forecast_ensemble.ensemble_forecast(simulation_forecast, ai_forecast)
     else:
         forecast = simulation_forecast

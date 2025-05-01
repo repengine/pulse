@@ -89,9 +89,11 @@ def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
     except Exception as e:
         print(f"⚠️ Error summarizing episodes: {e}")
         return {}
-    # --- FIX: Use correct dict comprehension variable names ---
-    arcs_prev = {k.replace("arc_", ""): v for k, v in prev.items() if k.startswith("arc_")}
-    arcs_curr = {k.replace("arc_", ""): v for k, v in curr.items() if k.startswith("arc_")}
+    # --- FIX: Add type conversion for values ---
+    arcs_prev = {k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
+                for k, v in prev.items() if k.startswith("arc_")}
+    arcs_curr = {k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
+                for k, v in curr.items() if k.startswith("arc_")}
     all_keys = set(arcs_prev) | set(arcs_curr)
     return {k: arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys}
 

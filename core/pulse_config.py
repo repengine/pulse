@@ -35,13 +35,19 @@ def save_thresholds(thresholds):
         json.dump(thresholds, f, indent=2)
 
 _thresholds = load_thresholds()
-CONFIDENCE_THRESHOLD = _thresholds.get("CONFIDENCE_THRESHOLD", 0.6)
+# Reduced confidence threshold to allow more forecasts through during early development
+CONFIDENCE_THRESHOLD = _thresholds.get("CONFIDENCE_THRESHOLD", 0.4)  # Lowered from 0.6
 DEFAULT_FRAGILITY_THRESHOLD = _thresholds.get("DEFAULT_FRAGILITY_THRESHOLD", 0.7)
 
 def update_threshold(name, value):
     _thresholds[name] = value
     save_thresholds(_thresholds)
     globals()[name] = value
+
+# Ensure the updated threshold is saved to the JSON file
+if "CONFIDENCE_THRESHOLD" not in _thresholds or _thresholds["CONFIDENCE_THRESHOLD"] != 0.4:
+    _thresholds["CONFIDENCE_THRESHOLD"] = 0.4
+    save_thresholds(_thresholds)
 
 # --- Module toggles (global boolean flags to enable/disable key systems) ---
 MODULES_ENABLED: Dict[str, bool] = {

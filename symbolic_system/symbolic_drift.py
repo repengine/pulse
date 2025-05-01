@@ -16,8 +16,20 @@ from typing import Dict
 def compute_overlay_deltas(prev: Dict[str, float], curr: Dict[str, float]) -> Dict[str, float]:
     """
     Computes overlay value changes between turns.
+    Adds robust type handling to ensure numeric operations are safe.
     """
-    return {k: round(curr.get(k, 0) - prev.get(k, 0), 3) for k in prev}
+    deltas = {}
+    for k in prev:
+        prev_val = prev.get(k, 0)
+        curr_val = curr.get(k, 0)
+        try:
+            prev_val = float(prev_val) if prev_val is not None else 0.0
+            curr_val = float(curr_val) if curr_val is not None else 0.0
+            deltas[k] = round(curr_val - prev_val, 3)
+        except (ValueError, TypeError):
+            deltas[k] = 0.0
+            # Optional: add logging here for debugging unexpected types
+    return deltas
 
 
 def detect_symbolic_drift(

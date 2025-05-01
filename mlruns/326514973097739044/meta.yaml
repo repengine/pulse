@@ -1,6 +1,0 @@
-artifact_location: file:///C:/Users/natew/Pulse/mlruns/326514973097739044
-creation_time: 1745994905347
-experiment_id: '326514973097739044'
-last_update_time: 1745994905347
-lifecycle_stage: active
-name: PulseHyperparameterTuning

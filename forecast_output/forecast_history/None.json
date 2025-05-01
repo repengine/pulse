@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-04-30T21:03:41.153166",
+  "trace_id": null,
+  "origin_turn": null,
+  "horizon_days": null,
+  "fragility": 0.0,
+  "confidence": 0.0,
+  "status": null,
+  "trust_label": "\ud83d\udd34 Below threshold",
+  "alignment": {},
+  "symbolic_snapshot": null,
+  "exposure_start": null,
+  "exposure_end": null,
+  "retrodiction_score": 0.0,
+  "symbolic_score": null,
+  "retrodiction_hits": [],
+  "symbolic_hits": [],
+  "outcome": {},
+  "status_tag": "open",
+  "forecast_id": "None"
+}

@@ -75,11 +75,15 @@ def predict(input_features: Dict) -> Dict:
         A dictionary with key 'adjustment' and predicted float value.
     """
     logger.info("Predicting forecast adjustments with features: %s", input_features)
-    if _model is None:
-        logger.warning("Model not initialized, returning default adjustment.")
-        return {"adjustment": 0.0}
     features = list(input_features.values())
+    if _model is None:
+        input_size = len(features)
+        _initialize_model(input_size)
+        logger.warning("Model was not initialized before prediction. Initialized with input size %d, but model is untrained. Prediction may be unreliable.", input_size)
     tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0).unsqueeze(1)  # shape (1,1,features)
+    if _model is None:
+        logger.error("Model initialization failed. Returning default adjustment.")
+        return {"adjustment": 0.0}
     _model.eval()
     with torch.no_grad():
         return {"adjustment": float(_model(tensor).item())}
