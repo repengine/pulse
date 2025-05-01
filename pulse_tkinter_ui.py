@@ -10,6 +10,8 @@ matplotlib.use('TkAgg')  # Must be before importing pyplot
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+import matplotlib.pyplot as plt  # for plt.setp in date‐label rotation
+from datetime import datetime    # for timestamp in clear_selected_log
 
 # Add the parent directory to sys.path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -35,11 +37,11 @@ class PulseApp:
         self.root.title("Pulse Desktop UI")
         self.root.geometry("1024x768")  # Larger default size for better visibility
 
+        # Initialize polling job variable
+        self.autopilot_status_polling_job = None
+
         # Set up a better visual style
         style = ttk.Style()
-        if 'clam' in style.theme_names():  # Check if the theme is available
-            style.theme_use('clam')
-        
         # Configure some custom styles
         style.configure('TLabel', font=('Arial', 11))
         style.configure('TButton', font=('Arial', 11))
@@ -1129,314 +1131,1059 @@ class PulseApp:
     def _init_learning_tab(self):
         """Initializes the Learning & Training tab."""
         # Header
-        ttk.Label(self.learning_frame, text="Learning & Training Review", style="Header.TLabel").pack(pady=10)
+        ttk.Label(self.learning_frame, text="Learning & Training Review", style="Header.TLabel").pack(pady=(10, 20))
         
-        # Create frame for the batch ID inputs
-        input_frame = ttk.LabelFrame(self.learning_frame, text="Run AI Training Audit", padding=10)
-        input_frame.pack(padx=10, pady=10, fill="x")
+        # Training Audit Controls Panel
+        audit_frame = ttk.LabelFrame(self.learning_frame, text="Training Audit Controls", padding=10)
+        audit_frame.pack(padx=10, pady=10, fill="x")
         
-        # Previous Batch ID
-        prev_batch_frame = ttk.Frame(input_frame)
-        prev_batch_frame.pack(pady=5, fill="x")
-        ttk.Label(prev_batch_frame, text="Previous Batch ID:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.previous_batch_id_entry = ttk.Entry(prev_batch_frame, width=30)
-        self.previous_batch_id_entry.grid(row=0, column=1, padx=5, pady=5)
+        # Batch IDs for comparison
+        batch_frame = ttk.Frame(audit_frame)
+        batch_frame.pack(fill="x", pady=5)
         
-        # Current Batch ID
-        curr_batch_frame = ttk.Frame(input_frame)
-        curr_batch_frame.pack(pady=5, fill="x")
-        ttk.Label(curr_batch_frame, text="Current Batch ID:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.current_batch_id_entry = ttk.Entry(curr_batch_frame, width=30)
-        self.current_batch_id_entry.grid(row=0, column=1, padx=5, pady=5)
+        ttk.Label(batch_frame, text="Previous Batch ID:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.previous_batch_id_entry = ttk.Entry(batch_frame, width=30)
+        self.previous_batch_id_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         
-        # Trigger button
-        trigger_button = ttk.Button(input_frame, text="Run AI Training Audit", command=self.trigger_ai_training_audit)
-        trigger_button.pack(pady=10)
+        ttk.Label(batch_frame, text="Current Batch ID:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.current_batch_id_entry = ttk.Entry(batch_frame, width=30)
+        self.current_batch_id_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        
+        # Trigger audit button
+        audit_button = ttk.Button(audit_frame, text="Trigger AI Training Audit", 
+                                command=self.trigger_ai_training_audit)
+        audit_button.pack(pady=10)
         
         # Status label
-        self.ai_review_status_label = ttk.Label(input_frame, text="")
-        self.ai_review_status_label.pack(pady=5)
+        self.ai_review_status_label = ttk.Label(audit_frame, text="")
+        self.ai_review_status_label.pack(pady=5, fill="x")
         
-        # Results frame
-        results_frame = ttk.LabelFrame(self.learning_frame, text="Audit Report", padding=10)
-        results_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        # Audit Report Display
+        report_frame = ttk.LabelFrame(self.learning_frame, text="Audit Report", padding=10)
+        report_frame.pack(padx=10, pady=10, fill="both", expand=True)
         
-        # Create report text area
-        self.audit_report_text = scrolledtext.ScrolledText(results_frame, wrap=tk.WORD)
+        # Add a text area for the audit report
+        self.audit_report_text = scrolledtext.ScrolledText(report_frame, height=10)
         self.audit_report_text.pack(fill="both", expand=True)
+        
+        # Learning Log Summary Section
+        log_frame = ttk.LabelFrame(self.learning_frame, text="Learning Log Summary", padding=10)
+        log_frame.pack(padx=10, pady=10, fill="x")
+        
+        # Add a button to load learning events
+        load_log_button = ttk.Button(log_frame, text="Load Learning Events", 
+                                   command=self.load_learning_events)
+        load_log_button.pack(pady=5)
+        
+        # Learning log summary text area
+        self.learning_log_summary = scrolledtext.ScrolledText(log_frame, height=6)
+        self.learning_log_summary.pack(fill="both", expand=True)
+        
+    def load_learning_events(self):
+        """Loads and displays learning events from the learning log."""
+        try:
+            # Import the needed function if available
+            if self.has_pulse_modules and 'learning.recursion_audit' in sys.modules:
+                from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events
+                
+                # Load the events
+                events = load_learning_events(limit=20)  # Limit to the most recent 20 events
+                
+                if events:
+                    # Summarize them
+                    summary = summarize_learning_events(events)
+                    
+                    # Build a formatted display
+                    summary_text = "Learning Event Summary:\n\n"
+                    for event_type, count in summary.items():
+                        summary_text += f"- {event_type}: {count} events\n"
+                    
+                    summary_text += "\n\nRecent Events:\n"
+                    for event in events[:5]:  # Show the 5 most recent events
+                        timestamp = event.get("timestamp", "Unknown time")
+                        event_type = event.get("event_type", "Unknown event")
+                        summary_text += f"\n[{timestamp}] {event_type}\n"
+                        
+                        # Show some details for certain event types
+                        if "data" in event:
+                            if event_type == "variable_weight_change" and "variable" in event["data"]:
+                                var = event["data"].get("variable", "")
+                                old = event["data"].get("old_weight", "")
+                                new = event["data"].get("new_weight", "")
+                                summary_text += f"  Variable: {var}, Weight: {old} → {new}\n"
+                            elif event_type == "symbolic_upgrade" and "plan" in event["data"]:
+                                plan = event["data"].get("plan", {})
+                                summary_text += f"  Plan: {str(plan)}\n"
+                    
+                    # Update the text area
+                    self.learning_log_summary.delete("1.0", tk.END)
+                    self.learning_log_summary.insert(tk.END, summary_text)
+                else:
+                    self.learning_log_summary.delete("1.0", tk.END)
+                    self.learning_log_summary.insert(tk.END, "No learning events found in the log.")
+            else:
+                self.learning_log_summary.delete("1.0", tk.END)
+                self.learning_log_summary.insert(tk.END, "Learning log viewer module is not available.")
+        except Exception as e:
+            self.learning_log_summary.delete("1.0", tk.END)
+            self.learning_log_summary.insert(tk.END, f"Error loading learning events: {str(e)}")
 
     def _init_analysis_tab(self):
-        """Initializes the Analysis tab."""
+        """Initializes the Analysis tab with tools for data analysis and visualization."""
         # Header
-        ttk.Label(self.analysis_frame, text="Pulse Analysis Tools", style="Header.TLabel").pack(pady=10)
+        ttk.Label(self.analysis_frame, text="Data Analysis Tools", style="Header.TLabel").pack(pady=(10, 20))
         
-        # Create variable analysis section
-        var_analysis_frame = ttk.LabelFrame(self.analysis_frame, text="Variable Analysis", padding=10)
-        var_analysis_frame.pack(padx=10, pady=10, fill="x")
+        # Create a notebook for different analysis tools
+        analysis_notebook = ttk.Notebook(self.analysis_frame)
+        analysis_notebook.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Variable selector and load button
-        var_selector_frame = ttk.Frame(var_analysis_frame)
-        var_selector_frame.pack(pady=5, fill="x")
+        # --- Variable Trace Analysis ---
+        var_trace_frame = ttk.Frame(analysis_notebook, padding=10)
+        analysis_notebook.add(var_trace_frame, text="Variable Trace")
         
-        ttk.Label(var_selector_frame, text="Variable:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.variable_entry = ttk.Entry(var_selector_frame, width=30)
-        self.variable_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        # Variable selection
+        var_select_frame = ttk.Frame(var_trace_frame)
+        var_select_frame.pack(fill="x", pady=5)
         
-        load_var_btn = ttk.Button(var_selector_frame, text="Load Variable Data", 
-                                 command=self.load_variable_data)
-        load_var_btn.grid(row=0, column=2, padx=5, pady=5)
+        ttk.Label(var_select_frame, text="Variable:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.var_combo = ttk.Combobox(var_select_frame, width=30)
+        self.var_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         
-        # Variable visualization frame
-        self.var_viz_frame = ttk.Frame(var_analysis_frame)
-        self.var_viz_frame.pack(pady=10, fill="both", expand=True)
+        # Add data range options
+        ttk.Label(var_select_frame, text="Time Range:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.time_range_combo = ttk.Combobox(var_select_frame, width=30, 
+                                            values=["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"])
+        self.time_range_combo.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.time_range_combo.current(0)  # Set default
         
-        # Symbolic analysis section
-        symbolic_frame = ttk.LabelFrame(self.analysis_frame, text="Symbolic Analysis", padding=10)
-        symbolic_frame.pack(padx=10, pady=10, fill="x", expand=True)
+        # Load button
+        load_button = ttk.Button(var_select_frame, text="Load Variable Data", 
+                                command=self.load_variable_trace)
+        load_button.grid(row=2, column=1, padx=5, pady=5, sticky="e")
         
-        # Buttons for different analyses
-        btn_frame = ttk.Frame(symbolic_frame)
-        btn_frame.pack(fill="x", pady=5)
+        # Plot frame
+        self.var_trace_plot_frame = ttk.Frame(var_trace_frame)
+        self.var_trace_plot_frame.pack(fill="both", expand=True, pady=10)
         
-        cluster_btn = ttk.Button(btn_frame, text="View Variable Clusters", 
-                              command=self.view_variable_clusters)
-        cluster_btn.grid(row=0, column=0, padx=5, pady=5)
+        # --- Recursion Analysis ---
+        recursion_frame = ttk.Frame(analysis_notebook, padding=10)
+        analysis_notebook.add(recursion_frame, text="Recursion Audit")
         
-        contradiction_btn = ttk.Button(btn_frame, text="View Symbolic Contradictions", 
-                                     command=self.view_symbolic_contradictions)
-        contradiction_btn.grid(row=0, column=1, padx=5, pady=5)
+        # Previous batch ID
+        prev_batch_frame = ttk.Frame(recursion_frame)
+        prev_batch_frame.pack(fill="x", pady=5)
         
-        # Results text area
-        self.analysis_result_text = scrolledtext.ScrolledText(symbolic_frame, wrap=tk.WORD, height=15)
-        self.analysis_result_text.pack(pady=5, fill="both", expand=True)
+        ttk.Label(prev_batch_frame, text="Previous Batch ID:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.previous_batch_id_entry = ttk.Entry(prev_batch_frame, width=30)
+        self.previous_batch_id_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         
-    def load_variable_data(self):
-        """Loads and visualizes data for a selected variable."""
-        variable_name = self.variable_entry.get().strip()
-        if not variable_name:
-            messagebox.showwarning("Input Required", "Please enter a variable name.")
+        # Current batch ID
+        curr_batch_frame = ttk.Frame(recursion_frame)
+        curr_batch_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(curr_batch_frame, text="Current Batch ID:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.current_batch_id_entry = ttk.Entry(curr_batch_frame, width=30)
+        self.current_batch_id_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        
+        # Run audit button
+        audit_button = ttk.Button(recursion_frame, text="Run Recursion Audit", 
+                                 command=self.trigger_ai_training_audit)
+        audit_button.pack(pady=10)
+        
+        # Status label
+        self.ai_review_status_label = ttk.Label(recursion_frame, text="")
+        self.ai_review_status_label.pack(pady=5)
+        
+        # Audit report text area
+        report_frame = ttk.LabelFrame(recursion_frame, text="Audit Report")
+        report_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        self.audit_report_text = scrolledtext.ScrolledText(report_frame, wrap=tk.WORD)
+        self.audit_report_text.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # --- Cluster Visualization ---
+        cluster_frame = ttk.Frame(analysis_notebook, padding=10)
+        analysis_notebook.add(cluster_frame, text="Cluster Analysis")
+        
+        # Cluster type selection
+        cluster_type_frame = ttk.Frame(cluster_frame)
+        cluster_type_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(cluster_type_frame, text="Cluster Type:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.cluster_type_combo = ttk.Combobox(cluster_type_frame, width=30, 
+                                             values=["Variable Clusters", "Rule Clusters", "Symbolic Overlays"])
+        self.cluster_type_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.cluster_type_combo.current(0)  # Set default
+        
+        # Visualization options
+        viz_options_frame = ttk.Frame(cluster_frame)
+        viz_options_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(viz_options_frame, text="Chart Type:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.chart_type_combo = ttk.Combobox(viz_options_frame, width=30, 
+                                           values=["Network Graph", "Heatmap", "Dendrogram"])
+        self.chart_type_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.chart_type_combo.current(0)  # Set default
+        
+        # Visualize button
+        viz_button = ttk.Button(cluster_frame, text="Generate Visualization", 
+                              command=self.generate_cluster_visualization)
+        viz_button.pack(pady=10)
+        
+        # Visualization frame
+        self.cluster_viz_frame = ttk.Frame(cluster_frame)
+        self.cluster_viz_frame.pack(fill="both", expand=True, pady=10)
+        
+        # --- Learning Metrics ---
+        learning_metrics_frame = ttk.Frame(analysis_notebook, padding=10)
+        analysis_notebook.add(learning_metrics_frame, text="Learning Metrics")
+        
+        # Time period selection
+        time_period_frame = ttk.Frame(learning_metrics_frame)
+        time_period_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(time_period_frame, text="Time Period:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.time_period_combo = ttk.Combobox(time_period_frame, width=30, 
+                                            values=["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"])
+        self.time_period_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.time_period_combo.current(0)  # Set default
+        
+        # Metrics selection
+        metrics_frame = ttk.Frame(learning_metrics_frame)
+        metrics_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(metrics_frame, text="Metrics:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        
+        # Checkbuttons for different metrics
+        self.accuracy_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(metrics_frame, text="Prediction Accuracy", 
+                       variable=self.accuracy_var).grid(row=0, column=1, padx=5, pady=2, sticky="w")
+        
+        self.trust_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(metrics_frame, text="Trust Scores", 
+                       variable=self.trust_var).grid(row=1, column=1, padx=5, pady=2, sticky="w")
+        
+        self.learning_events_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(metrics_frame, text="Learning Events", 
+                       variable=self.learning_events_var).grid(row=2, column=1, padx=5, pady=2, sticky="w")
+        
+        # Generate report button
+        report_button = ttk.Button(learning_metrics_frame, text="Generate Learning Report", 
+                                  command=self.generate_learning_report)
+        report_button.pack(pady=10)
+        
+        # Report display area
+        report_display_frame = ttk.LabelFrame(learning_metrics_frame, text="Learning Report")
+        report_display_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        self.learning_report_text = scrolledtext.ScrolledText(report_display_frame, wrap=tk.WORD)
+        self.learning_report_text.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # --- Export Section (at bottom of main frame) ---
+        export_frame = ttk.Frame(self.analysis_frame)
+        export_frame.pack(fill="x", pady=10, padx=10)
+        
+        ttk.Button(export_frame, text="Export Current Analysis", 
+                  command=self.export_current_analysis).pack(side="left", padx=5)
+        
+        ttk.Button(export_frame, text="Export All Analyses", 
+                  command=self.export_all_analyses).pack(side="left", padx=5)
+
+    def generate_cluster_visualization(self):
+        """Generates and displays cluster visualizations."""
+        cluster_type = self.cluster_type_combo.get()
+        chart_type = self.chart_type_combo.get()
+        
+        self.update_status(f"Generating {chart_type} visualization for {cluster_type}...")
+        
+        try:
+            # Clear the visualization frame
+            for widget in self.cluster_viz_frame.winfo_children():
+                widget.destroy()
+                
+            if hasattr(self, 'has_pulse_modules') and self.has_pulse_modules:
+                # Try to use real data if modules are available
+                try:
+                    if cluster_type == "Variable Clusters":
+                        from memory.variable_cluster_engine import summarize_clusters
+                        clusters = summarize_clusters()
+                        self._visualize_clusters(clusters, chart_type)
+                    elif cluster_type == "Rule Clusters":
+                        # Import and visualize rule clusters
+                        self.generate_dummy_cluster_visualization(chart_type)
+                    else:
+                        # Fallback for other types
+                        self.generate_dummy_cluster_visualization(chart_type)
+                except Exception as e:
+                    self.update_status(f"Error getting cluster data: {str(e)}")
+                    self.generate_dummy_cluster_visualization(chart_type)
+            else:
+                # Generate dummy visualization if modules aren't available
+                self.generate_dummy_cluster_visualization(chart_type)
+                self.update_status("Generated sample visualization (modules not available)")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to generate visualization: {str(e)}")
+            self.update_status(f"Error generating visualization: {str(e)}")
+            
+    def _visualize_clusters(self, clusters, chart_type):
+        """Visualizes real cluster data."""
+        if not clusters:
+            # Use dummy visualization if no real data
+            self.generate_dummy_cluster_visualization(chart_type)
             return
+            
+        # Create figure
+        fig = Figure(figsize=(8, 6), dpi=100)
         
-        # Clear previous visualization
-        for widget in self.var_viz_frame.winfo_children():
+        # Implementation would depend on the specific format of cluster data
+        # This is a placeholder that would be implemented based on actual data
+        ax = fig.add_subplot(111)
+        ax.text(0.5, 0.5, "Real cluster data visualization would go here",
+               ha='center', va='center', fontsize=12)
+        
+        # Create canvas
+        canvas = FigureCanvasTkAgg(fig, master=self.cluster_viz_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # Add toolbar
+        from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+        toolbar = NavigationToolbar2Tk(canvas, self.cluster_viz_frame)
+        toolbar.update()
+        
+    def generate_dummy_cluster_visualization(self, chart_type="Network Graph"):
+        """Generates a dummy cluster visualization for the UI."""
+        # Clear the frame
+        for widget in self.cluster_viz_frame.winfo_children():
             widget.destroy()
             
-        # Check if we have the imported module
-        if not self.has_pulse_modules:
-            messagebox.showerror("Module Error", "Required Pulse modules are not available.")
-            return
+        # Create figure and axis
+        fig = Figure(figsize=(8, 6), dpi=100)
+        
+        if chart_type == "Network Graph":
+            # Create a simple network graph
+            ax = fig.add_subplot(111)
             
-        try:
-            # This would normally use the imported load_variable_trace and plot_variables functions
-            # For now, display a placeholder message
-            ttk.Label(self.var_viz_frame, text=f"Loading data for: {variable_name}...").pack(pady=10)
+            # Node positions
+            pos = {
+                'A': (0, 0), 'B': (1, 1), 'C': (2, 0), 'D': (0, 2),
+                'E': (3, 1), 'F': (2, 2), 'G': (1, 3), 'H': (3, 3)
+            }
             
-            # Try to load and plot if the modules are available
+            # Draw nodes
+            for node, position in pos.items():
+                ax.plot(position[0], position[1], 'o', markersize=15, 
+                       color='skyblue', alpha=0.8)
+                ax.text(position[0], position[1], node, fontsize=10, 
+                       ha='center', va='center')
+            
+            # Draw edges
+            edges = [('A', 'B'), ('A', 'C'), ('B', 'D'), ('C', 'E'), 
+                    ('D', 'F'), ('E', 'F'), ('D', 'G'), ('F', 'H')]
+            
+            for edge in edges:
+                ax.plot([pos[edge[0]][0], pos[edge[1]][0]], 
+                       [pos[edge[0]][1], pos[edge[1]][1]], 'k-', alpha=0.4)
+            
+            ax.set_title("Sample Network Graph")
+            ax.set_xlim(-1, 4)
+            ax.set_ylim(-1, 4)
+            ax.axis('off')
+            
+        elif chart_type == "Heatmap":
+            # Create a heatmap
+            ax = fig.add_subplot(111)
+            
+            # Generate dummy data
+            import numpy as np
+            data = np.random.rand(8, 8)
+            for i in range(8):
+                for j in range(8):
+                    if i == j:
+                        data[i, j] = 1  # Diagonal should be 1 (self-similarity)
+                    else:
+                        data[i, j] = data[j, i]  # Make it symmetric
+            
+            im = ax.imshow(data, cmap='viridis')
+            
+            # Add labels
+            variables = ['var_A', 'var_B', 'var_C', 'var_D', 
+                        'var_E', 'var_F', 'var_G', 'var_H']
+            
+            ax.set_xticks(np.arange(len(variables)))
+            ax.set_yticks(np.arange(len(variables)))
+            ax.set_xticklabels(variables)
+            ax.set_yticklabels(variables)
+            
+            # Rotate x-axis labels
+            import matplotlib.pyplot as plt
+            plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+            
+            # Add colorbar
+            cbar = fig.colorbar(im)
+            cbar.set_label('Similarity')
+            
+            ax.set_title("Sample Heatmap")
+            fig.tight_layout()
+            
+        elif chart_type == "Dendrogram":
+            # Create a dendrogram
+            ax = fig.add_subplot(111)
+            
+            # Generate dummy data
+            import numpy as np
             try:
-                data = load_variable_trace(variable_name)
-                fig = plot_variables([variable_name], data)
+                from scipy.cluster import hierarchy
                 
-                # Create matplotlib canvas
-                canvas_frame = ttk.Frame(self.var_viz_frame)
-                canvas_frame.pack(fill=tk.BOTH, expand=True)
+                # Random distance matrix
+                np.random.seed(42)
+                X = np.random.rand(8, 10)
+                Z = hierarchy.linkage(X, 'ward')
                 
-                canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
-                canvas.draw()
-                canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+                # Labels
+                labels = ['var_A', 'var_B', 'var_C', 'var_D', 
+                         'var_E', 'var_F', 'var_G', 'var_H']
                 
-                # Add a toolbar for interactive features
-                from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
-                toolbar = NavigationToolbar2Tk(canvas, canvas_frame)
-                toolbar.update()
-                
-                self.log_activity(f"Loaded variable data for {variable_name}")
-            except Exception as e:
-                ttk.Label(self.var_viz_frame, text=f"Failed to load/plot data: {str(e)}").pack(pady=10)
-                print(f"Error in load_variable_data: {e}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load variable data: {str(e)}")
-    
-    def view_variable_clusters(self):
-        """Displays variable clusters from the memory system."""
-        self.analysis_result_text.delete("1.0", tk.END)
+                # Plot dendrogram
+                hierarchy.dendrogram(Z, labels=labels, ax=ax, leaf_rotation=90)
+                ax.set_title('Sample Dendrogram')
+            except ImportError:
+                ax.text(0.5, 0.5, "scipy not available to create dendrogram", 
+                       ha='center', va='center')
+                ax.set_title('Could not create dendrogram')
+            
+            fig.tight_layout()
         
-        if not self.has_pulse_modules:
-            self.analysis_result_text.insert(tk.END, "Required Pulse modules are not available.")
-            return
-            
-        try:
-            # Try to get cluster data using imported function
-            clusters = summarize_clusters()
-            digest = format_variable_cluster_digest_md(limit=10)
-            
-            if digest:
-                self.analysis_result_text.insert(tk.END, digest)
-            else:
-                self.analysis_result_text.insert(tk.END, "No variable clusters found or digestible.")
-                
-            self.log_activity("Viewed variable clusters")
-        except Exception as e:
-            self.analysis_result_text.insert(tk.END, f"Failed to load variable clusters: {str(e)}")
-            print(f"Error in view_variable_clusters: {e}")
-    
-    def view_symbolic_contradictions(self):
-        """Displays symbolic contradictions from the system."""
-        self.analysis_result_text.delete("1.0", tk.END)
+        # Create canvas
+        canvas = FigureCanvasTkAgg(fig, master=self.cluster_viz_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         
-        if not self.has_pulse_modules:
-            self.analysis_result_text.insert(tk.END, "Required Pulse modules are not available.")
-            return
-            
-        try:
-            # Try to get contradiction data using imported function
-            conflicts = load_symbolic_conflict_events()
-            digest = format_contradiction_cluster_md(conflicts)
-            
-            if digest:
-                self.analysis_result_text.insert(tk.END, digest)
-            else:
-                self.analysis_result_text.insert(tk.END, "No symbolic contradictions found.")
-                
-            self.log_activity("Viewed symbolic contradictions")
-        except Exception as e:
-            self.analysis_result_text.insert(tk.END, f"Failed to load symbolic contradictions: {str(e)}")
-            print(f"Error in view_symbolic_contradictions: {e}")
+        # Add toolbar
+        from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+        toolbar = NavigationToolbar2Tk(canvas, self.cluster_viz_frame)
+        toolbar.update()
 
     def _init_diagnostics_tab(self):
-        """Initializes the Diagnostics tab."""
+        """Initializes the Diagnostics tab with system health monitoring and debug tools."""
         # Header
-        ttk.Label(self.diagnostics_frame, text="System Diagnostics", style="Header.TLabel").pack(pady=10)
+        ttk.Label(self.diagnostics_frame, text="System Diagnostics", style="Header.TLabel").pack(pady=(10, 20))
         
-        # System health section
+        # System Health Monitoring
         health_frame = ttk.LabelFrame(self.diagnostics_frame, text="System Health", padding=10)
         health_frame.pack(padx=10, pady=10, fill="x")
         
-        # Run diagnostics button
-        run_diag_btn = ttk.Button(health_frame, text="Run System Diagnostics", 
-                                 command=self.run_system_diagnostics)
-        run_diag_btn.pack(pady=5)
+        # Memory usage
+        mem_frame = ttk.Frame(health_frame)
+        mem_frame.pack(fill="x", pady=5)
         
-        # System resources section
-        resources_frame = ttk.Frame(health_frame)
-        resources_frame.pack(fill="x", pady=5)
+        ttk.Label(mem_frame, text="Memory Usage:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.memory_usage_label = ttk.Label(mem_frame, text="Unknown")
+        self.memory_usage_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        ttk.Label(resources_frame, text="Memory Usage:").grid(row=0, column=0, padx=5, pady=2, sticky="w")
-        self.memory_usage_label = ttk.Label(resources_frame, text="N/A")
-        self.memory_usage_label.grid(row=0, column=1, padx=5, pady=2, sticky="w")
+        # Processing load
+        cpu_frame = ttk.Frame(health_frame)
+        cpu_frame.pack(fill="x", pady=5)
         
-        ttk.Label(resources_frame, text="CPU Usage:").grid(row=1, column=0, padx=5, pady=2, sticky="w")
-        self.cpu_usage_label = ttk.Label(resources_frame, text="N/A")
-        self.cpu_usage_label.grid(row=1, column=1, padx=5, pady=2, sticky="w")
+        ttk.Label(cpu_frame, text="CPU Usage:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.cpu_usage_label = ttk.Label(cpu_frame, text="Unknown")
+        self.cpu_usage_label.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         
-        ttk.Label(resources_frame, text="Disk Space:").grid(row=2, column=0, padx=5, pady=2, sticky="w")
-        self.disk_space_label = ttk.Label(resources_frame, text="N/A")
-        self.disk_space_label.grid(row=2, column=1, padx=5, pady=2, sticky="w")
+        # Refresh button
+        ttk.Button(health_frame, text="Refresh Metrics", 
+                  command=self.refresh_system_metrics).pack(pady=10)
         
-        # Log analysis section
-        logs_frame = ttk.LabelFrame(self.diagnostics_frame, text="Log Analysis", padding=10)
-        logs_frame.pack(padx=10, pady=10, fill="x")
+        # Logs & Debug
+        logs_frame = ttk.LabelFrame(self.diagnostics_frame, text="Logs & Debug Info", padding=10)
+        logs_frame.pack(padx=10, pady=10, fill="both", expand=True)
         
-        log_controls_frame = ttk.Frame(logs_frame)
-        log_controls_frame.pack(fill="x", pady=5)
+        # Log selection
+        log_select_frame = ttk.Frame(logs_frame)
+        log_select_frame.pack(fill="x", pady=5)
         
-        ttk.Label(log_controls_frame, text="Log File:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.log_file_combo = ttk.Combobox(log_controls_frame, 
-                                           values=["system.log", "forecast.log", "retrodiction.log", "learning.log", "error.log"])
-        self.log_file_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.log_file_combo.current(0)  # Select first item by default
+        ttk.Label(log_select_frame, text="Select Log:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.log_combo = ttk.Combobox(log_select_frame, width=30)
+        self.log_combo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         
-        load_log_btn = ttk.Button(log_controls_frame, text="Load Log", command=self.load_log_file)
-        load_log_btn.grid(row=0, column=2, padx=5, pady=5)
+        # Add some default log options
+        log_options = ["Application Log", "Forecast Engine Log", "Simulation Engine Log", 
+                      "Learning System Log", "Errors Log"]
+        self.log_combo['values'] = log_options
+        self.log_combo.current(0)  # Set default selection
         
-        # Log viewer
-        self.log_text = scrolledtext.ScrolledText(logs_frame, height=15, wrap=tk.WORD)
-        self.log_text.pack(pady=5, fill="both", expand=True)
+        # View log button
+        ttk.Button(log_select_frame, text="View Log", 
+                  command=self.view_selected_log).grid(row=0, column=2, padx=5, pady=5)
         
-        # Autopilot history table
-        history_frame = ttk.LabelFrame(self.diagnostics_frame, text="Autopilot History", padding=10)
-        history_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        # Clear log button
+        ttk.Button(log_select_frame, text="Clear Log", 
+                  command=self.clear_selected_log).grid(row=0, column=3, padx=5, pady=5)
         
-        # Create the treeview for autopilot history
-        self.autopilot_history_tree = ttk.Treeview(history_frame, 
-                                                 columns=("ID", "Start Time", "End Time", "Status"),
-                                                 show="headings",
-                                                 selectmode="browse")
+        # Log content
+        log_content_frame = ttk.Frame(logs_frame)
+        log_content_frame.pack(fill="both", expand=True, pady=5)
         
-        # Define column headings
-        self.autopilot_history_tree.heading("ID", text="Run ID")
-        self.autopilot_history_tree.heading("Start Time", text="Start Time")
-        self.autopilot_history_tree.heading("End Time", text="End Time")
-        self.autopilot_history_tree.heading("Status", text="Status")
+        self.log_content = scrolledtext.ScrolledText(log_content_frame, height=15)
+        self.log_content.pack(fill="both", expand=True)
         
-        # Configure column widths
-        self.autopilot_history_tree.column("ID", width=100)
-        self.autopilot_history_tree.column("Start Time", width=150)
-        self.autopilot_history_tree.column("End Time", width=150)
-        self.autopilot_history_tree.column("Status", width=100)
+        # Tools & Actions
+        tools_frame = ttk.LabelFrame(self.diagnostics_frame, text="Diagnostic Tools", padding=10)
+        tools_frame.pack(padx=10, pady=10, fill="x")
         
-        # Add scrollbar
-        history_scrollbar = ttk.Scrollbar(history_frame, orient="vertical", 
-                                         command=self.autopilot_history_tree.yview)
-        self.autopilot_history_tree.configure(yscrollcommand=history_scrollbar.set)
+        # Buttons for various tools
+        tools_btn_frame = ttk.Frame(tools_frame)
+        tools_btn_frame.pack(fill="x", pady=5)
         
-        # Pack everything
-        self.autopilot_history_tree.pack(side="left", fill="both", expand=True)
-        history_scrollbar.pack(side="right", fill="y")
+        ttk.Button(tools_btn_frame, text="Test Connections", 
+                  command=self.test_connections).grid(row=0, column=0, padx=5, pady=5)
         
-    def run_system_diagnostics(self):
-        """Runs system diagnostics and updates the UI."""
+        ttk.Button(tools_btn_frame, text="Verify Data Integrity", 
+                  command=self.verify_data_integrity).grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Button(tools_btn_frame, text="Check Module Status", 
+                  command=self.check_module_status).grid(row=0, column=2, padx=5, pady=5)
+        
+        # Result display
+        self.diagnostics_result = scrolledtext.ScrolledText(tools_frame, height=6)
+        self.diagnostics_result.pack(fill="both", expand=True, pady=5)
+        self.diagnostics_result.insert(tk.END, "Run a diagnostic tool to see results")
+        self.diagnostics_result.config(state="disabled")  # Make read-only initially
+
+    def refresh_system_metrics(self):
+        """Refreshes system metrics display."""
         try:
-            # Update memory usage
             import psutil
+            # Get memory usage
+            mem = psutil.virtual_memory()
+            mem_percent = mem.percent
+            mem_used_gb = mem.used / (1024 ** 3)  # Convert bytes to GB
+            mem_total_gb = mem.total / (1024 ** 3)  # Convert bytes to GB
             
-            # Memory usage
-            memory = psutil.virtual_memory()
-            memory_percent = memory.percent
-            self.memory_usage_label.config(text=f"{memory_percent}% ({memory.used // 1024 // 1024} MB)")
+            # Update memory label
+            self.memory_usage_label.config(
+                text=f"{mem_percent}% ({mem_used_gb:.2f} GB / {mem_total_gb:.2f} GB)"
+            )
             
-            # CPU usage
+            # Get CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
             self.cpu_usage_label.config(text=f"{cpu_percent}%")
             
-            # Disk space
-            disk = psutil.disk_usage('/')
-            disk_percent = disk.percent
-            self.disk_space_label.config(text=f"{disk_percent}% used ({disk.free // 1024 // 1024 // 1024} GB free)")
-            
-            # Log diagnostics run
-            self.log_activity("System diagnostics completed")
-            
+            self.update_status("System metrics refreshed")
         except ImportError:
-            self.memory_usage_label.config(text="psutil not installed")
-            self.cpu_usage_label.config(text="psutil not installed")
-            self.disk_space_label.config(text="psutil not installed")
-            messagebox.showinfo("Missing Dependency", "The psutil library is required for system diagnostics. Install with: pip install psutil")
+            self.memory_usage_label.config(text="psutil module not available")
+            self.cpu_usage_label.config(text="psutil module not available")
+            self.update_status("Could not refresh system metrics - psutil module not available")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to run diagnostics: {str(e)}")
-    
-    def load_log_file(self):
-        """Loads and displays the selected log file."""
-        log_file = self.log_file_combo.get()
-        if not log_file:
-            return
-            
-        # Clear previous content
-        self.log_text.delete("1.0", tk.END)
+            self.memory_usage_label.config(text="Error")
+            self.cpu_usage_label.config(text="Error")
+            self.update_status(f"Error refreshing system metrics: {e}")
+
+    def view_selected_log(self):
+        """Displays the selected log file content."""
+        log_type = self.log_combo.get()
+        self.log_content.delete("1.0", tk.END)
         
-        # Try to find log file
-        log_path = os.path.join("logs", log_file)
-        if not os.path.exists(log_path):
-            self.log_text.insert(tk.END, f"Log file not found: {log_path}")
+        # Map log selection to log file paths
+        log_files = {
+            "Application Log": "logs/app.log",
+            "Forecast Engine Log": "logs/forecast_engine.log",
+            "Simulation Engine Log": "logs/simulation_engine.log",
+            "Learning System Log": "logs/learning_system.log",
+            "Errors Log": "logs/errors.log"
+        }
+        
+        log_path = log_files.get(log_type)
+        if not log_path:
+            self.log_content.insert(tk.END, f"No log file defined for: {log_type}")
+            return
+        
+        try:
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8") as f:
+                    # Get last 100 lines (most recent logs)
+                    lines = f.readlines()[-100:]
+                    for line in lines:
+                        self.log_content.insert(tk.END, line)
+                self.update_status(f"Loaded log: {log_type}")
+            else:
+                self.log_content.insert(tk.END, f"Log file not found: {log_path}")
+                self.update_status(f"Log file not found: {log_path}")
+        except Exception as e:
+            self.log_content.insert(tk.END, f"Error loading log: {str(e)}")
+            self.update_status(f"Error loading log: {str(e)}")
+
+    def clear_selected_log(self):
+        """Clears the selected log file."""
+        log_type = self.log_combo.get()
+        
+        # Map log selection to log file paths
+        log_files = {
+            "Application Log": "logs/app.log",
+            "Forecast Engine Log": "logs/forecast_engine.log",
+            "Simulation Engine Log": "logs/simulation_engine.log",
+            "Learning System Log": "logs/learning_system.log",
+            "Errors Log": "logs/errors.log"
+        }
+        
+        log_path = log_files.get(log_type)
+        if not log_path:
+            messagebox.showwarning("Not Found", f"No log file defined for: {log_type}")
+            return
+        
+        # Ask for confirmation
+        confirm = messagebox.askyesno("Confirm", f"Are you sure you want to clear the {log_type}?")
+        if not confirm:
             return
             
         try:
-            with open(log_path, "r") as f:
-                log_content = f.read()
-                self.log_text.insert(tk.END, log_content)
-                self.log_activity(f"Loaded log file: {log_file}")
+            # Open the file in write mode (which truncates it)
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(f"Log cleared on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            
+            self.log_content.delete("1.0", tk.END)
+            self.log_content.insert(tk.END, f"Log {log_type} has been cleared.")
+            self.update_status(f"Log cleared: {log_type}")
+            self.log_activity(f"Cleared log: {log_type}")
         except Exception as e:
-            self.log_text.insert(tk.END, f"Error reading log file: {str(e)}")
-            print(f"Error reading log file: {e}")
+            messagebox.showerror("Error", f"Failed to clear log: {str(e)}")
+            self.update_status(f"Error clearing log: {str(e)}")
+
+    def test_connections(self):
+        """Tests connections to various services."""
+        self.diagnostics_result.config(state="normal")
+        self.diagnostics_result.delete("1.0", tk.END)
+        self.diagnostics_result.insert(tk.END, "Testing connections...\n")
+        
+        # Test backend connection
+        try:
+            backend_status = self.make_request('GET', '/status')
+            if backend_status and backend_status.get('status') == 'online':
+                self.diagnostics_result.insert(tk.END, "✓ Backend: Connected\n")
+            else:
+                self.diagnostics_result.insert(tk.END, "✗ Backend: Not reachable\n")
+        except Exception:
+            self.diagnostics_result.insert(tk.END, "✗ Backend: Error connecting\n")
+        
+        # Test database connection
+        try:
+            db_status = self.make_request('GET', '/database/status')
+            if db_status and db_status.get('status') == 'connected':
+                self.diagnostics_result.insert(tk.END, "✓ Database: Connected\n")
+            else:
+                self.diagnostics_result.insert(tk.END, "✗ Database: Not connected\n")
+        except Exception:
+            self.diagnostics_result.insert(tk.END, "✗ Database: Error checking status\n")
+        
+        # Test file system access
+        try:
+            logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
+            if os.path.exists(logs_dir) and os.access(logs_dir, os.R_OK | os.W_OK):
+                self.diagnostics_result.insert(tk.END, "✓ File System: Read/Write access OK\n")
+            else:
+                self.diagnostics_result.insert(tk.END, "✗ File System: Access issues\n")
+        except Exception:
+            self.diagnostics_result.insert(tk.END, "✗ File System: Error checking access\n")
+        
+        self.diagnostics_result.insert(tk.END, "\nConnection tests completed.")
+        self.diagnostics_result.config(state="disabled")
+        self.update_status("Connection tests completed")
+
+    def verify_data_integrity(self):
+        """Verifies data integrity of various files."""
+        self.diagnostics_result.config(state="normal")
+        self.diagnostics_result.delete("1.0", tk.END)
+        self.diagnostics_result.insert(tk.END, "Checking data integrity...\n")
+        
+        # Define critical files to check
+        critical_files = [
+            "config/simulation_config.yaml",
+            "config/variables_config.yaml",
+            "config/rules_config.yaml"
+        ]
+        
+        for file_path in critical_files:
+            full_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), file_path)
+            if os.path.exists(full_path):
+                try:
+                    with open(full_path, "r", encoding="utf-8") as f:
+                        # Try to load and parse the file based on extension
+                        if file_path.endswith('.yaml') or file_path.endswith('.yml'):
+                            import yaml
+                            yaml.safe_load(f)
+                            self.diagnostics_result.insert(tk.END, f"✓ {file_path}: Valid YAML\n")
+                        elif file_path.endswith('.json'):
+                            import json
+                            json.load(f)
+                            self.diagnostics_result.insert(tk.END, f"✓ {file_path}: Valid JSON\n")
+                        else:
+                            # For other files, just check they're readable
+                            f.read()
+                            self.diagnostics_result.insert(tk.END, f"✓ {file_path}: Readable\n")
+                except Exception as e:
+                    self.diagnostics_result.insert(tk.END, f"✗ {file_path}: Error - {str(e)}\n")
+            else:
+                self.diagnostics_result.insert(tk.END, f"✗ {file_path}: Not found\n")
+        
+        self.diagnostics_result.insert(tk.END, "\nData integrity check completed.")
+        self.diagnostics_result.config(state="disabled")
+        self.update_status("Data integrity check completed")
+
+    def check_module_status(self):
+        """Checks the status of Pulse modules."""
+        self.diagnostics_result.config(state="normal")
+        self.diagnostics_result.delete("1.0", tk.END)
+        self.diagnostics_result.insert(tk.END, "Checking module status...\n")
+        
+        # Check if required modules are available
+        modules_to_check = [
+            "core.pulse_config",
+            "learning.forecast_pipeline_runner",
+            "learning.recursion_audit",
+            "memory.variable_cluster_engine",
+            "symbolic_system.symbolic_convergence_detector"
+        ]
+        
+        for module_name in modules_to_check:
+            if module_name in sys.modules:
+                self.diagnostics_result.insert(tk.END, f"✓ {module_name}: Loaded\n")
+            else:
+                # Try to import
+                try:
+                    __import__(module_name)
+                    self.diagnostics_result.insert(tk.END, f"✓ {module_name}: Available\n")
+                except ImportError:
+                    self.diagnostics_result.insert(tk.END, f"✗ {module_name}: Not available\n")
+        
+        # Also check optional dependencies
+        optional_modules = [
+            "pandas",
+            "numpy",
+            "matplotlib",
+            "scikit-learn",
+            "statsmodels",
+            "networkx"
+        ]
+        
+        self.diagnostics_result.insert(tk.END, "\nOptional dependencies:\n")
+        for module_name in optional_modules:
+            try:
+                __import__(module_name)
+                self.diagnostics_result.insert(tk.END, f"✓ {module_name}: Installed\n")
+            except ImportError:
+                self.diagnostics_result.insert(tk.END, f"✗ {module_name}: Not installed\n")
+        
+        self.diagnostics_result.insert(tk.END, "\nModule status check completed.")
+        self.diagnostics_result.config(state="disabled")
+        self.update_status("Module status check completed")
+
+    def load_variable_trace(self):
+        """Loads and visualizes a variable's trace data."""
+        selected_var = self.var_combo.get()
+        time_range = self.time_range_combo.get()
+        
+        if not selected_var:
+            messagebox.showwarning("Selection Required", "Please select a variable to analyze.")
+            return
+            
+        self.update_status(f"Loading variable trace for {selected_var}...")
+        
+        try:
+            # Clear any existing plot
+            for widget in self.var_trace_plot_frame.winfo_children():
+                widget.destroy()
+                
+            # Try to use the imported function if available
+            if hasattr(self, 'has_pulse_modules') and self.has_pulse_modules:
+                # Define time windows based on selection
+                time_windows = {
+                    "Last 24 Hours": 1,
+                    "Last 7 Days": 7,
+                    "Last 30 Days": 30,
+                    "All Time": None
+                }
+                days = time_windows.get(time_range)
+                
+                # Load data using the imported function
+                try:
+                    from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
+                    trace_data = load_variable_trace(selected_var, days=days)
+                    
+                    # Plot the data
+                    fig = plot_variables([selected_var], trace_data)
+                    
+                    # Create matplotlib canvas
+                    canvas = FigureCanvasTkAgg(fig, master=self.var_trace_plot_frame)
+                    canvas.draw()
+                    
+                    # Pack canvas
+                    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+                    
+                    # Add toolbar
+                    from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+                    toolbar = NavigationToolbar2Tk(canvas, self.var_trace_plot_frame)
+                    toolbar.update()
+                    
+                    self.update_status(f"Variable trace for {selected_var} loaded successfully")
+                except Exception as e:
+                    messagebox.showerror("Plot Error", f"Error plotting data: {str(e)}")
+                    self.generate_dummy_variable_plot(selected_var)
+            else:
+                # Fallback with dummy data for testing UI
+                self.generate_dummy_variable_plot(selected_var)
+                self.update_status(f"Generated sample data for {selected_var} (modules not available)")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load variable trace: {str(e)}")
+            self.update_status(f"Error loading variable trace: {str(e)}")
+            
+    def generate_dummy_variable_plot(self, variable_name):
+        """Generates a dummy plot for testing when real data isn't available."""
+        # Clear the frame
+        for widget in self.var_trace_plot_frame.winfo_children():
+            widget.destroy()
+        
+        # Create figure and axis
+        fig = Figure(figsize=(8, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        
+        # Generate dummy data
+        import random
+        x = list(range(100))
+        y = [random.random() * random.randint(1, 5) for _ in range(100)]
+        
+        # Add some trend for visual interest
+        for i in range(10, 30):
+            y[i] *= 1.5
+        for i in range(50, 80):
+            y[i] *= 0.7
+        
+        # Plot
+        ax.plot(x, y, 'b-', label=variable_name)
+        ax.set_title(f"Sample Data for {variable_name}")
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Value")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        
+        fig.tight_layout()
+        
+        # Create canvas
+        canvas = FigureCanvasTkAgg(fig, master=self.var_trace_plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # Add toolbar
+        from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+        toolbar = NavigationToolbar2Tk(canvas, self.var_trace_plot_frame)
+        
+    def generate_learning_report(self):
+        """Generates and displays a learning metrics report."""
+        time_period = self.time_period_combo.get()
+        include_accuracy = self.accuracy_var.get()
+        include_trust = self.trust_var.get()
+        include_events = self.learning_events_var.get()
+        
+        self.update_status(f"Generating learning report for {time_period}...")
+        
+        # Clear the report text
+        self.learning_report_text.delete("1.0", tk.END)
+        
+        try:
+            if hasattr(self, 'has_pulse_modules') and self.has_pulse_modules:
+                try:
+                    # Try to use the actual learning log viewer if available
+                    from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events
+                    
+                    # Load learning events
+                    learning_events = load_learning_events(limit=100)  # Adjust limit as needed
+                    summary = summarize_learning_events(learning_events)
+                    
+                    # Display header
+                    self.learning_report_text.insert(tk.END, f"Learning Report for {time_period}\n")
+                    self.learning_report_text.insert(tk.END, "="*50 + "\n\n")
+                    
+                    # Display summary
+                    self.learning_report_text.insert(tk.END, "SUMMARY\n")
+                    self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+                    
+                    for event_type, count in summary.items():
+                        self.learning_report_text.insert(tk.END, f"{event_type}: {count} events\n")
+                    
+                    # Display details based on selected options
+                    if include_events:
+                        self.learning_report_text.insert(tk.END, "\nRECENT LEARNING EVENTS\n")
+                        self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+                        
+                        for event in learning_events[:10]:  # Show top 10 events
+                            event_type = event.get("event_type", "unknown")
+                            timestamp = event.get("timestamp", "unknown")
+                            self.learning_report_text.insert(tk.END, f"{timestamp} - {event_type}\n")
+                            
+                            # Show some data details
+                            data = event.get("data", {})
+                            for key, value in data.items():
+                                if isinstance(value, (str, int, float, bool)):
+                                    self.learning_report_text.insert(tk.END, f"  {key}: {value}\n")
+                            
+                            self.learning_report_text.insert(tk.END, "\n")
+                    
+                    self.update_status("Learning report generated successfully")
+                except Exception as e:
+                    self.learning_report_text.insert(tk.END, f"Error generating report with actual module: {str(e)}\n")
+                    # Fall back to dummy report
+                    self.generate_dummy_learning_report(time_period, include_accuracy, include_trust, include_events)
+            else:
+                # Generate dummy report if modules not available
+                self.generate_dummy_learning_report(time_period, include_accuracy, include_trust, include_events)
+                self.update_status("Generated sample learning report (modules not available)")
+        except Exception as e:
+            self.learning_report_text.insert(tk.END, f"Error generating report: {str(e)}")
+            self.update_status(f"Error generating learning report: {str(e)}")
+
+    def generate_dummy_learning_report(self, time_period, include_accuracy, include_trust, include_events):
+        """Generates a dummy learning report for the UI."""
+        from datetime import datetime, timedelta
+        
+        self.learning_report_text.insert(tk.END, f"Learning Report for {time_period}\n")
+        self.learning_report_text.insert(tk.END, "="*50 + "\n\n")
+        
+        # Summary section
+        self.learning_report_text.insert(tk.END, "SUMMARY\n")
+        self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+        self.learning_report_text.insert(tk.END, "variable_weight_change: 24 events\n")
+        self.learning_report_text.insert(tk.END, "symbolic_upgrade: 8 events\n")
+        self.learning_report_text.insert(tk.END, "revision_trigger: 12 events\n")
+        self.learning_report_text.insert(tk.END, "arc_regret: 6 events\n")
+        self.learning_report_text.insert(tk.END, "learning_summary: 2 events\n\n")
+        
+        if include_accuracy:
+            self.learning_report_text.insert(tk.END, "ACCURACY METRICS\n")
+            self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+            self.learning_report_text.insert(tk.END, "Overall Prediction Accuracy: 76.3%\n")
+            self.learning_report_text.insert(tk.END, "Symbolic Arc Prediction: 82.1%\n")
+            self.learning_report_text.insert(tk.END, "Capital Outcome Prediction: 71.8%\n\n")
+        
+        if include_trust:
+            self.learning_report_text.insert(tk.END, "TRUST METRICS\n")
+            self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+            self.learning_report_text.insert(tk.END, "Average Trust Score: 0.723\n")
+            self.learning_report_text.insert(tk.END, "Rule Confidence: 0.851\n")
+            self.learning_report_text.insert(tk.END, "Variable Volatility Index: 0.342\n\n")
+        
+        if include_events:
+            self.learning_report_text.insert(tk.END, "RECENT LEARNING EVENTS\n")
+            self.learning_report_text.insert(tk.END, "-"*30 + "\n")
+            
+            # Generate some dummy events
+            now = datetime.now()
+            event_types = ["variable_weight_change", "symbolic_upgrade", "revision_trigger", "arc_regret"]
+            
+            for i in range(10):
+                event_time = (now - timedelta(hours=i*3)).strftime("%Y-%m-%d %H:%M:%S")
+                event_type = event_types[i % len(event_types)]
+                
+                self.learning_report_text.insert(tk.END, f"{event_time} - {event_type}\n")
+                
+                if event_type == "variable_weight_change":
+                    var_name = f"var_{chr(65 + i % 8)}"  # var_A to var_H
+                    self.learning_report_text.insert(tk.END, f"  variable: {var_name}\n")
+                    self.learning_report_text.insert(tk.END, f"  old_weight: {0.8 + (i % 5) * 0.05:.2f}\n")
+                    self.learning_report_text.insert(tk.END, f"  new_weight: {0.75 + (i % 7) * 0.05:.2f}\n")
+                elif event_type == "symbolic_upgrade":
+                    self.learning_report_text.insert(tk.END, f"  hope: +{(i % 10) * 0.03:.2f}\n")
+                    self.learning_report_text.insert(tk.END, f"  despair: -{(i % 8) * 0.02:.2f}\n")
+                elif event_type == "revision_trigger":
+                    self.learning_report_text.insert(tk.END, f"  reason: {'fragmentation > threshold' if i % 2 else 'confidence < minimum'}\n")
+                elif event_type == "arc_regret":
+                    self.learning_report_text.insert(tk.END, f"  arc_hope: {(i % 10) * 0.1:.2f}\n")
+                    self.learning_report_text.insert(tk.END, f"  arc_despair: {(10 - i % 10) * 0.1:.2f}\n")
+                
+                self.learning_report_text.insert(tk.END, "\n")
+
+    def export_current_analysis(self):
+        """Exports the current analysis to a file."""
+        from datetime import datetime
+        
+        active_tab = self.notebook.select()
+        tab_text = self.notebook.tab(active_tab, "text")
+        
+        if tab_text != "Analysis":
+            messagebox.showinfo("Export", "Please navigate to the Analysis tab to export analysis.")
+            return
+            
+        # Determine which analysis is showing
+        notebook_tab_idx = None
+        for child in self.analysis_frame.winfo_children():
+            if isinstance(child, ttk.Notebook):
+                notebook_tab_idx = child.index(child.select())
+                break
+                
+        if notebook_tab_idx is None:
+            messagebox.showwarning("Export Error", "Could not determine the current analysis tab.")
+            return
+        
+        try:
+            # Default filename based on analysis type
+            analysis_types = ["variable_trace", "recursion_audit", "cluster_analysis", "learning_metrics"]
+            default_filename = f"{analysis_types[notebook_tab_idx]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            # Ask for save location
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf"), ("PNG files", "*.png"), 
+                         ("All files", "*.*")],
+                initialfile=default_filename
+            )
+            
+            if not file_path:  # User cancelled
+                return
+                
+            # For demonstration, we'll just create a text file
+            with open(file_path, 'w') as f:
+                f.write(f"Pulse Analysis Export: {default_filename}\n")
+                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write("This is a placeholder for the actual analysis export functionality.\n")
+            
+            messagebox.showinfo("Export Complete", f"Analysis exported to {file_path}")
+            self.update_status(f"Analysis exported to {file_path}")
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export analysis: {str(e)}")
+            self.update_status(f"Export error: {str(e)}")
+
+    def export_all_analyses(self):
+        """Exports all analyses to a comprehensive report."""
+        from datetime import datetime
+        
+        try:
+            # Ask for directory to save in
+            export_dir = filedialog.askdirectory(title="Select Export Directory")
+            
+            if not export_dir:  # User cancelled
+                return
+                
+            # Create a common filename for all exports
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            base_filename = f"pulse_analyses_{timestamp}"
+            
+            # For demonstration, we'll just create a text file
+            report_path = os.path.join(export_dir, f"{base_filename}.txt")
+            
+            with open(report_path, 'w') as f:
+                f.write(f"Pulse Comprehensive Analysis Report\n")
+                f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write("This is a placeholder for the actual comprehensive export functionality.\n")
+                f.write("In a real implementation, this would include:\n")
+                f.write("1. Variable trace analysis\n")
+                f.write("2. Recursion audit results\n")
+                f.write("3. Cluster visualizations\n")
+                f.write("4. Learning metrics\n")
+            
+            messagebox.showinfo("Export Complete", f"All analyses exported to {report_path}")
+            self.update_status(f"All analyses exported to {report_path}")
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export analyses: {str(e)}")
+            self.update_status(f"Export error: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()

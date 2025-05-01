@@ -25,10 +25,14 @@ This file provides a high-level overview of the project and the expected product
 * Strategos Digest for forecast summarization
 * Prompt logging and management
 * DVC and MLflow integration for experiment tracking
+* Recursive AI Training with GPT-Symbolic feedback
 
 ## Overall Architecture
 
-* Modular design with distinct engines: Core (config), Simulation Engine, Forecast Engine, Trust Engine, Forecast Output, Memory/Diagnostics, Symbolic System, Capital Engine, Operator Interface (UI/CLI), Utils, Dev Tools, Tests.
+* Modular design with distinct engines: Core (config), Simulation Engine, Forecast Engine, Trust Engine, Forecast Output, Memory/Diagnostics, Symbolic System, Capital Engine, Operator Interface (UI/CLI), Utils, Dev Tools, Tests, Recursive Training.
 * High-level flow: Input -> Simulation -> WorldState -> Forecast -> Trust -> Output -> Memory/Diagnostics -> UI/CLI.
+* Recursive Training flow: Data Ingestion -> Feature Processing -> Model Training -> Rule Generation -> Evaluation -> GPT-Symbolic Feedback -> Rule Enhancement.
 * Centralized configuration (`core/path_registry.py`, `core/pulse_config.py`).
 * Emphasis on interpretability, auditability, and modular iteration.
+
+2025-05-01 00:36:00 - Added Recursive AI Training capabilities with GPT-Symbolic feedback loop to the system architecture.

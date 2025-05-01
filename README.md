@@ -1,6 +1,19 @@
 # Pulse
 
-**Version:** v0.2.1 – Trust Foundations
+**Version:** v0.3.0 – Recursive Learning
+---
+## 📝 Patch Notes (v0.3.x) — 2025-04-30
+
+- **Recursive AI Training Implementation:**
+  - Implemented hybrid rules approach maintaining compatibility with existing dictionary-based rules
+  - Phased implementation strategy:
+    - Phase 1: Data Pipeline/Core Metrics
+    - Phase 2: Rule Generation
+    - Phase 3: Advanced Metrics/Error Handling
+  - Added cost control system with token/request limits to prevent unexpected expenses
+  - Implemented GPT-Symbolic feedback loop and uncertainty-driven curriculum
+  - Added rule review dashboard for monitoring and assessment
+
 ---
 ## 📝 Patch Notes (v0.2.x) — 2025-04-30
 
