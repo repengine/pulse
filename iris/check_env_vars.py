@@ -9,10 +9,13 @@ def check_env_vars():
     """Check for required environment variables and their values."""
     required_vars = {
         "ALPHA_VANTAGE_KEY": "Financial data API key",
+        "FRED_API_KEY": "FRED economic data API key",
+        "FINNHUB_API_KEY": "Finnhub financial API key",
+        "NASDAQ_API_KEY": "NASDAQ data API key",
         "REDDIT_CLIENT_ID": "Reddit API client ID",
         "REDDIT_CLIENT_SECRET": "Reddit API client secret",
         "REDDIT_USER_AGENT": "Reddit API user agent",
-        "NEWSAPI_KEY": "News API key",
+        "NEWS_API_KEY": "News API key",
         "GITHUB_TOKEN": "GitHub API token"
     }
     

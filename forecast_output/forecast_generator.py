@@ -125,13 +125,48 @@ def generate_forecast(input_features: Dict, causal_model: Optional[StructuralCau
             )
             
             # Ensemble forecasts
-            forecast = forecast_ensemble.ensemble_forecast(simulation_forecast, ai_forecast)
+            final_forecast_value = forecast_ensemble.ensemble_forecast(simulation_forecast, ai_forecast).get("value", 0.0)
+
+            forecast = {
+                "value": final_forecast_value,
+                "breakdown": {
+                    "simulation_based": simulation_forecast.get("value", 0.0),
+                    "ai_adjustment": ai_forecast.get("adjustment", 0.0)
+                },
+                # Placeholders for more detailed information
+                "confidence_interval": None, # Requires updates to underlying models
+                "probability_distribution": None, # Requires updates to underlying models
+                "contributing_factors": {}, # Placeholder for detailed influence analysis
+            }
+
         except Exception as e:
             logger.exception(f"Error in AI forecasting pipeline: {e}")
-            forecast = simulation_forecast
-            forecast["error"] = f"AI forecasting failed: {str(e)}"
+            # Construct the forecast dictionary with error information
+            forecast = {
+                "value": simulation_forecast.get("value", 0.0), # Use simulation value as fallback
+                "breakdown": {
+                    "simulation_based": simulation_forecast.get("value", 0.0),
+                    "ai_adjustment": 0.0 # Assume no AI adjustment on error
+                },
+                "error": f"AI forecasting failed: {str(e)}",
+                "confidence_interval": None, # Requires updates to underlying models
+                "probability_distribution": None, # Requires updates to underlying models
+                "contributing_factors": {}, # Placeholder for detailed influence analysis
+            }
+
     else:
-        forecast = simulation_forecast
+        # AI forecasting is disabled, use simulation forecast and structure the output
+        forecast = {
+            "value": simulation_forecast.get("value", 0.0),
+            "breakdown": {
+                "simulation_based": simulation_forecast.get("value", 0.0),
+                "ai_adjustment": 0.0
+            },
+            "confidence_interval": None,
+            "probability_distribution": None,
+            "contributing_factors": {},
+        }
+
 
     # Attach causal explanation if a model is provided
     if causal_model is not None:
@@ -142,17 +177,21 @@ def generate_forecast(input_features: Dict, causal_model: Optional[StructuralCau
                 parents = causal_model.parents(key_var)
                 forecast["causal_explanation"] = {
                     "variable": key_var,
-                    "parents": parents
+                    "parents": parents,
+                    # Placeholder for more detailed influence analysis
+                    "influence_breakdown": {} # Requires updates to causal model/engine
                 }
         except Exception as e:
             logger.warning(f"Failed to attach causal explanation: {e}")
             forecast["causal_explanation"] = {"error": str(e)}
     
-    # Final validation to ensure the forecast has essential fields
+    # Final validation to ensure the forecast has essential fields (confidence and fragility)
+    # These might be added by the ensemble step or need defaults
     for field in ['confidence', 'fragility']:
-        if field not in forecast:
+        if field not in forecast or not isinstance(forecast[field], (int, float)):
+             # Check if the field exists and is numeric, otherwise add/default
             forecast[field] = 0.5  # Default midpoint value
-            logger.info(f"Added missing field '{field}' with default value 0.5")
+            logger.info(f"Added/Corrected missing or non-numeric field '{field}' with default value 0.5")
     
     return forecast
 

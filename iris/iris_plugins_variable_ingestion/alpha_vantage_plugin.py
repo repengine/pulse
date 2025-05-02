@@ -16,8 +16,19 @@ from typing import Dict, List, Any, Optional
 
 import requests
 from iris.iris_plugins import IrisPluginManager
+from iris.iris_utils.ingestion_persistence import (
+    ensure_data_directory,
+    save_to_file,
+    save_request_metadata,
+    save_api_response,
+    save_processed_data,
+    save_data_point_incremental
+)
 
 logger = logging.getLogger(__name__)
+
+# Source name for persistence
+_SOURCE_NAME = "alpha_vantage"
 
 class AlphaVantagePlugin(IrisPluginManager):
     plugin_name = "alpha_vantage_plugin"
@@ -40,6 +51,11 @@ class AlphaVantagePlugin(IrisPluginManager):
         "tsla_price": "TSLA",      # Tesla Inc.
         "nvda_price": "NVDA",      # NVIDIA Corporation
         "spy_price": "SPY",        # SPDR S&P 500 ETF (proxy for S&P 500)
+    "jpm_price": "JPM",        # JPMorgan Chase & Co.
+    "v_price": "V",            # Visa Inc.
+    "pg_price": "PG",          # Procter & Gamble Co.
+    "dis_price": "DIS",        # The Walt Disney Company
+    "nflx_price": "NFLX",      # Netflix, Inc.
     }
     
     CRYPTO_SYMBOLS = {
@@ -57,6 +73,7 @@ class AlphaVantagePlugin(IrisPluginManager):
     # Economic indicators
     ECONOMIC_INDICATORS = {
         "real_gdp": "REAL_GDP",             # Quarterly Real GDP
+        "gdp": "REAL_GDP",                  # Alias for real_gdp
         "cpi": "CPI",                       # Monthly CPI
         "inflation": "INFLATION",           # Monthly Inflation
         "retail_sales": "RETAIL_SALES",     # Monthly Retail Sales
@@ -69,6 +86,8 @@ class AlphaVantagePlugin(IrisPluginManager):
         self.api_key = os.getenv("ALPHA_VANTAGE_KEY", "")
         if not self.api_key:
             logger.warning("ALPHA_VANTAGE_KEY environment variable not set - plugin disabled")
+            logger.info("Please set ALPHA_VANTAGE_KEY environment variable to enable this plugin")
+            logger.info("Visit https://www.alphavantage.co/support/#api-key for a free API key")
             self.__class__.enabled = False
 
     def fetch_signals(self) -> List[Dict[str, Any]]:
@@ -96,13 +115,27 @@ class AlphaVantagePlugin(IrisPluginManager):
         
         return signals
 
-    def _safe_get(self, params: dict) -> Optional[dict]:
+    def _safe_get(self, params: dict, dataset_id: str = "unknown") -> Optional[dict]:
         """Make a safe API request with retries and error handling."""
+        # Ensure data directory exists
+        ensure_data_directory(_SOURCE_NAME)
+        
+        # Create a complete set of parameters including the API key and entitlement
+        full_params = {**params, "apikey": self.api_key, "entitlement": "delayed"}
+        
+        # Save request metadata before making the request
+        save_request_metadata(
+            dataset_id,
+            full_params,
+            source_name=_SOURCE_NAME,
+            url=self.BASE_URL
+        )
+        
         for attempt in range(self.MAX_RETRIES + 1):
             try:
                 resp = requests.get(
                     self.BASE_URL,
-                    params={**params, "apikey": self.api_key},
+                    params=full_params,
                     timeout=self.REQUEST_TIMEOUT
                 )
                 resp.raise_for_status()
@@ -110,14 +143,38 @@ class AlphaVantagePlugin(IrisPluginManager):
                 
                 # Check for API error messages
                 if "Error Message" in data:
-                    logger.error(f"Alpha Vantage API error: {data['Error Message']}")
+                    error_msg = data["Error Message"]
+                    logger.error(f"Alpha Vantage API error: {error_msg}")
+                    # Save the error response
+                    save_api_response(
+                        f"{dataset_id}_error",
+                        data,
+                        source_name=_SOURCE_NAME,
+                        status_code=resp.status_code
+                    )
                     return None
+                
+                # Save the successful response
+                save_api_response(
+                    dataset_id,
+                    data,
+                    source_name=_SOURCE_NAME,
+                    status_code=resp.status_code,
+                    headers=dict(resp.headers)
+                )
                     
                 return data
             except Exception as exc:
                 logger.warning(f"Alpha Vantage request failed ({attempt+1}/{self.MAX_RETRIES}): {exc}")
                 if attempt < self.MAX_RETRIES:
                     time.sleep(self.RETRY_WAIT * (attempt + 1))
+        
+        # Save error metadata if all attempts failed
+        save_api_response(
+            f"{dataset_id}_request_failed",
+            {"error": "All request attempts failed", "params": params},
+            source_name=_SOURCE_NAME
+        )
         return None
 
     def _fetch_stock_data(self) -> List[Dict[str, Any]]:
@@ -128,12 +185,13 @@ class AlphaVantagePlugin(IrisPluginManager):
         today_symbols = {k: v for i, (k, v) in enumerate(self.STOCK_SYMBOLS.items()) if i % 5 == dt.datetime.now().day % 5}
         
         for var_name, symbol in today_symbols.items():
+            dataset_id = f"stock_{symbol}"
             params = {
                 "function": "GLOBAL_QUOTE",
                 "symbol": symbol,
             }
             
-            data = self._safe_get(params)
+            data = self._safe_get(params, dataset_id)
             if not data or "Global Quote" not in data:
                 continue
                 
@@ -141,20 +199,47 @@ class AlphaVantagePlugin(IrisPluginManager):
             try:
                 price = float(quote_data.get("05. price", 0))
                 timestamp = quote_data.get("07. latest trading day", dt.datetime.now().strftime("%Y-%m-%d"))
+                iso_timestamp = self._to_timestamp(timestamp)
                 
-                signals.append({
+                signal = {
                     "name": var_name,
                     "value": price,
                     "source": "alpha_vantage",
-                    "timestamp": self._to_timestamp(timestamp),
+                    "timestamp": iso_timestamp,
                     "metadata": {
                         "change": float(quote_data.get("09. change", 0)),
                         "change_percent": quote_data.get("10. change percent", "0%").strip("%"),
                         "volume": int(float(quote_data.get("06. volume", 0)))
                     }
-                })
+                }
+                
+                # Save data point incrementally as soon as it's processed
+                save_data_point_incremental(
+                    dataset_id,
+                    iso_timestamp,
+                    price,
+                    variable_name=var_name,
+                    source_name=_SOURCE_NAME,
+                    metadata=signal["metadata"]
+                )
+                
+                # Also save processed data (for backward compatibility)
+                save_processed_data(
+                    dataset_id,
+                    signal,
+                    source_name=_SOURCE_NAME,
+                    timestamp=iso_timestamp
+                )
+                
+                signals.append(signal)
             except (ValueError, KeyError) as e:
                 logger.error(f"Error processing stock {symbol}: {e}")
+                # Save error information
+                save_to_file(
+                    f"stock_{symbol}_error",
+                    {"error": str(e), "data": quote_data},
+                    source_name=_SOURCE_NAME
+                )
                 
         return signals
 
@@ -167,13 +252,14 @@ class AlphaVantagePlugin(IrisPluginManager):
                         if i % 2 == dt.datetime.now().day % 2}
         
         for var_name, symbol in today_symbols.items():
+            dataset_id = f"crypto_{symbol}"
             params = {
                 "function": "CURRENCY_EXCHANGE_RATE",
                 "from_currency": symbol[:3],
                 "to_currency": symbol[3:],
             }
             
-            data = self._safe_get(params)
+            data = self._safe_get(params, dataset_id)
             if not data or "Realtime Currency Exchange Rate" not in data:
                 continue
                 
@@ -181,15 +267,42 @@ class AlphaVantagePlugin(IrisPluginManager):
             try:
                 price = float(rate_data.get("5. Exchange Rate", 0))
                 timestamp = rate_data.get("6. Last Refreshed", "")
+                iso_timestamp = self._to_timestamp(timestamp)
                 
-                signals.append({
+                signal = {
                     "name": var_name,
                     "value": price,
                     "source": "alpha_vantage_crypto",
-                    "timestamp": self._to_timestamp(timestamp)
-                })
+                    "timestamp": iso_timestamp
+                }
+                
+                # Save data point incrementally as soon as it's processed
+                save_data_point_incremental(
+                    dataset_id,
+                    iso_timestamp,
+                    price,
+                    variable_name=var_name,
+                    source_name=_SOURCE_NAME,
+                    metadata={}
+                )
+                
+                # Also save processed data (for backward compatibility)
+                save_processed_data(
+                    dataset_id,
+                    signal,
+                    source_name=_SOURCE_NAME,
+                    timestamp=iso_timestamp
+                )
+                
+                signals.append(signal)
             except (ValueError, KeyError) as e:
                 logger.error(f"Error processing crypto {symbol}: {e}")
+                # Save error information
+                save_to_file(
+                    f"crypto_{symbol}_error",
+                    {"error": str(e), "data": rate_data},
+                    source_name=_SOURCE_NAME
+                )
                 
         return signals
 
@@ -201,6 +314,7 @@ class AlphaVantagePlugin(IrisPluginManager):
         today_idx = dt.datetime.now().day % len(self.FOREX_SYMBOLS)
         pair_name = list(self.FOREX_SYMBOLS.keys())[today_idx]
         symbol = self.FOREX_SYMBOLS[pair_name]
+        dataset_id = f"forex_{symbol}"
         
         params = {
             "function": "CURRENCY_EXCHANGE_RATE",
@@ -208,7 +322,7 @@ class AlphaVantagePlugin(IrisPluginManager):
             "to_currency": symbol[3:],
         }
         
-        data = self._safe_get(params)
+        data = self._safe_get(params, dataset_id)
         if not data or "Realtime Currency Exchange Rate" not in data:
             return signals
             
@@ -216,15 +330,42 @@ class AlphaVantagePlugin(IrisPluginManager):
         try:
             price = float(rate_data.get("5. Exchange Rate", 0))
             timestamp = rate_data.get("6. Last Refreshed", "")
+            iso_timestamp = self._to_timestamp(timestamp)
             
-            signals.append({
+            signal = {
                 "name": pair_name,
                 "value": price,
                 "source": "alpha_vantage_forex",
-                "timestamp": self._to_timestamp(timestamp)
-            })
+                "timestamp": iso_timestamp
+            }
+            
+            # Save data point incrementally as soon as it's processed
+            save_data_point_incremental(
+                dataset_id,
+                iso_timestamp,
+                price,
+                variable_name=pair_name,
+                source_name=_SOURCE_NAME,
+                metadata={}
+            )
+            
+            # Also save processed data (for backward compatibility)
+            save_processed_data(
+                dataset_id,
+                signal,
+                source_name=_SOURCE_NAME,
+                timestamp=iso_timestamp
+            )
+            
+            signals.append(signal)
         except (ValueError, KeyError) as e:
             logger.error(f"Error processing forex {symbol}: {e}")
+            # Save error information
+            save_to_file(
+                f"forex_{symbol}_error",
+                {"error": str(e), "data": rate_data},
+                source_name=_SOURCE_NAME
+            )
                 
         return signals
 
@@ -245,13 +386,15 @@ class AlphaVantagePlugin(IrisPluginManager):
         function = function_map.get(indicator_name)
         if not function:
             return signals
-            
+        
+        dataset_id = f"economic_{indicator_name}"
+        
         params = {
             "function": function,
             "interval": "quarterly" if function == "REAL_GDP" else "monthly",
         }
         
-        data = self._safe_get(params)
+        data = self._safe_get(params, dataset_id)
         if not data or "data" not in data:
             return signals
             
@@ -260,15 +403,42 @@ class AlphaVantagePlugin(IrisPluginManager):
             latest_data = data["data"][0]
             value = float(latest_data.get("value", 0))
             timestamp = latest_data.get("date", "")
+            iso_timestamp = self._to_timestamp(timestamp)
             
-            signals.append({
+            signal = {
                 "name": indicator_name,
                 "value": value,
                 "source": "alpha_vantage_economic",
-                "timestamp": self._to_timestamp(timestamp)
-            })
+                "timestamp": iso_timestamp
+            }
+            
+            # Save data point incrementally as soon as it's processed
+            save_data_point_incremental(
+                dataset_id,
+                iso_timestamp,
+                value,
+                variable_name=indicator_name,
+                source_name=_SOURCE_NAME,
+                metadata={}
+            )
+            
+            # Also save processed data (for backward compatibility)
+            save_processed_data(
+                dataset_id,
+                signal,
+                source_name=_SOURCE_NAME,
+                timestamp=iso_timestamp
+            )
+            
+            signals.append(signal)
         except (IndexError, ValueError, KeyError) as e:
             logger.error(f"Error processing economic indicator {indicator_name}: {e}")
+            # Save error information
+            save_to_file(
+                f"economic_{indicator_name}_error",
+                {"error": str(e), "data": data.get("data", [])},
+                source_name=_SOURCE_NAME
+            )
                 
         return signals
 

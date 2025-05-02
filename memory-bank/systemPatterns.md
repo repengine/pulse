@@ -27,12 +27,20 @@ It is optional, but recommended to be updated as the project evolves.
   - Integrates with the existing Trust Engine for credibility assessment
 
 * **Advanced Metrics with Uncertainty Quantification**:
-  - Implements confidence intervals for all performance metrics
-  - Uses bootstrap resampling for robust uncertainty estimation
-  - Combines multiple metric types (accuracy, precision, recall, F1) with uncertainty bands
-  - Implements decay functions for temporal relevance of historical performance
-  - Provides explicit uncertainty visualization in dashboards
-  - Uses uncertainty thresholds for automatic triggering of retraining cycles
+   - Implements confidence intervals for all performance metrics
+   - Uses bootstrap resampling for robust uncertainty estimation
+   - Combines multiple metric types (accuracy, precision, recall, F1) with uncertainty bands
+   - Implements decay functions for temporal relevance of historical performance
+   - Provides explicit uncertainty visualization in dashboards
+   - Uses uncertainty thresholds for automatic triggering of retraining cycles
+
+* **Incremental Data Ingestion**:
+   - Writes data to file incrementally during ingestion, not just after completion
+   - Uses standardized JSONL format for data points with timestamp, value, and metadata
+   - Provides immediate data availability to other processes
+   - Maintains backward compatibility with batch processing
+   - Ensures data preservation even if ingestion is interrupted
+   - Implements common interface across different API plugins
 
 ## Testing Patterns
 

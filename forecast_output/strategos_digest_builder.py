@@ -369,9 +369,8 @@ def build_digest(
 
     try:
         if fmt == "json":
-            if fields is None:
-                fields = DEFAULT_FIELDS
-            digest_json = [{k: f.get(k) for k in fields} for f in flattened]
+            # Include all keys from the flattened forecast dictionaries for comprehensive JSON output
+            digest_json = flattened
             # Add most evolved section, divergence report, dual narrative scenarios, fork decisions, and entropy report
             return json.dumps({
                 "forecasts": digest_json,
@@ -379,7 +378,9 @@ def build_digest(
                 "symbolic_divergence": divergence_report,
                 "dual_narrative_scenarios": dual_narrative_scenarios,
                 "fork_decisions": fork_decisions,
-                "symbolic_entropy_report": entropy_report
+                "symbolic_entropy_report": entropy_report,
+                "symbolic_fragmentation": symbolic_fragmentation, # Include fragmentation summary
+                "compressed_cluster_memory": compressed_cluster_forecasts # Include compressed memory
             }, indent=2)
         if fmt == "html":
             lines = ["<h1>Strategos Digest</h1>"]

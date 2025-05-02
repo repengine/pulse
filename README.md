@@ -13,6 +13,7 @@
   - Added cost control system with token/request limits to prevent unexpected expenses
   - Implemented GPT-Symbolic feedback loop and uncertainty-driven curriculum
   - Added rule review dashboard for monitoring and assessment
+  - Enhanced data ingestion to write to file incrementally, ensuring preservation even if interrupted
 
 ---
 ## 📝 Patch Notes (v0.2.x) — 2025-04-30

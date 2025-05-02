@@ -316,6 +316,17 @@ VARIABLE_REGISTRY: Dict[str, Dict[str, Any]] = {
     "invesco_db_silver_fund": {"type": "market", "default": 20.0, "range": [10.0, 30.0], "description": "Invesco DB Silver Fund Price (Yahoo Finance: DBS)"},
     "invesco_db_us_dollar_index_bullish": {"type": "market", "default": 25.0, "range": [20.0, 30.0], "description": "Invesco DB US Dollar Index Bullish Price (Yahoo Finance: UUP)"},
     "invesco_db_us_dollar_index_bearish": {"type": "market", "default": 20.0, "range": [15.0, 25.0], "description": "Invesco DB US Dollar Index Bearish Price (Yahoo Finance: UDN)"},
+    # New Alpha Vantage Stock Symbols
+    "jpm_stock": {"type": "market", "default": 180.0, "range": [120.0, 250.0], "description": "JPMorgan Chase & Co. Stock Price (Alpha Vantage: JPM)"},
+    "v_stock": {"type": "market", "default": 270.0, "range": [200.0, 350.0], "description": "Visa Inc. Stock Price (Alpha Vantage: V)"},
+    "pg_stock": {"type": "market", "default": 160.0, "range": [130.0, 200.0], "description": "Procter & Gamble Co. Stock Price (Alpha Vantage: PG)"},
+    "dis_stock": {"type": "market", "default": 110.0, "range": [80.0, 150.0], "description": "The Walt Disney Company Stock Price (Alpha Vantage: DIS)"},
+    "nflx_stock": {"type": "market", "default": 550.0, "range": [400.0, 700.0], "description": "Netflix, Inc. Stock Price (Alpha Vantage: NFLX)"},
+    # High-Frequency Technical Indicators
+    "hf_ma_10": {"type": "market", "default": 0.0, "range": [-1000.0, 10000.0], "description": "10-period Moving Average of high-frequency data"},
+    "hf_intraday_volume": {"type": "market", "default": 0.0, "range": [0.0, 1000000000.0], "description": "Intraday Volume from high-frequency data"},
+    "hf_intraday_volatility": {"type": "market", "default": 0.0, "range": [0.0, 1000.0], "description": "Intraday Volatility from high-frequency data"},
+    "orb_price": {"type": "market", "default": 80.0, "range": [20.0, 150.0], "description": "OPEC Reference Basket Price (Manual Data)"},
 }
 # === Helpers for defaults / quick validation (unchanged) ===============
 def get_default_variable_state() -> Dict[str, float]:

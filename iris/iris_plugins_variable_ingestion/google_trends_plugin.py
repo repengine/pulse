@@ -11,6 +11,12 @@ from typing import Dict, List, Any, Optional
 
 import requests
 from iris.iris_plugins import IrisPluginManager
+from iris.iris_utils.ingestion_persistence import (
+    ensure_data_directory,
+    save_request_metadata,
+    save_api_response,
+    save_processed_data
+)
 
 try:
     from pytrends.request import TrendReq
@@ -20,6 +26,9 @@ except ImportError:
     logging.warning("pytrends package not found. Install with: pip install pytrends")
 
 logger = logging.getLogger(__name__)
+
+# Source name for persistence
+_SOURCE_NAME = "google_trends"
 
 class GoogleTrendsPlugin(IrisPluginManager):
     plugin_name = "google_trends_plugin"
@@ -69,13 +78,18 @@ class GoogleTrendsPlugin(IrisPluginManager):
 
     def __init__(self):
         """Initialize Google Trends plugin."""
+        # Ensure data directory exists for this source
+        ensure_data_directory(_SOURCE_NAME)
+        
         if not PYTRENDS_AVAILABLE:
             self.__class__.enabled = False
             return
             
         try:
             # Initialize the TrendReq with English language, global region
-            self.pytrends = TrendReq(hl='en-US', tz=0, timeout=(5, 25), retries=2, backoff_factor=0.5)
+            # Only attempt to use TrendReq if it's available
+            from pytrends.request import TrendReq
+            self.pytrends = TrendReq(hl='en-US', tz=0, timeout=(5, 25), retries=2, backoff_factor=1)
             self.__class__.enabled = True
         except Exception as e:
             logger.error(f"Failed to initialize pytrends: {e}")
@@ -131,10 +145,35 @@ class GoogleTrendsPlugin(IrisPluginManager):
         try:
             # Build payload for the request
             timeframe = "today 3-m"  # Last 90 days
+            request_params = {
+                "keywords": keywords,
+                "category": 0,
+                "timeframe": timeframe,
+                "geo": region_code
+            }
+            
+            # Save request metadata
+            dataset_id = f"{category}_interest_time"
+            save_request_metadata(
+                dataset_id,
+                request_params,
+                source_name=_SOURCE_NAME,
+                additional_metadata={"region_name": region_name}
+            )
+            
             self.pytrends.build_payload(keywords, cat=0, timeframe=timeframe, geo=region_code)
             
             # Get interest over time
             interest_over_time_df = self.pytrends.interest_over_time()
+            
+            # Save API response
+            api_response = interest_over_time_df.to_dict()
+            save_api_response(
+                dataset_id,
+                api_response,
+                source_name=_SOURCE_NAME,
+                timestamp=dt.datetime.now().isoformat()
+            )
             
             # Skip if no data
             if interest_over_time_df.empty:
@@ -148,7 +187,7 @@ class GoogleTrendsPlugin(IrisPluginManager):
                     interest_value = float(latest_data[keyword])
                     normalized_keyword = keyword.replace(" ", "_").lower()
                     
-                    signals.append({
+                    signal = {
                         "name": f"gtrends_{category}_{normalized_keyword}_{region_name}",
                         "value": interest_value,
                         "source": "google_trends",
@@ -159,7 +198,17 @@ class GoogleTrendsPlugin(IrisPluginManager):
                             "region": region_name,
                             "relative_value": True  # Google Trends values are relative
                         }
-                    })
+                    }
+                    
+                    # Save processed data
+                    save_processed_data(
+                        f"{category}_{normalized_keyword}_{region_name}",
+                        signal,
+                        source_name=_SOURCE_NAME,
+                        timestamp=signal["timestamp"]
+                    )
+                    
+                    signals.append(signal)
         except Exception as e:
             logger.warning(f"Failed to get interest over time: {e}")
             
@@ -173,10 +222,34 @@ class GoogleTrendsPlugin(IrisPluginManager):
         try:
             # Build payload for the request
             timeframe = "today 3-m"  # Last 90 days
+            request_params = {
+                "keywords": [keyword],
+                "category": 0,
+                "timeframe": timeframe,
+                "geo": region_code
+            }
+            
+            # Save request metadata
+            dataset_id = f"{category}_{keyword.replace(' ', '_')}_related_topics"
+            save_request_metadata(
+                dataset_id,
+                request_params,
+                source_name=_SOURCE_NAME,
+                additional_metadata={"region_name": region_name}
+            )
+            
             self.pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=region_code)
             
             # Get related topics
             related_topics = self.pytrends.related_topics()
+            
+            # Save API response
+            save_api_response(
+                dataset_id,
+                {"related_topics": str(related_topics)},  # Convert to string as it might not be JSON serializable
+                source_name=_SOURCE_NAME,
+                timestamp=dt.datetime.now().isoformat()
+            )
             
             if keyword not in related_topics:
                 return signals
@@ -193,7 +266,7 @@ class GoogleTrendsPlugin(IrisPluginManager):
                     interest_value = float(row["value"])
                     normalized_topic = topic_title.replace(" ", "_").lower()[:20]  # Limit length
                     
-                    signals.append({
+                    signal = {
                         "name": f"gtrends_{category}_related_{normalized_topic}_{region_name}",
                         "value": interest_value,
                         "source": "google_trends_related",
@@ -204,7 +277,17 @@ class GoogleTrendsPlugin(IrisPluginManager):
                             "category": category,
                             "region": region_name
                         }
-                    })
+                    }
+                    
+                    # Save processed data
+                    save_processed_data(
+                        f"{category}_related_{normalized_topic}_{region_name}",
+                        signal,
+                        source_name=_SOURCE_NAME,
+                        timestamp=signal["timestamp"]
+                    )
+                    
+                    signals.append(signal)
         except Exception as e:
             logger.warning(f"Failed to get related topics: {e}")
             
@@ -218,15 +301,40 @@ class GoogleTrendsPlugin(IrisPluginManager):
         try:
             # Build payload for the request
             timeframe = "today 3-m"  # Last 90 days
+            request_params = {
+                "keywords": [keyword],
+                "category": 0,
+                "timeframe": timeframe,
+                "geo": region_code
+            }
+            
+            # Save request metadata
+            dataset_id = f"{category}_{keyword.replace(' ', '_')}_regional"
+            save_request_metadata(
+                dataset_id,
+                request_params,
+                source_name=_SOURCE_NAME,
+                additional_metadata={"region_name": region_name}
+            )
+            
             self.pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=region_code)
             
             # Get interest by region
             if region_code == "":  # Global
-                # Get interest by country
-                interest_by_region_df = self.pytrends.interest_by_country()
+                # Get interest by country - using interest_by_region with the proper resolution
+                interest_by_region_df = self.pytrends.interest_by_region(resolution='COUNTRY')
             else:
                 # Get interest by region within country
                 interest_by_region_df = self.pytrends.interest_by_region(resolution='COUNTRY')
+                
+            # Save API response
+            api_response = interest_by_region_df.to_dict()
+            save_api_response(
+                dataset_id,
+                api_response,
+                source_name=_SOURCE_NAME,
+                timestamp=dt.datetime.now().isoformat()
+            )
             
             # Skip if no data
             if interest_by_region_df.empty:
@@ -238,7 +346,7 @@ class GoogleTrendsPlugin(IrisPluginManager):
             # Calculate average interest across regions
             avg_interest = interest_by_region_df[keyword].mean()
             
-            signals.append({
+            avg_signal = {
                 "name": f"gtrends_{category}_{normalized_keyword}_avg_regional_interest",
                 "value": float(avg_interest),
                 "source": "google_trends_regional",
@@ -249,14 +357,37 @@ class GoogleTrendsPlugin(IrisPluginManager):
                     "region_scope": region_name,
                     "sample_size": len(interest_by_region_df)
                 }
-            })
+            }
+            
+            # Save processed data
+            save_processed_data(
+                f"{category}_{normalized_keyword}_avg_regional",
+                avg_signal,
+                source_name=_SOURCE_NAME,
+                timestamp=avg_signal["timestamp"]
+            )
+            
+            signals.append(avg_signal)
             
             # Calculate regional variance/dispersion
-            interest_variance = interest_by_region_df[keyword].var()
-            
-            signals.append({
+            try:
+                # Using a safer approach to calculate variance
+                values = interest_by_region_df[keyword].tolist()
+                # Calculate variance manually to avoid complex number issues
+                if len(values) > 1:
+                    mean = sum(values) / len(values)
+                    variance = sum((x - mean) ** 2 for x in values) / len(values)
+                    interest_variance = variance
+                else:
+                    interest_variance = 0.0
+            except (TypeError, ValueError, AttributeError) as e:
+                # Handle case where variance isn't calculable
+                logger.warning(f"Could not calculate variance for {keyword}: {e}, using default value")
+                interest_variance = 0.0
+                
+            var_signal = {
                 "name": f"gtrends_{category}_{normalized_keyword}_regional_variance",
-                "value": float(interest_variance),
+                "value": interest_variance,
                 "source": "google_trends_regional",
                 "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "metadata": {
@@ -264,7 +395,17 @@ class GoogleTrendsPlugin(IrisPluginManager):
                     "category": category,
                     "region_scope": region_name
                 }
-            })
+            }
+            
+            # Save processed data
+            save_processed_data(
+                f"{category}_{normalized_keyword}_regional_variance",
+                var_signal,
+                source_name=_SOURCE_NAME,
+                timestamp=var_signal["timestamp"]
+            )
+            
+            signals.append(var_signal)
             
         except Exception as e:
             logger.warning(f"Failed to get interest by region: {e}")

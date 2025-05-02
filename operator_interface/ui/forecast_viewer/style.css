@@ -1,0 +1,30 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+#forecast-container {
+    margin-top: 20px;
+}
+
+.forecast-item {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.forecast-item h3 {
+    margin-top: 0;
+}
+
+.confidence-level {
+    font-weight: bold;
+    color: green; /* Example color */
+}
+
+.causal-explanation {
+    margin-top: 10px;
+    font-style: italic;
+    color: #555;
+}
