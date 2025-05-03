@@ -65,6 +65,11 @@ from iris.iris_utils.historical_data_repair import (
     compare_versions,
     get_all_versions,
 )
+from iris.iris_utils.world_bank_integration import (
+    integrate_world_bank_data,
+    extract_world_bank_zip,
+    process_world_bank_data,
+)
 
 # Set up logging
 logging.basicConfig(
@@ -947,6 +952,58 @@ def handle_repair_report_command(args):
         return 1
 
 
+def handle_world_bank_command(args):
+    """
+    Handle the 'world-bank' command to integrate World Bank historical data.
+    
+    Args:
+        args: Command-line arguments
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        logger.info("Starting World Bank data integration")
+        
+        # Determine the input file
+        csv_path = args.file
+        zip_path = args.zip
+        
+        # Integration options
+        update_catalog = not args.no_catalog_update
+        
+        # Integrate the data
+        results = integrate_world_bank_data(
+            csv_path=csv_path,
+            zip_path=zip_path,
+            update_catalog=update_catalog
+        )
+        
+        # Display results
+        success_count = sum(1 for r in results.values() if r.status == "success")
+        error_count = sum(1 for r in results.values() if r.status == "error")
+        total_records = sum(r.item_count for r in results.values() if r.status == "success")
+        
+        logger.info(f"World Bank data integration complete:")
+        logger.info(f"Total variables processed: {len(results)}")
+        logger.info(f"Successfully integrated: {success_count}")
+        logger.info(f"Failed: {error_count}")
+        logger.info(f"Total records integrated: {total_records}")
+        
+        # Show details of failed variables
+        if error_count > 0:
+            logger.warning("Failed variables:")
+            for var_name, result in results.items():
+                if result.status == "error":
+                    logger.warning(f"  - {var_name}: {result.error}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Error in world-bank command: {e}")
+        return 1
+
+
 def handle_gap_analysis_command(args):
     """
     Handle the 'gap-analysis' command to identify and report on gaps in time series.
@@ -1127,6 +1184,13 @@ def main():
                             help="Second version ID for comparison (uses latest if not provided)")
     report_parser.add_argument("--output", type=str, help="Output file for report (JSON)")
     
+    # 'world-bank' command - NEW COMMAND
+    wb_parser = subparsers.add_parser("world-bank", help="Integrate World Bank data into the historical data pipeline")
+    wb_input_group = wb_parser.add_mutually_exclusive_group(required=False)
+    wb_input_group.add_argument("--file", type=str, help="Path to World Bank CSV file")
+    wb_input_group.add_argument("--zip", type=str, help="Path to World Bank ZIP file")
+    wb_parser.add_argument("--no-catalog-update", action="store_true", help="Skip updating the variable catalog")
+    
     args = parser.parse_args()
     
     if args.command is None:
@@ -1156,6 +1220,8 @@ def main():
         return handle_simulate_repair_command(args)
     elif args.command == "repair-report":
         return handle_repair_report_command(args)
+    elif args.command == "world-bank":
+        return handle_world_bank_command(args)
     else:
         logger.error(f"Unknown command: {args.command}")
         return 1

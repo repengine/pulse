@@ -10,14 +10,20 @@ import logging
 import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union, Tuple, Callable
+from typing import Any, Dict, List, Optional, Union, Tuple, Callable, Set
 from enum import Enum
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
+import functools
 
 # Import recursive training components
 from recursive_training.integration.cost_controller import get_cost_controller
 from recursive_training.metrics.metrics_store import get_metrics_store
 from recursive_training.config.default_config import get_config
 
+# Performance optimization imports
+from multiprocessing import cpu_count
+import numpy as np
 
 class EvaluationScope(Enum):
     """Scope of rule evaluation."""
@@ -92,9 +98,14 @@ class RecursiveRuleEvaluator:
         # Configure default evaluation parameters
         self.default_scope = EvaluationScope.COMPREHENSIVE
         self.min_acceptable_score = 0.7  # 70% quality threshold
+        self.max_workers = max(1, (os.cpu_count() or 4) - 1)  # Leave one core free
         
         # Setup test datasets
         self._init_test_datasets()
+        
+        # Caching to avoid redundant evaluations
+        self._evaluation_cache = {}
+        self._rule_hash_cache = {}
         
         # Track metrics
         self.metrics = {
@@ -102,10 +113,13 @@ class RecursiveRuleEvaluator:
             "passed_evaluations": 0,
             "failed_evaluations": 0,
             "total_cost": 0.0,
-            "average_quality_score": 0.0
+            "average_quality_score": 0.0,
+            "batch_evaluations": 0,
+            "parallel_speedup": 0.0,
+            "cache_hits": 0
         }
         
-        self.logger.info("RecursiveRuleEvaluator initialized")
+        self.logger.info(f"RecursiveRuleEvaluator initialized with {self.max_workers} worker processes")
     
     def _init_test_datasets(self):
         """Initialize test datasets for rule evaluation."""
@@ -588,6 +602,332 @@ class RecursiveRuleEvaluator:
             "status": "unknown",
             "error": "Historical evaluation lookup not implemented"
         }
+
+
+    def _compute_rule_hash(self, rule: Dict[str, Any]) -> str:
+        """
+        Compute a hash for a rule to use as a cache key.
+        
+        Args:
+            rule: Rule to hash
+            
+        Returns:
+            Hash string
+        """
+        import hashlib
+        import json
+        
+        # Use rule id, type, and content for the hash
+        try:
+            # Extract fields likely to affect evaluation
+            hash_dict = {
+                "id": rule.get("id", ""),
+                "type": rule.get("type", ""),
+                "conditions": rule.get("conditions", []),
+                "actions": rule.get("actions", [])
+            }
+            hash_input = json.dumps(hash_dict, sort_keys=True)
+            return hashlib.md5(hash_input.encode()).hexdigest()
+        except Exception as e:
+            self.logger.warning(f"Error computing rule hash: {e}")
+            # Fall back to rule ID
+            return str(rule.get("id", hash(str(rule))))
+    
+    def evaluate_rules_batch(self,
+                           rules: List[Dict[str, Any]],
+                           context: Dict[str, Any],
+                           scope: Optional[EvaluationScope] = None,
+                           cost_limit: Optional[float] = None) -> List[Dict[str, Any]]:
+        """
+        Evaluate multiple rules in parallel for improved performance.
+        
+        Args:
+            rules: List of rules to evaluate
+            context: Context for rule evaluation
+            scope: Scope of evaluation
+            cost_limit: Maximum cost for this batch operation
+            
+        Returns:
+            List of evaluation results
+        """
+        if not rules:
+            return []
+            
+        # If batch size is 1, just use the regular method
+        if len(rules) == 1:
+            return [self.evaluate_rule(rules[0], context, scope, cost_limit)]
+            
+        # Set default values if not provided
+        scope = scope or self.default_scope
+        cost_limit = cost_limit or self.cost_config.daily_cost_threshold_usd / 10  # 10% of daily budget for batch
+        
+        # Create an evaluation ID and update status
+        self.current_eval_id = f"batch_eval_{int(time.time())}"
+        self.evaluation_status = EvaluationStatus.IN_PROGRESS
+        
+        # Log the start of batch evaluation
+        self.logger.info(f"Starting batch rule evaluation (ID: {self.current_eval_id}, Batch size: {len(rules)}, Scope: {scope.value})")
+        
+        # Check cost budget
+        if not self.cost_controller.can_make_api_call(check_cost=True):
+            self.logger.error("Batch rule evaluation canceled due to cost limits")
+            self.evaluation_status = EvaluationStatus.CANCELED
+            return [{"error": "Rule evaluation canceled due to cost limits"}] * len(rules)
+        
+        # Initialize tracking metrics for this run
+        start_time = time.time()
+        total_cost = 0.0
+        results = []
+        cache_hits = 0
+        
+        # Check cache first
+        cached_results = []
+        rules_to_evaluate = []
+        rule_indices = []
+        
+        for i, rule in enumerate(rules):
+            rule_hash = self._compute_rule_hash(rule)
+            cache_key = f"{rule_hash}_{scope.value}"
+            
+            if cache_key in self._evaluation_cache:
+                # Use cached result
+                cached_results.append((i, self._evaluation_cache[cache_key].copy()))
+                cache_hits += 1
+                self.metrics["cache_hits"] += 1
+            else:
+                # Mark for evaluation
+                rules_to_evaluate.append(rule)
+                rule_indices.append(i)
+        
+        # Sort cached results by original rule index
+        cached_results.sort(key=lambda x: x[0])
+        
+        # Process remaining rules in parallel if there are any
+        if rules_to_evaluate:
+            # Allocate cost proportionally
+            per_rule_cost_limit = cost_limit / max(1, len(rules_to_evaluate))
+            
+            # Evaluate in parallel
+            with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
+                # Submit all tasks
+                futures = []
+                for i, rule in enumerate(rules_to_evaluate):
+                    futures.append(
+                        executor.submit(
+                            self._evaluate_rule_task,
+                            rule=rule,
+                            context=context,
+                            scope=scope,
+                            cost_limit=per_rule_cost_limit,
+                            task_id=i
+                        )
+                    )
+                
+                # Process results as they complete
+                for future in as_completed(futures):
+                    try:
+                        result, task_cost = future.result()
+                        results.append(result)
+                        total_cost += task_cost
+                        
+                        # Check if we've exceeded the overall cost limit
+                        if total_cost >= cost_limit:
+                            self.logger.warning(f"Cost limit reached during batch processing (${total_cost:.2f})")
+                            break
+                            
+                    except Exception as e:
+                        self.logger.error(f"Error in parallel rule evaluation: {e}")
+                        results.append({
+                            "error": str(e),
+                            "passed": False,
+                            "overall_score": 0.0
+                        })
+        
+        # Combine results from cache and parallel evaluation
+        # Initialize with empty dictionaries instead of None to avoid type errors
+        combined_results = [{"error": "Evaluation not completed", "passed": False, "overall_score": 0.0}] * len(rules)
+        
+        # Insert cached results first
+        for idx, result in cached_results:
+            combined_results[idx] = result
+        
+        # Insert new evaluation results
+        for i, result in enumerate(results):
+            original_idx = rule_indices[i]
+            combined_results[original_idx] = result
+            
+            # Cache this result for future use
+            if isinstance(result, dict) and "error" not in result:
+                rule_hash = self._compute_rule_hash(rules[original_idx])
+                self._evaluation_cache[f"{rule_hash}_{scope.value}"] = result.copy()
+        
+        # Update generation status
+        self.evaluation_status = EvaluationStatus.COMPLETED
+        
+        # Update metrics
+        total_time = time.time() - start_time
+        self.metrics["total_evaluations"] += len(rules)
+        self.metrics["passed_evaluations"] += sum(1 for r in combined_results if r.get("passed", False))
+        self.metrics["failed_evaluations"] += sum(1 for r in combined_results if not r.get("passed", False))
+        self.metrics["total_cost"] += total_cost
+        self.metrics["batch_evaluations"] += 1
+        
+        # Estimate sequential time for speedup calculation
+        if len(rules_to_evaluate) > 0:
+            estimated_sequential_time = len(rules_to_evaluate) * 0.3  # Rough estimate: 0.3s per rule
+            if estimated_sequential_time > 0 and total_time > 0:
+                speedup = estimated_sequential_time / total_time
+                self.metrics["parallel_speedup"] = (self.metrics["parallel_speedup"] + speedup) / 2  # Running average
+        
+        # Track in metrics store
+        self.metrics_store.store_metric({
+            "metric_type": "batch_rule_evaluation",
+            "evaluation_id": self.current_eval_id,
+            "batch_size": len(rules),
+            "scope": scope.value,
+            "successful_evaluations": sum(1 for r in combined_results if r.get("passed", False)),
+            "failed_evaluations": sum(1 for r in combined_results if not r.get("passed", False)),
+            "cache_hits": cache_hits,
+            "cost": total_cost,
+            "time": total_time,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        self.logger.info(f"Batch rule evaluation completed (ID: {self.current_eval_id}, Evaluations: {len(rules)}, Cost: ${total_cost:.2f})")
+        return combined_results
+    
+    def _evaluate_rule_task(self,
+                           rule: Dict[str, Any],
+                           context: Dict[str, Any],
+                           scope: EvaluationScope,
+                           cost_limit: float,
+                           task_id: int) -> Tuple[Dict[str, Any], float]:
+        """
+        Worker task for parallel rule evaluation.
+        
+        Args:
+            rule: Rule to evaluate
+            context: Context for evaluation
+            scope: Scope of evaluation
+            cost_limit: Cost limit for this task
+            task_id: Task identifier
+            
+        Returns:
+            Tuple of (evaluation_result, cost)
+        """
+        try:
+            # Initialize result structure
+            evaluation_result = {
+                "rule_id": rule.get("id", "unknown"),
+                "evaluation_id": f"{self.current_eval_id}_{task_id}",
+                "scope": scope.value,
+                "timestamp": datetime.now().isoformat(),
+                "overall_score": 0.0,
+                "details": {},
+                "passed": False,
+                "issues": [],
+                "recommendations": []
+            }
+            
+            # Initialize tracking metrics for this evaluation
+            total_cost = 0.0
+            
+            # Syntax evaluation
+            if scope in [EvaluationScope.SYNTAX, EvaluationScope.COMPREHENSIVE]:
+                syntax_result = self._evaluate_syntax(rule)
+                evaluation_result["details"]["syntax"] = syntax_result
+                total_cost += syntax_result["evaluation_cost"]
+                
+                # Early return if syntax check fails
+                if not syntax_result["passed"]:
+                    evaluation_result["overall_score"] = syntax_result["score"]
+                    evaluation_result["passed"] = False
+                    evaluation_result["issues"].extend(syntax_result["issues"])
+                    evaluation_result["recommendations"].extend(syntax_result["recommendations"])
+                    return evaluation_result, total_cost
+            
+            # Logic evaluation
+            if scope in [EvaluationScope.LOGIC, EvaluationScope.COMPREHENSIVE]:
+                # Check if cost limit would be exceeded
+                if total_cost >= cost_limit:
+                    pass  # Skip this evaluation
+                else:
+                    logic_result = self._evaluate_logic(rule, context)
+                    evaluation_result["details"]["logic"] = logic_result
+                    total_cost += logic_result["evaluation_cost"]
+                    
+                    evaluation_result["issues"].extend(logic_result["issues"])
+                    evaluation_result["recommendations"].extend(logic_result["recommendations"])
+            
+            # Coverage evaluation
+            if scope in [EvaluationScope.COVERAGE, EvaluationScope.COMPREHENSIVE]:
+                # Check if cost limit would be exceeded
+                if total_cost >= cost_limit:
+                    pass  # Skip this evaluation
+                else:
+                    coverage_result = self._evaluate_coverage(rule, context)
+                    evaluation_result["details"]["coverage"] = coverage_result
+                    total_cost += coverage_result["evaluation_cost"]
+                    
+                    evaluation_result["issues"].extend(coverage_result["issues"])
+                    evaluation_result["recommendations"].extend(coverage_result["recommendations"])
+            
+            # Performance evaluation
+            if scope in [EvaluationScope.PERFORMANCE, EvaluationScope.COMPREHENSIVE]:
+                # Check if cost limit would be exceeded
+                if total_cost >= cost_limit:
+                    pass  # Skip this evaluation
+                else:
+                    performance_result = self._evaluate_performance(rule)
+                    evaluation_result["details"]["performance"] = performance_result
+                    total_cost += performance_result["evaluation_cost"]
+                    
+                    evaluation_result["issues"].extend(performance_result["issues"])
+                    evaluation_result["recommendations"].extend(performance_result["recommendations"])
+            
+            # Calculate overall score (weighted average of all evaluations performed)
+            scores = []
+            weights = []
+            
+            if "syntax" in evaluation_result["details"]:
+                scores.append(evaluation_result["details"]["syntax"]["score"])
+                weights.append(0.3)  # 30% weight for syntax
+                
+            if "logic" in evaluation_result["details"]:
+                scores.append(evaluation_result["details"]["logic"]["score"])
+                weights.append(0.4)  # 40% weight for logic
+                
+            if "coverage" in evaluation_result["details"]:
+                scores.append(evaluation_result["details"]["coverage"]["score"])
+                weights.append(0.2)  # 20% weight for coverage
+                
+            if "performance" in evaluation_result["details"]:
+                scores.append(evaluation_result["details"]["performance"]["score"])
+                weights.append(0.1)  # 10% weight for performance
+            
+            # Compute weighted average
+            if scores and weights:
+                evaluation_result["overall_score"] = sum(s * w for s, w in zip(scores, weights)) / sum(weights)
+            
+            # Determine if the rule passed evaluation
+            evaluation_result["passed"] = evaluation_result["overall_score"] >= self.min_acceptable_score
+            
+            # Sort issues and recommendations by importance
+            evaluation_result["issues"].sort(key=lambda x: x.get("severity", 0), reverse=True)
+            evaluation_result["recommendations"].sort(key=lambda x: x.get("importance", 0), reverse=True)
+            
+            return evaluation_result, total_cost
+            
+        except Exception as e:
+            # Create error result
+            error_result = {
+                "rule_id": rule.get("id", "unknown"),
+                "evaluation_id": f"{self.current_eval_id}_{task_id}",
+                "error": str(e),
+                "passed": False,
+                "overall_score": 0.0
+            }
+            return error_result, 0.0
 
 
 def get_rule_evaluator(config: Optional[Dict[str, Any]] = None) -> RecursiveRuleEvaluator:

@@ -45,6 +45,7 @@ from memory.trace_memory import TraceMemory
 from memory.variable_performance_tracker import VariablePerformanceTracker
 from core.variable_registry import VariableRegistry
 from core.bayesian_trust_tracker import bayesian_trust_tracker
+from core.optimized_trust_tracker import optimized_bayesian_trust_tracker
 
 # Placeholder classes for undefined engines
 class AnomalyRemediationEngine:
@@ -270,7 +271,8 @@ class LearningEngine:
                 from core.pulse_learning_log import log_variable_weight_change
                 log_variable_weight_change(var, old_weight, round(trust_adj, 3))
             self.registry._save()
-            bayesian_trust_tracker.update(variable_id, outcome)
+            # Use the optimized trust tracker for better performance
+            optimized_bayesian_trust_tracker.update(variable_id, outcome)
         except Exception as e:
             logging.error(f"Variable weight update failed: {e}")
 
@@ -285,7 +287,8 @@ class LearningEngine:
             self.registry.register_variable(variable_id, {**old, "trust_weight": new_weight})
             from core.pulse_learning_log import log_variable_weight_change
             log_variable_weight_change(variable_id, old_weight, new_weight)
-        bayesian_trust_tracker.update(variable_id, profile_outcome)
+        # Use optimized trust tracker for better performance
+        optimized_bayesian_trust_tracker.update(variable_id, profile_outcome)
 
     def apply_variable_mutation_pressure(self, variable_id, mutation_success):
         drift_vars = self.tracker.detect_variable_drift(threshold=0.25)
@@ -298,16 +301,18 @@ class LearningEngine:
             self.registry.register_variable(var, meta)
             from core.pulse_learning_log import log_variable_weight_change
             log_variable_weight_change(var, old, new)
-            bayesian_trust_tracker.update(var, mutation_success)
-            print(f"[VariableTrust] {var}: trust={bayesian_trust_tracker.get_trust(var):.3f}, CI={bayesian_trust_tracker.get_confidence_interval(var)}")
+            # Use optimized trust tracker for better performance
+            optimized_bayesian_trust_tracker.update(var, mutation_success)
+            print(f"[VariableTrust] {var}: trust={optimized_bayesian_trust_tracker.get_trust(var):.3f}, CI={optimized_bayesian_trust_tracker.get_confidence_interval(var)}")
 
     def apply_rule_mutation_pressure(self, rule_id, mutation_success):
         print("[Rule Learning] Applying pressure to mutate causal rules...")
         from simulation_engine.rule_mutation_engine import apply_rule_mutations
         apply_rule_mutations()
-        bayesian_trust_tracker.update(rule_id, mutation_success)
-        trust = bayesian_trust_tracker.get_trust(rule_id)
-        conf_int = bayesian_trust_tracker.get_confidence_interval(rule_id)
+        # Use optimized trust tracker for better performance
+        optimized_bayesian_trust_tracker.update(rule_id, mutation_success)
+        trust = optimized_bayesian_trust_tracker.get_trust(rule_id)
+        conf_int = optimized_bayesian_trust_tracker.get_confidence_interval(rule_id)
         print(f"[RuleTrust] {rule_id}: trust={trust:.3f}, CI={conf_int}")
 
     def audit_cluster_volatility(self):
@@ -329,6 +334,8 @@ class LearningEngine:
                     self.registry.register_variable(var, current)
                     from core.pulse_learning_log import log_variable_weight_change
                     log_variable_weight_change(var, old, new)
+                    # Update trust scores using optimized batch operations when possible
+                    optimized_bayesian_trust_tracker.update(var, False)  # Reduce trust due to volatility
             for v in c["variables"]:
                 print(f" - {v}")
 

@@ -1,0 +1,17 @@
+# Core dependencies
+tkinter
+numpy
+pandas
+
+# Vector store dependencies
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.0  # Use faiss-gpu if GPU is available
+
+# LLM integration
+openai>=1.0.0     # OpenAI Python library
+tiktoken>=0.4.0   # For OpenAI token counting
+
+# Optional dependencies (commented out until needed)
+# transformers>=4.30.0  # For local models
+# torch>=2.0.0         # For local models
+# peft>=0.4.0          # For LoRA fine-tuning

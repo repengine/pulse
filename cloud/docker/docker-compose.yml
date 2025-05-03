@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  retrodiction-training:
+    build:
+      context: ../..  # Root of the Pulse project
+      dockerfile: cloud/docker/Dockerfile
+    image: pulse-retrodiction-training:latest
+    container_name: pulse-retrodiction-training
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - S3_DATA_BUCKET=${S3_DATA_BUCKET:-pulse-retrodiction-data-poc}
+      - S3_RESULTS_BUCKET=${S3_RESULTS_BUCKET:-pulse-retrodiction-results-poc}
+      - LOG_LEVEL=INFO
+      - USE_DASK=true
+      - DASK_THREADS=2
+      - DASK_MEMORY_LIMIT=4GB
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../../:/app
+      - retrodiction-data:/app/data
+      - retrodiction-logs:/app/logs
+    ports:
+      - "8787:8787"  # Dask dashboard
+    command: ["--variables", "spx_close", "us_10y_yield", "--batch-size-days", "30", "--use-dask"]
+
+  # Optionally add a Dask scheduler service for larger-scale testing
+  dask-scheduler:
+    image: ghcr.io/dask/dask:latest
+    container_name: dask-scheduler
+    ports:
+      - "8786:8786"
+      - "8788:8787"  # Dashboard
+    command: ["dask", "scheduler"]
+    volumes:
+      - retrodiction-data:/data
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # Dask worker for distributed processing
+  dask-worker:
+    image: ghcr.io/dask/dask:latest
+    depends_on:
+      - dask-scheduler
+    command: ["dask", "worker", "tcp://dask-scheduler:8786", "--nthreads", "2", "--memory-limit", "4GB"]
+    volumes:
+      - retrodiction-data:/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    deploy:
+      replicas: 2
+
+volumes:
+  retrodiction-data:
+  retrodiction-logs:

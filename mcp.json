@@ -6,6 +6,20 @@
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
       ]
+    },
+    "graphlit": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@graphlit/mcp-server"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
     }
   }
 }

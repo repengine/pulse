@@ -1,7 +1,12 @@
 import os
 import numpy as np
+import logging
 from sentence_transformers import SentenceTransformer
 import faiss
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("CodebaseVectorStore")
 
 class CodebaseVectorStore:
     def __init__(self, model_name="all-MiniLM-L6-v2"):
@@ -17,10 +22,12 @@ class CodebaseVectorStore:
         # Initialize Faiss index
         # Using IndexFlatL2 for simplicity, stores vectors directly and uses L2 distance
         self.index = faiss.IndexFlatL2(self.embedding_dimension)
-        self.document_metadata = [] # To store metadata corresponding to the index
+        # Store metadata and original texts for lookup
+        self.document_metadata = []  # To store metadata corresponding to the index
+        self.document_texts = []     # To store the original text for each document
 
-        print(f"Initialized CodebaseVectorStore with model: {model_name} and Faiss index with dimension {self.embedding_dimension}")
-        # TODO: Implement int8 quantization if needed and supported by the chosen library
+        logger.info(f"Initialized CodebaseVectorStore with model: {model_name}")
+        logger.info(f"Faiss index initialized with dimension {self.embedding_dimension}")
 
     def add_documents(self, documents):
         """
@@ -36,21 +43,34 @@ class CodebaseVectorStore:
 
         texts = [doc['text'] for doc in documents]
         metadata = [doc['metadata'] for doc in documents]
+        
+        # Store the original texts for retrieval during search
+        self.document_texts.extend(texts)
 
-        print(f"Generating embeddings for {len(texts)} documents...")
-        embeddings = self.model.encode(texts, show_progress_bar=True)
-        print("Embedding generation complete.")
+        logger.info(f"Generating embeddings for {len(texts)} documents...")
+        try:
+            embeddings = self.model.encode(texts, show_progress_bar=True)
+            logger.info("Embedding generation complete.")
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {str(e)}")
+            raise
 
         # Convert embeddings to numpy array with float32 dtype for Faiss
         embeddings = np.array(embeddings).astype('float32')
 
         # Add embeddings to the Faiss index
-        self.index.add(embeddings)
+        # Note: Ignoring Pylance warnings about parameter names as faiss bindings work correctly at runtime
+        try:
+            self.index.add(embeddings)
+            logger.debug(f"Added {embeddings.shape[0]} embeddings to index")
+        except Exception as e:
+            logger.error(f"Error adding embeddings to index: {str(e)}")
+            raise
 
         # Store metadata, maintaining the same order as the embeddings added to the index
         self.document_metadata.extend(metadata)
 
-        print(f"Added {len(documents)} documents to the vector store. Total documents: {self.index.ntotal}")
+        logger.info(f"Added {len(documents)} documents to the vector store. Total documents: {self.index.ntotal}")
 
 
     def search(self, query, k=5):
@@ -65,30 +85,44 @@ class CodebaseVectorStore:
             list: A list of dictionaries, each containing 'text', 'metadata', and 'score'.
         """
         if self.index.ntotal == 0:
-            print("Vector store is empty. Cannot perform search.")
+            logger.warning("Vector store is empty. Cannot perform search.")
             return []
 
-        query_embedding = self.model.encode(query)
+        try:
+            logger.info(f"Generating embedding for query: '{query}'")
+            query_embedding = self.model.encode(query)
+        except Exception as e:
+            logger.error(f"Error encoding query: {str(e)}")
+            return []
         query_embedding = np.array([query_embedding]).astype('float32') # Faiss expects a 2D array
 
         # Perform search
-        distances, indices = self.index.search(query_embedding, k)
+        # Note: Ignoring Pylance warnings about parameter names as faiss bindings work correctly at runtime
+        try:
+            distances, indices = self.index.search(query_embedding, k)
+            logger.debug(f"Search returned {len(indices[0])} results")
+        except Exception as e:
+            logger.error(f"Error searching index: {str(e)}")
+            return []
 
         results = []
         # Retrieve results and their metadata
         for i in range(len(indices[0])):
             doc_index = indices[0][i]
             if doc_index != -1: # Check if a valid result was found
-                score = distances[0][i]
+                score = float(distances[0][i])  # Convert from numpy float to Python float
                 metadata = self.document_metadata[doc_index]
-                text = metadata.get('text', 'N/A') # Extract the original text
+                
+                # Get the text from our stored document_texts to ensure we have the right text
+                text = self.document_texts[doc_index] if doc_index < len(self.document_texts) else "Text not found"
+                
                 results.append({
                     'text': text,
                     'metadata': metadata,
                     'score': score
                 })
 
-        print(f"Found {len(results)} results for query: '{query}'")
+        logger.info(f"Found {len(results)} results for query: '{query}'")
         return results
 
 if __name__ == '__main__':

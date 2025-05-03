@@ -85,6 +85,21 @@ ENSEMBLE_WEIGHTS: Dict[str, float] = {"simulation": 0.7, "ai": 0.3}
 # --- Global toggle for symbolic overlays ---
 USE_SYMBOLIC_OVERLAYS = True
 
+# --- Enhanced symbolic system configuration ---
+# Master switch for the entire symbolic system
+ENABLE_SYMBOLIC_SYSTEM = True
+
+# Current system operation mode: "simulation", "retrodiction", "analysis", "forecasting"
+CURRENT_SYSTEM_MODE = "simulation"
+
+# Mode-specific symbolic processing settings
+SYMBOLIC_PROCESSING_MODES = {
+    "simulation": True,       # Enable in normal simulation runs
+    "retrodiction": False,    # Disable in retrodiction training
+    "analysis": True,         # Enable in analysis operations
+    "forecasting": True       # Enable in forecasting operations
+}
+
 # --- Trust and despair weights for capital/symbolic calculations ---
 TRUST_WEIGHT: float = 1.0
 DESPAIR_WEIGHT: float = 1.0

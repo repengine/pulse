@@ -618,6 +618,70 @@ class MetricsStore:
         """Clean up resources when closing the metrics store."""
         self._save_indices()
         self._save_metrics_summary()
+        
+    def get_metrics_by_filter(self, filter_dict: Dict[str, Any], limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """
+        Get metrics that match a filter dictionary.
+        
+        Args:
+            filter_dict: Dictionary containing filter criteria (e.g., {"cycle_id": "cycle_123"})
+            limit: Optional maximum number of results
+            
+        Returns:
+            List of metrics matching the filter
+        """
+        # First get all metrics
+        all_metrics = []
+        # Collect all metric IDs from type index for efficient retrieval
+        for metric_type in self.metrics_indices["by_type"]:
+            for metric_id in self.metrics_indices["by_type"][metric_type]:
+                metric = self.get_metric(metric_id)
+                if metric:
+                    all_metrics.append(metric)
+
+        # Sort by timestamp (newest first) before filtering
+        all_metrics.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        
+        # Apply filter
+        filtered_metrics = []
+        for metric in all_metrics:
+            match = True
+            for key, value in filter_dict.items():
+                if key not in metric or metric[key] != value:
+                    match = False
+                    break
+            if match:
+                filtered_metrics.append(metric)
+                
+                # Apply limit if specified
+                if limit is not None and len(filtered_metrics) >= limit:
+                    break
+                    
+        return filtered_metrics
+    
+    def get_recent_metrics(self,
+                         metric_types: Optional[List[str]] = None,
+                         limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get the most recent metrics, optionally filtered by type.
+        
+        Args:
+            metric_types: Optional list of metric types to filter by
+            limit: Maximum number of results to return
+            
+        Returns:
+            List of recent metrics
+        """
+        # Use the query_metrics method with appropriate parameters
+        all_recent = self.query_metrics(
+            metric_types=metric_types,
+            limit=limit
+        )
+        
+        # Ensure sorting by timestamp (newest first)
+        all_recent.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        
+        return all_recent
 
 
 def get_metrics_store(config: Optional[Dict[str, Any]] = None) -> MetricsStore:

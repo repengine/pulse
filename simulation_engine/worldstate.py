@@ -20,52 +20,370 @@ from typing import Dict, List, Any, Optional
 logger = logging.getLogger(__name__)
 
 @dataclass
+class SymbolicOverlayMetadata:
+    """Metadata for a symbolic overlay"""
+    name: str
+    category: str = "primary"  # primary or secondary
+    parent: Optional[str] = None  # Parent overlay for hierarchical structure
+    description: str = ""
+    priority: float = 1.0  # Weighting priority
+
+@dataclass
 class SymbolicOverlays:
-    """Symbolic overlays representing the emotional state of the simulation."""
+    """
+    Symbolic overlays representing the emotional state of the simulation.
+    
+    Enhanced with:
+    - Dynamic overlay discovery
+    - Hierarchical primary/secondary structure
+    - Metadata for each overlay
+    - Relationship tracking between overlays
+    """
+    # Core default overlays (backwards compatible)
     hope: float = 0.5
     despair: float = 0.5
     rage: float = 0.5
     fatigue: float = 0.5
     trust: float = 0.5
     
+    # Additional storage for dynamically discovered overlays
+    _dynamic_overlays: Dict[str, float] = field(default_factory=dict)
+    _metadata: Dict[str, SymbolicOverlayMetadata] = field(default_factory=dict)
+    _relationships: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        """Initialize metadata for core overlays"""
+        # Initialize core overlay metadata if not already done
+        if not self._metadata:
+            self._metadata = {
+                "hope": SymbolicOverlayMetadata(
+                    name="hope", 
+                    category="primary", 
+                    description="Optimism about future outcomes"
+                ),
+                "despair": SymbolicOverlayMetadata(
+                    name="despair", 
+                    category="primary", 
+                    description="Pessimism about future outcomes"
+                ),
+                "rage": SymbolicOverlayMetadata(
+                    name="rage", 
+                    category="primary", 
+                    description="Intense negative reaction to events"
+                ),
+                "fatigue": SymbolicOverlayMetadata(
+                    name="fatigue", 
+                    category="primary", 
+                    description="Diminished response to stimuli"
+                ),
+                "trust": SymbolicOverlayMetadata(
+                    name="trust", 
+                    category="primary", 
+                    description="Confidence in system reliability"
+                ),
+            }
+            
+            # Initialize basic relationships
+            self._relationships = {
+                "hope": {"trust": 0.3, "despair": -0.5},
+                "despair": {"hope": -0.5, "fatigue": 0.4},
+                "rage": {"trust": -0.4},
+                "fatigue": {"hope": -0.3},
+                "trust": {}
+            }
+    
     def as_dict(self) -> Dict[str, float]:
-        """Convert overlay values to a dictionary."""
-        return asdict(self)
+        """Convert all overlay values to a dictionary."""
+        result = {name: getattr(self, name) for name in ["hope", "despair", "rage", "fatigue", "trust"]}
+        result.update(self._dynamic_overlays)
+        return result
 
     def items(self):
-        """Return overlay items as (name, value) pairs."""
+        """Return all overlay items as (name, value) pairs."""
         return self.as_dict().items()
+    
+    def __getattr__(self, name):
+        """Support dynamic overlay access via dot notation"""
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError(f"Special attribute {name} not found")
+            
+        if name in self._dynamic_overlays:
+            return self._dynamic_overlays[name]
+            
+        raise AttributeError(f"Overlay '{name}' not found")
+    
+    def __setattr__(self, name, value):
+        """Support setting both core and dynamic overlays"""
+        if name in {"_dynamic_overlays", "_metadata", "_relationships"}:
+            super().__setattr__(name, value)
+        elif name in {"hope", "despair", "rage", "fatigue", "trust"}:
+            # Core overlays - use direct attribute
+            super().__setattr__(name, max(0.0, min(1.0, float(value))))
+        else:
+            # Dynamic overlay - store in dict
+            self._dynamic_overlays[name] = max(0.0, min(1.0, float(value)))
     
     @staticmethod
     def from_dict(data: Dict[str, float]) -> 'SymbolicOverlays':
-        """Create overlays from a dictionary, with validation."""
-        valid_keys = {'hope', 'despair', 'rage', 'fatigue', 'trust'}
-        filtered_data = {k: v for k, v in data.items() if k in valid_keys}
+        """Create overlays from a dictionary, with validation and dynamic overlay support."""
+        # Create a new instance
+        overlays = SymbolicOverlays()
         
-        # Ensure all values are floats between 0 and 1
-        for k, v in filtered_data.items():
+        # Process all keys in the input data
+        for k, v in data.items():
             try:
-                filtered_data[k] = max(0.0, min(1.0, float(v)))
-            except (ValueError, TypeError):
-                logger.warning(f"Invalid overlay value for '{k}': {v}. Using default 0.5")
-                filtered_data[k] = 0.5
-        
-        # Set defaults for missing keys
-        for key in valid_keys:
-            if key not in filtered_data:
-                filtered_data[key] = 0.5
+                v_float = max(0.0, min(1.0, float(v)))
                 
-        return SymbolicOverlays(**filtered_data)
+                # Core overlay
+                if k in {"hope", "despair", "rage", "fatigue", "trust"}:
+                    setattr(overlays, k, v_float)
+                # Dynamic overlay
+                else:
+                    overlays._dynamic_overlays[k] = v_float
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid overlay value for '{k}': {v}. Skipping.")
+        
+        return overlays
     
     def validate(self) -> bool:
         """Validate that all overlay values are valid floats between 0 and 1."""
         try:
-            for key, value in asdict(self).items():
+            # Check core overlays
+            for key in ["hope", "despair", "rage", "fatigue", "trust"]:
+                value = getattr(self, key)
                 if not isinstance(value, float) or value < 0 or value > 1:
                     return False
+                    
+            # Check dynamic overlays
+            for key, value in self._dynamic_overlays.items():
+                if not isinstance(value, float) or value < 0 or value > 1:
+                    return False
+                    
             return True
         except Exception:
             return False
+            
+    def add_overlay(self, name: str, value: float = 0.5, category: str = "secondary", 
+                   parent: Optional[str] = None, description: str = "", priority: float = 1.0):
+        """
+        Add a new dynamic overlay with metadata.
+        
+        Args:
+            name: Name of the overlay
+            value: Initial value (0.0-1.0)
+            category: Category ("primary" or "secondary")
+            parent: Parent overlay for hierarchical structure
+            description: Description of the overlay
+            priority: Priority weight
+        """
+        # Don't allow overriding core overlays
+        if name in {"hope", "despair", "rage", "fatigue", "trust"}:
+            logger.warning(f"Cannot create dynamic overlay with reserved name '{name}'")
+            return False
+            
+        # Set the overlay value
+        self._dynamic_overlays[name] = max(0.0, min(1.0, float(value)))
+        
+        # Store metadata
+        self._metadata[name] = SymbolicOverlayMetadata(
+            name=name,
+            category=category,
+            parent=parent,
+            description=description,
+            priority=priority
+        )
+        
+        # Initialize empty relationships
+        if name not in self._relationships:
+            self._relationships[name] = {}
+            
+        return True
+        
+    def remove_overlay(self, name: str) -> bool:
+        """
+        Remove a dynamic overlay.
+        
+        Args:
+            name: Name of the overlay to remove
+            
+        Returns:
+            bool: True if removed, False if not found or is a core overlay
+        """
+        # Can't remove core overlays
+        if name in {"hope", "despair", "rage", "fatigue", "trust"}:
+            return False
+            
+        # Remove the overlay
+        if name in self._dynamic_overlays:
+            del self._dynamic_overlays[name]
+            
+            # Clean up metadata and relationships
+            if name in self._metadata:
+                del self._metadata[name]
+                
+            if name in self._relationships:
+                del self._relationships[name]
+                
+            # Remove from other relationships
+            for rel in self._relationships.values():
+                if name in rel:
+                    del rel[name]
+                    
+            return True
+            
+        return False
+        
+    def set_relationship(self, source: str, target: str, strength: float) -> bool:
+        """
+        Set relationship strength between two overlays.
+        
+        Args:
+            source: Source overlay name
+            target: Target overlay name
+            strength: Relationship strength (-1.0 to 1.0)
+            
+        Returns:
+            bool: True if successful, False if overlays don't exist
+        """
+        # Ensure both overlays exist
+        if not self.has_overlay(source) or not self.has_overlay(target):
+            return False
+            
+        # Initialize relationship dict if needed
+        if source not in self._relationships:
+            self._relationships[source] = {}
+            
+        # Set relationship strength
+        self._relationships[source][target] = max(-1.0, min(1.0, float(strength)))
+        return True
+        
+    def get_relationship(self, source: str, target: str) -> float:
+        """
+        Get relationship strength between two overlays.
+        
+        Args:
+            source: Source overlay name
+            target: Target overlay name
+            
+        Returns:
+            float: Relationship strength or 0.0 if not defined
+        """
+        if source in self._relationships and target in self._relationships[source]:
+            return self._relationships[source][target]
+        return 0.0
+        
+    def get_primary_overlays(self) -> Dict[str, float]:
+        """
+        Get all primary category overlays.
+        
+        Returns:
+            Dict mapping overlay names to values
+        """
+        result = {}
+        
+        # Add core primary overlays
+        for name in ["hope", "despair", "rage", "fatigue", "trust"]:
+            result[name] = getattr(self, name)
+            
+        # Add dynamic primary overlays
+        for name, meta in self._metadata.items():
+            if meta.category == "primary" and name in self._dynamic_overlays:
+                result[name] = self._dynamic_overlays[name]
+                
+        return result
+                
+    def get_secondary_overlays(self) -> Dict[str, float]:
+        """
+        Get all secondary category overlays.
+        
+        Returns:
+            Dict mapping overlay names to values
+        """
+        result = {}
+        
+        # Only dynamic overlays can be secondary
+        for name, meta in self._metadata.items():
+            if meta.category == "secondary" and name in self._dynamic_overlays:
+                result[name] = self._dynamic_overlays[name]
+                
+        return result
+                
+    def get_children(self, parent_name: str) -> Dict[str, float]:
+        """
+        Get all child overlays of a parent.
+        
+        Args:
+            parent_name: Name of parent overlay
+            
+        Returns:
+            Dict mapping child overlay names to values
+        """
+        result = {}
+        
+        # First ensure parent exists
+        if not self.has_overlay(parent_name):
+            return result
+            
+        # Look for children among all overlays
+        for name, meta in self._metadata.items():
+            if meta.parent == parent_name:
+                if name in ["hope", "despair", "rage", "fatigue", "trust"]:
+                    result[name] = getattr(self, name)
+                elif name in self._dynamic_overlays:
+                    result[name] = self._dynamic_overlays[name]
+                    
+        return result
+        
+    def has_overlay(self, name: str) -> bool:
+        """
+        Check if an overlay exists.
+        
+        Args:
+            name: Name of the overlay
+            
+        Returns:
+            bool: True if the overlay exists
+        """
+        if name in ["hope", "despair", "rage", "fatigue", "trust"]:
+            return True
+        return name in self._dynamic_overlays
+        
+    def get_overlay_metadata(self, name: str) -> Optional[SymbolicOverlayMetadata]:
+        """
+        Get metadata for an overlay.
+        
+        Args:
+            name: Name of the overlay
+            
+        Returns:
+            SymbolicOverlayMetadata or None if not found
+        """
+        return self._metadata.get(name)
+        
+    def get_dominant_overlays(self, threshold: float = 0.65) -> Dict[str, float]:
+        """
+        Get all overlays with values above the threshold.
+        
+        Args:
+            threshold: Minimum value to be considered dominant
+            
+        Returns:
+            Dict of dominant overlays
+        """
+        result = {}
+        
+        # Check core overlays
+        for name in ["hope", "despair", "rage", "fatigue", "trust"]:
+            value = getattr(self, name)
+            if value >= threshold:
+                result[name] = value
+                
+        # Check dynamic overlays
+        for name, value in self._dynamic_overlays.items():
+            if value >= threshold:
+                result[name] = value
+                
+        return result
 
 @dataclass
 class CapitalExposure:

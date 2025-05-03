@@ -1,0 +1,30 @@
+{
+  "status": "success",
+  "build_time": "2025-05-02 19:09:55",
+  "elapsed_seconds": 1991.91,
+  "document_count": 74547,
+  "vector_count": 74547,
+  "embedding_dimension": 384,
+  "model_name": "all-MiniLM-L6-v2",
+  "quantized": false,
+  "directories": [
+    ".",
+    "./docs",
+    "./tests",
+    "./chatmode",
+    "./core",
+    "./intelligence",
+    "./simulation_engine",
+    "./forecast_engine",
+    "./memory",
+    "./symbolic_system",
+    "./utils",
+    "./adapters",
+    "./interfaces",
+    "./pipeline",
+    "./recursive_training",
+    "./trust_system"
+  ],
+  "vector_store_path": "./chatmode/vector_store/codebase.faiss",
+  "metadata_path": "./chatmode/vector_store/codebase_metadata.pkl"
+}

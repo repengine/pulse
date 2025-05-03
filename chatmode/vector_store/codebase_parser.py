@@ -1,9 +1,23 @@
 import os
 import re
+import logging
 
-def get_codebase_files(directory, file_extensions=['.py', '.md']):
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("CodebaseParser")
+
+# Import excluded directories list from build_vector_store
+try:
+    from chatmode.vector_store.build_vector_store import EXCLUDED_DIRECTORIES
+except ImportError:
+    # Default excluded directories if import fails
+    EXCLUDED_DIRECTORIES = ['.venv', 'venv', '__pycache__', '.git', 'node_modules', 'context7', 'mcp-servers', 'memory-bank']
+    logger.warning(f"Using default excluded directories: {EXCLUDED_DIRECTORIES}")
+
+def get_codebase_files(directory, file_extensions=['.py', '.md', '.json', '.txt', '.yaml', '.yml']):
     """
-    Traverses a directory and returns a list of file paths with specified extensions.
+    Traverses a directory and returns a list of file paths with specified extensions,
+    excluding files in directories that match the EXCLUDED_DIRECTORIES list.
 
     Args:
         directory (str): The root directory to traverse.
@@ -13,10 +27,34 @@ def get_codebase_files(directory, file_extensions=['.py', '.md']):
         list: A list of absolute file paths.
     """
     filepaths = []
-    for root, _, files in os.walk(directory):
+    skipped_dirs = set()
+    
+    for root, dirs, files in os.walk(directory):
+        # Modify dirs in-place to exclude directories we want to skip
+        # This prevents os.walk from descending into these directories
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRECTORIES]
+        
+        # Check if current path contains any excluded directory
+        path_parts = os.path.normpath(root).split(os.sep)
+        if any(excluded in path_parts for excluded in EXCLUDED_DIRECTORIES):
+            rel_path = os.path.relpath(root, directory)
+            if rel_path not in skipped_dirs:
+                logger.info(f"Skipping excluded directory: {rel_path}")
+                skipped_dirs.add(rel_path)
+            continue
+            
         for file in files:
             if any(file.endswith(ext) for ext in file_extensions):
-                filepaths.append(os.path.join(root, file))
+                filepath = os.path.join(root, file)
+                try:
+                    # Try to open the file to check if it's readable before including it
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        f.read(1)  # Just read first byte to test
+                    filepaths.append(filepath)
+                except Exception as e:
+                    logger.warning(f"Skipping unreadable file {filepath}: {str(e)}")
+    
+    logger.info(f"Found {len(filepaths)} files with extensions {file_extensions} in {directory}")
     return filepaths
 
 def parse_python_file(filepath, content):
@@ -140,6 +178,7 @@ def parse_markdown_file(filepath, content):
 def parse_file(filepath):
     """
     Reads a file and returns a list of document chunks with metadata based on file type.
+    Attempts to read the file with multiple encodings if utf-8 fails.
 
     Args:
         filepath (str): The path to the file.
@@ -148,8 +187,26 @@ def parse_file(filepath):
         list: A list of document dictionaries, or an empty list if file cannot be read or parsed.
     """
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
+        # Try different encodings if utf-8 fails
+        encodings = ['utf-8', 'latin-1', 'cp1252']
+        content = None
+        
+        for encoding in encodings:
+            try:
+                with open(filepath, 'r', encoding=encoding) as f:
+                    content = f.read()
+                logger.debug(f"Successfully read {filepath} with {encoding} encoding")
+                break  # If successful, break the loop
+            except UnicodeDecodeError:
+                continue  # Try the next encoding
+            except Exception as e:
+                logger.warning(f"Error reading {filepath} with {encoding} encoding: {str(e)}")
+                break  # For non-encoding errors, stop trying
+        
+        # If all encodings failed, return empty list
+        if content is None:
+            logger.warning(f"Failed to read {filepath} with any supported encoding")
+            return []
 
         if filepath.endswith('.py'):
             return parse_python_file(filepath, content)
@@ -157,7 +214,7 @@ def parse_file(filepath):
             return parse_markdown_file(filepath, content)
         else:
             # For other file types, return the whole file as a single document
-             return [{
+            return [{
                 'text': content,
                 'metadata': {
                     'file_path': filepath,
@@ -167,7 +224,7 @@ def parse_file(filepath):
                 }
             }]
     except Exception as e:
-        print(f"Error reading or parsing file {filepath}: {e}")
+        logger.warning(f"Error parsing file {filepath}: {str(e)}")
         return []
 
 def load_codebase_artifacts(directories=['.']):
@@ -186,8 +243,11 @@ def load_codebase_artifacts(directories=['.']):
         filepaths = get_codebase_files(directory)
         print(f"Found {len(filepaths)} files in {directory}")
         for filepath in filepaths:
-            documents = parse_file(filepath)
-            all_documents.extend(documents) # Extend with the list of documents from parse_file
+            try:
+                documents = parse_file(filepath)
+                all_documents.extend(documents)  # Extend with the list of documents from parse_file
+            except Exception as e:
+                logger.warning(f"Failed to process file {filepath}: {str(e)}")
     return all_documents
 
 if __name__ == '__main__':

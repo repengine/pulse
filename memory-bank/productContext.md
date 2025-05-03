@@ -27,6 +27,8 @@ This file provides a high-level overview of the project and the expected product
 * DVC and MLflow integration for experiment tracking
 * Recursive AI Training with GPT-Symbolic feedback
 
+* OpenAI GPT integration for conversational interface (GPT-4 Turbo, GPT-3.5 Turbo)
+
 ## Overall Architecture
 
 * Modular design with distinct engines: Core (config), Simulation Engine, Forecast Engine, Trust Engine, Forecast Output, Memory/Diagnostics, Symbolic System, Capital Engine, Operator Interface (UI/CLI), Utils, Dev Tools, Tests, Recursive Training.
@@ -36,3 +38,4 @@ This file provides a high-level overview of the project and the expected product
 * Emphasis on interpretability, auditability, and modular iteration.
 
 2025-05-01 00:36:00 - Added Recursive AI Training capabilities with GPT-Symbolic feedback loop to the system architecture.
+2025-05-02 16:47:05 - Added OpenAI GPT integration for the conversational interface.
