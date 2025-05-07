@@ -233,6 +233,9 @@ def simulate_turn(
         state.log_event(error_msg)
 
     # Apply symbolic gravity correction if available and enabled
+    # Container for gravity correction details (for explainability)
+    gravity_correction_details = {}
+    
     if gravity_enabled: # Added check for gravity_enabled
         try:
             # Import here to avoid circular imports
@@ -266,6 +269,23 @@ def simulate_turn(
                 if not symbolic_vec_dict and symbolic_vec: # If helper failed but symbolic_vec exists
                      logger_module.warning(f"Could not convert symbolic_vec of type {type(symbolic_vec)} to dict for shadow monitor.")
 
+            # Capture causal deltas (changes due to rules before gravity is applied)
+            # This needs to be done for all variables, not just critical ones from shadow monitor
+            vars_before_gravity = sim_vars_dict.copy()
+            causal_deltas = {}
+            
+            # If we have pre-simulation variable values, calculate causal deltas
+            if hasattr(state, '_pre_simulation_vars'):
+                pre_sim_vars = getattr(state, '_pre_simulation_vars', {})
+                for var_name, current_val in vars_before_gravity.items():
+                    # Calculate causal delta as current value minus pre-simulation value
+                    pre_val = pre_sim_vars.get(var_name, 0.0)
+                    causal_deltas[var_name] = current_val - pre_val
+            else:
+                # Store initial values for next turn if not already present
+                # This is first-time initialization
+                setattr(state, '_pre_simulation_vars', vars_before_gravity.copy())
+                
             # --- Shadow Monitor: Capture variable state before gravity and calculate causal deltas ---
             causal_deltas_monitor: Dict[str, float] = {}
             vars_before_gravity_critical: Dict[str, float] = {}
@@ -291,10 +311,81 @@ def simulate_turn(
             # Apply corrections to variables using the gravity fabric if not disabled
             # Use type ignore for dynamic property access
             corrected_vars: Dict[str, float] = sim_vars_dict # Default if gravity is skipped/fails
+            
             if (not hasattr(state, '_gravity_disable') or not getattr(state, '_gravity_disable', False)) and \
                hasattr(state, '_gravity_fabric') and hasattr(getattr(state, '_gravity_fabric', None), 'bulk_apply_correction'):
                 # Get the corrected values
                 corrected_vars = state._gravity_fabric.bulk_apply_correction(sim_vars_dict)  # type: ignore
+                
+                # Calculate gravity deltas for all variables
+                gravity_deltas = {}
+                for var_name, corrected_val in corrected_vars.items():
+                    # Calculate gravity delta as corrected value minus value before gravity
+                    gravity_delta = corrected_val - vars_before_gravity.get(var_name, 0.0)
+                    gravity_deltas[var_name] = gravity_delta
+                    
+                    # Get dominant pillars for this variable (if significant correction applied)
+                    if abs(gravity_delta) > 1e-6:  # Only record significant corrections
+                        # Get the top contributing pillars and their weights from the gravity fabric
+                        gravity_engine = getattr(state._gravity_fabric, 'gravity_engine', None)
+                        dominant_pillars = []
+                        
+                        if gravity_engine:
+                            # Get top contributors from the gravity engine
+                            try:
+                                top_contributors = gravity_engine.get_top_contributors(n=5)
+                                
+                                # Process each contributing pillar
+                                for pillar_name, weight in top_contributors:
+                                    # Get source data points if possible
+                                    source_data_points = []
+                                    
+                                    # Try to get pillar from the pillar system
+                                    pillar_system = getattr(state._gravity_fabric, 'pillar_system', None)
+                                    if pillar_system:
+                                        pillar = pillar_system.get_pillar(pillar_name)
+                                        if pillar and hasattr(pillar, 'data_points'):
+                                            # Get source data points (limited to most recent/relevant)
+                                            for i, (data_point, point_weight) in enumerate(pillar.data_points[-10:]):
+                                                point_id = f"dp_{i}"
+                                                if hasattr(data_point, 'id'):
+                                                    point_id = data_point.id
+                                                elif hasattr(data_point, '__str__'):
+                                                    point_id = str(data_point)[:20]  # Truncate if too long
+                                                
+                                                # Get timestamp if available
+                                                timestamp = "unknown"
+                                                if hasattr(data_point, 'timestamp'):
+                                                    timestamp = data_point.timestamp
+                                                
+                                                # Get value if available
+                                                value = point_weight  # Default to weight
+                                                if hasattr(data_point, 'value'):
+                                                    value = data_point.value
+                                                
+                                                source_data_points.append({
+                                                    "id": point_id,
+                                                    "value": value,
+                                                    "timestamp": timestamp,
+                                                    "weight": point_weight
+                                                })
+                                    
+                                    # Add pillar to dominant pillars list
+                                    dominant_pillars.append({
+                                        "pillar_name": pillar_name,
+                                        "weight": weight,
+                                        "source_data_points": source_data_points
+                                    })
+                            except Exception as e:
+                                if logger:
+                                    logger(f"[SIM] Error getting gravity contributor details: {e}")
+                        
+                        # Add details for this variable to the gravity correction details
+                        gravity_correction_details[var_name] = {
+                            "gravity_delta": gravity_delta,
+                            "causal_delta": causal_deltas.get(var_name, 0.0),
+                            "dominant_pillars": dominant_pillars
+                        }
 
                 # Apply the corrected values back to state
                 for var_name, corrected_val in corrected_vars.items():
@@ -341,6 +432,9 @@ def simulate_turn(
                             )
                     except Exception as e:
                         logger_module.error(f"Shadow Monitor: Error during record_step or check_trigger: {e}")
+                
+                # Store pre-simulation values for next turn
+                setattr(state, '_pre_simulation_vars', vars_before_gravity.copy())
         except ImportError as e:
             # Gravity fabric module not available, skip correction
             if logger: logger(f"[SIM] Symbolic gravity not available: {e}")
@@ -947,7 +1041,10 @@ if __name__ == "__main__":
     parser.add_argument("--arc", action="store_true", help="Show arc label/volatility for backward sim")
     parser.add_argument("--save-backtrace", type=str, default=None, help="Path to save backward trace as JSONL")
     parser.add_argument("--gravity", choices=["on", "off", "adaptive"], default="adaptive",
-                      help="Control Symbolic Gravity: 'on' to enable, 'off' to disable, 'adaptive' for dynamic adjustment")
+                       help="Control Symbolic Gravity: 'on' to enable, 'off' to disable, 'adaptive' for dynamic adjustment")
+    parser.add_argument("--explain-gravity", type=str, help="Explain gravity corrections for specified variable")
+    parser.add_argument("--explain-format", choices=["text", "html", "json"], default="text",
+                       help="Format for gravity explanation output (default: text)")
     args = parser.parse_args()
 
     # Determine gravity_enabled based on CLI argument
@@ -1016,3 +1113,21 @@ if __name__ == "__main__":
             if any(k.startswith("gravity_") for k in r.keys()):
                 gravity_info = f" | Gravity: {r.get('gravity_magnitude', 0.0):.3f}"
             print(f"Turn {r['turn']} | Δ: {r['deltas']} | Tag: {r.get('symbolic_tag', '—')}{gravity_info}")
+            
+        # Handle gravity explanation if requested
+        if args.explain_gravity:
+            try:
+                from simulation_engine.worldstate_monitor import display_gravity_correction_details
+                
+                print(f"\nGenerating gravity explanation for variable '{args.explain_gravity}'")
+                result_path = display_gravity_correction_details(
+                    trace_data=output,
+                    variable_name=args.explain_gravity,
+                    output_format=args.explain_format
+                )
+                
+                if result_path and args.explain_format != "text":
+                    print(f"\nGravity explanation saved to: {result_path}")
+            except ImportError:
+                print("Error: Could not import gravity explanation functionality.")
+                print("Make sure the diagnostics module is available.")

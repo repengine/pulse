@@ -1,5 +1,29 @@
 {
-  "ensemble_forecast": 100.0234185680747,
-  "value": 100.0234185680747,
+  "tag": "unknown",
+  "count": 1,
+  "avg_confidence": 0.697,
+  "top_drivers": [],
+  "examples": [
+    {
+      "value": 99.96813071221113,
+      "breakdown": {
+        "simulation_based": 100.0,
+        "ai_adjustment": -0.1062309592962265
+      },
+      "confidence_interval": null,
+      "probability_distribution": null,
+      "contributing_factors": {},
+      "confidence": 0.697,
+      "fragility": 0.5,
+      "risk_score": 0.21,
+      "historical_consistency": 0.8,
+      "fragility_label": "\u26a0\ufe0f Moderate",
+      "confidence_status": "\u2705 Actionable",
+      "arc_label": "arc_unknown",
+      "diverggence_type": null
+    }
+  ],
+  "attention_score": 0.0,
+  "symbolic_fragmented": false,
   "forecast_id": "unknown"
 }

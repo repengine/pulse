@@ -174,3 +174,57 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project specific directories
+mcp-servers/
+context7/
+
+# Additional large directories
+mlruns/
+logs/
+forecasts/
+memory-bank/
+snapshots/
+visualization/output/
+**/forecast_history/
+**/logs/
+pulse/logs/
+
+# Data files
+*.csv
+*.parquet
+*.pickle
+*.pkl
+*.h5
+*.hdf5
+*.db
+*.sqlite
+
+# Large media files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.zip
+*.rar
+*.tar
+*.gz
+*.7z
+
+# Large binary files
+*.bin
+*.dat
+*.npy
+*.npz
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Output directories
+**/output/
+**/temp/
+**/tmp/
+

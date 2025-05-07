@@ -18,7 +18,32 @@ from core.path_registry import PATHS
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 import datetime
 import os
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from pathlib import Path
+
+# Import gravity explainer functionality
+try:
+    from diagnostics.gravity_explainer import (
+        display_correction_explanation,
+        plot_gravity_correction_details_html,
+        export_gravity_explanation_json
+    )
+    GRAVITY_EXPLAINER_AVAILABLE = True
+except ImportError:
+    GRAVITY_EXPLAINER_AVAILABLE = False
+    print("Warning: Gravity Explainer module not available.")
+    
+    # Define fallback stub functions for type checking
+    def display_correction_explanation(trace_data, variable_name):
+        print("Gravity explainer module not available.")
+        
+    def plot_gravity_correction_details_html(trace_data, variable_name, output_path, max_steps=None):
+        print("Gravity explainer module not available.")
+        return output_path  # Return the path to match original function's return type
+        
+    def export_gravity_explanation_json(trace_data, variable_name, output_path):
+        print("Gravity explainer module not available.")
+        return output_path  # Return the path to match original function's return type
 
 logger = get_logger(__name__)
 
@@ -105,3 +130,82 @@ def run_batch_forecasts(count=5, domain="capital", min_conf=0.5, symbolic_block=
             f.write(f"Rejected: {rejected}\n")
             f.write(f"Logs: {logs}\n")
         logger.info(f"📁 Summary saved to {summary_file}")
+
+def display_gravity_correction_details(
+    trace_data: List[Dict[str, Any]],
+    variable_name: str,
+    output_format: str = "text",
+    output_dir: Optional[str] = None
+) -> Optional[str]:
+    """
+    Display gravity correction details for a specific variable.
+    
+    This function acts as an entry point to the gravity explanation features,
+    supporting multiple output formats.
+    
+    Args:
+        trace_data: Simulation trace data containing gravity correction details
+        variable_name: Name of the variable to explain
+        output_format: Format of the output ("text", "html", "json")
+        output_dir: Directory for output files (for non-text formats)
+        
+    Returns:
+        Path to the output file (for non-text formats) or None (for text)
+    """
+    if not GRAVITY_EXPLAINER_AVAILABLE:
+        print("ERROR: Gravity Explainer module is required but not available.")
+        return None
+    
+    # Check if trace contains gravity correction data
+    has_gravity_data = False
+    for step in trace_data:
+        if "gravity_correction_details" in step:
+            has_gravity_data = True
+            break
+            
+    if not has_gravity_data:
+        print(f"No gravity correction data found in the trace. Was the simulation run with gravity enabled?")
+        return None
+        
+    # Display using the appropriate format
+    if not GRAVITY_EXPLAINER_AVAILABLE:
+        print("ERROR: Gravity Explainer module is required but not available.")
+        return None
+        
+    if output_format == "text":
+        # Call the display function directly
+        display_correction_explanation(trace_data, variable_name)
+        return None
+        
+    elif output_format in ["html", "json"]:
+        # Create output directory if not provided
+        if output_dir is None:
+            default_dir = os.path.join(str(PATHS.get("VIZ_DIR", "visualizations")), "gravity_explanations")
+            output_dir = str(PATHS.get("GRAVITY_EXPLANATIONS_DIR", default_dir))
+            
+        # Ensure directory exists (with type checking)
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Generate timestamp
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            if output_format == "html":
+                # Generate HTML visualization
+                output_path = os.path.join(output_dir, f"gravity_{variable_name}_{timestamp}.html")
+                # Call the function directly
+                return plot_gravity_correction_details_html(trace_data, variable_name, output_path)
+                
+            elif output_format == "json":
+                # Export as JSON
+                output_path = os.path.join(output_dir, f"gravity_{variable_name}_{timestamp}.json")
+                # Call the function directly
+                return export_gravity_explanation_json(trace_data, variable_name, output_path)
+        else:
+            print("ERROR: Output directory is required for non-text formats")
+            return None
+    
+    else:
+        print(f"Unknown output format: {output_format}")
+        print("Supported formats: text, html, json")
+        return None

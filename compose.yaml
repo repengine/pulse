@@ -1,0 +1,14 @@
+services:
+  typescript-context7:
+    build:
+      context: ./context7
+      dockerfile: Dockerfile
+    # env_file: ./.env  # Uncomment if .env file exists in ./context7
+    restart: unless-stopped
+    init: true
+    # No ports exposed: service uses stdio only (see README)
+    # If you want to run this as a network service, add a port mapping here
+    # networks: [default]  # Uncomment if you add more services that need to communicate
+
+# No external service dependencies (databases, caches, etc.) detected in README or Dockerfile
+# No volumes section needed as there are no persistent data requirements
