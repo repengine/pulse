@@ -152,6 +152,14 @@ def get_config(filename, key=None, default=None):
     config = config_loader.load_config(filename)
     return config if key is None else config.get(key, default)
 
+# --- Shadow Model Monitoring Configuration ---
+SHADOW_MONITOR_CONFIG = {
+    "enabled": True,
+    "threshold_variance_explained": 0.35,  # Default 35%
+    "window_steps": 10,                   # Default window of 10 simulation steps
+    "critical_variables": ["var1", "var2"] # List of variable names to monitor
+}
+
 # --- Model registry for MLOps ---
 MODEL_REGISTRY = {
     "symbolic_model": {

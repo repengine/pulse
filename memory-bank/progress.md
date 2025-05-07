@@ -7,6 +7,12 @@ This file tracks the project's progress and ongoing tasks.
 
 *
 
+* [2025-05-03 09:32:45] - Started implementation of the Symbolic Gravity Theory enhancement:
+  * Converting symbolic overlays to symbolic pillars that stack data points and grow/shrink
+  * Enhancing the symbolic gravity fabric to be supported by these pillars
+  * Implementing residual gravity correction mechanisms based on mathematical model
+  * Integrating enhanced system with existing forecast pipeline
+  * Adding visualization capabilities for symbolic pillars and fabric
 ## Active Tasks
 * [2025-05-02 19:44:00] - Initiated planning for Phase 2: Cloud Proof-of-Concept. Defined initial cloud strategy, proposed high-level AWS architecture (S3, Batch, EC2, IAM, VPC, ECR), outlined POC implementation steps, identified required cloud resources, and considered data handling in the cloud. Focus is on offloading Data Loading/Processing and Parallel Training/Retrodiction components.
 
@@ -23,6 +29,7 @@ This file tracks the project's progress and ongoing tasks.
   * Created Terraform configuration for VPC setup (`cloud/aws/vpc/main.tf`, `variables.tf`, `outputs.tf`)
   * Designed network architecture with public and private subnets across multiple availability zones
   * Implemented NAT Gateway for secure outbound connectivity from private subnets
+- [2025-05-03 09:47:15] - Implemented the Symbolic Gravity Fabric system with vertical symbolic pillars that support the gravity fabric. Created ResidualGravityEngine for applying corrections to simulation outputs based on symbolic state. Added visualization utilities and comprehensive unit tests.
   * Configured route tables for appropriate network traffic flow
   * Set up security group with basic SSH access for compute resources
   * Added comprehensive documentation in README.md explaining the architecture and usage
@@ -116,3 +123,4 @@ This file tracks the project's progress and ongoing tasks.
 * [2025-05-02 21:29:24] - Implemented data ingestion logic for key economic indicators: Interest rates & yield curves (FRED), Inflation measures & expectations (BLS), Industrial production & manufacturing PMI (FRED, ISM placeholder), Unemployment rates & labor force participation (BLS, FRED), Retail sales & consumer sentiment (U.S. Census Bureau, University of Michigan placeholder), Money supply aggregates (FRED), Exchange rates (FRED), Credit spreads & volatility indices (FRED, CBOE placeholder), Housing starts & building permits (U.S. Census Bureau, FRED). Created new plugin files (`fred_plugin.py`, `bls_plugin.py`, `census_plugin.py`, `ism_plugin.py` placeholder, `umich_sentiment_plugin.py` placeholder, `cboe_plugin.py` placeholder) in `iris/iris_plugins_variable_ingestion/`. Prioritized publicly available data sources (FRED, BLS, U.S. Census Bureau) and used placeholders for sources likely requiring subscriptions. Integrated incremental data persistence and basic error handling.
 [2025-05-02 21:49:00] - Added pandas import to `iris/iris_plugins_variable_ingestion/bls_plugin.py`.
 [2025-05-02 21:49:00] - Fixed Pylance errors in `iris/iris_plugins_variable_ingestion/bls_plugin.py` by correcting arguments for `save_data_point_incremental`.
+[2025-05-06 21:16:06] - Fixed test and typing issues in Symbolic Gravity Fabric implementation. Added CLI flag to control gravity (on/off/adaptive) and updated tests to be resilient to implementation changes. All tests now pass and the implementation successfully transforms symbolic overlays into vertical pillars supporting a gravity fabric.

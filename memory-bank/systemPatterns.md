@@ -51,3 +51,13 @@ It is optional, but recommended to be updated as the project evolves.
   - Maintains separate test sets for different stages of the recursive training pipeline
   - Implements automatic test generation based on historical failure patterns
   - Isolates test environments to prevent cross-contamination between test runs
+* **Symbolic Pillar Gravity Fabric**:
+   - Reimagines symbolic modeling as physical pillars supporting a gravity fabric
+   - Represents symbolic forces (Hope, Despair, Rage, etc.) as basis functions
+   - Uses stacked data points to grow/shrink pillars, providing intuitive visualization
+   - Implements residual gravity field to pull simulation outputs toward observed reality
+   - Applies correction using g_t+1 = ∑_k w_k s_t(k) formula (weighted sum of symbol intensities)
+   - Uses online ridge-regression with momentum to learn appropriate weights
+   - Includes circuit breakers to prevent over-correction
+   - Maintains interpretability of correction mechanisms
+   - Offers both global and variable-specific correction capabilities

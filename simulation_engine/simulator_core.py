@@ -41,7 +41,29 @@ TODO:
 Author: Pulse AI Engine
 """
 
-from simulation_engine.worldstate import WorldState
+# Add to imports at the top of simulation_engine/simulator_core.py
+import logging # Added
+from typing import Dict, List, Any, Literal, Optional, Callable # Ensure Optional is imported if not already
+
+# Fallback for WorldState if it's in a different location for some setups
+try:
+    from simulation_engine.worldstate import WorldState
+except ImportError:
+    from .worldstate import WorldState # Assuming relative import might work
+
+# Import ShadowModelMonitor and config
+try:
+    from diagnostics.shadow_model_monitor import ShadowModelMonitor # Added
+    # SHADOW_MONITOR_CONFIG will be read by the calling script (e.g., batch_runner)
+    # and an instance of ShadowModelMonitor will be passed in.
+except ImportError:
+    ShadowModelMonitor = None # Fallback if not found
+    # print("Warning: ShadowModelMonitor could not be imported.") # Optional warning
+
+# Create a logger for this module
+logger_module = logging.getLogger(__name__) # Added
+
+
 from simulation_engine.state_mutation import decay_overlay
 from simulation_engine.rule_engine import run_rules
 from trust_system.forecast_episode_logger import log_episode_event  # optional
@@ -57,7 +79,7 @@ from simulation_engine.rules.reverse_rule_mapper import match_rule_by_delta, get
 from learning.learning import LearningEngine
 from core.pulse_learning_log import log_learning_event
 
-from typing import Dict, List, Any, Literal, Optional, Callable
+
 from datetime import datetime, timezone
 import json
 
@@ -96,26 +118,58 @@ def reset_state(state: WorldState) -> None:
     state.turn = 0
     state.event_log = []
 
+# Helper function to get a dictionary from state.variables or similar accessor
+def _get_dict_from_vars(variables_accessor: Any) -> Dict[str, float]:
+    raw_dict = None
+    if hasattr(variables_accessor, "as_dict") and callable(variables_accessor.as_dict):
+        try:
+            raw_dict = variables_accessor.as_dict()
+        except Exception as e:
+            logger_module.error(f"Error calling as_dict() on {type(variables_accessor)}: {e}")
+            return {} # Return empty on error to prevent further issues
+
+    elif isinstance(variables_accessor, dict):
+        raw_dict = variables_accessor
+
+    if isinstance(raw_dict, dict):
+        # Ensure keys are strings and values are floats
+        processed_dict: Dict[str, float] = {}
+        for k, v in raw_dict.items():
+            try:
+                processed_dict[str(k)] = float(v)
+            except (ValueError, TypeError) as e:
+                logger_module.warning(f"Could not convert key '{k}' or value '{v}' to str/float in _get_dict_from_vars: {e}")
+        return processed_dict
+
+    logger_module.debug(f"Variables accessor type {type(variables_accessor)} not directly convertible to Dict[str, float]. Evaluated to raw_dict type {type(raw_dict)}. Returning empty for safety.")
+    return {}
+
+
+# Modify simulate_turn function signature
 def simulate_turn(
     state: WorldState,
     use_symbolism: bool = True,
     return_mode: Literal["summary", "full"] = "summary",
     logger: Optional[Callable[[str], None]] = None,
-    learning_engine=None
+    learning_engine=None,
+    shadow_monitor_instance: Optional[ShadowModelMonitor] = None, # Removed string literal
+    gravity_enabled: bool = True # Added gravity_enabled parameter
 ) -> Dict[str, Any]:
     """
     Executes a single simulation turn, applying decay, rules, and capturing state changes.
-    
+
     Args:
         state: The current world state to simulate
         use_symbolism: Whether to apply symbolic tagging to the output
         return_mode: Level of detail in the return object ('summary' or 'full')
         logger: Optional logging function
         learning_engine: Optional learning engine to apply
-        
+        shadow_monitor_instance: Optional ShadowModelMonitor instance
+        gravity_enabled (bool): Whether gravity correction is enabled (default: True)
+
     Returns:
         Dictionary containing turn results, including overlays, deltas, and symbolic info
-        
+
     Raises:
         ValueError: If state is invalid or return_mode is invalid
     """
@@ -123,12 +177,12 @@ def simulate_turn(
         error_msg = f"Expected WorldState, got {type(state)}"
         if logger: logger(error_msg)
         raise ValueError(error_msg)
-        
+
     if return_mode not in ["summary", "full"]:
         error_msg = f"Invalid return_mode: {return_mode}"
         if logger: logger(error_msg)
         raise ValueError(error_msg)
-    
+
     # Validate state before simulation
     validation_errors = state.validate()
     if validation_errors:
@@ -144,6 +198,22 @@ def simulate_turn(
         if logger: logger(error_msg)
         state.log_event(error_msg)
         pre_overlay = {}
+
+    # --- Shadow Monitor: Capture initial variable state for critical variables ---
+    pre_variables_critical: Dict[str, float] = {}
+    if shadow_monitor_instance and shadow_monitor_instance.critical_variables: # Added block
+        try:
+            initial_vars_dict = _get_dict_from_vars(state.variables)
+            if initial_vars_dict:
+                 pre_variables_critical = {
+                    var: float(initial_vars_dict.get(var, 0.0))
+                    for var in shadow_monitor_instance.critical_variables
+                }
+            else:
+                logger_module.debug("Shadow Monitor: Could not get initial_vars_dict for pre_variables_critical.")
+        except Exception as e:
+            logger_module.error(f"Shadow Monitor: Error capturing pre_variables_critical: {e}")
+
 
     # Apply decay to overlays
     try:
@@ -161,6 +231,123 @@ def simulate_turn(
         error_msg = f"[SIM] Rule engine error: {str(e)}"
         if logger: logger(error_msg)
         state.log_event(error_msg)
+
+    # Apply symbolic gravity correction if available and enabled
+    if gravity_enabled: # Added check for gravity_enabled
+        try:
+            # Import here to avoid circular imports
+            from symbolic_system.gravity.symbolic_gravity_fabric import create_default_fabric
+
+            # Get predicted values from state variables
+            sim_vars = getattr(state, 'variables', {})
+            # Use type ignore for dynamic attribute access
+            # sim_vars_dict = sim_vars.as_dict() if hasattr(sim_vars, "as_dict") else (sim_vars if isinstance(sim_vars, dict) else _get_dict_from_vars(sim_vars))
+            # Simplified access:
+            if hasattr(sim_vars, "as_dict") and callable(sim_vars.as_dict):
+                sim_vars_dict = _get_dict_from_vars(sim_vars) # Use our helper to ensure Dict[str, float]
+            elif isinstance(sim_vars, dict):
+                sim_vars_dict = _get_dict_from_vars(sim_vars) # Use our helper
+            else:
+                sim_vars_dict = _get_dict_from_vars(sim_vars) # Fallback to helper which handles other types or logs # type: ignore
+
+            # Get symbolic pillar values
+            symbolic_vec = getattr(state, 'overlays', {})
+            # Use type ignore for dynamic attribute access
+            # symbolic_vec_dict = symbolic_vec.as_dict() if hasattr(symbolic_vec, "as_dict") else (symbolic_vec if isinstance(symbolic_vec, dict) else {})
+            # Simplified access:
+            if hasattr(symbolic_vec, "as_dict") and callable(symbolic_vec.as_dict):
+                symbolic_vec_dict = _get_dict_from_vars(symbolic_vec) # Use helper, assuming overlays are also numeric
+            elif isinstance(symbolic_vec, dict):
+                symbolic_vec_dict = _get_dict_from_vars(symbolic_vec) # Use helper
+            else:
+                # Overlays might be structured differently, if not dict or as_dict, might need specific handling
+                # For now, assume it can be processed by _get_dict_from_vars or defaults to empty
+                symbolic_vec_dict = _get_dict_from_vars(symbolic_vec) # type: ignore
+                if not symbolic_vec_dict and symbolic_vec: # If helper failed but symbolic_vec exists
+                     logger_module.warning(f"Could not convert symbolic_vec of type {type(symbolic_vec)} to dict for shadow monitor.")
+
+            # --- Shadow Monitor: Capture variable state before gravity and calculate causal deltas ---
+            causal_deltas_monitor: Dict[str, float] = {}
+            vars_before_gravity_critical: Dict[str, float] = {}
+            if shadow_monitor_instance and shadow_monitor_instance.critical_variables: # Added block
+                try:
+                    # sim_vars_dict is the state after causal rules, before gravity
+                    vars_before_gravity_critical = {
+                        var: float(sim_vars_dict.get(var, 0.0))
+                        for var in shadow_monitor_instance.critical_variables
+                    }
+                    causal_deltas_monitor = {
+                        var: vars_before_gravity_critical.get(var, 0.0) - pre_variables_critical.get(var, 0.0)
+                        for var in shadow_monitor_instance.critical_variables
+                    }
+                except Exception as e:
+                    logger_module.error(f"Shadow Monitor: Error capturing vars_before_gravity_critical or calculating causal_deltas_monitor: {e}")
+
+            # Get or create the gravity fabric
+            if not hasattr(state, '_gravity_fabric'):
+                state._gravity_fabric = create_default_fabric()  # type: ignore
+                if logger: logger("[SIM] Created new symbolic gravity fabric")
+
+            # Apply corrections to variables using the gravity fabric if not disabled
+            # Use type ignore for dynamic property access
+            corrected_vars: Dict[str, float] = sim_vars_dict # Default if gravity is skipped/fails
+            if (not hasattr(state, '_gravity_disable') or not getattr(state, '_gravity_disable', False)) and \
+               hasattr(state, '_gravity_fabric') and hasattr(getattr(state, '_gravity_fabric', None), 'bulk_apply_correction'):
+                # Get the corrected values
+                corrected_vars = state._gravity_fabric.bulk_apply_correction(sim_vars_dict)  # type: ignore
+
+                # Apply the corrected values back to state
+                for var_name, corrected_val in corrected_vars.items():
+                    if hasattr(sim_vars, "__setattr__"):
+                        sim_vars.__setattr__(var_name, corrected_val)
+                    elif hasattr(sim_vars, "__setitem__"):
+                        sim_vars[var_name] = corrected_val
+
+                # Step the fabric forward to update state
+                state._gravity_fabric.step(state)  # type: ignore
+
+                if logger: logger("[SIM] Applied symbolic gravity corrections")
+
+                # --- Shadow Monitor: Record step and check trigger ---
+                if shadow_monitor_instance and shadow_monitor_instance.critical_variables: # Added block
+                    try:
+                        # state.variables should now reflect corrected_vars
+                        # Alternatively, use corrected_vars directly if certain it contains all critical ones post-gravity
+                        vars_after_gravity_dict = _get_dict_from_vars(state.variables) # Re-fetch to be sure
+                        if not vars_after_gravity_dict: # Fallback to corrected_vars if _get_dict_from_vars fails
+                            vars_after_gravity_dict = corrected_vars
+
+                        vars_after_gravity_critical = {
+                            var: float(vars_after_gravity_dict.get(var, 0.0))
+                            for var in shadow_monitor_instance.critical_variables
+                        }
+
+                        gravity_deltas_monitor = {
+                            var: vars_after_gravity_critical.get(var, 0.0) - vars_before_gravity_critical.get(var, 0.0)
+                            for var in shadow_monitor_instance.critical_variables
+                        }
+
+                        shadow_monitor_instance.record_step(
+                            causal_deltas=causal_deltas_monitor,
+                            gravity_deltas=gravity_deltas_monitor,
+                            current_step=getattr(state, 'turn', -1)
+                        )
+
+                        triggered, problematic_vars = shadow_monitor_instance.check_trigger()
+                        if triggered:
+                            logger_module.warning(
+                                f"ShadowModelMonitor TRIGGERED at turn {getattr(state, 'turn', -1)}. "
+                                f"Problematic variables: {problematic_vars}. Gravity influence exceeded threshold."
+                            )
+                    except Exception as e:
+                        logger_module.error(f"Shadow Monitor: Error during record_step or check_trigger: {e}")
+        except ImportError as e:
+            # Gravity fabric module not available, skip correction
+            if logger: logger(f"[SIM] Symbolic gravity not available: {e}")
+        except Exception as e:
+            error_msg = f"[SIM] Symbolic gravity error: {str(e)}"
+            if logger: logger(error_msg)
+            state.log_event(error_msg)
 
     # Apply learning engine if provided
     if learning_engine is not None:
@@ -259,7 +446,9 @@ def simulate_forward(
     parallel: bool = False,
     retrodiction_mode: bool = False,
     retrodiction_loader: Optional[object] = None,
-    injection_mode: str = "seed_then_free"
+    injection_mode: str = "seed_then_free",
+    shadow_monitor_instance: Optional[ShadowModelMonitor] = None, # Removed string literal
+    gravity_enabled: bool = True # Added gravity_enabled parameter
 ) -> List[Dict[str, Any]]:
     """
     Runs multiple turns of forward simulation, supporting both forecasting and retrodiction.
@@ -272,9 +461,14 @@ def simulate_forward(
         logger (callable): optional logger for messages
         progress_callback (callable): optional progress reporter (step, total)
         learning_engine: optional learning engine for hooks
+        checkpoint_every: Optional interval for saving checkpoints
+        checkpoint_path: Optional path for saving checkpoints
+        parallel: Whether to run simulation turns in parallel (not yet supported)
         retrodiction_mode (bool): if True, runs retrodiction with ground truth injection and comparison
         retrodiction_loader (optional): loader providing ground truth snapshots for retrodiction
         injection_mode (str): "seed_then_free" or "strict_injection" for retrodiction variable injection
+        shadow_monitor_instance: Optional ShadowModelMonitor instance
+        gravity_enabled (bool): Whether gravity correction is enabled (default: True)
 
     Returns:
         List of Dict per turn
@@ -287,7 +481,8 @@ def simulate_forward(
     for i in range(turns):
         # Retrodiction injection of ground truth variables if strict injection mode
         if retrodiction_mode and injection_mode == "strict_injection" and retrodiction_loader and hasattr(retrodiction_loader, "get_snapshot_by_turn"):
-            snapshot = retrodiction_loader.get_snapshot_by_turn(i)
+            # Use type ignore for dynamic method access
+            snapshot = retrodiction_loader.get_snapshot_by_turn(i)  # type: ignore
             if snapshot:
                 from simulation_engine.state_mutation import update_numeric_variable, adjust_overlay, adjust_capital
                 for var, val in snapshot.items():
@@ -295,6 +490,22 @@ def simulate_forward(
                     if hasattr(state.overlays, var):
                         adjust_overlay(state, var, val - getattr(state.overlays, var, 0.0))
                     elif hasattr(state.variables, var):
+                        # Calculate residual for gravity learning if gravity is enabled
+                        if gravity_enabled and hasattr(state, '_gravity_fabric') and hasattr(getattr(state, '_gravity_fabric', None), 'update_weights'): # Added gravity_enabled check
+                            old_val = getattr(state.variables, var, 0.0)
+                            residual = val - old_val
+                            if abs(residual) > 1e-6:  # Only learn from meaningful residuals
+                                try:
+                                    # Get symbolic state vector
+                                    sym_vec = getattr(state.overlays, "as_dict", lambda: {})()
+                                    # Update weights based on residual
+                                    # Use type ignore for dynamic attribute access
+                                    state._gravity_fabric.gravity_engine.update_weights(residual, sym_vec)  # type: ignore
+                                    if logger: logger(f"[SIM] Updated gravity weights (residual={residual:.4f})")
+                                except Exception as e:
+                                    if logger: logger(f"[SIM] Gravity weight update error: {str(e)}")
+
+                        # Update the variable with ground truth
                         update_numeric_variable(state, var, val - getattr(state.variables, var, 0.0))
                     elif hasattr(state.capital, var):
                         adjust_capital(state, var, val - getattr(state.capital, var, 0.0))
@@ -310,11 +521,20 @@ def simulate_forward(
                                 setattr(state, var, val)
                 if logger:
                     logger(f"[RETRO] Injected ground truth variables for turn {i}")
-        # Simulate one turn
-        turn_data = simulate_turn(state, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger, learning_engine=learning_engine)
+        # Simulate one turn, passing the shadow_monitor_instance and gravity_enabled
+        turn_data = simulate_turn(
+            state,
+            use_symbolism=use_symbolism,
+            return_mode=return_mode,
+            logger=logger,
+            learning_engine=learning_engine,
+            shadow_monitor_instance=shadow_monitor_instance, # Added
+            gravity_enabled=gravity_enabled # Pass gravity_enabled
+        )
         # Retrodiction ground truth comparison and logging
         if retrodiction_mode and retrodiction_loader and hasattr(retrodiction_loader, "get_snapshot_by_turn"):
-            ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(i)
+            # Use type ignore for dynamic method access
+            ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(i)  # type: ignore
             if ground_truth_snapshot:
                 # Compare overlays and variables to ground truth
                 simulated_overlays = getattr(state, 'overlays', {})
@@ -417,9 +637,9 @@ def simulate_backward(
     import copy
     # Use overlays as dict (support both dict and dataclass)
     if hasattr(state.overlays, "as_dict"):
-        overlays_now = state.overlays.as_dict()
+        return state.overlays.as_dict()
     else:
-        overlays_now = state.overlays.as_dict()
+        return state.overlays.as_dict()
     trace = []
     prev_overlays = overlays_now.copy()
     symbolic_trace = []
@@ -726,7 +946,12 @@ if __name__ == "__main__":
     parser.add_argument("--validate-trace", nargs="+", action="append", help="Validate variable trace: var_name v1 v2 v3 ... (can be repeated)")
     parser.add_argument("--arc", action="store_true", help="Show arc label/volatility for backward sim")
     parser.add_argument("--save-backtrace", type=str, default=None, help="Path to save backward trace as JSONL")
+    parser.add_argument("--gravity", choices=["on", "off", "adaptive"], default="adaptive",
+                      help="Control Symbolic Gravity: 'on' to enable, 'off' to disable, 'adaptive' for dynamic adjustment")
     args = parser.parse_args()
+
+    # Determine gravity_enabled based on CLI argument
+    gravity_enabled_cli = args.gravity != "off"
 
     if args.selftest:
         _self_test()
@@ -757,11 +982,37 @@ if __name__ == "__main__":
     else:
         ws = WorldState()
         ws.sim_id = "demo_sim"
+
+        # Configure gravity feature based on CLI argument
+        if args.gravity == "off":
+            # Disable gravity by setting _gravity_disable flag
+            # Use setattr for dynamic attribute
+            setattr(ws, '_gravity_disable', True)
+            print("Symbolic Gravity: DISABLED")
+        elif args.gravity == "on":
+            # Enable gravity and make it non-adaptive
+            setattr(ws, '_gravity_disable', False)
+            # Initialize gravity fabric with non-adaptive config
+            from symbolic_system.gravity.gravity_config import ResidualGravityConfig
+            from symbolic_system.gravity.symbolic_gravity_fabric import create_default_fabric
+            config = ResidualGravityConfig(enable_adaptive_lambda=False)
+            # Create and attach the fabric
+            setattr(ws, '_gravity_fabric', create_default_fabric(config=config))
+            print("Symbolic Gravity: ENABLED (fixed strength)")
+        else:  # adaptive
+            # Enable gravity with adaptive strength
+            setattr(ws, '_gravity_disable', False)
+            print("Symbolic Gravity: ENABLED (adaptive)")
+
         output = simulate_forward(
             ws,
             turns=args.turns,
             use_symbolism=True,
-            return_mode="full" if args.full else "summary"
+            return_mode="full" if args.full else "summary",
+            gravity_enabled=gravity_enabled_cli # Pass gravity_enabled from CLI
         )
         for r in output:
-            print(f"Turn {r['turn']} | Δ: {r['deltas']} | Tag: {r.get('symbolic_tag', '—')}")
+            gravity_info = ""
+            if any(k.startswith("gravity_") for k in r.keys()):
+                gravity_info = f" | Gravity: {r.get('gravity_magnitude', 0.0):.3f}"
+            print(f"Turn {r['turn']} | Δ: {r['deltas']} | Tag: {r.get('symbolic_tag', '—')}{gravity_info}")
