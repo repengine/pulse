@@ -45,3 +45,4 @@ And ensure your application listens on that port.
 ---
 
 _This section was updated to reflect the current Docker and Docker Compose setup for the `context7` service. Please review and adjust as needed for your specific deployment or development requirements._
+# Pulse
