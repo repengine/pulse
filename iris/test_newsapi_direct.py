@@ -35,7 +35,7 @@ def test_newsapi():
     if api_key == "YOUR_NEWSAPI_KEY":
         print("❌ ERROR: You need to edit this file and replace the placeholder with your actual NewsAPI key")
         print("    Open the file and edit the value for NEWSAPI_KEY")
-        return False
+        assert False, "ERROR: You need to edit this file and replace the placeholder with your actual NewsAPI key"
     
     # Initialize the plugin
     plugin = NewsapiPlugin()
@@ -43,7 +43,7 @@ def test_newsapi():
     # Check if the plugin is enabled (API key is set)
     if not plugin.enabled:
         print("❌ NewsAPI plugin is DISABLED. There's an issue with the API key.")
-        return False
+        assert False, "ERROR: You need to edit this file and replace the placeholder with your actual NewsAPI key"
     
     print("✓ NewsAPI plugin is ENABLED.")
     
@@ -58,14 +58,14 @@ def test_newsapi():
             for i, signal in enumerate(signals[:3]):  # Show first 3 signals
                 print(f"\nSignal {i+1}:")
                 pprint(signal)
-            return True
+            assert True, "Successfully fetched signals!"
         else:
             print("❌ No signals returned. This might be due to API limitations or no matching content.")
-            return False
+            assert False, "ERROR: You need to edit this file and replace the placeholder with your actual NewsAPI key"
             
     except Exception as e:
         print(f"❌ Error testing NewsAPI plugin: {e}")
-        return False
+        assert False, "ERROR: You need to edit this file and replace the placeholder with your actual NewsAPI key"
 
 if __name__ == "__main__":
     test_newsapi()

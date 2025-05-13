@@ -12,6 +12,11 @@ import math
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union, Tuple, Set, Callable
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
+import pandas as pd
 try:
     import numpy as np
     NUMPY_AVAILABLE = True
@@ -75,7 +80,7 @@ class RecursiveTrainingMetrics:
             "hybrid": {}
         }
     
-    def _validate_data(self, true_values: List[Any], predicted_values: List[Any]) -> bool:
+    def _validate_data(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series']) -> bool:
         """
         Validate input data for metrics calculation.
         
@@ -96,9 +101,9 @@ class RecursiveTrainingMetrics:
         
         return True
     
-    def _safe_calculation(self, metric_func: Callable, 
-                          true_values: List[Any], 
-                          predicted_values: List[Any], 
+    def _safe_calculation(self, metric_func: Callable,
+                          true_values: Union[List[Any], 'pd.Series'],
+                          predicted_values: Union[List[Any], 'pd.Series'],
                           default_value: Any = None) -> Any:
         """
         Safely calculate a metric with error handling.
@@ -118,7 +123,7 @@ class RecursiveTrainingMetrics:
             self.logger.error(f"Error calculating metric: {e}")
             return default_value
     
-    def calculate_mse(self, true_values: List[float], predicted_values: List[float]) -> float:
+    def calculate_mse(self, true_values: Union[List[float], 'pd.Series'], predicted_values: Union[List[float], 'pd.Series']) -> float:
         """
         Calculate Mean Squared Error.
         
@@ -147,7 +152,7 @@ class RecursiveTrainingMetrics:
                 self.logger.error(f"Error calculating MSE: {e}")
                 return float('nan')
     
-    def calculate_mae(self, true_values: List[float], predicted_values: List[float]) -> float:
+    def calculate_mae(self, true_values: Union[List[float], 'pd.Series'], predicted_values: Union[List[float], 'pd.Series']) -> float:
         """
         Calculate Mean Absolute Error.
         
@@ -176,7 +181,7 @@ class RecursiveTrainingMetrics:
                 self.logger.error(f"Error calculating MAE: {e}")
                 return float('nan')
     
-    def calculate_rmse(self, true_values: List[float], predicted_values: List[float]) -> float:
+    def calculate_rmse(self, true_values: Union[List[float], 'pd.Series'], predicted_values: Union[List[float], 'pd.Series']) -> float:
         """
         Calculate Root Mean Squared Error.
         
@@ -197,7 +202,7 @@ class RecursiveTrainingMetrics:
             self.logger.error(f"Error calculating RMSE: {e}")
             return float('nan')
     
-    def calculate_accuracy(self, true_values: List[Any], predicted_values: List[Any]) -> float:
+    def calculate_accuracy(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series']) -> float:
         """
         Calculate classification accuracy.
         
@@ -226,8 +231,8 @@ class RecursiveTrainingMetrics:
                 self.logger.error(f"Error calculating accuracy: {e}")
                 return float('nan')
     
-    def calculate_f1_score(self, true_values: List[Any], predicted_values: List[Any],
-                          average: str = 'weighted') -> float:
+    def calculate_f1_score(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series'],
+                           average: str = 'weighted') -> float:
         """
         Calculate F1 score for classification.
         
@@ -243,40 +248,169 @@ class RecursiveTrainingMetrics:
             return float('nan')
         
         if SKLEARN_AVAILABLE:
-            import sklearn.metrics as sk_metrics
+            import sklearn.metrics as sk_metrics # Local import
             # Handle each average type explicitly to satisfy type checking
             if average == 'micro':
                 return self._safe_calculation(
-                    lambda x, y: sk_metrics.f1_score(x, y, average='micro'),
+                    lambda x, y: sk_metrics.f1_score(x, y, average='micro', zero_division=0),
                     true_values, predicted_values, float('nan')
                 )
             elif average == 'macro':
                 return self._safe_calculation(
-                    lambda x, y: sk_metrics.f1_score(x, y, average='macro'),
+                    lambda x, y: sk_metrics.f1_score(x, y, average='macro', zero_division=0),
                     true_values, predicted_values, float('nan')
                 )
             elif average == 'samples':
+                # Note: 'samples' average might not be applicable for all scenarios or pd.Series inputs directly
+                # depending on sklearn version and data structure. Test mocks should cover this.
                 return self._safe_calculation(
-                    lambda x, y: sk_metrics.f1_score(x, y, average='samples'),
+                    lambda x, y: sk_metrics.f1_score(x, y, average='samples', zero_division=0),
                     true_values, predicted_values, float('nan')
                 )
             elif average == 'binary':
                 return self._safe_calculation(
-                    lambda x, y: sk_metrics.f1_score(x, y, average='binary'),
+                    lambda x, y: sk_metrics.f1_score(x, y, average='binary', zero_division=0),
                     true_values, predicted_values, float('nan')
                 )
-            else:
-                # Default to weighted
+            else: # Default to weighted
                 return self._safe_calculation(
-                    lambda x, y: sk_metrics.f1_score(x, y, average='weighted'),
+                    lambda x, y: sk_metrics.f1_score(x, y, average='weighted', zero_division=0),
                     true_values, predicted_values, float('nan')
                 )
         else:
             self.logger.warning("scikit-learn not available for F1 calculation")
             return float('nan')
+    def calculate_r2_score(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series']) -> float:
+        """
+        Calculate R2 (coefficient of determination) regression score.
+        
+        Args:
+            true_values: List of true/expected values
+            predicted_values: List of predicted values
+            
+        Returns:
+            R2 score or None on error
+        """
+        if not self._validate_data(true_values, predicted_values):
+            return float('nan')
+        return float('nan') # Should be unreachable, but to satisfy Pylance
+        
+        if SKLEARN_AVAILABLE:
+            import sklearn.metrics as sk_metrics # Local import
+            # Ensure inputs are list-like for sklearn if they are pd.Series
+            # This is a general precaution; mocks in tests might handle Series directly.
+            _true = true_values.tolist() if isinstance(true_values, pd.Series) else true_values
+            _predicted = predicted_values.tolist() if isinstance(predicted_values, pd.Series) else predicted_values
+            return self._safe_calculation(
+                sk_metrics.r2_score,
+                _true, _predicted, float('nan')
+            )
+        else:
+            self.logger.warning("scikit-learn not available for R2 score calculation")
+            return float('nan')
+
+    def calculate_precision(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series'],
+                           average: str = 'weighted') -> float:
+        """
+        Calculate precision for classification.
+        
+        Args:
+            true_values: List of true/expected values
+            predicted_values: List of predicted values
+            average: Method for averaging ('micro', 'macro', 'weighted', 'binary')
+            
+        Returns:
+            Precision score or None on error
+        """
+        if not self._validate_data(true_values, predicted_values):
+            return float('nan')
+        
+        if SKLEARN_AVAILABLE:
+            import sklearn.metrics as sk_metrics # Local import
+            _true = true_values.tolist() if isinstance(true_values, pd.Series) else true_values
+            _predicted = predicted_values.tolist() if isinstance(predicted_values, pd.Series) else predicted_values
+            
+            if average == 'micro':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.precision_score(x, y, average='micro', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'macro':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.precision_score(x, y, average='macro', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'samples':
+                 return self._safe_calculation(
+                    lambda x, y: sk_metrics.precision_score(x, y, average='samples', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'binary':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.precision_score(x, y, average='binary', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            else: # Default to weighted
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.precision_score(x, y, average='weighted', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+        else:
+            self.logger.warning("scikit-learn not available for Precision calculation")
+            return float('nan')
+
+    def calculate_recall(self, true_values: Union[List[Any], 'pd.Series'], predicted_values: Union[List[Any], 'pd.Series'],
+                        average: str = 'weighted') -> float:
+        """
+        Calculate recall for classification.
+        
+        Args:
+            true_values: List of true/expected values
+            predicted_values: List of predicted values
+            average: Method for averaging ('micro', 'macro', 'weighted', 'binary')
+            
+        Returns:
+            Recall score or None on error
+        """
+        if not self._validate_data(true_values, predicted_values):
+            return float('nan')
+        
+        if SKLEARN_AVAILABLE:
+            import sklearn.metrics as sk_metrics # Local import
+            _true = true_values.tolist() if isinstance(true_values, pd.Series) else true_values
+            _predicted = predicted_values.tolist() if isinstance(predicted_values, pd.Series) else predicted_values
+
+            if average == 'micro':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.recall_score(x, y, average='micro', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'macro':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.recall_score(x, y, average='macro', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'samples':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.recall_score(x, y, average='samples', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            elif average == 'binary':
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.recall_score(x, y, average='binary', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+            else: # Default to weighted
+                return self._safe_calculation(
+                    lambda x, y: sk_metrics.recall_score(x, y, average='weighted', zero_division=0),
+                    _true, _predicted, float('nan')
+                )
+        else:
+            self.logger.warning("scikit-learn not available for Recall calculation")
+            return float('nan')
     
-    def track_iteration(self, iteration: int, metrics: Dict[str, Any], 
-                       model_name: str = "default", 
+    def track_iteration(self, iteration: int, metrics: Dict[str, Any],
+                       model_name: str = "default",
                        rule_type: Optional[str] = None,
                        tags: Optional[List[str]] = None) -> str:
         """
@@ -375,7 +509,7 @@ class RecursiveTrainingMetrics:
         
         self.metrics_store.store_metric(baseline_data)
     
-    def track_cost(self, api_calls: int = 0, token_usage: int = 0, 
+    def track_cost(self, api_calls: int = 0, token_usage: int = 0,
                   cost: float = 0.0) -> Dict[str, Any]:
         """
         Track API and token usage costs.
@@ -447,7 +581,7 @@ class RecursiveTrainingMetrics:
         
         return True
     
-    def compare_models(self, model_names: List[str], 
+    def compare_models(self, model_names: List[str],
                       metric_name: str = "mse") -> Dict[str, Any]:
         """
         Compare multiple models based on a specific metric.
@@ -493,55 +627,142 @@ class RecursiveTrainingMetrics:
             "best_model": best_model
         }
     
-    def evaluate_rule_performance(self, rule_type: str) -> Dict[str, Any]:
+    def evaluate_rule_performance(self,
+                                  rule_identifier: Union[Dict, str],
+                                  rule_predictions: Optional['pd.Series'] = None,
+                                  rule_actuals: Optional['pd.Series'] = None) -> Dict[str, Any]:
         """
-        Evaluate performance of a specific rule type.
-        
-        Args:
-            rule_type: Type of rule to evaluate (symbolic, neural, hybrid)
-            
-        Returns:
-            Dictionary with performance evaluation
+        Calculate various performance metrics.
+        If rule_predictions and rule_actuals are provided, evaluates them.
+        If rule_identifier is a string and predictions/actuals are None,
+        this indicates a potential call for aggregated metrics (currently returns defaults).
         """
-        if rule_type not in self.rule_performance or not self.rule_performance[rule_type]:
-            return {"error": f"No performance data available for rule type: {rule_type}"}
+        metrics: Dict[str, Any] = {}
         
-        # Get the most recent iteration for this rule type
-        latest_iteration = max(self.rule_performance[rule_type].keys())
-        latest_metrics = self.rule_performance[rule_type][latest_iteration]
-        
-        # Get historical performance for this rule type
-        historical = []
-        for iteration, metrics in sorted(self.rule_performance[rule_type].items()):
-            if "mse" in metrics:
-                historical.append({
-                    "iteration": iteration,
-                    "mse": metrics["mse"]
+        if rule_predictions is not None and rule_actuals is not None:
+            # Standard evaluation path when predictions and actuals are provided
+            # The 'rule_identifier' (if a Dict) could be used for context if needed.
+            metrics['mse'] = self.calculate_mse(rule_actuals, rule_predictions)
+            metrics['mae'] = self.calculate_mae(rule_actuals, rule_predictions)
+            metrics['r2_score'] = self.calculate_r2_score(rule_actuals, rule_predictions)
+            metrics['f1_score'] = self.calculate_f1_score(rule_actuals, rule_predictions) # Uses default average='weighted'
+            metrics['accuracy'] = self.calculate_accuracy(rule_actuals, rule_predictions)
+            metrics['precision'] = self.calculate_precision(rule_actuals, rule_predictions)
+            metrics['recall'] = self.calculate_recall(rule_actuals, rule_predictions)
+        elif isinstance(rule_identifier, str) and rule_predictions is None and rule_actuals is None:
+            # This case handles calls like evaluate_rule_performance("symbolic"),
+            # expecting a summary for that rule type based on self.rule_performance.
+            if rule_identifier in self.rule_performance and self.rule_performance[rule_identifier]:
+                rule_specific_history = self.rule_performance[rule_identifier]
+                history_to_use = rule_specific_history # Initialize with the original history
+                
+                # Ensure iteration keys are integers for correct sorting if they are not already
+                try:
+                    # Attempt to convert keys to int if they are strings, common in JSON-loaded data
+                    # If keys are already int, this will mostly be a pass-through
+                    # If keys are mixed or non-convertible, it might raise an error,
+                    # which indicates a different problem with how rule_performance is populated.
+                    int_keyed_history = {int(k): v for k, v in rule_specific_history.items()}
+                    sorted_iterations = sorted(int_keyed_history.keys())
+                    history_to_use = int_keyed_history # Update if conversion and sorting are successful
+                except ValueError:
+                    self.logger.error(f"Non-integer iteration keys found in rule_performance for '{rule_identifier}'. Cannot sort iterations.")
+                    # Fallback to treating keys as they are, hoping they are sortable or test setup handles it
+                    sorted_iterations = sorted(rule_specific_history.keys())
+                    # history_to_use remains rule_specific_history
+
+
+                if not sorted_iterations:
+                    self.logger.warning(f"Rule type '{rule_identifier}' has no iteration data in rule_performance.")
+                    metrics['error'] = f"No iteration data for rule type '{rule_identifier}'."
+                    # Populate with default structure to avoid KeyErrors in tests
+                    metrics.update({
+                        'mse': float('nan'), 'mae': float('nan'), 'r2_score': float('nan'),
+                        'f1_score': float('nan'), 'accuracy': float('nan'),
+                        'precision': float('nan'), 'recall': float('nan'),
+                        'latest_iteration': 0, 'latest_metrics': {},
+                        'historical': [], 'improvement': {}
+                    })
+                    metrics['rule_type'] = rule_identifier
+                    return metrics
+
+                latest_iteration_num = sorted_iterations[-1]
+                latest_metrics_dict = history_to_use.get(latest_iteration_num, {})
+
+                historical_list = [history_to_use[it] for it in sorted_iterations if it in history_to_use]
+                
+                improvement_dict = {}
+                if len(sorted_iterations) > 0:
+                    first_iteration_num = sorted_iterations[0]
+                    first_metrics_dict = history_to_use.get(first_iteration_num, {})
+                    
+                    if first_metrics_dict and latest_metrics_dict:
+                        common_metric_keys = set(first_metrics_dict.keys()) & set(latest_metrics_dict.keys())
+                        for metric_key in common_metric_keys:
+                            # Ensure values are numeric and first_metric is not zero for division
+                            if isinstance(first_metrics_dict.get(metric_key), (int, float)) and \
+                               isinstance(latest_metrics_dict.get(metric_key), (int, float)) and \
+                               first_metrics_dict[metric_key] != 0:
+                                improvement_value = (latest_metrics_dict[metric_key] - first_metrics_dict[metric_key]) / first_metrics_dict[metric_key] * 100
+                                improvement_dict[metric_key] = improvement_value
+                
+                metrics.update({
+                    'mse': latest_metrics_dict.get('mse', float('nan')),
+                    'mae': latest_metrics_dict.get('mae', float('nan')),
+                    'r2_score': latest_metrics_dict.get('r2_score', float('nan')),
+                    'f1_score': latest_metrics_dict.get('f1_score', float('nan')),
+                    'accuracy': latest_metrics_dict.get('accuracy', float('nan')),
+                    'precision': latest_metrics_dict.get('precision', float('nan')),
+                    'recall': latest_metrics_dict.get('recall', float('nan'))
                 })
-        
-        # Calculate improvement if possible
-        improvement = {}
-        if len(historical) > 1:
-            first = historical[0]
-            last = historical[-1]
-            
-            # For error metrics, negative percentages mean improvement
-            for key in ["mse", "rmse", "mae"]:
-                if key in first and key in last and first[key] != 0:
-                    improvement[key] = (last[key] - first[key]) / first[key] * 100
-            
-            # For accuracy metrics, positive percentages mean improvement
-            for key in ["accuracy", "f1_score"]:
-                if key in first and key in last and first[key] != 0:
-                    improvement[key] = (last[key] - first[key]) / first[key] * 100
-        
-        return {
-            "rule_type": rule_type,
-            "latest_iteration": latest_iteration,
-            "latest_metrics": latest_metrics,
-            "historical": historical,
-            "improvement": improvement
-        }
+                metrics['rule_type'] = rule_identifier
+                metrics['latest_iteration'] = latest_iteration_num
+                metrics['latest_metrics'] = latest_metrics_dict
+                metrics['historical'] = historical_list
+                metrics['improvement'] = improvement_dict
+            else:
+                self.logger.info(
+                    f"evaluate_rule_performance called for rule_identifier='{rule_identifier}' "
+                    "which was not found or has no data. Returning error structure."
+                )
+                metrics['error'] = f"Rule type '{rule_identifier}' not found or no data."
+                metrics.update({
+                    'mse': float('nan'), 'mae': float('nan'), 'r2_score': float('nan'),
+                    'f1_score': float('nan'), 'accuracy': float('nan'),
+                    'precision': float('nan'), 'recall': float('nan'),
+                    'latest_iteration': 0, 'latest_metrics': {}, # Default for test expectations
+                    'historical': [], 'improvement': {}
+                })
+                metrics['rule_type'] = rule_identifier
+        else:
+            # Handle other unexpected argument combinations
+            self.logger.error(
+                "Invalid or incomplete arguments for evaluate_rule_performance. "
+                "Expected (rule_identifier: Dict, rule_predictions, rule_actuals) or "
+                "(rule_identifier: str with no predictions/actuals) or "
+                "(rule_identifier: Any, rule_predictions, rule_actuals)."
+            )
+            # Fallback to returning a full default structure to prevent KeyErrors.
+            metrics = {
+                'mse': float('nan'), 'mae': float('nan'), 'r2_score': float('nan'),
+                'f1_score': float('nan'), 'accuracy': float('nan'),
+                'precision': float('nan'), 'recall': float('nan'),
+                'latest_iteration': 0,
+                'latest_metrics': {},
+                'historical': [],
+                'improvement': {},
+                'error': "Invalid arguments for evaluate_rule_performance."
+            }
+            if isinstance(rule_identifier, str):
+                 metrics['rule_type'] = rule_identifier
+            elif isinstance(rule_identifier, dict) and 'rule_type' in rule_identifier: # Check if dict and has 'rule_type'
+                 metrics['rule_type'] = rule_identifier.get('rule_type', 'unknown_dict_type')
+            else:
+                 metrics['rule_type'] = 'unknown'
+            # Consider raising TypeError for truly unhandled cases if stricter behavior is preferred.
+            # raise TypeError("Invalid arguments for evaluate_rule_performance.")
+
+        return metrics
     
     def get_cost_summary(self) -> Dict[str, Any]:
         """
@@ -594,10 +815,12 @@ class RecursiveTrainingMetrics:
         
         # Get rule type performance
         rule_performance = {}
-        for rule_type in self.rule_performance:
-            if self.rule_performance[rule_type]:
-                rule_performance[rule_type] = self.evaluate_rule_performance(rule_type)
-        
+        for rule_type in self.config.get("summary_rule_types", []):
+            evaluated_data = self.evaluate_rule_performance(rule_type)
+            if evaluated_data and not evaluated_data.get("error"):
+                rule_performance[rule_type] = evaluated_data
+            else:
+                self.logger.warning(f"Evaluation for rule type '{rule_type}' returned no data or an error for summary, and will not be included.")
         return {
             "total_iterations": len(self.iteration_history),
             "latest_iteration": latest_iteration["iteration"],

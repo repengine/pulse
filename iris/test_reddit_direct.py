@@ -36,40 +36,36 @@ def test_reddit():
     client_secret = os.environ.get("REDDIT_CLIENT_SECRET", "")
     user_agent = os.environ.get("REDDIT_USER_AGENT", "")
     
-    if client_id == "YOUR_CLIENT_ID" or client_secret == "YOUR_CLIENT_SECRET":
-        print("❌ ERROR: You need to edit this file and replace the placeholders with your actual Reddit credentials")
-        print("    Open the file and edit the values for REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET")
-        return False
-    
+    assert client_id != "YOUR_CLIENT_ID" and client_secret != "YOUR_CLIENT_SECRET", \
+        "ERROR: You need to edit this file (iris/test_reddit_direct.py) and replace the placeholder credentials."
+
     # Initialize the plugin
     plugin = RedditPlugin()
-    
+
     # Check if the plugin is enabled (API credentials are set)
-    if not plugin.enabled:
-        print("❌ Reddit plugin is DISABLED. There's an issue with the credentials.")
-        return False
-    
+    assert plugin.enabled, "Reddit plugin is DISABLED. There's an issue with the credentials."
     print("✓ Reddit plugin is ENABLED.")
-    
+
     # Try to fetch signals
     try:
         print("Fetching data from Reddit API...")
         signals = plugin.fetch_signals()
-        
-        if signals:
-            print(f"✓ Successfully fetched {len(signals)} signals!")
-            print("\nExample signals:")
-            for i, signal in enumerate(signals[:3]):  # Show first 3 signals
-                print(f"\nSignal {i+1}:")
-                pprint(signal)
-            return True
-        else:
-            print("❌ No signals returned. This might be due to API limitations or no matching content.")
-            return False
-            
+
+        assert signals, "No signals returned. This might be due to API limitations or no matching content."
+        assert isinstance(signals, list), f"Expected a list of signals, but got {type(signals)}"
+        assert len(signals) > 0, "Fetched signals list is empty."
+
+        print(f"✓ Successfully fetched {len(signals)} signals!")
+        print("\nExample signals:")
+        for i, signal in enumerate(signals[:3]):  # Show first 3 signals
+            print(f"\nSignal {i+1}:")
+            pprint(signal)
+            # Add specific assertions for signal structure if needed
+            assert isinstance(signal, dict), f"Signal {i+1} is not a dictionary."
+            # Example: assert 'id' in signal, f"Signal {i+1} missing 'id' key."
+
     except Exception as e:
-        print(f"❌ Error testing Reddit plugin: {e}")
-        return False
+        assert False, f"Error testing Reddit plugin: {e}"
 
 if __name__ == "__main__":
     test_reddit()

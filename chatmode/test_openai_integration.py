@@ -33,7 +33,7 @@ def test_mock_model():
     token_count = model.count_tokens("This is a test prompt for token counting.")
     logger.info(f"Mock token count: {token_count}")
     
-    return True
+    assert True # Mock model test passed
 
 def test_openai_model(model_name="gpt-3.5-turbo", api_key=None):
     """Test the OpenAI model with actual API calls"""
@@ -44,7 +44,7 @@ def test_openai_model(model_name="gpt-3.5-turbo", api_key=None):
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
             logger.error("No OpenAI API key provided or found in environment variables.")
-            return False
+            assert False, "OpenAI API key not provided or found in environment variables."
     
     try:
         # Initialize model
@@ -54,41 +54,45 @@ def test_openai_model(model_name="gpt-3.5-turbo", api_key=None):
         # Get model info
         model_info = model.get_model_info()
         logger.info(f"Model info: {model_info}")
+        assert model_info is not None, "Failed to get OpenAI model info"
         
         # Test token counting
         test_prompt = "This is a test prompt for the OpenAI API. It will be used to verify token counting functionality."
         token_count = model.count_tokens(test_prompt)
         logger.info(f"Token count for test prompt: {token_count}")
+        assert token_count > 0, "Token count should be greater than 0"
         
         # Test response generation with simple query
         logger.info("Testing simple query response generation...")
         start_time = time.time()
         response = model.generate_response(
-            "What is the capital of France?", 
-            max_new_tokens=50, 
+            "What is the capital of France?",
+            max_new_tokens=50,
             temperature=0.7
         )
         elapsed_time = time.time() - start_time
         logger.info(f"Response generated in {elapsed_time:.2f} seconds: {response}")
+        assert response is not None and len(response) > 0, "Response should not be empty"
         
         # Test system message formatting
         logger.info("Testing system message formatted prompt...")
         system_prompt = "You are a helpful AI assistant specialized in finance and forecasting. User Query: What factors affect stock price movements?"
         start_time = time.time()
         response = model.generate_response(
-            system_prompt, 
-            max_new_tokens=100, 
+            system_prompt,
+            max_new_tokens=100,
             temperature=0.7
         )
         elapsed_time = time.time() - start_time
         logger.info(f"Response generated in {elapsed_time:.2f} seconds")
         logger.info(f"Response: {response[:100]}...")  # First 100 chars
+        assert response is not None and len(response) > 0, "Response should not be empty"
         
-        return True
+        logger.info("OpenAI API test succeeded.")
         
     except Exception as e:
         logger.error(f"Error testing OpenAI API: {str(e)}")
-        return False
+        assert False, f"Error testing OpenAI API: {str(e)}"
 
 def main():
     """Main function to run tests based on command line arguments"""
@@ -100,15 +104,17 @@ def main():
     
     # Always test the mock model as it doesn't require API key
     logger.info("Starting OpenAI integration tests...")
-    mock_result = test_mock_model()
-    logger.info(f"Mock model test {'succeeded' if mock_result else 'failed'}")
+    # Call the test functions, which now use assertions
+    logger.info("Starting OpenAI integration tests...")
+    test_mock_model()
+    logger.info("Mock model test completed.")
     
     # Test OpenAI API if requested
     if not args.mock_only:
-        openai_result = test_openai_model(model_name=args.model, api_key=args.key)
-        logger.info(f"OpenAI API test {'succeeded' if openai_result else 'failed'}")
+        test_openai_model(model_name=args.model, api_key=args.key)
+        logger.info("OpenAI API test completed.")
     
-    logger.info("Test suite completed")
+    logger.info("Test suite completed.")
 
 if __name__ == "__main__":
     main()

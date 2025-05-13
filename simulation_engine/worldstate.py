@@ -451,6 +451,10 @@ class Variables:
         if name in self.data:
             return self.data[name]
         raise AttributeError(f"Variable '{name}' not found")
+
+    def get(self, key, default=None):
+        """Dictionary-like get method with default value fallback."""
+        return self.data.get(key, default)
         
     def __setattr__(self, name, value):
         """Allow dot notation assignment to variables."""

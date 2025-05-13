@@ -28,10 +28,7 @@ def test_world_bank():
     plugin = WorldBankPlugin()
     
     # Check if the plugin is enabled
-    if not plugin.enabled:
-        print("❌ World Bank plugin is DISABLED.")
-        return False
-    
+    assert plugin.enabled, "World Bank plugin is DISABLED."
     print("✓ World Bank plugin is ENABLED.")
     
     # Try to fetch signals
@@ -39,20 +36,22 @@ def test_world_bank():
         print("Fetching global economic data from World Bank API...")
         signals = plugin.fetch_signals()
         
-        if signals:
-            print(f"✓ Successfully fetched {len(signals)} signals!")
-            print("\nExample signals:")
-            for i, signal in enumerate(signals[:3]):  # Show first 3 signals
-                print(f"\nSignal {i+1}:")
-                pprint(signal)
-            return True
-        else:
-            print("❌ No signals returned. This could be due to API rate limiting or no recent data updates.")
-            return False
+        assert signals, "No signals returned. This could be due to API rate limiting or no recent data updates."
+        assert isinstance(signals, list), f"Expected a list of signals, but got {type(signals)}"
+        assert len(signals) > 0, "Fetched signals list is empty."
+
+        print(f"✓ Successfully fetched {len(signals)} signals!")
+        print("\nExample signals:")
+        for i, signal in enumerate(signals[:3]):  # Show first 3 signals
+            print(f"\nSignal {i+1}:")
+            pprint(signal)
+            # Add specific assertions for signal structure if needed
+            assert isinstance(signal, dict), f"Signal {i+1} is not a dictionary."
+            # Example: assert 'country' in signal and 'indicator' in signal and 'value' in signal, \
+            #    f"Signal {i+1} missing required keys."
             
     except Exception as e:
-        print(f"❌ Error testing World Bank plugin: {e}")
-        return False
+        assert False, f"Error testing World Bank plugin: {e}"
 
 if __name__ == "__main__":
     test_world_bank()

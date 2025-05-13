@@ -77,7 +77,7 @@ def plot_metrics_dashboard(metrics_history: List[Dict[str, Any]], show: bool = T
     axs[1, 1].legend()
     axs[1, 1].grid(True)
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.tight_layout(rect=(0, 0.03, 1, 0.95))
     if show:
         plt.show()
 

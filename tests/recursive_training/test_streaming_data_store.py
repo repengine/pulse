@@ -71,29 +71,35 @@ class TestStreamingDataStore(unittest.TestCase):
     @patch('recursive_training.data.streaming_data_store.PYARROW_AVAILABLE', False)
     def test_fallback_to_pandas_when_pyarrow_unavailable(self):
         """Test fallback to pandas-based streaming when PyArrow is unavailable."""
-        with patch('recursive_training.data.streaming_data_store.PYARROW_AVAILABLE', False):
-            store = StreamingDataStore(self.mock_config)
-            
+        # The outer patch decorator should cover PYARROW_AVAILABLE for the whole method.
+        # If PYARROW_AVAILABLE is False, StreamingDataStore will use pandas fallback.
+        store = StreamingDataStore(self.mock_config)
+        try:
             # Patch the retrieve_dataset_optimized method to return our sample data
-            with patch.object(OptimizedDataStore, 'retrieve_dataset_optimized', 
+            # This ensures that the underlying OptimizedDataStore's file operations for
+            # data retrieval are not actually hit, isolating the test to StreamingDataStore's
+            # fallback logic and its interaction with the (mocked) parent.
+            with patch.object(OptimizedDataStore, 'retrieve_dataset_optimized',
                               return_value=(self.sample_df, {})):
-                
+
                 # Test streaming - should yield chunks of the sample data
                 chunks = list(store.stream_dataset("test_dataset"))
-                
+
                 # Verify correct chunking
                 self.assertEqual(len(chunks), 5)  # 500 rows / 100 chunk_size = 5 chunks
                 self.assertEqual(len(chunks[0]), 100)
-                
+
                 # Test the streaming_arrow method fallback
                 store.logger = MagicMock()  # Add mock logger to catch warnings
                 chunks_arrow = list(store.stream_dataset_arrow("test_dataset"))
-                
+
                 # Should still produce 5 chunks
                 self.assertEqual(len(chunks_arrow), 5)
-                
+
                 # Verify warning was logged
                 store.logger.warning.assert_called_once()
+        finally:
+            store.close() # Ensure store resources are released
     
     @pytest.mark.skipif(not PYARROW_AVAILABLE, reason="PyArrow not available")
     def test_streaming_with_pyarrow(self):
@@ -104,7 +110,10 @@ class TestStreamingDataStore(unittest.TestCase):
         store = StreamingDataStore(self.mock_config)
         
         # Create a test dataset
-        dataset_id = store.store_dataset("test_arrow_dataset", self.sample_df.to_dict('records'))
+        dataset_id = store.store_dataset(
+            "test_arrow_dataset",
+            [{str(k): v for k, v in record.items()} for record in self.sample_df.to_dict('records')]
+        )
         
         # Test streaming
         chunks = list(store.stream_dataset("test_arrow_dataset"))
@@ -172,7 +181,10 @@ class TestStreamingDataStore(unittest.TestCase):
         store = StreamingDataStore(self.mock_config)
         
         # Create a test dataset
-        dataset_id = store.store_dataset("test_filter_dataset", self.sample_df.to_dict('records'))
+        dataset_id = store.store_dataset(
+            "test_filter_dataset",
+            [{str(k): v for k, v in record.items()} for record in self.sample_df.to_dict('records')]
+        )
         
         # Test with time filtering - should get only the data for January
         chunks = list(store.stream_dataset(

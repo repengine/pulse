@@ -22,14 +22,17 @@ from recursive_training.rules.rule_generator import (
 @pytest.fixture
 def mock_config():
     """Fixture for mock configuration."""
-    return {
-        "daily_cost_threshold_usd": 10.0,
-        "max_rule_iterations": 5,
-        "improvement_threshold": 0.05,
-        "default_generation_method": "gpt_symbolic_loop",
-        "enable_cost_control": True,
-        "metrics_tracking": True
-    }
+    # Use SimpleNamespace for attribute access
+    from types import SimpleNamespace
+    
+    return SimpleNamespace(
+        daily_cost_threshold_usd=10.0,
+        max_rule_iterations=5,
+        improvement_threshold=0.05,
+        default_generation_method="gpt_symbolic_loop",
+        enable_cost_control=True,
+        metrics_tracking=True
+    )
 
 
 @pytest.fixture
@@ -168,8 +171,8 @@ class TestRuleGeneratorInitialization:
                     generator = RecursiveRuleGenerator(mock_config)
                     
                     # Verify configuration was applied
-                    assert generator.max_iterations == mock_config["max_rule_iterations"]
-                    assert generator.improvement_threshold == mock_config["improvement_threshold"]
+                    assert generator.max_iterations == mock_config.max_rule_iterations
+                    assert generator.improvement_threshold == mock_config.improvement_threshold
                     assert generator.generation_status == RuleGenerationStatus.NOT_STARTED
 
 

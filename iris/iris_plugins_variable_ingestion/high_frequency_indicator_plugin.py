@@ -12,7 +12,9 @@ from typing import Dict, List, Any
 
 # Assuming these modules exist based on the task description
 from data.high_frequency_data_access import HighFrequencyDataAccess
-from iris.high_frequency_indicators import HighFrequencyIndicators, VARIABLE_REGISTRY
+from data.high_frequency_data_store import HighFrequencyDataStore # Import HighFrequencyDataStore
+from iris.high_frequency_indicators import HighFrequencyIndicators
+from core.variable_registry import VARIABLE_REGISTRY
 from iris.iris_plugins import IrisPluginManager
 # Assuming AlphaVantagePlugin exists and has STOCK_SYMBOLS
 from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
@@ -30,8 +32,9 @@ class HighFrequencyIndicatorPlugin(IrisPluginManager):
         signals = []
 
         try:
-            # Instantiate data access and indicators
-            data_access = HighFrequencyDataAccess()
+            # Instantiate data store, data access, and indicators
+            data_store = HighFrequencyDataStore()
+            data_access = HighFrequencyDataAccess(data_store)
             indicators = HighFrequencyIndicators(data_access)
 
             # Get symbols from AlphaVantagePlugin

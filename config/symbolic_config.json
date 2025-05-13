@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "profiles": {
+    "default": {
+      "overlay_thresholds": {
+        "dominance": 0.65,
+        "activation": 0.3
+      },
+      "variable_mappings": {},
+      "interaction_strengths": {
+        "hope->trust": 0.01,
+        "despair->fatigue": 0.015,
+        "fatigue->hope": -0.02
+      }
+    },
+    "high_volatility": {
+      "overlay_thresholds": {
+        "dominance": 0.6,
+        "activation": 0.25
+      },
+      "interaction_strengths": {
+        "hope->trust": 0.005,
+        "despair->fatigue": 0.02,
+        "fatigue->hope": -0.03
+      },
+      "variable_mappings": {
+        "volatility_index": {
+          "high_impact": [
+            "fear",
+            "despair"
+          ],
+          "threshold": 25.0
+        }
+      }
+    },
+    "recession": {
+      "overlay_thresholds": {
+        "dominance": 0.7,
+        "activation": 0.4
+      },
+      "interaction_strengths": {
+        "hope->trust": 0.02,
+        "despair->fatigue": 0.01,
+        "rage->trust": -0.03
+      }
+    }
+  }
+}

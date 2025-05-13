@@ -30,7 +30,7 @@ def test_alpha_vantage():
     # Check if the plugin is enabled (API key is set)
     if not plugin.enabled:
         print("❌ Alpha Vantage plugin is DISABLED. Make sure ALPHA_VANTAGE_KEY environment variable is set.")
-        return False
+        assert False, "Alpha Vantage plugin is DISABLED. Make sure ALPHA_VANTAGE_KEY environment variable is set."
     
     print("✓ Alpha Vantage plugin is ENABLED.")
     
@@ -45,14 +45,14 @@ def test_alpha_vantage():
             for i, signal in enumerate(signals[:3]):  # Show first 3 signals
                 print(f"\nSignal {i+1}:")
                 pprint(signal)
-            return True
+            assert True, "Successfully fetched signals"
         else:
             print("❌ No signals returned. This might be normal if there's no new data.")
-            return False
+            assert False, "Alpha Vantage plugin is DISABLED. Make sure ALPHA_VANTAGE_KEY environment variable is set."
             
     except Exception as e:
         print(f"❌ Error testing Alpha Vantage plugin: {e}")
-        return False
+        assert False, "Alpha Vantage plugin is DISABLED. Make sure ALPHA_VANTAGE_KEY environment variable is set."
 
 if __name__ == "__main__":
     test_alpha_vantage()

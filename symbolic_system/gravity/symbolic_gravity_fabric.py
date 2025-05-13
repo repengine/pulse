@@ -24,7 +24,7 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple, Union, Set
 from datetime import datetime
 
-from symbolic_system.gravity.residual_gravity_engine import ResidualGravityEngine
+from symbolic_system.gravity.engines.residual_gravity_engine import ResidualGravityEngine, GravityEngineConfig
 from symbolic_system.gravity.symbolic_pillars import SymbolicPillarSystem
 
 logger = logging.getLogger(__name__)
@@ -69,9 +69,31 @@ class SymbolicGravityFabric:
         from symbolic_system.gravity.gravity_config import ResidualGravityConfig
         
         # Use provided components or create new ones
-        self.gravity_engine = gravity_engine or ResidualGravityEngine(
-            config=config or ResidualGravityConfig()
-        )
+        # Create engine config if not provided directly
+        if gravity_engine is None:
+            engine_config = GravityEngineConfig(
+                lambda_=config.lambda_ if config else None,
+                regularization_strength=config.regularization if config else None,
+                learning_rate=config.learning_rate if config else None,
+                momentum_factor=config.momentum if config else None,
+                circuit_breaker_threshold=config.circuit_breaker_threshold if config else None,
+                max_correction=config.max_correction if config else None,
+                enable_adaptive_lambda=config.enable_adaptive_lambda if config else None,
+                enable_weight_pruning=config.enable_weight_pruning if config else None,
+                weight_pruning_threshold=config.weight_pruning_threshold if config else None,
+                fragility_threshold=config.fragility_threshold if config else None
+            )
+            # Use default values for dt and state_dimensionality
+            # Create default pillar names
+            default_pillar_names = ["hope", "despair", "rage", "fatigue", "trust"]
+            self.gravity_engine = ResidualGravityEngine(
+                config=engine_config,
+                dt=1.0,  # Default placeholder
+                state_dimensionality=1,  # Default placeholder
+                pillar_names=default_pillar_names  # Add required parameter
+            )
+        else:
+            self.gravity_engine = gravity_engine
         
         self.pillar_system = pillar_system or SymbolicPillarSystem(
             config=config
@@ -97,7 +119,7 @@ class SymbolicGravityFabric:
                          variable_name: str,
                          sim_value: float,
                          symbol_vec: Optional[Dict[str, float]] = None
-                         ) -> Tuple[float, Union[float, np.ndarray]]:
+                         ) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
         """
         Apply gravity correction to a simulated value.
         
@@ -346,8 +368,29 @@ def create_default_fabric(config=None) -> SymbolicGravityFabric:
     if config is None:
         config = ResidualGravityConfig()
     
+    # Create GravityEngineConfig from ResidualGravityConfig
+    engine_config = GravityEngineConfig(
+        lambda_=config.lambda_,
+        regularization_strength=config.regularization,
+        learning_rate=config.learning_rate,
+        momentum_factor=config.momentum,
+        circuit_breaker_threshold=config.circuit_breaker_threshold,
+        max_correction=config.max_correction,
+        enable_adaptive_lambda=config.enable_adaptive_lambda,
+        enable_weight_pruning=config.enable_weight_pruning,
+        weight_pruning_threshold=config.weight_pruning_threshold,
+        fragility_threshold=config.fragility_threshold
+    )
+    
     # Create engines
-    gravity_engine = ResidualGravityEngine(config=config)
+    # Define standard pillar names
+    standard_pillar_names = ["hope", "despair", "rage", "fatigue", "trust"]
+    gravity_engine = ResidualGravityEngine(
+        config=engine_config,
+        dt=1.0,  # Default placeholder
+        state_dimensionality=1,  # Default placeholder
+        pillar_names=standard_pillar_names  # Add required parameter
+    )
     pillar_system = SymbolicPillarSystem(config=config)
     
     # Create and return fabric

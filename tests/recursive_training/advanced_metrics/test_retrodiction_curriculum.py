@@ -47,7 +47,7 @@ def test_select_data_for_training(enhanced_curriculum):
 def test_update_curriculum(enhanced_curriculum):
     # Simulate update and check for state change
     prev_state = enhanced_curriculum.get_curriculum_state().copy()
-    enhanced_curriculum.update_curriculum(current_iteration=2, performance_metrics={"mse": 0.05})
+    enhanced_curriculum.update_curriculum(current_iteration=2, recent_metrics={"mse": 0.05}, model=None)
     new_state = enhanced_curriculum.get_curriculum_state()
     assert isinstance(new_state, dict)
     assert new_state != prev_state or new_state == prev_state  # State may or may not change, but must be dict
@@ -65,6 +65,6 @@ def test_cost_control_integration(enhanced_curriculum):
 
 def test_hybrid_rule_integration(enhanced_curriculum):
     # Simulate curriculum update with hybrid rule context
-    enhanced_curriculum.update_curriculum(current_iteration=4, performance_metrics={"mse": 0.04, "rule_type": "hybrid"})
+    enhanced_curriculum.update_curriculum(current_iteration=4, recent_metrics={"mse": 0.04, "rule_type": "hybrid"}, model=None)
     state = enhanced_curriculum.get_curriculum_state()
     assert isinstance(state, dict)

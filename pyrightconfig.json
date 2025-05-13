@@ -1,0 +1,16 @@
+{
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules",
+        "**/dist",
+        "**/build",
+        "**/.venv",
+        "**/.env",
+        "**/.pytest_cache",
+        "**/.mypy_cache",
+        "**/.tox",
+        "**/.eggs",
+        "**/.git",
+        "**/venv"
+    ]
+}

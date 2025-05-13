@@ -11,14 +11,15 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 LOG_FILE_PATH = str(PATHS.get("LOG_FILE", "logs/pulse.log"))
 
-DEFAULT_LOG_FORMAT = '[%(levelname)s] %(name)s: %(message)s'
+DEFAULT_LOG_FORMAT = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
 
 
-def get_logger(name, log_to_file: bool = True, max_bytes: int = 5_000_000, backup_count: int = 3):
+def get_logger(name, level=logging.INFO, log_to_file: bool = True, max_bytes: int = 5_000_000, backup_count: int = 3):
     """
     Returns a configured logger with standardized format and optional log rotation.
     Args:
         name (str): Logger name.
+        level: Logging level (default: logging.INFO)
         log_to_file (bool): If True, logs to file as well as stdout.
         max_bytes (int): Max log file size before rotation (default 5MB).
         backup_count (int): Number of rotated log files to keep.
@@ -38,7 +39,7 @@ def get_logger(name, log_to_file: bool = True, max_bytes: int = 5_000_000, backu
             )
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(level)
     return logger
 
 

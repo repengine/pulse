@@ -43,7 +43,11 @@ Author: Pulse AI Engine
 
 # Add to imports at the top of simulation_engine/simulator_core.py
 import logging # Added
-from typing import Dict, List, Any, Literal, Optional, Callable # Ensure Optional is imported if not already
+from typing import Dict, List, Any, Literal, Optional, Callable, TYPE_CHECKING # Ensure Optional is imported if not already
+
+if TYPE_CHECKING:
+    from diagnostics.shadow_model_monitor import ShadowModelMonitor as _SMM_TypeForHint
+import copy
 
 # Fallback for WorldState if it's in a different location for some setups
 try:
@@ -57,7 +61,10 @@ try:
     # SHADOW_MONITOR_CONFIG will be read by the calling script (e.g., batch_runner)
     # and an instance of ShadowModelMonitor will be passed in.
 except ImportError:
-    ShadowModelMonitor = None # Fallback if not found
+    class _ShadowModelMonitorFallback:
+        """Placeholder for ShadowModelMonitor if not found at runtime."""
+        pass
+    ShadowModelMonitor = _ShadowModelMonitorFallback # type: ignore
     # print("Warning: ShadowModelMonitor could not be imported.") # Optional warning
 
 # Create a logger for this module
@@ -71,7 +78,8 @@ from trust_system.forecast_episode_logger import log_episode_event  # optional
 try:
     from symbolic_system.symbolic_state_tagger import tag_symbolic_state
 except ImportError:
-    from symbolic_system.symbolic_state_tagger import tag_symbolic_state
+    tag_symbolic_state = None
+    logger_module.warning("Symbolic tagging module not found. Symbolic tagging will be disabled.")
 
 from symbolic_system.symbolic_trace_scorer import score_symbolic_trace  # Add for arc scoring
 from simulation_engine.utils.simulation_trace_logger import log_simulation_trace  # updated path
@@ -152,8 +160,9 @@ def simulate_turn(
     return_mode: Literal["summary", "full"] = "summary",
     logger: Optional[Callable[[str], None]] = None,
     learning_engine=None,
-    shadow_monitor_instance: Optional[ShadowModelMonitor] = None, # Removed string literal
-    gravity_enabled: bool = True # Added gravity_enabled parameter
+    shadow_monitor_instance: Optional['_SMM_TypeForHint'] = None,
+    gravity_enabled: bool = True,
+    gravity_config: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Executes a single simulation turn, applying decay, rules, and capturing state changes.
@@ -166,6 +175,7 @@ def simulate_turn(
         learning_engine: Optional learning engine to apply
         shadow_monitor_instance: Optional ShadowModelMonitor instance
         gravity_enabled (bool): Whether gravity correction is enabled (default: True)
+        gravity_config: Optional configuration for the gravity engine
 
     Returns:
         Dictionary containing turn results, including overlays, deltas, and symbolic info
@@ -246,7 +256,7 @@ def simulate_turn(
             # Use type ignore for dynamic attribute access
             # sim_vars_dict = sim_vars.as_dict() if hasattr(sim_vars, "as_dict") else (sim_vars if isinstance(sim_vars, dict) else _get_dict_from_vars(sim_vars))
             # Simplified access:
-            if hasattr(sim_vars, "as_dict") and callable(sim_vars.as_dict):
+            if hasattr(sim_vars, "as_dict") and callable(sim_vars.as_dict): # type: ignore
                 sim_vars_dict = _get_dict_from_vars(sim_vars) # Use our helper to ensure Dict[str, float]
             elif isinstance(sim_vars, dict):
                 sim_vars_dict = _get_dict_from_vars(sim_vars) # Use our helper
@@ -258,7 +268,7 @@ def simulate_turn(
             # Use type ignore for dynamic attribute access
             # symbolic_vec_dict = symbolic_vec.as_dict() if hasattr(symbolic_vec, "as_dict") else (symbolic_vec if isinstance(symbolic_vec, dict) else {})
             # Simplified access:
-            if hasattr(symbolic_vec, "as_dict") and callable(symbolic_vec.as_dict):
+            if hasattr(symbolic_vec, "as_dict") and callable(symbolic_vec.as_dict): # type: ignore
                 symbolic_vec_dict = _get_dict_from_vars(symbolic_vec) # Use helper, assuming overlays are also numeric
             elif isinstance(symbolic_vec, dict):
                 symbolic_vec_dict = _get_dict_from_vars(symbolic_vec) # Use helper
@@ -303,9 +313,12 @@ def simulate_turn(
                 except Exception as e:
                     logger_module.error(f"Shadow Monitor: Error capturing vars_before_gravity_critical or calculating causal_deltas_monitor: {e}")
 
-            # Get or create the gravity fabric
+            # Get or create the gravity fabric with specified config if provided
             if not hasattr(state, '_gravity_fabric'):
-                state._gravity_fabric = create_default_fabric()  # type: ignore
+                if gravity_config is not None:
+                    state._gravity_fabric = create_default_fabric(config=gravity_config)  # type: ignore
+                else:
+                    state._gravity_fabric = create_default_fabric()  # type: ignore
                 if logger: logger("[SIM] Created new symbolic gravity fabric")
 
             # Apply corrections to variables using the gravity fabric if not disabled
@@ -327,7 +340,7 @@ def simulate_turn(
                     # Get dominant pillars for this variable (if significant correction applied)
                     if abs(gravity_delta) > 1e-6:  # Only record significant corrections
                         # Get the top contributing pillars and their weights from the gravity fabric
-                        gravity_engine = getattr(state._gravity_fabric, 'gravity_engine', None)
+                        gravity_engine = getattr(state._gravity_fabric, 'gravity_engine', None) # type: ignore
                         dominant_pillars = []
                         
                         if gravity_engine:
@@ -341,7 +354,7 @@ def simulate_turn(
                                     source_data_points = []
                                     
                                     # Try to get pillar from the pillar system
-                                    pillar_system = getattr(state._gravity_fabric, 'pillar_system', None)
+                                    pillar_system = getattr(state._gravity_fabric, 'pillar_system', None) # type: ignore
                                     if pillar_system:
                                         pillar = pillar_system.get_pillar(pillar_name)
                                         if pillar and hasattr(pillar, 'data_points'):
@@ -492,9 +505,11 @@ def simulate_turn(
             for k in set(pre_ov) | set(ov_now)
         }
     }
-
+    # Add gravity correction details to the output
+    output["gravity_correction_details"] = gravity_correction_details
+ 
     # Apply symbolic tagging
-    if use_symbolism:
+    if use_symbolism and tag_symbolic_state is not None:
         try:
             sim_id_val = getattr(state, 'sim_id', None)
             if sim_id_val is None:
@@ -511,6 +526,13 @@ def simulate_turn(
             state.log_event(error_msg)
             output["symbolic_tag"] = "error"
             output["symbolic_score"] = 0.0
+    elif use_symbolism and tag_symbolic_state is None:
+        # Log that symbolic tagging is skipped due to missing module
+        warning_msg = "[SIM] Symbolic tagging skipped: module not available."
+        if logger: logger(warning_msg)
+        state.log_event(warning_msg)
+        output["symbolic_tag"] = "disabled"
+        output["symbolic_score"] = 0.0
 
     # Add fired rules if in full mode
     if return_mode == "full":
@@ -520,13 +542,42 @@ def simulate_turn(
     from trust_system.trust_engine import TrustEngine
     # --- Trust enrichment ---
     engine = TrustEngine()
+    # Store gravity details before potential modification by enrich_trust_metadata.
+    # This is a targeted fix for GTB5-002, assuming the key might be lost
+    # if enrich_trust_metadata returns a new dict object or modifies
+    # the existing one by removing this key.
+    _gcd_backup = output.get("gravity_correction_details")
+    
     output = engine.enrich_trust_metadata(output)
+
+    # If gravity_correction_details was backed up, restore it to ensure
+    # enrich_trust_metadata did not unintentionally remove or alter it.
+    # This handles cases where the key might be removed OR its value changed.
+    if _gcd_backup is not None:
+        output["gravity_correction_details"] = _gcd_backup
+    elif "gravity_correction_details" in output and output["gravity_correction_details"] is None:
+        # If it was None before and is still None, that's fine.
+        # But if it became None, and there was no backup, we might want to remove the key
+        # or ensure it's an empty dict if the expectation is for the key to sometimes be absent.
+        # For now, if _gcd_backup is None, we assume it's okay for the key to be absent or None.
+        pass
+ 
     # Warn if trust_label or confidence missing
     if "trust_label" not in output or "confidence" not in output:
         if logger:
             logger("[TRUST] Warning: trust_label or confidence missing from simulation output.")
+    if logger: # Ensure logger is available
+        if "gravity_correction_details" in output:
+            logger(f"[DEBUG_GCD] Key 'gravity_correction_details' IS IN output. Value: {type(output['gravity_correction_details'])}")
+            if isinstance(output['gravity_correction_details'], dict) and not output['gravity_correction_details']:
+                logger(f"[DEBUG_GCD] Value is an EMPTY DICT.")
+            elif output['gravity_correction_details'] is None:
+                logger(f"[DEBUG_GCD] Value is None.")
+            else:
+                logger(f"[DEBUG_GCD] Value is present and not empty/None.")
+        else:
+            logger(f"[DEBUG_GCD] Key 'gravity_correction_details' IS NOT IN output.")
     return output
-
 def simulate_forward(
     state: WorldState,
     turns: int = 5,
@@ -541,8 +592,9 @@ def simulate_forward(
     retrodiction_mode: bool = False,
     retrodiction_loader: Optional[object] = None,
     injection_mode: str = "seed_then_free",
-    shadow_monitor_instance: Optional[ShadowModelMonitor] = None, # Removed string literal
-    gravity_enabled: bool = True # Added gravity_enabled parameter
+    shadow_monitor_instance: Optional['_SMM_TypeForHint'] = None,
+    gravity_enabled: bool = True,
+    gravity_config: Optional[Any] = None
 ) -> List[Dict[str, Any]]:
     """
     Runs multiple turns of forward simulation, supporting both forecasting and retrodiction.
@@ -563,6 +615,7 @@ def simulate_forward(
         injection_mode (str): "seed_then_free" or "strict_injection" for retrodiction variable injection
         shadow_monitor_instance: Optional ShadowModelMonitor instance
         gravity_enabled (bool): Whether gravity correction is enabled (default: True)
+        gravity_config: Optional configuration for the gravity engine
 
     Returns:
         List of Dict per turn
@@ -622,8 +675,9 @@ def simulate_forward(
             return_mode=return_mode,
             logger=logger,
             learning_engine=learning_engine,
-            shadow_monitor_instance=shadow_monitor_instance, # Added
-            gravity_enabled=gravity_enabled # Pass gravity_enabled
+            shadow_monitor_instance=shadow_monitor_instance,
+            gravity_enabled=gravity_enabled,
+            gravity_config=gravity_config
         )
         # Retrodiction ground truth comparison and logging
         if retrodiction_mode and retrodiction_loader and hasattr(retrodiction_loader, "get_snapshot_by_turn"):
@@ -690,28 +744,111 @@ def inverse_decay(value: float, rate: float = 0.01, floor: float = 0.0, ceil: fl
     # Note: This assumes linear decay and no other effects.
     return min(ceil, max(floor, value + rate))
 
+def validate_variable_trace(
+    var_name: str,
+    known_trace: List[float],
+    state: WorldState,
+    decay_rate: float = 0.01,
+    atol: float = 1e-2, # Absolute tolerance for float comparison
+    logger: Optional[Callable[[str], None]] = None
+) -> Dict[str, Any]:
+    """
+    Validates a known historical trace for a single variable by reconstructing
+    a trace backward from the variable's current value in the provided WorldState
+    and comparing it against the known_trace.
+
+    Args:
+        var_name (str): The name of the variable (overlay) to validate.
+        known_trace (List[float]): The known historical trace (ordered oldest to newest).
+                                   This trace represents values at T-N, T-N+1, ..., T-1.
+        state (WorldState): The current world state, from which the value at T0 (current)
+                            for var_name will be taken as the starting point for backward reconstruction.
+        decay_rate (float): The assumed decay rate for inverse_decay.
+        atol (float): Absolute tolerance for comparing reconstructed and known values.
+        logger (Optional[Callable[[str], None]]): Optional logger.
+
+    Returns:
+        Dict[str, Any]: Validation results including expected (known_trace),
+                        reconstructed trace, error, and match percentage.
+    Raises:
+        ValueError: If var_name is not found in state.overlays or overlays type is not convertible.
+    """
+    current_overlays: Dict[str, float]
+    if hasattr(state.overlays, "as_dict") and callable(getattr(state.overlays, "as_dict")):
+        current_overlays = state.overlays.as_dict()
+    elif isinstance(state.overlays, dict):
+        current_overlays = state.overlays
+    else:
+        try:
+            current_overlays = dict(state.overlays) # type: ignore
+        except (TypeError, ValueError) as e:
+            msg = f"Overlays type {type(state.overlays)} not convertible to dict for trace validation: {e}"
+            if logger: logger(msg)
+            raise ValueError(msg) from e
+
+    if var_name not in current_overlays:
+        msg = f"Variable '{var_name}' not found in current overlays for trace validation."
+        if logger: logger(msg)
+        raise ValueError(msg)
+
+    current_val_in_state = current_overlays[var_name] # This is value at T0
+
+    num_historical_points_to_reconstruct = len(known_trace)
+    reconstructed_chronological: List[float] = []
+    error: List[float] = []
+    match: List[bool] = []
+    match_percent: float = 0.0
+
+    if num_historical_points_to_reconstruct == 0:
+        # No historical trace to compare against, so 0% match by definition.
+        # Reconstructed trace is also empty.
+        pass # Variables already initialized
+    else:
+        # Reconstruct a trace of length `num_historical_points_to_reconstruct`
+        # by rewinding from `current_val_in_state`.
+        # The reconstructed trace will represent [T0-N, ..., T0-1]
+        
+        reconstructed_backward_steps = [] # Stores [T0-1, T0-2, ..., T0-N]
+        val_at_prev_step = current_val_in_state
+        for _ in range(num_historical_points_to_reconstruct):
+            val_at_prev_step = inverse_decay(val_at_prev_step, rate=decay_rate)
+            reconstructed_backward_steps.append(val_at_prev_step)
+        
+        # reconstructed_backward_steps is [value at T-1, value at T-2, ..., value at T-N (relative to current_val_in_state)]
+        # Reverse to get chronological order [T-N, ..., T-1]
+        reconstructed_chronological = reconstructed_backward_steps[::-1]
+
+        error = [abs(a - b) for a, b in zip(known_trace, reconstructed_chronological)]
+        match = [e <= atol for e in error]
+        if match: # Avoid division by zero if known_trace was empty, though handled by outer if
+            match_percent = 100 * sum(match) / len(match)
+
+    result = {
+        "var": var_name,
+        "expected": known_trace,
+        "reconstructed": reconstructed_chronological,
+        "error": error,
+        "match_percent": round(match_percent, 2)
+    }
+    if logger:
+        log_message = (f"[VALIDATE_TRACE] {var_name}: {match_percent:.1f}% match. "
+                       f"Expected: {known_trace}, Reconstructed: {reconstructed_chronological}, Error: {error}")
+        logger(log_message)
+    return result
+
 def simulate_backward(
     state: WorldState,
     steps: int = 1,
     use_symbolism: bool = True,
-    decay_rate: float = 0.01,
+    decay_rate: float = 0.01, # Retain for signature compatibility
     logger: Optional[Callable[[str], None]] = None,
-    variable_names: Optional[List[str]] = None
+    variable_names: Optional[List[str]] = None # Retain for signature
 ) -> Dict[str, Any]:
     """
-    Reconstruct plausible prior worldstates by inverse overlay decay and symbolic tag regression.
-
-    Limitations:
-        - Only overlays are reversed (no variable/capital retrodiction yet).
-        - Does not reverse rules or causal effects (planned for future).
-        - Assumes constant decay rate for all overlays.
-        - No schema enforcement or out-of-bounds correction.
-
-    TODO:
-        - Add reverse rule engine and causal chain unwinding.
-        - Add variable/capital backward simulation.
-        - Add logging to file for backtrace results.
-        - Add schema validation and bounds checking.
+    Placeholder for backward simulation. The original implementation was for
+    validate_variable_trace and has been moved. This function's full
+    implementation (reconstructing plausible prior worldstates by inverse
+    overlay decay and symbolic tag regression) is pending.
 
     Args:
         state (WorldState): current worldstate (will not be mutated)
@@ -722,195 +859,218 @@ def simulate_backward(
         variable_names (list): variables to track (default: all overlays)
 
     Returns:
-        Dict with:
+        Dict with placeholder structure:
             - trace: list of dicts (overlays, deltas, symbolic_tag, step)
             - arc_label: symbolic arc label for the whole trace
             - volatility_score: volatility/integrity score for the arc
             - arc_certainty: certainty/confidence in the arc label
     """
-    import copy
-    # Use overlays as dict (support both dict and dataclass)
-    if hasattr(state.overlays, "as_dict"):
-        return state.overlays.as_dict()
-    else:
-        return state.overlays.as_dict()
-    trace = []
-    prev_overlays = overlays_now.copy()
-    symbolic_trace = []
-    for step in range(steps):
-        # Inverse decay for each overlay (future: add variable/capital support)
-        prior_overlays = {k: inverse_decay(v, rate=decay_rate) for k, v in prev_overlays.items()}
-        # Warn if any overlay is out of [0,1] bounds
-        for k, v in prior_overlays.items():
-            if not (0.0 <= v <= 1.0):
-                if logger:
-                    logger(f"[SIM-BACK] Warning: overlay '{k}' out of bounds ({v}) at step {step}")
-        # Compute deltas (should be negative of forward decay)
-        deltas = {k: round(prior_overlays[k] - prev_overlays[k], 4) for k in prior_overlays}
-        # Symbolic tag regression (optional)
-        symbolic_tag = None
-        if use_symbolism:
-            try:
-                sim_id_val = getattr(state, 'sim_id', None)
-                if sim_id_val is None:
-                    sim_id_val = ""
-                symbolic_tag = tag_symbolic_state(prior_overlays, sim_id=sim_id_val, turn=getattr(state, 'turn', 0) - (step + 1)).get("symbolic_tag", "N/A")
-            except Exception as e:
-                symbolic_tag = "error"
-                if logger: logger(f"[SIM-BACK] Symbolic tag error: {e}")
-        entry = {
-            "step": -(step + 1),
-            "overlays": prior_overlays.copy(),
-            "deltas": deltas,
-            "symbolic_tag": symbolic_tag,
-            "matched_rules": match_rule_by_delta(deltas, get_all_rule_fingerprints())
-        }
-        # Reverse causal logic stub: infer prior causes
-        try:
-            inferred = reverse_rule_engine(state, entry["overlays"], dict(getattr(state, 'variables', {})), step + 1)
-            entry["inferred_priors"] = inferred
-        except Exception as e:
-            if logger: logger(f"[SIM-BACK] Reverse rule error: {e}")
-        trace.append(entry)
-        symbolic_trace.append(prior_overlays.copy())
-        prev_overlays = prior_overlays
-    # Arc scoring: analyze the full symbolic trace for arc label, volatility, certainty
-    arc_label = None
-    volatility_score = None
-    arc_certainty = None
-    if use_symbolism and symbolic_trace:
-        try:
-            arc_result = score_symbolic_trace(symbolic_trace[::-1])  # oldest to newest
-            arc_label = arc_result.get("arc_label")
-            volatility_score = arc_result.get("volatility_score") or arc_result.get("symbolic_score")
-            arc_certainty = arc_result.get("arc_certainty")
-        except Exception as e:
-            if logger: logger(f"[SIM-BACK] Arc scoring error: {e}")
     if logger:
-        logger(f"[SIM-BACK] Completed {steps} backward steps. Final overlays: {prev_overlays}")
-    return {
-        "trace": trace,
-        "arc_label": arc_label,
-        "volatility_score": volatility_score,
-        "arc_certainty": arc_certainty
-    }
+        logger(f"[SIMULATE_BACKWARD] Placeholder function called for {steps} steps. Full implementation pending.")
 
+    trace_entries = []
+    
+    # Create a deepcopy of the state's overlays to avoid modifying the original state object
+    # if we were to perform actual inverse operations on it.
+    # For a placeholder, this isn't strictly necessary but good practice if it were to evolve.
+    temp_overlays: Dict[str, float]
+    if hasattr(state.overlays, "as_dict") and callable(getattr(state.overlays, "as_dict")):
+        temp_overlays = copy.deepcopy(state.overlays.as_dict())
+    elif isinstance(state.overlays, dict):
+        temp_overlays = copy.deepcopy(state.overlays)
+    else:
+        temp_overlays = {} # Fallback for unknown overlay types
+
+    for step_num in range(steps):
+        # In a real implementation, inverse_decay and reverse_rule_engine would modify temp_overlays
+        # For placeholder, we just create a dummy entry.
+        # If variable_names is provided, focus on those, otherwise all in temp_overlays.
+        current_step_overlays = {}
+        keys_to_process = variable_names if variable_names else list(temp_overlays.keys())
+
+        for ov_key in keys_to_process:
+            if ov_key in temp_overlays:
+                 # Simulate applying inverse decay for the placeholder
+                temp_overlays[ov_key] = inverse_decay(temp_overlays[ov_key], rate=decay_rate)
+                current_step_overlays[ov_key] = temp_overlays[ov_key]
+            else:
+                current_step_overlays[ov_key] = 0.0 # Default if not found
+
+        trace_entry = {
+            "step": step_num + 1, # 1-indexed backward steps
+            "overlays": copy.deepcopy(current_step_overlays),
+            "deltas": {}, # Placeholder
+            "symbolic_tag": f"placeholder_backward_tag_step_{step_num+1}",
+            "symbolic_score": 0.0,
+            "rule_chains": [],
+            "suggestions": []
+        }
+        trace_entries.append(trace_entry)
+
+    return {
+        "trace": trace_entries,
+        "arc_label": "placeholder_backward_arc_label",
+        "volatility_score": 0.0,
+        "arc_certainty": 0.0
+    }
 def simulate_counterfactual(
-    base_state: WorldState,
-    fork_vars: Dict[str, float],
-    turns: int = 5,
+    initial_state: WorldState,
+    fork_vars: Dict[str, Any],
+    turns: int,
     use_symbolism: bool = True,
+    logger: Optional[Callable[[str], None]] = None,
     return_mode: Literal["summary", "full"] = "summary",
-    logger: Optional[Callable[[str], None]] = None
+    **kwargs # Pass other arguments to simulate_forward
 ) -> Dict[str, Any]:
     """
-    Runs a counterfactual simulation by forking variables mid-simulation and comparing to base.
+    Runs a base simulation and a forked simulation with modified initial variables,
+    then compares their traces.
 
     Args:
-        base_state (WorldState): The starting state (will not be mutated)
-        fork_vars (dict): Variables to inject/change at fork point
-        turns (int): Number of turns to simulate after fork
-        use_symbolism (bool): Enable symbolic tagging
-        return_mode (str): "summary" or "full"
-        logger (callable): Optional logger
+        initial_state (WorldState): The starting state for both simulations.
+        fork_vars (Dict[str, Any]): Dictionary of variables to change for the forked simulation.
+                                     Keys are variable names, values are their new initial values.
+        turns (int): Number of turns to simulate for both base and fork.
+        use_symbolism (bool): Whether to apply symbolic tagging.
+        logger (Optional[Callable[[str], None]]): Optional logging function.
+        return_mode (Literal["summary", "full"]): Detail level for simulate_forward.
+        **kwargs: Additional keyword arguments to pass to simulate_forward.
 
     Returns:
-        Dict with base_trace, fork_trace, divergence, arc_scores
+        Dict[str, Any]: A dictionary containing:
+            - "base_trace": List of turn results from the base simulation.
+            - "fork_trace": List of turn results from the forked simulation.
+            - "divergence": List of dictionaries detailing overlay differences per turn.
+            - "base_arc": Symbolic score of the base trace.
+            - "fork_arc": Symbolic score of the forked trace.
     """
-    import copy
-    # Run base simulation
-    base = copy.deepcopy(base_state)
-    base_trace = simulate_forward(base, turns=turns, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger)
-    # Fork and inject variables
-    fork = copy.deepcopy(base_state)
-    for k, v in fork_vars.items():
-        if hasattr(fork.variables, "as_dict"):
-            fork.variables.__dict__[k] = v
+    if not isinstance(initial_state, WorldState):
+        err_msg = f"Expected initial_state to be WorldState, got {type(initial_state)}"
+        if logger:
+            logger(err_msg)
+        raise ValueError(err_msg)
+
+    if not isinstance(fork_vars, dict):
+        err_msg = f"Expected fork_vars to be a dict, got {type(fork_vars)}"
+        if logger:
+            logger(err_msg)
+        raise ValueError(err_msg)
+
+    # Base Trace
+    base_run_state = copy.deepcopy(initial_state)
+    base_trace = simulate_forward(
+        base_run_state,
+        turns=turns,
+        use_symbolism=use_symbolism,
+        return_mode=return_mode,
+        logger=logger,
+        **kwargs
+    )
+
+    # Forked Trace
+    fork_run_state = copy.deepcopy(initial_state)
+    # Apply fork_vars
+    for key, value in fork_vars.items():
+        # Attempt to set in overlays first
+        if hasattr(fork_run_state.overlays, key):
+            try:
+                setattr(fork_run_state.overlays, key, float(value))
+                if logger:
+                    logger(f"[COUNTERFACTUAL] Forked overlay '{key}' to {value}")
+            except (ValueError, TypeError) as e:
+                if logger:
+                    logger(f"[COUNTERFACTUAL] Error setting overlay '{key}' to {value}: {e}")
+        # Then attempt to set in variables.data
+        elif hasattr(fork_run_state.variables, 'data') and isinstance(fork_run_state.variables.data, dict):
+            try:
+                fork_run_state.variables.data[key] = float(value)
+                if logger:
+                    logger(f"[COUNTERFACTUAL] Forked variable '{key}' to {value}")
+            except (ValueError, TypeError) as e:
+                if logger:
+                    logger(f"[COUNTERFACTUAL] Error setting variable '{key}' to {value}: {e}")
         else:
-            fork.variables.__setattr__(k, v)
-    fork_trace = simulate_forward(fork, turns=turns, use_symbolism=use_symbolism, return_mode=return_mode, logger=logger)
-    # Compute divergence (overlay delta per turn)
+            if logger:
+                logger(f"[COUNTERFACTUAL] Warning: Could not find where to set fork_var '{key}' in WorldState.")
+
+    fork_trace = simulate_forward(
+        fork_run_state,
+        turns=turns,
+        use_symbolism=use_symbolism,
+        return_mode=return_mode,
+        logger=logger,
+        **kwargs
+    )
+
+    # Calculate Divergence
     divergence = []
-    for i in range(min(len(base_trace), len(fork_trace))):
-        base_ov = base_trace[i]["overlays"]
-        fork_ov = fork_trace[i]["overlays"]
-        # Ensure fork_ov and base_ov are dicts
-        fork_ov_dict = fork_ov.as_dict() if hasattr(fork_ov, "as_dict") else fork_ov
-        base_ov_dict = base_ov.as_dict() if hasattr(base_ov, "as_dict") else base_ov
-        delta = {k: round(fork_ov_dict.get(k, 0.0) - base_ov_dict.get(k, 0.0), 4) for k in base_ov_dict}
-        divergence.append({"turn": i, "overlay_delta": delta})
-    # Arc scoring
-    from symbolic_system.symbolic_trace_scorer import score_symbolic_trace
-    base_arc = score_symbolic_trace([t["overlays"] for t in base_trace])
-    fork_arc = score_symbolic_trace([t["overlays"] for t in fork_trace])
-    result = {
+    for t in range(min(len(base_trace), len(fork_trace))): # Iterate up to the length of the shorter trace
+        base_turn_overlays = base_trace[t].get("overlays", {})
+        fork_turn_overlays = fork_trace[t].get("overlays", {})
+
+        # Ensure overlays are dicts for comparison
+        if hasattr(base_turn_overlays, 'as_dict'):
+            base_turn_overlays = base_turn_overlays.as_dict()
+        if hasattr(fork_turn_overlays, 'as_dict'):
+            fork_turn_overlays = fork_turn_overlays.as_dict()
+        
+        # Ensure all keys are present in both for consistent delta calculation, defaulting to 0.0
+        all_overlay_keys = set(base_turn_overlays.keys()) | set(fork_turn_overlays.keys())
+        overlay_delta_dict = {
+            key: round(float(fork_turn_overlays.get(key, 0.0)) - float(base_turn_overlays.get(key, 0.0)), 3)
+            for key in all_overlay_keys
+        }
+        
+        divergence.append({
+            "turn": t,
+            "overlay_delta": overlay_delta_dict,
+            # Potentially add variable deltas here too if needed by tests/consumers
+        })
+
+    # Score Traces
+    sim_id_base = getattr(initial_state, 'sim_id', 'sim') + "_base_cf"
+    sim_id_fork = getattr(initial_state, 'sim_id', 'sim') + "_fork_cf"
+    
+    base_arc = {}
+    fork_arc = {}
+
+    if score_symbolic_trace: # Check if function is available
+        try:
+            base_arc = score_symbolic_trace(base_trace)
+        except Exception as e:
+            if logger:
+                logger(f"[COUNTERFACTUAL] Error scoring base trace: {e}")
+        try:
+            fork_arc = score_symbolic_trace(fork_trace)
+        except Exception as e:
+            if logger:
+                logger(f"[COUNTERFACTUAL] Error scoring fork trace: {e}")
+    elif logger:
+        logger("[COUNTERFACTUAL] score_symbolic_trace not available. Skipping trace scoring.")
+
+
+    # Log Traces
+    if log_simulation_trace: # Check if function is available
+        try:
+            log_simulation_trace(base_trace, tag=f"counterfactual_base_{sim_id_base}")
+        except Exception as e:
+            if logger:
+                logger(f"[COUNTERFACTUAL] Error logging base trace: {e}")
+        try:
+            log_simulation_trace(fork_trace, tag=f"counterfactual_fork_{sim_id_fork}")
+        except Exception as e:
+            if logger:
+                logger(f"[COUNTERFACTUAL] Error logging fork trace: {e}")
+    elif logger:
+        logger("[COUNTERFACTUAL] log_simulation_trace not available. Skipping trace logging.")
+
+    return {
         "base_trace": base_trace,
         "fork_trace": fork_trace,
         "divergence": divergence,
         "base_arc": base_arc,
-        "fork_arc": fork_arc
+        "fork_arc": fork_arc,
     }
-    # Optionally log traces
-    log_simulation_trace(base_trace, tag="base")
-    log_simulation_trace(fork_trace, tag="fork")
-    return result
-
-def validate_variable_trace(
-    var_name: str,
-    known_trace: List[float],
-    state: WorldState,
-    steps: Optional[int] = None,
-    decay_rate: float = 0.01,
-    atol: float = 0.02,
-    logger: Optional[Callable[[str], None]] = None
-) -> Dict[str, Any]:
-    """
-    Validate if simulate_backward can reconstruct a known variable trace.
-
-    Args:
-        var_name (str): variable to check (must be in overlays or variables)
-        known_trace (list): historical values, most recent last
-        state (WorldState): current state (will not be mutated)
-        steps (int): how many steps to check (default: len(known_trace)-1)
-        decay_rate (float): assumed decay rate
-        atol (float): absolute tolerance for match
-        logger (callable): optional logger
-
-    Returns:
-        Dict: expected, reconstructed, error, match_percent
-    """
-    if steps is None:
-        steps = len(known_trace) - 1
-    # Use overlays as dict (support both dict and dataclass)
-    if hasattr(state.overlays, "as_dict"):
-        overlays_now = state.overlays.as_dict()
-    else:
-        overlays_now = state.overlays.as_dict()
-    if var_name not in overlays_now:
-        raise ValueError(f"Variable '{var_name}' not found in overlays.")
-    # Rewind
-    vals = [overlays_now[var_name]]
-    v = overlays_now[var_name]
-    for _ in range(steps):
-        v = inverse_decay(v, rate=decay_rate)
-        vals.append(v)
-    vals = vals[:len(known_trace)]
-    vals = vals[::-1]  # oldest to newest
-    expected = known_trace
-    reconstructed = vals
-    error = [abs(a - b) for a, b in zip(expected, reconstructed)]
-    match = [e <= atol for e in error]
-    match_percent = 100 * sum(match) / len(match) if match else 0
-    result = {
-        "var": var_name,
-        "expected": expected,
-        "reconstructed": reconstructed,
-        "error": error,
-        "match_percent": round(match_percent, 2)
-    }
-    if logger:
-        logger(f"[TRACE-VALIDATE] {var_name}: {match_percent:.1f}% match, error={error}")
-    return result
 
 # Utility: Extract overlays as dict (suggested for DRYness)
 def get_overlays_dict(state: WorldState) -> Dict[str, float]:

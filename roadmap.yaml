@@ -1,0 +1,28 @@
+sprints:
+  - name: "Green the Build"
+    goal: "Resolve critical errors and warnings to achieve a stable build where all tests can be collected and run."
+    work_items:
+      - id: GTB-001
+        task: "Fix IndentationError in tests/ingestion/test_ingestion_changes.py"
+        details: "Correct the indentation at or around line 223 in tests/ingestion/test_ingestion_changes.py to resolve the IndentationError: unindent does not match any outer indentation level. This is blocking all test execution."
+        priority: "Highest"
+        files_involved:
+          - "tests/ingestion/test_ingestion_changes.py"
+        assigned_to: "code" # Tentative
+        status: "To Do"
+      - id: GTB-002
+        task: "Resolve PytestCollectionWarnings in tests/recursive_training/rules/test_hybrid_adapter.py"
+        details: "Refactor TestCondition (around line 115) and TestAction (around line 122) in tests/recursive_training/rules/test_hybrid_adapter.py to remove or correctly handle their __init__ constructors so pytest can collect them. This will ensure tests within these classes are run."
+        priority: "High"
+        files_involved:
+          - "tests/recursive_training/rules/test_hybrid_adapter.py"
+        assigned_to: "code" # Tentative
+        status: "To Do"
+      - id: GTB-003
+        task: "Investigate and address potential ImportError in simulation_engine/simulator_core.py"
+        details: "Examine the try-except ImportError block for tag_symbolic_state (lines 72-74) in simulation_engine/simulator_core.py. Determine if the import is critical, ensure the module is available, or implement robust error handling if the import can legitimately fail."
+        priority: "Medium"
+        files_involved:
+          - "simulation_engine/simulator_core.py"
+        assigned_to: "code" # Tentative
+        status: "To Do"

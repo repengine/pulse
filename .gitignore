@@ -228,3 +228,22 @@ pulse/logs/
 **/temp/
 **/tmp/
 
+**/data/
+data/
+/data/
+
+/myapp/
+**/myapp/
+**/myapp
+
+/pulse/
+
+context7/
+**/context7/
+
+.roo/
+**/.roo/
+.coding/
+**/.coding/
+.cursor/
+**/.cursor/

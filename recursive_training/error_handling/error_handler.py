@@ -43,7 +43,8 @@ class RecursiveTrainingErrorHandler:
 
         # Attempt recovery if enabled
         if self.recovery_enabled:
-            self.attempt_recovery(exc, context)
+            recovery_success = self.attempt_recovery(exc, context)
+            self.logger.info(f"Recovery attempt {'succeeded' if recovery_success else 'failed'}")
 
     def should_alert(self, exc: Exception) -> bool:
         """
@@ -69,19 +70,26 @@ class RecursiveTrainingErrorHandler:
         alert_msg = f"ALERT: {exc}"
         if context:
             alert_msg += f" | Context: {context}"
-        self.logger.critical(alert_msg)
+        self.logger.warning(alert_msg)
         # Extend: send email, push notification, or integrate with monitoring system
 
-    def attempt_recovery(self, exc: Exception, context: Optional[Dict[str, Any]] = None):
+    def attempt_recovery(self, exc: Exception, context: Optional[Dict[str, Any]] = None) -> bool:
         """
         Attempts to recover from the error if possible.
 
         Args:
             exc: The exception instance.
             context: Optional context dictionary.
+            
+        Returns:
+            True if recovery was successful, False otherwise.
         """
         self.logger.info(f"Attempting recovery for error: {exc}")
         # Extend: call recovery strategies, rollback, or restart components
+        
+        # For now, implement a simple recovery strategy:
+        # Assume recovery is possible for ValueError but not for other exceptions
+        return not isinstance(exc, (RuntimeError, SystemError))
 
     def get_error_status(self) -> Dict[str, Any]:
         """

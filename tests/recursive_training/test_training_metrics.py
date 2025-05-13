@@ -177,8 +177,8 @@ class TestRecursiveTrainingMetrics:
         """Test F1 score calculation."""
         # Test with mock sklearn
         with patch('recursive_training.metrics.training_metrics.SKLEARN_AVAILABLE', True):
-            with patch('recursive_training.metrics.training_metrics.sk_metrics') as mock_sk_metrics:
-                mock_sk_metrics.f1_score.return_value = 0.75
+            with patch('sklearn.metrics.f1_score') as mock_f1_score_function:
+                mock_f1_score_function.return_value = 0.75
                 
                 true_values = [0, 1, 0, 1, 1]
                 predicted_values = [0, 1, 1, 1, 0]
@@ -186,11 +186,11 @@ class TestRecursiveTrainingMetrics:
                 # Test with different average methods
                 f1 = training_metrics.calculate_f1_score(true_values, predicted_values, average='weighted')
                 assert f1 == 0.75
-                mock_sk_metrics.f1_score.assert_called_with(true_values, predicted_values, average='weighted')
+                mock_f1_score_function.assert_called_with(true_values, predicted_values, average='weighted', zero_division=0)
                 
                 f1_micro = training_metrics.calculate_f1_score(true_values, predicted_values, average='micro')
                 assert f1_micro == 0.75
-                mock_sk_metrics.f1_score.assert_called_with(true_values, predicted_values, average='micro')
+                mock_f1_score_function.assert_called_with(true_values, predicted_values, average='micro', zero_division=0)
         
         # Test without sklearn
         with patch('recursive_training.metrics.training_metrics.SKLEARN_AVAILABLE', False):
@@ -472,7 +472,14 @@ class TestRecursiveTrainingMetrics:
         }
         
         # Mock evaluate_rule_performance
-        training_metrics.evaluate_rule_performance = MagicMock(return_value={"summary": "data"})
+        mock_eval_perf = MagicMock()
+        def eval_perf_side_effect(rule_type_arg):
+            if rule_type_arg == "symbolic":
+                return {"summary": "data"}
+            # Return empty dict for other types to avoid None issues if they are called
+            return {}
+        mock_eval_perf.side_effect = eval_perf_side_effect
+        training_metrics.evaluate_rule_performance = mock_eval_perf
         
         # Mock check_convergence
         training_metrics.check_convergence = MagicMock(return_value=True)
@@ -480,6 +487,7 @@ class TestRecursiveTrainingMetrics:
         # Mock get_cost_summary
         training_metrics.get_cost_summary = MagicMock(return_value={"cost": "data"})
         
+        training_metrics.config["summary_rule_types"] = ["symbolic", "neural"]
         # Get performance summary
         summary = training_metrics.get_performance_summary()
         
@@ -489,7 +497,7 @@ class TestRecursiveTrainingMetrics:
         assert summary["latest_metrics"] == {"mse": 0.05, "accuracy": 0.9}
         assert "improvement" in summary
         assert summary["improvement"]["mse"] == -50.0  # 50% reduction in MSE
-        assert summary["improvement"]["accuracy"] == 12.5  # 12.5% increase in accuracy
+        assert summary["improvement"]["accuracy"] == pytest.approx(12.5)  # 12.5% increase in accuracy
         assert summary["convergence"] is True
         assert "symbolic" in summary["rule_performance"]
         assert summary["rule_performance"]["symbolic"] == {"summary": "data"}

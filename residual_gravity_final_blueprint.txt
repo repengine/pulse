@@ -1,0 +1,163 @@
+RESIDUAL-GRAVITY OVERLAY • FINAL IMPLEMENTATION BLUEPRINT
+===============================================================
+
+PURPOSE
+-------
+Provide an end‑to‑end execution plan, deliverable checklist, and risk
+matrix for adding a Residual‑Gravity corrective layer to Pulse.  Use
+this document as the single source‑of‑truth when tracking sprint
+progress.
+
+TABLE OF CONTENTS
+-----------------
+1.  Concept Summary
+2.  Core Equations & Notation
+3.  Phase Roadmap (A → D)
+4.  Deliverable Checklist
+5.  Decision Gates
+6.  Risk Register & Fuses
+7.  Acceptance Metrics
+8.  Glossary
+
+--------------------------------------------------------------------
+1. CONCEPT SUMMARY
+--------------------------------------------------------------------
+•  Causal Core produces a forecast x_hat(t+1).
+•  Observations y(t+1) arrive from Iris pipeline.
+•  Residual  r(t+1) = y(t+1) – x_hat(t+1).
+•  Symbolic pillars  s(t)  (Hope, Despair, …) form an M‑vector.
+•  Impact matrix  B(N×M)  converts pillars into a corrective field
+   g(t) = B · s(t).
+•  Corrected state  x_star(t+1) = x_hat(t+1) + λ · g(t).
+•  B is learned online with SGD + momentum + L2; λ is a gain.
+
+--------------------------------------------------------------------
+2. CORE EQUATIONS & NOTATION
+--------------------------------------------------------------------
+Dimensions
+  N  = number of simulated state components
+  M  = number of symbolic pillars
+
+Update Rule
+  grad_B  = residual_vec ⊗ s_vec  –  reg * B        # outer product
+  v       = β * v  +  (1–β) * grad_B                # momentum
+  B       = B + η * v                               # SGD step
+  g_vec   = B · s_vec                               # gravity field
+  x_hat   = x_hat + λ * g_vec                       # apply gravity
+
+Hyper‑parameters
+  λ  (lambda)         global gain                [0.0 – 1.0]
+  η  (eta)            learning rate              (~1e‑2)
+  β  (beta)           momentum                   (~0.9)
+  reg                 L2 regulariser             (~1e‑3)
+  δ  (decay)          monthly weight decay       (optional)
+
+--------------------------------------------------------------------
+3. PHASE ROADMAP
+--------------------------------------------------------------------
+• Stage A : Scalar Baseline (1 week)
+  – Finish `ResidualGravityEngine` v0.1 (scalar W).
+  – Implement parity‑line heat‑map in CLI/UI.
+  – Baseline metrics (RMSE, fragility, SUS_k).
+
+• Stage B : Diagnostics & Governance (1 week, parallel)
+  – GravityFuseMonitor     (||g|| spike, sign flip).
+  – WeightTimelineLogger   (EWMA dump → Parquet).
+  – VarianceExplainer      (% variance explained by gravity).
+  – UI widgets (heat‑map & weight dashboard).
+
+• Stage C : Matrix‑Gravity MVP (2–3 weeks)
+  – Extend engine to matrix  B(N×M).
+  – API: gravity() → np.ndarray, update() accepts vectors.
+  – Pilot on 5 variables × current pillars.
+  – Acceptance:  ΔRMSE ≥ 10 %  AND  Shadow‑model ratio < 30 %.
+
+• Stage D : Auto‑Tune & Regime Adaptation (ongoing)
+  – Optuna Bayesian search over {λ, η, β, reg, optional λ_vec}.
+  – Walk‑forward train/validation windows.
+  – Monthly decay δ on B for regime shifts.
+  – Wire gravity metrics into Forecast Confidence Core.
+
+--------------------------------------------------------------------
+4. DELIVERABLE CHECKLIST
+--------------------------------------------------------------------
+CODE FILES
+  [ ] pulse/trust/residual_gravity_engine.py          (scalar v0.1)
+  [ ] pulse/trust/residual_gravity_engine.py          (matrix v1.0)
+  [ ] pulse/trust/gravity_fuse_monitor.py
+  [ ] pulse/trust/variance_explainer.py
+  [ ] pulse/memory/weight_timeline_logger.py
+  [ ] ui/parity_dashboard.py
+  [ ] cli/simulate.py  (flag --enable‑gravity, --gravity‑scalar|matrix)
+
+TESTS
+  [ ] dev_tools/test_residual_gravity_scalar.py
+  [ ] dev_tools/test_residual_gravity_matrix.py
+  [ ] dev_tools/test_variance_explainer.py
+  [ ] dev_tools/test_fuse_monitor.py
+
+CONFIG / PARAM
+  [ ] default_hyperparams.yaml (λ, η, β, reg, δ)
+  [ ] optuna_config.yaml
+
+DOCUMENTATION
+  [ ] docs/residual_gravity_design.md  (this blueprint)
+  [ ] docs/ui_parity_guide.md
+  [ ] CHANGELOG.md  (entries for each stage)
+
+METRICS & LOGS
+  [ ] Parquet weight timelines in logs/gravity_weights/
+  [ ] Fragility log entries when fuse trips
+  [ ] StrategosDigest section “Residual‑Gravity Metrics”
+
+--------------------------------------------------------------------
+5. DECISION GATES
+--------------------------------------------------------------------
+Gate G1  (after Stage A)  : Scalar overlay improves ΔRMSE ≥ 5 %.
+Gate G2  (after Stage C)  : Matrix overlay satisfies acceptance test.
+Gate G3  (after first auto‑tune cycle) :
+         λ & reg stable across 3 validation windows.
+
+If any gate fails → rollback to previous stable tag and open Rule‑Gap
+ticket for manual causal review.
+
+--------------------------------------------------------------------
+6. RISK REGISTER & FUSES
+--------------------------------------------------------------------
+| Risk ID | Description                             | Fuse / Action                |
+|---------|-----------------------------------------|------------------------------|
+| R‑01    | Gravity dominates (>40 % variance)      | Freeze λ, trigger rule audit |
+| R‑02    | B drift > 2𝜎 in 1 week                  | Halve η, double reg          |
+| R‑03    | Over‑fit during hyper‑opt               | Early‑stop, walk‑forward only|
+| R‑04    | Warm‑up live shock                      | Ramp λ from 0 to target over 50 ticks |
+
+THRESHOLDS
+  THRESH_GRAV_FUSE   = RMS_g  >  3 × RMS_g_train
+  THRESH_SHADOW_VAR  = Var_explained_by_gravity > 0.30
+
+--------------------------------------------------------------------
+7. ACCEPTANCE METRICS
+--------------------------------------------------------------------
+Metric Set 1  (Accuracy) :
+  • ΔRMSE vs baseline
+  • MAE for key state components
+Metric Set 2  (Stability) :
+  • RMS(B) 90‑day rolling
+  • Sign‑flip count per month
+Metric Set 3  (Trust/Fragility) :
+  • Fuse triggers / 1000 steps
+  • Confidence penalty applied
+
+Pass criteria for production:  
+  ΔRMSE ≥ 10 % AND Fuse triggers < 1 per day over 30‑day pilot.
+
+--------------------------------------------------------------------
+8. GLOSSARY
+--------------------------------------------------------------------
+B           Impact matrix (N×M)
+g(t)        Gravity vector, corrective field
+λ           Global gain (scalar, possibly λ_vec)
+β           Momentum coefficient
+reg         L2 regularisation factor
+SUS_k       Symbolic Utility Score of pillar k
+Shadow‑model Var_expl                   % variance explained by gravity

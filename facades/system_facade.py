@@ -1,4 +1,4 @@
-from service_registry import ServiceRegistry
+from core.service_registry import ServiceRegistry
 
 class SystemFacade:
     @staticmethod

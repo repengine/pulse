@@ -35,51 +35,30 @@ def test_fred_api(api_key):
     url = f"https://api.stlouisfed.org/fred/series?series_id=GDP&api_key={api_key}&file_type=json"
     try:
         response = requests.get(url, timeout=10)
-        return {
-            'success': response.status_code == 200,
-            'status_code': response.status_code,
-            'message': "Success" if response.status_code == 200 else f"Failed with status {response.status_code}"
-        }
+        assert response.status_code == 200, f"FRED API test failed with status code {response.status_code}"
+        # Optionally, assert on the content of the response if needed
     except Exception as e:
-        return {
-            'success': False,
-            'status_code': None,
-            'message': f"Error: {str(e)}"
-        }
+        assert False, f"Error during FRED API test: {str(e)}"
 
 def test_finnhub_api(api_key):
     """Test a basic Finnhub API call"""
     url = f"https://finnhub.io/api/v1/quote?symbol=AAPL&token={api_key}"
     try:
         response = requests.get(url, timeout=10)
-        return {
-            'success': response.status_code == 200,
-            'status_code': response.status_code,
-            'message': "Success" if response.status_code == 200 else f"Failed with status {response.status_code}"
-        }
+        assert response.status_code == 200, f"Finnhub API test failed with status code {response.status_code}"
+        # Optionally, assert on the content of the response if needed
     except Exception as e:
-        return {
-            'success': False,
-            'status_code': None,
-            'message': f"Error: {str(e)}"
-        }
+        assert False, f"Error during Finnhub API test: {str(e)}"
 
 def test_nasdaq_api(api_key):
     """Test a basic NASDAQ Data Link API call"""
     url = f"https://data.nasdaq.com/api/v3/datasets/WIKI/AAPL/data.json?api_key={api_key}&limit=1"
     try:
         response = requests.get(url, timeout=10)
-        return {
-            'success': response.status_code == 200,
-            'status_code': response.status_code,
-            'message': "Success" if response.status_code == 200 else f"Failed with status {response.status_code}"
-        }
+        assert response.status_code == 200, f"NASDAQ API test failed with status code {response.status_code}"
+        # Optionally, assert on the content of the response if needed
     except Exception as e:
-        return {
-            'success': False,
-            'status_code': None,
-            'message': f"Error: {str(e)}"
-        }
+        assert False, f"Error during NASDAQ API test: {str(e)}"
 
 def print_separator():
     """Print a separator line for readability"""
@@ -138,10 +117,10 @@ def main():
             env_check = check_environment_variable(env_var)
             
             if env_check['exists']:
-                api_test = api['test_func'](env_check['value'])
-                print(format_result(api['name'], env_check, api_test))
-                if api_test['success']:
-                    api_success = True
+                # Call the test function, which now uses assertions
+                api['test_func'](env_check['value'])
+                print(format_result(api['name'], env_check, {'success': True, 'message': 'Passed'})) # Assuming test_func raises exception on failure
+                api_success = True
             else:
                 print(format_result(api['name'], env_check))
         
@@ -159,6 +138,8 @@ def main():
     print("      The API connection tests verify if the keys are valid and working correctly.")
     print_separator()
     
+    # The script itself should not return a value for pytest,
+    # but the main function can return an exit code for command line execution.
     return 0 if all_success else 1
 
 if __name__ == "__main__":

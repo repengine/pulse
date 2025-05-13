@@ -30,7 +30,7 @@ def test_open_meteo():
     # Check if the plugin is enabled
     if not plugin.enabled:
         print("❌ Open-Meteo plugin is DISABLED.")
-        return False
+        assert False, "Open-Meteo plugin is DISABLED."
     
     print("✓ Open-Meteo plugin is ENABLED.")
     
@@ -45,14 +45,14 @@ def test_open_meteo():
             for i, signal in enumerate(signals[:5]):  # Show first 5 signals
                 print(f"\nSignal {i+1}:")
                 pprint(signal)
-            return True
+            assert True, "Successfully fetched signals!"
         else:
             print("❌ No signals returned. This is unexpected for Open-Meteo.")
-            return False
+            assert False, "Open-Meteo plugin is DISABLED."
             
     except Exception as e:
         print(f"❌ Error testing Open-Meteo plugin: {e}")
-        return False
+        assert False, "Open-Meteo plugin is DISABLED."
 
 if __name__ == "__main__":
     test_open_meteo()

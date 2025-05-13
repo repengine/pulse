@@ -113,7 +113,7 @@ def test_plugin(plugin_instance, plugin_name: str) -> Dict[str, Any]:
     try:
         if not plugin_instance.enabled:
             logger.warning(f"{plugin_name} is disabled, check API keys or dependencies")
-            return {"status": "disabled", "signals": []}
+            assert False, f"{plugin_name} is disabled, check API keys or dependencies"
         
         # Call fetch_signals
         signals = plugin_instance.fetch_signals()

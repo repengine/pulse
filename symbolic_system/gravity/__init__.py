@@ -15,8 +15,10 @@ forecast outputs by pulling them toward observed reality.
 
 from symbolic_system.gravity.gravity_config import ResidualGravityConfig, get_config
 from symbolic_system.gravity.symbolic_pillars import SymbolicPillar, SymbolicPillarSystem
-from symbolic_system.gravity.residual_gravity_engine import ResidualGravityEngine
+from symbolic_system.gravity.engines.residual_gravity_engine import ResidualGravityEngine
 from symbolic_system.gravity.symbolic_gravity_fabric import SymbolicGravityFabric, create_default_fabric
+# Import the residual_gravity_engine module itself
+from symbolic_system.gravity.engines import residual_gravity_engine
 
 __all__ = [
     'ResidualGravityConfig',
@@ -25,5 +27,6 @@ __all__ = [
     'SymbolicPillarSystem',
     'ResidualGravityEngine',
     'SymbolicGravityFabric',
-    'create_default_fabric'
+    'create_default_fabric',
+    'residual_gravity_engine'  # Expose the entire module
 ]

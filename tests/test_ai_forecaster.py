@@ -1,14 +1,47 @@
 import unittest
+from unittest.mock import patch, MagicMock
+import numpy as np
+import torch # Added for torch.tensor
 from forecast_engine import ai_forecaster, forecast_ensemble
 from core import pulse_config
 
 class TestAIForecaster(unittest.TestCase):
     def test_predict_default(self):
-        input_features = {"sample_feature": 1}
-        result = ai_forecaster.predict(input_features)
-        self.assertIsInstance(result, dict)
-        self.assertIn("adjustment", result)
-        self.assertEqual(result["adjustment"], 0.0)
+        # The 'ai_forecaster.predict' function uses a module-level '_model'.
+        # We need to patch this '_model'.
+        # This mock_model will simulate an instance of LSTMForecaster.
+        # When _model(tensor) is called in predict(), this mock's return_value will be used.
+        
+        mock_lstm_model_instance = MagicMock()
+        # Configure the mock model to return a tensor that results in 0.0 after .item()
+        # This is what's called by `_model(tensor)`
+        mock_lstm_model_instance.return_value = torch.tensor([[0.0]])
+        
+        # Also, the _model instance needs to have an eval method that can be called.
+        mock_lstm_model_instance.eval = MagicMock()
+
+        # Patch the module-level '_model' and '_input_size' in 'forecast_engine.ai_forecaster'
+        # Patch _initialize_model as a safeguard, though it shouldn't be called if _model is set
+        # and _input_size matches.
+        with patch('forecast_engine.ai_forecaster._model', mock_lstm_model_instance) as patched_model, \
+             patch('forecast_engine.ai_forecaster._input_size', 1) as patched_input_size, \
+             patch('forecast_engine.ai_forecaster._initialize_model', return_value=True) as mock_init_model:
+            
+            input_features = {"sample_feature": 1} # This will result in len(features) == 1
+            result = ai_forecaster.predict(input_features)
+
+            # Assert that our mock_lstm_model_instance was called (as a function)
+            mock_lstm_model_instance.assert_called_once()
+            # Assert that the eval method of our mock_lstm_model_instance was called
+            mock_lstm_model_instance.eval.assert_called_once()
+
+            self.assertIsInstance(result, dict)
+            self.assertIn("adjustment", result)
+            self.assertEqual(result["adjustment"], 0.0,
+                             msg=f"Adjustment was {result.get('adjustment')}, error: {result.get('error')}")
+            self.assertNotIn("error", result,
+                             msg=f"Prediction unexpectedly returned an error: {result.get('error')}")
+
 
     def test_ensemble_forecast(self):
         simulation_forecast = {"value": 100.0}

@@ -69,6 +69,13 @@ def ingestion_manager(mock_config):
             manager.config = mock_config
             manager._init_data_sources = MagicMock()
             manager.processed_data_hashes = set()
+            # Add a mock source for 'test_source' to prevent KeyError
+            manager.sources["test_source"] = FileSource(
+                source_id="test_source",
+                source_type="file", # This is accessed in _process_data
+                path="./test_data", # Placeholder, not critical for this fix
+                file_pattern="*.json" # Placeholder
+            )
             
             return manager
 
@@ -197,7 +204,7 @@ class TestRecursiveDataIngestionManager:
         # Verify summary contains expected data
         assert summary["total_api_calls"] == 30
         assert summary["total_tokens"] == 3000
-        assert summary["estimated_cost_usd"] == 0.3
+        assert summary["estimated_cost_usd"] == pytest.approx(0.3)
         assert "source1" in summary["by_source"]
         assert "source2" in summary["by_source"]
         assert summary["by_source"]["source1"]["api_calls"] == 10

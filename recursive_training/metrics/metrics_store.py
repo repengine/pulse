@@ -170,6 +170,11 @@ class MetricsStore:
             try:
                 with open(summary_file, 'r') as f:
                     self.metrics_summary = json.load(f)
+                    # Ensure 'models' and 'tags' are sets after loading
+                    if "models" in self.metrics_summary and isinstance(self.metrics_summary["models"], list):
+                        self.metrics_summary["models"] = set(self.metrics_summary["models"])
+                    if "tags" in self.metrics_summary and isinstance(self.metrics_summary["tags"], list):
+                        self.metrics_summary["tags"] = set(self.metrics_summary["tags"])
             except Exception as e:
                 self.logger.error(f"Failed to load metrics summary: {e}")
                 self.metrics_summary = self._create_default_summary()
@@ -542,15 +547,21 @@ class MetricsStore:
         Returns:
             Updated cost tracking information
         """
-        # Update cost tracking in summary
-        self.metrics_summary["cost_tracking"]["total_cost"] += cost
-        self.metrics_summary["cost_tracking"]["api_calls"] += api_calls
-        self.metrics_summary["cost_tracking"]["token_usage"] += token_usage
+        # Create a metric data object for the cost
+        cost_metric_data = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "metric_type": "cost",
+            "cost": cost,
+            "api_calls": api_calls,
+            "token_usage": token_usage,
+            "tags": ["cost_tracking"]
+        }
         
-        # Save updated summary
-        self._save_metrics_summary()
-        
+        # Store the cost metric
+        self.store_metric(cost_metric_data) # This will also update and save the summary
+
         # Check against thresholds
+        # Note: store_metric already updates the summary, so total_cost here will be current
         total_cost = self.metrics_summary["cost_tracking"]["total_cost"]
         status = "ok"
         
@@ -584,9 +595,6 @@ class MetricsStore:
         if not PANDAS_AVAILABLE:
             self.logger.warning("pandas is not available, cannot export to DataFrame")
             return None
-        
-        # Import pandas locally to avoid issues
-        import pandas as pd
         
         # Convert query parameters to format expected by query_metrics
         if query:

@@ -15,12 +15,13 @@ def test_simulate_forward_retrodiction_strict(mock_adjust_capital, mock_update_n
     ws.capital.nvda = 100.0
 
     mock_loader = MagicMock()
-    # Simulate ground truth for overlays, variables, and capital
-    mock_loader.get_snapshot_by_turn.side_effect = [
-        {"hope": 0.6, "energy_cost": 2.0, "nvda": 150.0},
-        {"hope": 0.7, "energy_cost": 3.0, "nvda": 200.0},
-        {"hope": 0.8, "energy_cost": 4.0, "nvda": 250.0}
-    ]
+    # Configure the mock to return the same value for the same turn number
+    # regardless of how many times it's called, instead of using side_effect
+    mock_loader.get_snapshot_by_turn = MagicMock(side_effect=lambda turn: {
+        0: {"hope": 0.6, "energy_cost": 2.0, "nvda": 150.0},
+        1: {"hope": 0.7, "energy_cost": 3.0, "nvda": 200.0},
+        2: {"hope": 0.8, "energy_cost": 4.0, "nvda": 250.0}
+    }.get(turn, {}))
 
     results = simulate_forward(
         ws,
@@ -31,7 +32,7 @@ def test_simulate_forward_retrodiction_strict(mock_adjust_capital, mock_update_n
     )
 
     assert len(results) == 3
-    assert mock_loader.get_snapshot_by_turn.call_count == 3
+    assert mock_loader.get_snapshot_by_turn.call_count == 6  # Called twice per turn
     # Each turn: 1 overlay, 1 variable, 1 capital adjustment
     assert mock_adjust_overlay.call_count == 3
     assert mock_update_numeric_variable.call_count == 3
@@ -44,11 +45,13 @@ def test_simulate_forward_retrodiction_seed(mock_adjust_capital, mock_update_num
     """Test simulate_forward in retrodiction seed_then_free mode (should not inject)."""
     ws = WorldState()
     mock_loader = MagicMock()
-    mock_loader.get_snapshot_by_turn.side_effect = [
-        {"hope": 0.6, "energy_cost": 2.0, "nvda": 150.0},
-        {"hope": 0.7, "energy_cost": 3.0, "nvda": 200.0},
-        {"hope": 0.8, "energy_cost": 4.0, "nvda": 250.0}
-    ]
+    # Configure the mock to return the same value for the same turn number
+    # regardless of how many times it's called, instead of using side_effect
+    mock_loader.get_snapshot_by_turn = MagicMock(side_effect=lambda turn: {
+        0: {"hope": 0.6, "energy_cost": 2.0, "nvda": 150.0},
+        1: {"hope": 0.7, "energy_cost": 3.0, "nvda": 200.0},
+        2: {"hope": 0.8, "energy_cost": 4.0, "nvda": 250.0}
+    }.get(turn, {}))
 
     results = simulate_forward(
         ws,

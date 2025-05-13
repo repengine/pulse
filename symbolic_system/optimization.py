@@ -76,7 +76,8 @@ class SymbolicCache:
         """
         # If cache is full, remove oldest entry
         if len(self.cache) >= self.max_size:
-            oldest_key = min(self.timestamps, key=self.timestamps.get)
+            # Use lambda instead of .get method for better type compatibility
+            oldest_key = min(self.timestamps, key=lambda k: self.timestamps[k])
             del self.cache[oldest_key]
             del self.timestamps[oldest_key]
             
@@ -156,12 +157,17 @@ def lazy_symbolic(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        # Get fresh values each time to ensure we have the latest values
+        from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
+        from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+        from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+        
         # Skip evaluation if symbolic system is disabled
-        if not ENABLE_SYMBOLIC_SYSTEM:
+        if not current_enable:
             return None
             
         # Skip if in mode where symbolic processing is disabled
-        if CURRENT_SYSTEM_MODE in SYMBOLIC_PROCESSING_MODES and not SYMBOLIC_PROCESSING_MODES[CURRENT_SYSTEM_MODE]:
+        if current_mode in current_modes and not current_modes[current_mode]:
             return None
             
         # Otherwise evaluate normally
@@ -182,10 +188,14 @@ def training_optimized(default_value=None):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            # Get fresh values each time
+            from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+            from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+            
             # Use simplified execution in training/retrodiction mode
-            if CURRENT_SYSTEM_MODE == "retrodiction":
+            if current_mode == "retrodiction":
                 # Check if we should skip entirely
-                if not SYMBOLIC_PROCESSING_MODES.get("retrodiction", False):
+                if not current_modes.get("retrodiction", False):
                     return default_value
                 
                 # Otherwise use training-specific implementation if provided
@@ -200,8 +210,11 @@ def training_optimized(default_value=None):
 
 def is_expensive_operation() -> bool:
     """Check if we're in a mode where expensive operations should be avoided"""
+    # Get fresh values
+    from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+    
     expensive_modes = {"retrodiction", "training"}
-    return CURRENT_SYSTEM_MODE in expensive_modes
+    return current_mode in expensive_modes
 
 def get_operation_level() -> str:
     """
@@ -212,13 +225,18 @@ def get_operation_level() -> str:
         "minimal" - Only essential operations
         "none" - No operations
     """
-    if not ENABLE_SYMBOLIC_SYSTEM:
+    # Get fresh values
+    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
+    from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+    from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+    
+    if not current_enable:
         return "none"
         
-    if CURRENT_SYSTEM_MODE == "retrodiction" and not SYMBOLIC_PROCESSING_MODES.get("retrodiction", False):
+    if current_mode == "retrodiction" and not current_modes.get("retrodiction", False):
         return "none"
         
-    if CURRENT_SYSTEM_MODE in {"retrodiction", "training"}:
+    if current_mode in {"retrodiction", "training"}:
         return "minimal"
         
     return "full"

@@ -47,7 +47,15 @@ def is_overlay_dominant(state: WorldState, name: str, threshold: float = 0.65) -
 def boost_overlay(state: WorldState, name: str, amount: float = 0.02):
     """
     Boost a symbolic overlay moderately.
+    Will be a no-op if symbolic system is disabled.
     """
+    # Import directly inside function to get the latest value
+    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
+    
+    # Skip processing if symbolic system is disabled
+    if not ENABLE_SYMBOLIC_SYSTEM:
+        return
+        
     adjust_overlay(state, name, amount)
 
 
@@ -55,7 +63,15 @@ def boost_overlay(state: WorldState, name: str, amount: float = 0.02):
 def suppress_overlay(state: WorldState, name: str, amount: float = 0.02):
     """
     Suppress a symbolic overlay moderately.
+    Will be a no-op if symbolic system is disabled.
     """
+    # Import directly inside function to get the latest value
+    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
+    
+    # Skip processing if symbolic system is disabled
+    if not ENABLE_SYMBOLIC_SYSTEM:
+        return
+        
     adjust_overlay(state, name, -amount)
 
 

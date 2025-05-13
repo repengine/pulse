@@ -18,6 +18,9 @@ except ImportError:
 # --- Trace output directory ---
 TRACE_OUTPUT_DIR = PATHS.get("TRACE_OUTPUT_DIR", "logs/traces")
 
+# Path to the main configuration file
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "default_config.json")
+
 # --- Simulation settings ---
 DEFAULT_DECAY_RATE: float = 0.1  # Default decay rate for symbolic overlays
 MAX_SIMULATION_FORKS: int = 1000  # Controls fork depth for forecasts

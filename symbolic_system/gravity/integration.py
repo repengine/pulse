@@ -18,7 +18,7 @@ from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import adjust_overlay
 
 from symbolic_system.gravity.symbolic_pillars import SymbolicPillarSystem
-from symbolic_system.gravity.residual_gravity_engine import ResidualGravityEngine
+from symbolic_system.gravity.engines.residual_gravity_engine import ResidualGravityEngine, GravityEngineConfig
 from symbolic_system.gravity.gravity_fabric import SymbolicGravityFabric
 from symbolic_system.gravity.gravity_config import ResidualGravityConfig
 
@@ -53,7 +53,24 @@ def initialize_gravity_system(config: Optional[ResidualGravityConfig] = None) ->
     _pillar_system = SymbolicPillarSystem()
     
     # Initialize the gravity engine
-    gravity_engine = ResidualGravityEngine(config=config)
+    # Create GravityEngineConfig from the ResidualGravityConfig
+    engine_config = GravityEngineConfig(
+        lambda_=config.lambda_,
+        regularization_strength=config.regularization,
+        learning_rate=config.learning_rate,
+        momentum_factor=config.momentum,
+        circuit_breaker_threshold=config.circuit_breaker_threshold,
+        max_correction=config.max_correction,
+        enable_adaptive_lambda=config.enable_adaptive_lambda,
+        enable_weight_pruning=config.enable_weight_pruning,
+        weight_pruning_threshold=config.weight_pruning_threshold,
+        fragility_threshold=config.fragility_threshold
+    )
+    gravity_engine = ResidualGravityEngine(
+        config=engine_config,
+        dt=1.0,  # Default placeholder value
+        state_dimensionality=1  # Default placeholder value
+    )
     
     # Initialize the gravity fabric
     _gravity_fabric = SymbolicGravityFabric(

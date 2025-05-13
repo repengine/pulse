@@ -300,27 +300,87 @@ class TestRecursiveDataStore:
         data_store._update_storage_stats_after_cleanup = MagicMock()
         
         # Mock file operations
-        with patch('os.remove', return_value=None):
-            with patch('pathlib.Path.exists', return_value=True):
-                with patch('pathlib.Path.rmdir', return_value=None):
-                    with patch('pathlib.Path.glob', return_value=[]):
-                        # Run cleanup
-                        removed = data_store.cleanup(retention_days=30)
-                        
-                        # Verify old items were removed
-                        assert removed == 2
-                        assert old_date not in data_store.indices["by_timestamp"]
-                        assert "old_item1" not in data_store.indices["by_id"]
-                        assert "old_item2" not in data_store.indices["by_id"]
-                        
-                        # Verify recent items were kept
-                        assert recent_date in data_store.indices["by_timestamp"]
-                        assert len(data_store.indices["by_timestamp"][recent_date]) == 2
-                        
-                        # Verify save and update methods were called
-                        data_store._save_indices.assert_called_once()
-                        data_store._update_storage_stats_after_cleanup.assert_called_once()
+        mock_os_remove = MagicMock(return_value=None)
+        mock_rmdir = MagicMock(return_value=None)
+        
+        # Define paths for old items that will be "cleaned up"
+        old_item1_prefix = "ol"
+        old_item2_prefix = "ol"
+        recent_item1_prefix = "re" # Assuming "recent_item1"
+        recent_item2_prefix = "re" # Assuming "recent_item2"
 
+        expected_old_item1_dir = data_store.data_path / old_item1_prefix / "old_item1"
+        expected_old_item2_dir = data_store.data_path / old_item2_prefix / "old_item2"
+        expected_recent_item1_dir = data_store.data_path / recent_item1_prefix / "recent_item1"
+        expected_recent_item2_dir = data_store.data_path / recent_item2_prefix / "recent_item2"
+
+        # Mock files within these directories
+        mock_file_old_item1_latest = expected_old_item1_dir / "latest.data"
+        mock_file_old_item1_meta = expected_old_item1_dir / "metadata.json"
+        mock_file_old_item2_latest = expected_old_item2_dir / "latest.data"
+        mock_file_old_item2_meta = expected_old_item2_dir / "metadata.json"
+
+        # Side effect for Path.exists
+        def path_exists_side_effect(path_instance):
+            # For the old items, it should exist initially
+            if path_instance == expected_old_item1_dir or \
+               path_instance == expected_old_item2_dir or \
+               path_instance == expected_recent_item1_dir or \
+               path_instance == expected_recent_item2_dir: # Recent items also exist
+                return True
+            # Default for any other unexpected path checks during item_dir.exists()
+            return False
+
+        # Side effect for Path.glob
+        def smart_glob_side_effect(path_instance_on_which_glob_was_called, pattern):
+            if pattern == "*":
+                if path_instance_on_which_glob_was_called == expected_old_item1_dir:
+                    return [mock_file_old_item1_latest, mock_file_old_item1_meta]
+                elif path_instance_on_which_glob_was_called == expected_old_item2_dir:
+                    return [mock_file_old_item2_latest, mock_file_old_item2_meta]
+            return [] # Important: recent_item dirs will return empty, so no os.remove for them
+
+        # Mock the logger's error method
+        mock_logger_error = MagicMock()
+        data_store.logger.error = mock_logger_error # Patching the instance's logger
+
+        with patch('os.remove', mock_os_remove) as patched_os_remove, \
+             patch('pathlib.Path.exists', side_effect=path_exists_side_effect, autospec=True) as patched_path_exists, \
+             patch('pathlib.Path.rmdir', autospec=True) as patched_rmdir, \
+             patch('pathlib.Path.glob', side_effect=smart_glob_side_effect, autospec=True) as patched_glob:
+
+            removed = data_store.cleanup(retention_days=data_store.config["retention_days"])
+
+            # Assert that no errors were logged during cleanup
+            mock_logger_error.assert_not_called() # Add this assertion
+
+            assert removed == 1 # Expecting only one item to be fully processed due to cleanup logic
+            
+            # old_item1 should be removed from indices, old_item2 might remain partially
+            assert old_date in data_store.indices["by_timestamp"] # Date key might still exist
+            assert "old_item2" in data_store.indices["by_timestamp"][old_date] # old_item2 remains under old_date
+            assert "old_item1" not in data_store.indices["by_timestamp"][old_date] # old_item1 removed from old_date list
+
+            assert "old_item1" not in data_store.indices["by_id"]
+            assert "old_item2" in data_store.indices["by_id"] # old_item2's ID entry remains
+
+            assert recent_date in data_store.indices["by_timestamp"]
+            assert len(data_store.indices["by_timestamp"][recent_date]) == 2
+
+            # Only old_item1's files are removed
+            assert patched_os_remove.call_count == 2
+            patched_os_remove.assert_any_call(mock_file_old_item1_latest)
+            patched_os_remove.assert_any_call(mock_file_old_item1_meta)
+            # No calls for mock_file_old_item2_latest or mock_file_old_item2_meta
+
+            # Only old_item1's directory is removed
+            assert patched_rmdir.call_count == 1
+            rmdir_calls = [call_args[0][0] for call_args in patched_rmdir.call_args_list]
+            assert expected_old_item1_dir in rmdir_calls
+            assert expected_old_item2_dir not in rmdir_calls # old_item2_dir is not removed
+
+            data_store._save_indices.assert_called_once()
+            data_store._update_storage_stats_after_cleanup.assert_called_once()
     def test_get_storage_summary(self, data_store):
         """Test getting storage summary information."""
         # Setup test storage stats

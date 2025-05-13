@@ -219,6 +219,13 @@ class AsyncMetricsCollector:
                         self.logger.error(f"Failed to process metric {metric.get('id')} after {self.max_retries} retries: {e}")
                         self.stats["metrics_failed"] += 1
                         
+                        # Notify error callbacks
+                        for callback in self.error_callbacks:
+                            try:
+                                callback(e)
+                            except Exception as callback_error:
+                                self.logger.error(f"Error in metrics error callback: {callback_error}")
+                        
                         # In a more robust implementation, these could be
                         # saved to a "dead letter queue" for later analysis
             

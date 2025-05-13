@@ -3,6 +3,9 @@ import os
 import numpy as np
 from unittest.mock import patch, MagicMock
 
+# Import the module to reset its singleton
+import recursive_training.data.feature_processor as rfp_module
+
 from recursive_training.data.feature_processor import RecursiveFeatureProcessor, get_feature_processor
 from recursive_training.data.feature_processor_integration import EnhancedFeatureProcessor, get_enhanced_feature_processor
 from recursive_training.data.advanced_feature_processor import process_with_advanced_techniques, integrate_with_pipeline
@@ -13,6 +16,9 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
+        # Reset the singleton instance in feature_processor module
+        rfp_module._instance = None
+        
         # Create sample data items with time series
         self.data_items = [
             {
@@ -53,9 +59,9 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
             }
         }
     
-    @patch('recursive_training.data.feature_processor.RecursiveFeatureProcessor.extract_features')
-    @patch('recursive_training.data.advanced_feature_processor.process_with_advanced_techniques')
-    def test_extract_features_with_integration(self, mock_process, mock_extract):
+    @patch('recursive_training.data.feature_processor_integration.get_feature_processor')
+    @patch('recursive_training.data.feature_processor_integration.process_with_advanced_techniques')
+    def test_extract_features_with_integration(self, mock_process, mock_get_processor):
         """Test extract_features with integration enabled."""
         # Setup mocks
         standard_features = {
@@ -65,7 +71,10 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
                 {"name": "Employment", "value": 98.0}
             ]
         }
-        mock_extract.return_value = standard_features
+        # Create a mock for the feature processor that get_feature_processor returns
+        mock_processor = MagicMock()
+        mock_processor.extract_features.return_value = standard_features
+        mock_get_processor.return_value = mock_processor
         
         advanced_features = {
             "time_frequency": {"item_0": {"spectral_entropy": [0.8]}},
@@ -88,16 +97,25 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
         result = processor.extract_features(self.data_items)
         
         # Verify that both standard and advanced extraction were called
-        mock_extract.assert_called_once_with(self.data_items)
+        mock_processor.extract_features.assert_called_once_with(self.data_items)
         mock_process.assert_called_once_with(self.data_items, self.config["advanced_features"])
         
-        # Without actually running integrate_with_pipeline, we'll just check
-        # that the result contains some expected keys
+        # Check that the result contains expected integrated features
         self.assertIsNotNone(result)
+        # Verify the structure of the result should include items with integrated features
+        self.assertIn("items", result)
+        
+        # In the integrated result, items should have the advanced features integrated
+        if "items" in result:
+            # Check the first item has expected data
+            if len(result["items"]) > 0:
+                # The test can't know exactly what integration does without running the actual
+                # integrate_with_pipeline function, but we can verify the mock was used correctly
+                pass
     
-    @patch('recursive_training.data.feature_processor.RecursiveFeatureProcessor.extract_features')
-    @patch('recursive_training.data.advanced_feature_processor.process_with_advanced_techniques')
-    def test_extract_features_without_integration(self, mock_process, mock_extract):
+    @patch('recursive_training.data.feature_processor_integration.get_feature_processor')
+    @patch('recursive_training.data.feature_processor_integration.process_with_advanced_techniques')
+    def test_extract_features_without_integration(self, mock_process, mock_get_processor):
         """Test extract_features with integration disabled."""
         # Modify config to disable integration
         config = self.config.copy()
@@ -111,7 +129,10 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
                 {"name": "Employment", "value": 98.0}
             ]
         }
-        mock_extract.return_value = standard_features
+        # Create a mock for the feature processor that get_feature_processor returns
+        mock_processor = MagicMock()
+        mock_processor.extract_features.return_value = standard_features
+        mock_get_processor.return_value = mock_processor
         
         advanced_features = {
             "time_frequency": {"item_0": {"spectral_entropy": [0.8]}},
@@ -127,13 +148,19 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
         # Extract features
         result = processor.extract_features(self.data_items)
         
+        # Verify that extract_features was called
+        mock_processor.extract_features.assert_called_once_with(self.data_items)
+        
+        # Verify that process_with_advanced_techniques was called
+        mock_process.assert_called_once_with(self.data_items, config["advanced_features"])
+        
         # Verify that the result contains standard features and advanced features as a separate section
         self.assertIn("items", result)
         self.assertIn("advanced", result)
         self.assertIn("time_frequency", result["advanced"])
     
-    @patch('recursive_training.data.feature_processor.RecursiveFeatureProcessor.extract_features')
-    def test_extract_features_disabled_advanced(self, mock_extract):
+    @patch('recursive_training.data.feature_processor_integration.get_feature_processor')
+    def test_extract_features_disabled_advanced(self, mock_get_processor):
         """Test extract_features with advanced processing disabled."""
         # Modify config to disable advanced processing
         config = self.config.copy()
@@ -147,7 +174,10 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
                 {"name": "Employment", "value": 98.0}
             ]
         }
-        mock_extract.return_value = standard_features
+        # Create a mock for the feature processor that get_feature_processor returns
+        mock_processor = MagicMock()
+        mock_processor.extract_features.return_value = standard_features
+        mock_get_processor.return_value = mock_processor
         
         # Create processor
         processor = EnhancedFeatureProcessor(config)
@@ -156,17 +186,20 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
         result = processor.extract_features(self.data_items)
         
         # Verify that only standard extraction was called
-        mock_extract.assert_called_once_with(self.data_items)
+        mock_processor.extract_features.assert_called_once_with(self.data_items)
         
         # Verify that the result is the standard features
         self.assertEqual(result, standard_features)
     
-    @patch('recursive_training.data.feature_processor.RecursiveFeatureProcessor.fit')
+    @patch('recursive_training.data.feature_processor_integration.get_feature_processor')
     @patch('recursive_training.data.feature_processor_integration.EnhancedFeatureProcessor.extract_features')
-    def test_fit(self, mock_extract, mock_fit):
+    def test_fit(self, mock_extract, mock_get_processor):
         """Test fit method calls standard processor fit."""
         # Setup mocks
         mock_extract.return_value = {"items": []}
+        # Create a mock for the feature processor that get_feature_processor returns
+        mock_processor = MagicMock()
+        mock_get_processor.return_value = mock_processor
         
         # Create processor
         processor = EnhancedFeatureProcessor(self.config)
@@ -174,16 +207,22 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
         # Fit
         processor.fit(self.data_items)
         
-        # Verify that standard fit was called
-        mock_fit.assert_called_once_with(self.data_items)
+        # Verify that extract_features was called during fit
+        mock_extract.assert_called_once()
+        
+        # Verify that standard processor's fit was called
+        mock_processor.fit.assert_called_once_with(self.data_items)
     
-    @patch('recursive_training.data.feature_processor.RecursiveFeatureProcessor.transform')
+    @patch('recursive_training.data.feature_processor_integration.get_feature_processor')
     @patch('recursive_training.data.feature_processor_integration.EnhancedFeatureProcessor.extract_features')
-    def test_transform(self, mock_extract, mock_transform):
+    def test_transform(self, mock_extract, mock_get_processor):
         """Test transform method calls standard processor transform."""
         # Setup mocks
         mock_extract.return_value = {"items": []}
-        mock_transform.return_value = {"transformed": True}
+        # Create a mock for the feature processor that get_feature_processor returns
+        mock_processor = MagicMock()
+        mock_processor.transform.return_value = {"transformed": True}
+        mock_get_processor.return_value = mock_processor
         
         # Create processor
         processor = EnhancedFeatureProcessor(self.config)
@@ -191,8 +230,11 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
         # Transform
         result = processor.transform(self.data_items)
         
+        # Verify that extract_features was called during transform
+        mock_extract.assert_called_once()
+        
         # Verify that standard transform was called
-        mock_transform.assert_called_once_with(self.data_items)
+        mock_processor.transform.assert_called_once_with(self.data_items)
         self.assertEqual(result, {"transformed": True})
     
     def test_get_enhanced_feature_processor(self):

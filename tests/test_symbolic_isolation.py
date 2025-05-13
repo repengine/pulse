@@ -17,7 +17,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from simulation_engine.worldstate import WorldState, SymbolicOverlays
 from symbolic_system.context import symbolic_context, is_symbolic_enabled, enter_retrodiction_mode
 from symbolic_system.overlays import apply_overlay_interactions, get_overlay_value
-from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM, SYMBOLIC_PROCESSING_MODES, CURRENT_SYSTEM_MODE
+import core.pulse_config
+from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM, SYMBOLIC_PROCESSING_MODES
+# Import CURRENT_SYSTEM_MODE indirectly to ensure we're accessing the module variable
 
 class TestSymbolicIsolation(unittest.TestCase):
     """Tests to verify proper isolation of the symbolic system"""
@@ -27,23 +29,25 @@ class TestSymbolicIsolation(unittest.TestCase):
         # Save original config values to restore later
         self.original_enable = ENABLE_SYMBOLIC_SYSTEM
         self.original_modes = SYMBOLIC_PROCESSING_MODES.copy()
-        self.original_mode = CURRENT_SYSTEM_MODE
+        self.original_mode = core.pulse_config.CURRENT_SYSTEM_MODE
         
     def tearDown(self):
         """Clean up after tests"""
         # Restore original config values
-        global ENABLE_SYMBOLIC_SYSTEM, SYMBOLIC_PROCESSING_MODES, CURRENT_SYSTEM_MODE
+        global ENABLE_SYMBOLIC_SYSTEM, SYMBOLIC_PROCESSING_MODES
         ENABLE_SYMBOLIC_SYSTEM = self.original_enable
         SYMBOLIC_PROCESSING_MODES = self.original_modes
-        CURRENT_SYSTEM_MODE = self.original_mode
+        core.pulse_config.CURRENT_SYSTEM_MODE = self.original_mode
         
     def test_symbolic_disabled_globally(self):
         """Test that all symbolic operations are skipped when disabled globally"""
-        global ENABLE_SYMBOLIC_SYSTEM
-        ENABLE_SYMBOLIC_SYSTEM = False
+        # Need to modify the module variable directly
+        import core.pulse_config
+        core.pulse_config.ENABLE_SYMBOLIC_SYSTEM = False
         
         state = WorldState()
-        initial_hope = state.overlays.hope
+        initial_hope = 0.5
+        state.overlays.hope = initial_hope  # Set a known value
         
         # These calls should be no-ops when symbolic system is disabled
         from simulation_engine.state_mutation import adjust_overlay
@@ -73,14 +77,14 @@ class TestSymbolicIsolation(unittest.TestCase):
         
     def test_context_manager(self):
         """Test that the context manager properly sets and restores modes"""
-        original_mode = CURRENT_SYSTEM_MODE
+        original_mode = core.pulse_config.CURRENT_SYSTEM_MODE
         
         # Change mode within context
         with symbolic_context("retrodiction"):
-            self.assertEqual(CURRENT_SYSTEM_MODE, "retrodiction")
+            self.assertEqual(core.pulse_config.CURRENT_SYSTEM_MODE, "retrodiction")
             
         # Mode should be restored
-        self.assertEqual(CURRENT_SYSTEM_MODE, original_mode)
+        self.assertEqual(core.pulse_config.CURRENT_SYSTEM_MODE, original_mode)
         
     def test_explicit_override(self):
         """Test explicitly enabling symbolic processing in retrodiction mode"""

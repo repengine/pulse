@@ -50,8 +50,6 @@ def test_single_variable_pipeline(variable_name):
     Args:
         variable_name: Name of the variable to test
         
-    Returns:
-        True if successful, False otherwise
     """
     logger.info(f"===== Testing pipeline for {variable_name} =====")
     
@@ -65,50 +63,47 @@ def test_single_variable_pipeline(variable_name):
         
         if var_info is None:
             logger.error(f"Variable {variable_name} not found in catalog")
-            return False
+            assert False, f"Variable {variable_name} not found in catalog"
         
         # Step 2: Retrieve raw data
         logger.info(f"Retrieving raw data for {variable_name}")
         retrieval_result = retrieve_historical_data(var_info, years=2)
         
-        if "stats" not in retrieval_result:
-            logger.error(f"Failed to retrieve data for {variable_name}")
-            return False
+        assert "stats" in retrieval_result, f"Failed to retrieve data for {variable_name}"
         
         stats = retrieval_result["stats"]
         logger.info(f"Retrieved {stats['data_point_count']} data points")
         logger.info(f"Completeness: {stats['completeness_pct']:.2f}%")
+        assert stats['data_point_count'] > 0, f"No data points retrieved for {variable_name}"
+        assert stats['completeness_pct'] > 0, f"Data completeness is 0% for {variable_name}"
         
         # Step 3: Transform and store data
         logger.info(f"Transforming and storing data for {variable_name}")
         transform_result = transform_and_store_variable(variable_name)
         
-        if transform_result.status != "success":
-            logger.error(f"Failed to transform data: {transform_result.error}")
-            return False
+        assert transform_result.status == "success", f"Failed to transform data: {transform_result.error}"
         
         logger.info(f"Successfully transformed {transform_result.item_count} records")
         logger.info(f"Dataset ID: {transform_result.data_store_id}")
+        assert transform_result.item_count > 0, f"No records transformed for {variable_name}"
+        assert transform_result.data_store_id is not None, f"No dataset ID returned for {variable_name}"
         
         # Step 4: Verify transformed data
         logger.info(f"Verifying transformed data for {variable_name}")
         verification = verify_transformed_data(variable_name)
         
-        if verification["status"] != "success":
-            logger.warning(f"Verification issues: {verification.get('error', 'Unknown error')}")
-            if verification.get("error_count", 0) > 0:
-                logger.warning(f"Found {verification['error_count']} data type errors")
-        else:
-            logger.info(f"Verification successful: {verification['record_count']} records verified")
-            if "start_date" in verification:
-                logger.info(f"Date range: {verification['start_date']} to {verification['end_date']}")
+        assert verification["status"] == "success", f"Verification issues for {variable_name}: {verification.get('error', 'Unknown error')}"
+        
+        logger.info(f"Verification successful: {verification['record_count']} records verified")
+        if "start_date" in verification:
+            logger.info(f"Date range: {verification['start_date']} to {verification['end_date']}")
+        assert verification['record_count'] > 0, f"No records verified for {variable_name}"
         
         logger.info(f"===== Pipeline test for {variable_name} completed successfully =====")
-        return True
         
     except Exception as e:
         logger.error(f"Error in pipeline test for {variable_name}: {e}")
-        return False
+        assert False, f"Error in pipeline test for {variable_name}: {e}"
 
 
 def run_all_tests():
@@ -117,10 +112,9 @@ def run_all_tests():
     failure_count = 0
     
     for variable in TEST_VARIABLES:
-        if test_single_variable_pipeline(variable):
-            success_count += 1
-        else:
-            failure_count += 1
+        # Call the test function, which now uses assertions
+        test_single_variable_pipeline(variable)
+        success_count += 1
     
     logger.info(f"===== Test Summary =====")
     logger.info(f"Successful tests: {success_count}")
@@ -152,6 +146,8 @@ def run_all_tests():
         
         logger.info(f"Test results saved to data/historical_timeline/test_results/pipeline_test_results.json")
     
+    # This function is not a pytest test function, so returning a boolean is acceptable.
+    # The actual test success/failure is handled by assertions within test_single_variable_pipeline.
     return success_count > 0 and failure_count == 0
 
 

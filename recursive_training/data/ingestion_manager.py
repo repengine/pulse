@@ -11,16 +11,43 @@ import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple, Set, Iterator
+from typing import Any, Dict, List, Optional, Union, Tuple, Set, Iterator, cast
 
 import pandas as pd
 from pydantic import BaseModel, ValidationError
 
 # Import relevant Pulse components
-from core.pulse_config import get_config
-from core.bayesian_trust_tracker import bayesian_trust_tracker
-from core.schemas import ForecastRecord
-from learning.output_data_reader import OutputDataReader
+from recursive_training.data.data_store import RecursiveDataStore # Added import
+
+# Define availability flags at module level
+PULSE_CONFIG_AVAILABLE = False
+BAYESIAN_TRUST_AVAILABLE = False
+FORECAST_RECORD_AVAILABLE = False
+OUTPUT_READER_AVAILABLE = False
+
+try:
+    from core.pulse_config import get_config
+    PULSE_CONFIG_AVAILABLE = True
+except ImportError:
+    pass  # PULSE_CONFIG_AVAILABLE remains False
+
+try:
+    from core.bayesian_trust_tracker import bayesian_trust_tracker
+    BAYESIAN_TRUST_AVAILABLE = True
+except ImportError:
+    pass  # BAYESIAN_TRUST_AVAILABLE remains False
+
+try:
+    from core.schemas import ForecastRecord
+    FORECAST_RECORD_AVAILABLE = True
+except ImportError:
+    pass  # FORECAST_RECORD_AVAILABLE remains False
+
+try:
+    from learning.output_data_reader import OutputDataReader
+    OUTPUT_READER_AVAILABLE = True
+except ImportError:
+    pass  # OUTPUT_READER_AVAILABLE remains False
 
 
 class DataSource(BaseModel):
@@ -79,14 +106,16 @@ class RecursiveDataIngestionManager:
         self.logger = logging.getLogger("RecursiveDataIngestionManager")
         
         # Get system configuration with fallback
-        if PULSE_CONFIG_AVAILABLE:
+        if PULSE_CONFIG_AVAILABLE and get_config: # Check if get_config itself is bound
             try:
+                # Assuming get_config() can be called without arguments for default config
                 pulse_config = get_config()
                 self.base_data_path = Path(pulse_config.get("data_path", "./data"))
             except Exception as e:
                 self.logger.warning(f"Could not get Pulse config: {e}")
                 self.base_data_path = Path("./data")
         else:
+            self.logger.warning("Pulse config (get_config) not available or not imported.")
             self.base_data_path = Path("./data")
         
         # Load configuration if provided
@@ -102,13 +131,14 @@ class RecursiveDataIngestionManager:
         self.cost_tracker: Dict[str, float] = {}
         
         # Initialize OutputDataReader for accessing Pulse output data if available
-        if OUTPUT_READER_AVAILABLE:
+        if OUTPUT_READER_AVAILABLE and OutputDataReader: # Check if OutputDataReader is bound
             try:
                 self.output_reader = OutputDataReader(str(self.base_data_path))
             except Exception as e:
                 self.logger.warning(f"Could not initialize OutputDataReader: {e}")
                 self.output_reader = None
         else:
+            self.logger.warning("OutputDataReader not available or not imported.")
             self.output_reader = None
         
         # Track processed data for deduplication
@@ -377,7 +407,7 @@ class RecursiveDataIngestionManager:
             self.logger.error(f"Error ingesting from database {source_id}: {e}")
             return (0, 0)
     
-    def _process_data(self, source_id: str, data: Union[List[Dict[str, Any]], Dict[str, Any]]) -> Tuple[int, int]:
+    def _process_data(self, source_id: str, data: Union[List[Dict[Any, Any]], Dict[Any, Any], Any]) -> Tuple[int, int]:
         """
         Process and validate ingested data.
         
@@ -396,11 +426,11 @@ class RecursiveDataIngestionManager:
         
         # Get the RecursiveDataStore instance - import locally to avoid circular imports
         # We use a function to delay the import until needed
-        def get_data_store():
-            from recursive_training.data.data_store import RecursiveDataStore
-            return RecursiveDataStore.get_instance()
+        # def get_data_store(): # Removed local import
+        #     from recursive_training.data.data_store import RecursiveDataStore # Removed local import
+        #     return RecursiveDataStore.get_instance() # Removed local import
             
-        data_store = get_data_store()
+        data_store = RecursiveDataStore.get_instance() # Use global import
         
         for record in data:
             # Skip already processed records
@@ -412,7 +442,7 @@ class RecursiveDataIngestionManager:
             if self.config.get("validate_schema", True):
                 try:
                     # Attempt to validate using appropriate schema
-                    if source_id == "pulse_forecasts" and FORECAST_RECORD_AVAILABLE:
+                    if source_id == "pulse_forecasts" and FORECAST_RECORD_AVAILABLE and callable(ForecastRecord):
                         ForecastRecord(**record)
                         # Additional schema validations could be added here
                     elif source_id == "pulse_forecasts":
@@ -507,7 +537,7 @@ class RecursiveDataIngestionManager:
                     active_rules = sim_engine.get_active_rules()
                     for rule_id, rule in active_rules.items():
                         trust_score = 0.5  # Default value
-                        if BAYESIAN_TRUST_AVAILABLE:
+                        if BAYESIAN_TRUST_AVAILABLE and callable(getattr(bayesian_trust_tracker, "get_trust", None)):
                             trust_score = bayesian_trust_tracker.get_trust(rule_id)
                             
                         rule_data.append({
@@ -528,7 +558,7 @@ class RecursiveDataIngestionManager:
                     symbolic_rules = sym_system.get_active_symbolic_rules()
                     for rule_id, rule in symbolic_rules.items():
                         trust_score = 0.5  # Default value
-                        if BAYESIAN_TRUST_AVAILABLE:
+                        if BAYESIAN_TRUST_AVAILABLE and callable(getattr(bayesian_trust_tracker, "get_trust", None)):
                             trust_score = bayesian_trust_tracker.get_trust(rule_id)
                             
                         rule_data.append({
@@ -562,13 +592,16 @@ class RecursiveDataIngestionManager:
         }
         
         # Add pulse version if available
-        if PULSE_CONFIG_AVAILABLE:
+        if PULSE_CONFIG_AVAILABLE and callable(get_config):
             try:
-                metadata["pulse_version"] = get_config().get("version", "unknown")
+                # Assuming get_config() can be called without arguments for default config
+                pulse_config_obj = get_config()
+                metadata["pulse_version"] = pulse_config_obj.get("version", "unknown")
             except Exception as e:
                 self.logger.warning(f"Could not get Pulse version: {e}")
                 metadata["pulse_version"] = "unknown"
         else:
+            self.logger.warning("Pulse config (get_config) not available, not imported, or not callable for version retrieval.")
             metadata["pulse_version"] = "unknown"
             
         return metadata
@@ -619,7 +652,7 @@ class RecursiveDataIngestionManager:
             "by_source": {
                 source_id: {
                     "api_calls": self.api_call_count.get(source_id, 0),
-                    "tokens": self.token_usage.get(source_id, 0),
+                    "token_usage": self.token_usage.get(source_id, 0),
                     "cost_usd": self.cost_tracker.get(source_id, 0.0)
                 }
                 for source_id in self.sources.keys()

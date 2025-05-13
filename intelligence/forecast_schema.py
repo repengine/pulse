@@ -7,6 +7,7 @@ GPT processing, and associated metadata like rules and trust scores.
 """
 
 from pydantic import BaseModel, Field
+from pydantic import ConfigDict
 from typing import Any, Dict, List, Union
 
 class ForecastSchema(BaseModel):
@@ -34,7 +35,8 @@ class ForecastSchema(BaseModel):
     rule_trace: List[Any] = Field(..., description="Trace of rules used.") # More specific type if known
     trust: float = Field(..., description="Trust score or value.")
 
-    class Config:
+    model_config = ConfigDict(
         # Allow extra fields for flexibility, but log a warning if they exist
         # Alternatively, use forbid=True to strictly enforce the schema
-        extra = "forbid"
+        extra="forbid"
+    )

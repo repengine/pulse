@@ -19,7 +19,7 @@ from datetime import datetime
 
 from simulation_engine.worldstate import WorldState
 from symbolic_system.gravity.symbolic_pillars import SymbolicPillar, SymbolicPillarSystem
-from symbolic_system.gravity.residual_gravity_engine import ResidualGravityEngine
+from symbolic_system.gravity.engines.residual_gravity_engine import ResidualGravityEngine, GravityEngineConfig
 from symbolic_system.gravity.gravity_config import ResidualGravityConfig, DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -275,7 +275,22 @@ class SymbolicGravityFabric:
         if gravity_engine is not None:
             self.gravity_engine = gravity_engine
         else:
-            self.gravity_engine = ResidualGravityEngine(config=self.config)
+            self.gravity_engine = ResidualGravityEngine(
+                config=GravityEngineConfig(
+                    lambda_=self.config.lambda_,
+                    regularization_strength=self.config.regularization,
+                    learning_rate=self.config.learning_rate,
+                    momentum_factor=self.config.momentum,
+                    circuit_breaker_threshold=self.config.circuit_breaker_threshold,
+                    max_correction=self.config.max_correction,
+                    enable_adaptive_lambda=self.config.enable_adaptive_lambda,
+                    enable_weight_pruning=self.config.enable_weight_pruning,
+                    weight_pruning_threshold=self.config.weight_pruning_threshold,
+                    fragility_threshold=self.config.fragility_threshold
+                ),
+                dt=1.0,  # Default placeholder
+                state_dimensionality=1  # Default placeholder
+            )
         
         # Initialize metrics
         self.metrics = GravityFabricMetrics(max_history=self.config.max_history)

@@ -30,7 +30,7 @@ def test_github():
     # Check if the plugin is enabled (API token is set)
     if not plugin.enabled:
         print("❌ GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set.")
-        return False
+        assert False, "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
     
     print("✓ GitHub plugin is ENABLED.")
     
@@ -45,14 +45,14 @@ def test_github():
             for i, signal in enumerate(signals[:3]):  # Show first 3 signals
                 print(f"\nSignal {i+1}:")
                 pprint(signal)
-            return True
+            assert True, "Successfully fetched signals!"
         else:
             print("❌ No signals returned. This might be due to API limitations or no matching content.")
-            return False
+            assert False, "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
             
     except Exception as e:
         print(f"❌ Error testing GitHub plugin: {e}")
-        return False
+        assert False, "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
 
 if __name__ == "__main__":
     test_github()

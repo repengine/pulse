@@ -20,10 +20,33 @@ import argparse # Added argparse
 from typing import Dict, List, Optional, Any
 
 # Ensure log_utils is imported before its potential first use
-from utils.log_utils import log_info
+# First, add the parent directory to the path if running as script
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Now try to import, with a fallback if module still not found
+try:
+    from utils.log_utils import log_info
+except ImportError:
+    # Fallback implementation if log_utils cannot be imported
+    import logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+    )
+    logger = logging.getLogger("pulse")
+    
+    def log_info(msg):
+        """Simple fallback info-level logger."""
+        logger.info(msg)
+    
+    print("Warning: utils.log_utils module not found, using fallback logger.")
 
 from core.path_registry import PATHS
 from core.pulse_config import SHADOW_MONITOR_CONFIG
+import config.gravity_config as grav_cfg
+from symbolic_system.gravity.engines.residual_gravity_engine import GravityEngineConfig
 
 try:
     from diagnostics.shadow_model_monitor import ShadowModelMonitor
@@ -49,7 +72,8 @@ def run_batch_from_config(
     configs: List[Dict[str, Any]],
     export_path: Optional[str] = None,
     learning_engine=None,
-    gravity_enabled: bool = True # Added gravity_enabled parameter
+    gravity_enabled: bool = True, # Added gravity_enabled parameter
+    gravity_config: Optional[GravityEngineConfig] = None # Added gravity_config parameter
 ) -> List[Dict[str, Any]]:
     """
     Executes a batch of simulation configs.
@@ -59,6 +83,7 @@ def run_batch_from_config(
         export_path (str): Optional output path for saving results
         learning_engine: Optional LearningEngine instance for hooks
         gravity_enabled (bool): Whether gravity correction is enabled (default: True)
+        gravity_config (GravityEngineConfig, optional): Configuration for the gravity engine
 
     Returns:
         List[Dict]: Pipeline results per config, including error info if failed.
@@ -110,7 +135,8 @@ def run_batch_from_config(
                 logger=log_info,
                 learning_engine=learning_engine,
                 shadow_monitor_instance=shadow_monitor,
-                gravity_enabled=gravity_enabled # Pass the gravity_enabled parameter
+                gravity_enabled=gravity_enabled, # Pass the gravity_enabled parameter
+                gravity_config=gravity_config # Pass the gravity_config parameter
             )
 
             final_state_snapshot = {}
@@ -163,14 +189,79 @@ def run_batch_from_config(
 
     return results
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run simulation batches.")
+    # Existing gravity flag
     parser.add_argument(
         "--gravity-off",
-        action="store_true", # This makes it a boolean flag
-        help="Disable gravity correction during simulation."
+        action="store_true",
+        help="Disable gravity correction during simulation (equivalent to --enable-residual-gravity=False)."
     )
+    
+    # New ResidualGravityEngine CLI flags
+    parser.add_argument(
+        "--enable-residual-gravity",
+        action="store_true",
+        help="Enable the residual gravity overlay system (overrides --gravity-off)."
+    )
+    parser.add_argument(
+        "--gravity-disable-adaptive-lambda",
+        action="store_false",
+        dest="gravity_enable_adaptive_lambda",
+        default=None,
+        help=f"Disable adaptive lambda adjustment in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_ADAPTIVE_LAMBDA})."
+    )
+    parser.add_argument(
+        "--gravity-disable-weight-pruning",
+        action="store_false",
+        dest="gravity_enable_weight_pruning",
+        default=None,
+        help=f"Disable weight pruning in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_WEIGHT_PRUNING})."
+    )
+    parser.add_argument(
+        "--gravity-disable-shadow-model-trigger",
+        action="store_false",
+        dest="gravity_enable_shadow_model_trigger",
+        default=None,
+        help=f"Disable shadow model trigger in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_SHADOW_MODEL_TRIGGER})."
+    )
+    parser.add_argument(
+        "--gravity-lambda",
+        type=float,
+        default=None,
+        help=f"Set initial lambda value for gravity strength (default: {grav_cfg.DEFAULT_LAMBDA})."
+    )
+    parser.add_argument(
+        "--gravity-learning-rate",
+        type=float,
+        default=None,
+        help=f"Set learning rate for gravity engine (default: {grav_cfg.DEFAULT_LEARNING_RATE})."
+    )
+    parser.add_argument(
+        "--gravity-ewma-span",
+        type=float,
+        default=None,
+        help=f"Set EWMA span for gravity engine (default: {grav_cfg.DEFAULT_EWMA_SPAN})."
+    )
+    parser.add_argument(
+        "--gravity-adaptive-lambda-min",
+        type=float,
+        default=None,
+        help=f"Set minimum lambda for adaptive adjustment (default: {grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MIN})."
+    )
+    parser.add_argument(
+        "--gravity-adaptive-lambda-max",
+        type=float,
+        default=None,
+        help=f"Set maximum lambda for adaptive adjustment (default: {grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MAX})."
+    )
+    parser.add_argument(
+        "--gravity-shadow-variance-threshold",
+        type=float,
+        default=None,
+        help=f"Set variance threshold for shadow model trigger (default: {grav_cfg.DEFAULT_SHADOW_MODEL_VARIANCE_THRESHOLD})."
+    )
+    
     # TODO: Add CLI/config file support for batch execution.
     # For now, using sample configs
     args = parser.parse_args()
@@ -180,9 +271,42 @@ if __name__ == "__main__":
         {"state_overrides": {"hope": 0.3, "despair": 0.5}, "turns": 1},
     ]
 
-    # Pass the gravity_enabled flag to the runner function
+    # Determine whether gravity is enabled based on flags
+    # --enable-residual-gravity overrides --gravity-off
+    gravity_enabled = True
+    if args.gravity_off and not args.enable_residual_gravity:
+        gravity_enabled = False
+    
+    # Create a configuration object for the gravity engine if any gravity parameters are specified
+    gravity_config = None
+    if any(getattr(args, param) is not None for param in [
+        'gravity_enable_adaptive_lambda', 'gravity_enable_weight_pruning',
+        'gravity_enable_shadow_model_trigger', 'gravity_lambda',
+        'gravity_learning_rate', 'gravity_ewma_span',
+        'gravity_adaptive_lambda_min', 'gravity_adaptive_lambda_max',
+        'gravity_shadow_variance_threshold'
+    ]):
+        # Create config with CLI arguments
+        gravity_config = GravityEngineConfig(
+            lambda_=args.gravity_lambda,
+            learning_rate=args.gravity_learning_rate,
+            ewma_span=args.gravity_ewma_span,
+            enable_adaptive_lambda=args.gravity_enable_adaptive_lambda,
+            enable_weight_pruning=args.gravity_enable_weight_pruning,
+            adaptive_lambda_min=args.gravity_adaptive_lambda_min,
+            adaptive_lambda_max=args.gravity_adaptive_lambda_max
+        )
+        
+        # Set shadow model trigger parameters
+        if args.gravity_enable_shadow_model_trigger is not None:
+            gravity_config.enable_shadow_model_trigger = args.gravity_enable_shadow_model_trigger
+        if args.gravity_shadow_variance_threshold is not None:
+            gravity_config.shadow_model_variance_threshold = args.gravity_shadow_variance_threshold
+
+    # Pass the gravity_enabled flag and gravity_config to the runner function
     run_batch_from_config(
         sample_configs_main,
         export_path=str(DEFAULT_BATCH_OUTPUT),
-        gravity_enabled=not args.gravity_off # Pass the inverse of the flag
+        gravity_enabled=gravity_enabled,
+        gravity_config=gravity_config
     )

@@ -130,8 +130,12 @@ class HybridRuleAdapter:
         self.action_classes = {}
         
         # Configure adapter settings
-        self.enable_dict_compatibility = self.config.enable_dict_compatibility
-        self.prefer_object_representation = self.config.prefer_object_representation
+        if isinstance(self.config, dict):
+            self.enable_dict_compatibility = self.config.get('enable_dict_compatibility', True)
+            self.prefer_object_representation = self.config.get('prefer_object_representation', False)
+        else:
+            self.enable_dict_compatibility = self.config.enable_dict_compatibility
+            self.prefer_object_representation = self.config.prefer_object_representation
         
         self.logger.info("HybridRuleAdapter initialized")
     

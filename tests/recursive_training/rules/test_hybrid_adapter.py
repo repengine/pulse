@@ -26,12 +26,15 @@ from recursive_training.rules.hybrid_adapter import (
 @pytest.fixture
 def mock_config():
     """Fixture for mock configuration."""
-    return {
-        "enable_dict_compatibility": True,
-        "prefer_object_representation": True,
-        "cost_track_enabled": True,
-        "registered_rule_types": ["discount", "shipping"]
-    }
+    # Use SimpleNamespace for attribute access
+    from types import SimpleNamespace
+    
+    return SimpleNamespace(
+        enable_dict_compatibility=True,
+        prefer_object_representation=True,
+        cost_track_enabled=True,
+        registered_rule_types=["discount", "shipping"]
+    )
 
 
 @pytest.fixture
@@ -113,14 +116,14 @@ def hybrid_adapter(mock_config, mock_cost_controller):
 
 
 @dataclass
-class TestCondition(RuleCondition):
+class _TestCondition(RuleCondition):
     """Test custom condition class."""
     threshold: float = 0.0
     additional_param: str = ""
 
 
 @dataclass
-class TestAction(RuleAction):
+class _TestAction(RuleAction):
     """Test custom action class."""
     duration: int = 0
     additional_param: str = ""
@@ -164,8 +167,8 @@ class TestHybridAdapterInitialization:
                 adapter = HybridRuleAdapter(mock_config)
                 
                 # Verify configuration was applied
-                assert adapter.enable_dict_compatibility == mock_config["enable_dict_compatibility"]
-                assert adapter.prefer_object_representation == mock_config["prefer_object_representation"]
+                assert adapter.enable_dict_compatibility == mock_config.enable_dict_compatibility
+                assert adapter.prefer_object_representation == mock_config.prefer_object_representation
     
     def test_class_registration(self, hybrid_adapter):
         """Test registering custom rule classes."""
@@ -177,18 +180,18 @@ class TestHybridAdapterInitialization:
         assert hybrid_adapter.rule_classes["discount"] == DiscountRule
         
         # Register a custom condition class
-        hybrid_adapter.register_condition_class("test_condition", TestCondition)
+        hybrid_adapter.register_condition_class("test_condition", _TestCondition)
         
         # Verify registration
         assert "test_condition" in hybrid_adapter.condition_classes
-        assert hybrid_adapter.condition_classes["test_condition"] == TestCondition
+        assert hybrid_adapter.condition_classes["test_condition"] == _TestCondition
         
         # Register a custom action class
-        hybrid_adapter.register_action_class("test_action", TestAction)
+        hybrid_adapter.register_action_class("test_action", _TestAction)
         
         # Verify registration
         assert "test_action" in hybrid_adapter.action_classes
-        assert hybrid_adapter.action_classes["test_action"] == TestAction
+        assert hybrid_adapter.action_classes["test_action"] == _TestAction
     
     def test_register_non_dataclass(self, hybrid_adapter):
         """Test error when registering a non-dataclass."""
@@ -269,8 +272,8 @@ class TestDictToObjectConversion:
     def test_custom_condition_action_conversion(self, hybrid_adapter, sample_rule_dict):
         """Test conversion with custom condition and action classes."""
         # Register custom classes
-        hybrid_adapter.register_condition_class("comparison", TestCondition)
-        hybrid_adapter.register_action_class("set_value", TestAction)
+        hybrid_adapter.register_condition_class("comparison", _TestCondition)
+        hybrid_adapter.register_action_class("set_value", _TestAction)
         
         # Add custom fields to the dict
         rule_dict = sample_rule_dict.copy()
@@ -282,13 +285,13 @@ class TestDictToObjectConversion:
         # Convert rule
         rule_obj = hybrid_adapter.to_object(rule_dict)
         
-        # Verify condition is converted to TestCondition
-        assert isinstance(rule_obj.conditions[0], TestCondition)
+        # Verify condition is converted to _TestCondition
+        assert isinstance(rule_obj.conditions[0], _TestCondition)
         assert rule_obj.conditions[0].threshold == 50.0
         assert rule_obj.conditions[0].additional_param == "test_param"
         
-        # Verify action is converted to TestAction
-        assert isinstance(rule_obj.actions[0], TestAction)
+        # Verify action is converted to _TestAction
+        assert isinstance(rule_obj.actions[0], _TestAction)
         assert rule_obj.actions[0].duration == 30
         assert rule_obj.actions[0].additional_param == "test_action_param"
     
@@ -362,7 +365,7 @@ class TestObjectToDictConversion:
             id="custom_rule",
             type="discount",
             conditions=[
-                TestCondition(
+                _TestCondition(
                     type="test_condition",
                     parameters={"variable": "price", "operator": ">", "value": 100},
                     threshold=75.0,
@@ -370,7 +373,7 @@ class TestObjectToDictConversion:
                 )
             ],
             actions=[
-                TestAction(
+                _TestAction(
                     type="test_action",
                     parameters={"variable": "discount", "value": 0.2},
                     duration=60,

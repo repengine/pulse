@@ -28,10 +28,7 @@ def test_reddit():
     plugin = RedditPlugin()
     
     # Check if the plugin is enabled (API credentials are set)
-    if not plugin.enabled:
-        print("❌ Reddit plugin is DISABLED. Make sure REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, and REDDIT_USER_AGENT environment variables are set.")
-        return False
-    
+    assert plugin.enabled, "Reddit plugin is DISABLED. Make sure REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, and REDDIT_USER_AGENT environment variables are set."
     print("✓ Reddit plugin is ENABLED.")
     
     # Try to fetch signals
@@ -39,20 +36,21 @@ def test_reddit():
         print("Fetching data from Reddit API...")
         signals = plugin.fetch_signals()
         
-        if signals:
-            print(f"✓ Successfully fetched {len(signals)} signals!")
-            print("\nExample signals:")
-            for i, signal in enumerate(signals[:3]):  # Show first 3 signals
-                print(f"\nSignal {i+1}:")
-                pprint(signal)
-            return True
-        else:
-            print("❌ No signals returned. This might be due to API limitations or no matching content.")
-            return False
+        assert signals, "No signals returned. This might be due to API limitations or no matching content."
+        assert isinstance(signals, list), f"Expected a list of signals, but got {type(signals)}"
+        assert len(signals) > 0, "Fetched signals list is empty."
+
+        print(f"✓ Successfully fetched {len(signals)} signals!")
+        print("\nExample signals:")
+        for i, signal in enumerate(signals[:3]):  # Show first 3 signals
+            print(f"\nSignal {i+1}:")
+            pprint(signal)
+            # Add specific assertions for signal structure if needed
+            assert isinstance(signal, dict), f"Signal {i+1} is not a dictionary."
+            # Example: assert 'id' in signal, f"Signal {i+1} missing 'id' key."
             
     except Exception as e:
-        print(f"❌ Error testing Reddit plugin: {e}")
-        return False
+        assert False, f"Error testing Reddit plugin: {e}"
 
 if __name__ == "__main__":
     test_reddit()

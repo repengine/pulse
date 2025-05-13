@@ -56,9 +56,9 @@ class TestAdvancedFeatureProcessor(unittest.TestCase):
         # Create processor
         self.processor = AdvancedFeatureProcessor(self.config)
     
-    @patch('recursive_training.data.time_frequency_decomposition.apply_time_frequency_decomposition')
-    @patch('recursive_training.data.graph_based_features.apply_graph_based_features')
-    @patch('recursive_training.data.self_supervised_learning.apply_self_supervised_learning')
+    @patch('recursive_training.data.advanced_feature_processor.apply_time_frequency_decomposition')
+    @patch('recursive_training.data.advanced_feature_processor.apply_graph_based_features')
+    @patch('recursive_training.data.advanced_feature_processor.apply_self_supervised_learning')
     def test_process(self, mock_ssl, mock_graph, mock_tf):
         """Test the process method calls all enabled techniques."""
         # Setup mocks
@@ -89,7 +89,7 @@ class TestAdvancedFeatureProcessor(unittest.TestCase):
         processor = AdvancedFeatureProcessor(config)
         
         # Use patching to avoid actual computation
-        with patch('recursive_training.data.time_frequency_decomposition.apply_time_frequency_decomposition') as mock_tf:
+        with patch('recursive_training.data.advanced_feature_processor.apply_time_frequency_decomposition') as mock_tf:
             mock_tf.return_value = {"time_frequency": {"feature1": [1.0, 2.0]}}
             
             # Call process

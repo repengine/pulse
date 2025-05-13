@@ -124,9 +124,9 @@ def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> f
     
     # Better fallback when no memory exists or symbolic_change is empty
     if not memory or len(memory) == 0:
-        # Use moderate risk value instead of 0.0 when no history exists
-        historical_component = 0.5  # Neutral value when no history available
-        logger.info("No historical forecasts available for risk comparison, using neutral value (0.5)")
+        # For "no memory" scenario, historical component should be 0.0
+        historical_component = 0.0  # Corrected value for "no memory"
+        logger.info("No historical forecasts available for risk comparison, historical component set to 0.0 for risk score calculation.")
     elif not current_change:
         # Handle empty symbolic change data gracefully
         historical_component = 0.4  # Slightly better than neutral for empty data
@@ -710,6 +710,8 @@ class TrustEngine:
             forecasts = flag_drift_sensitive_forecasts(forecasts, drift_report)
 
         for f in forecasts:
+            # Preserve gravity_correction_details if it exists
+            gravity_details_backup = f.get("gravity_correction_details")
             try:
                 TrustEngine.tag_forecast(f)
                 score = TrustEngine.score_forecast(f, memory)
@@ -730,6 +732,11 @@ class TrustEngine:
                 )._asdict()
                 if arc_drift:
                     f["attention_score"] = symbolic_attention_score(f, arc_drift)
+                
+                # Restore gravity_correction_details if it was backed up
+                if gravity_details_backup is not None:
+                    f["gravity_correction_details"] = gravity_details_backup
+
             except Exception as e:
                 logger.warning(f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}")
                 # Ensure defaults are set even if processing fails
@@ -746,6 +753,9 @@ class TrustEngine:
                         symbolic_tag=f.get("symbolic_tag", ""),
                         fragility=f.get("fragility", 0.0),
                     )._asdict()
+                # Restore gravity_correction_details in case of exception too
+                if gravity_details_backup is not None and "gravity_correction_details" not in f:
+                    f["gravity_correction_details"] = gravity_details_backup
         
         # Final safety check - ensure no forecast has None values
         for f in forecasts:
