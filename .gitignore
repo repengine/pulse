@@ -232,6 +232,7 @@ pulse/logs/
 data/
 /data/
 
+chatmode/vector_store/codebase.faiss
 /myapp/
 **/myapp/
 **/myapp
