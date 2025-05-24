@@ -12,7 +12,10 @@ from forecast_output.forecast_prioritization_engine import rank_certified_foreca
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import log_info
 
-def promote_to_memory(forecasts: List[Dict], top_n: int = 10, min_conf: float = 0.6, dry_run: bool = False) -> int:
+
+def promote_to_memory(
+    forecasts: List[Dict], top_n: int = 10, min_conf: float = 0.6, dry_run: bool = False
+) -> int:
     """
     Promote top-ranked forecasts to long-term memory.
 
@@ -30,7 +33,11 @@ def promote_to_memory(forecasts: List[Dict], top_n: int = 10, min_conf: float = 
         return 0
 
     # Step 1: Filter certified + confident
-    certified = [f for f in forecasts if f.get("certified") and f.get("confidence", 0) >= min_conf]
+    certified = [
+        f
+        for f in forecasts
+        if f.get("certified") and f.get("confidence", 0) >= min_conf
+    ]
     if not certified:
         log_info("[PROMOTOR] No forecasts passed certification/confidence gate.")
         return 0
@@ -51,15 +58,33 @@ def promote_to_memory(forecasts: List[Dict], top_n: int = 10, min_conf: float = 
         log_info(f"[PROMOTOR] {stored} forecasts promoted to memory.")
         return stored
     else:
-        log_info(f"[PROMOTOR] [DRY RUN] {len(top)} forecasts would be promoted to memory.")
+        log_info(
+            f"[PROMOTOR] [DRY RUN] {len(top)} forecasts would be promoted to memory."
+        )
         return len(top)
+
 
 # Example usage & test
 if __name__ == "__main__":
     test_batch = [
-        {"confidence": 0.82, "certified": True, "arc_label": "Hope Surge", "alignment_score": 0.88},
-        {"confidence": 0.75, "certified": True, "arc_label": "Stabilization", "alignment_score": 0.76},
-        {"confidence": 0.42, "certified": False, "arc_label": "Collapse Risk", "alignment_score": 0.51},
+        {
+            "confidence": 0.82,
+            "certified": True,
+            "arc_label": "Hope Surge",
+            "alignment_score": 0.88,
+        },
+        {
+            "confidence": 0.75,
+            "certified": True,
+            "arc_label": "Stabilization",
+            "alignment_score": 0.76,
+        },
+        {
+            "confidence": 0.42,
+            "certified": False,
+            "arc_label": "Collapse Risk",
+            "alignment_score": 0.51,
+        },
     ]
     count = promote_to_memory(test_batch, dry_run=True)
     print(f"✅ {count} forecasts would be promoted (dry run)")

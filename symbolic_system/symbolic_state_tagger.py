@@ -34,13 +34,15 @@ from datetime import datetime, timezone
 from typing import Dict, Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+from forecast_output.forecast_tags import ForecastTag, get_tag_label
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
-from forecast_output.forecast_tags import ForecastTag, get_tag_label
 
 logger = get_logger(__name__)
 
 TAG_LOG_PATH = PATHS.get("SYMBOLIC_TAG_LOG", PATHS["WORLDSTATE_LOG_DIR"])
+
 
 def ensure_log_dir(path: str):
     try:
@@ -51,6 +53,7 @@ def ensure_log_dir(path: str):
     except Exception:
         return
 
+
 def normalize_overlays(overlays: Dict[str, float]) -> Dict[str, float]:
     base = {"hope": 0.5, "despair": 0.5, "rage": 0.5, "fatigue": 0.5}
     for k in base:
@@ -59,7 +62,10 @@ def normalize_overlays(overlays: Dict[str, float]) -> Dict[str, float]:
             base[k] = round(float(val), 4)
     return base
 
-def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn: Optional[int] = None) -> Dict:
+
+def tag_symbolic_state(
+    overlays: Dict[str, float], sim_id: str = "default", turn: Optional[int] = None
+) -> Dict:
     """
     Tags symbolic overlay state with a descriptive label.
     Returns structured tag data and writes to log file.
@@ -100,8 +106,8 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
         "metadata": {
             "version": "v0.30.1",
             "source": "symbolic_state_tagger.py",
-            "description": "Runtime symbolic state classification"
-        }
+            "description": "Runtime symbolic state classification",
+        },
     }
 
     ensure_log_dir(str(TAG_LOG_PATH))
@@ -117,12 +123,12 @@ def tag_symbolic_state(overlays: Dict[str, float], sim_id: str = "default", turn
 
     return result
 
+
 # Example usage
 if __name__ == "__main__":
-    example = tag_symbolic_state({
-        "hope": 0.75,
-        "despair": 0.2,
-        "rage": 0.3,
-        "fatigue": 0.25
-    }, sim_id="v30_demo", turn=1)
+    example = tag_symbolic_state(
+        {"hope": 0.75, "despair": 0.2, "rage": 0.3, "fatigue": 0.25},
+        sim_id="v30_demo",
+        turn=1,
+    )
     print(f"Symbolic Label: {example['symbolic_tag']}")

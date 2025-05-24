@@ -1,6 +1,7 @@
 """
 File system monitoring ingestion for Pulse (production-ready)
 """
+
 import os
 import time
 import json
@@ -19,22 +20,24 @@ ARCHIVE_DIR = os.getenv("PULSE_FS_ARCHIVE_DIR", "data/ingested")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pulse.ingest_fs")
 
+
 class SignalFileHandler(FileSystemEventHandler):
     def __init__(self, scraper):
         self.scraper = scraper
         os.makedirs(ARCHIVE_DIR, exist_ok=True)
+
     def on_created(self, event):
         if event.is_directory:
             return
         ext = os.path.splitext(event.src_path)[1].lower()
         try:
             if ext == ".json":
-                with open(event.src_path, 'r', encoding='utf-8') as f:
+                with open(event.src_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     celery_app.send_task("ingest_and_score_signal", args=[data])
                     logger.info(f"Submitted to Celery from file: {event.src_path}")
             elif ext == ".csv":
-                with open(event.src_path, 'r', encoding='utf-8') as f:
+                with open(event.src_path, "r", encoding="utf-8") as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         celery_app.send_task("ingest_and_score_signal", args=[row])
@@ -49,6 +52,7 @@ class SignalFileHandler(FileSystemEventHandler):
             logger.info(f"Archived file to: {archive_path}")
         except Exception as e:
             logger.error(f"File ingestion error for {event.src_path}: {e}")
+
 
 def monitor_directory(path=MONITOR_DIR):
     # Start Prometheus metrics server in a background thread
@@ -66,5 +70,6 @@ def monitor_directory(path=MONITOR_DIR):
         observer.stop()
     observer.join()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     monitor_directory()

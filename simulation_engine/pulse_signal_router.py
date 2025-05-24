@@ -20,7 +20,6 @@ from typing import Callable, Dict
 
 from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import adjust_overlay, adjust_capital
-from simulation_engine.variables.worldstate_variables import WorldstateVariables
 
 
 def _ai_panic(state):
@@ -31,6 +30,7 @@ def _ai_panic(state):
     except AttributeError:
         logging.error("State missing ai_policy_risk attribute.")
 
+
 def _fed_cut(state):
     try:
         state.variables.fed_funds_rate = max(0.0, state.variables.fed_funds_rate - 0.25)
@@ -40,36 +40,49 @@ def _fed_cut(state):
     adjust_capital(state, "spy", +400)
     adjust_capital(state, "msft", +200)
 
+
 def _crypto_crash(state):
     try:
-        state.variables.crypto_instability = min(1.0, state.variables.crypto_instability + 0.3)
+        state.variables.crypto_instability = min(
+            1.0, state.variables.crypto_instability + 0.3
+        )
     except AttributeError:
         logging.error("State missing crypto_instability attribute.")
     adjust_overlay(state, "despair", +0.02)
     adjust_capital(state, "ibit", -500)
 
+
 def _media_hope_surge(state):
     adjust_overlay(state, "hope", +0.03)
     try:
-        state.variables.media_sentiment_score = min(1.0, state.variables.media_sentiment_score + 0.2)
+        state.variables.media_sentiment_score = min(
+            1.0, state.variables.media_sentiment_score + 0.2
+        )
     except AttributeError:
         logging.error("State missing media_sentiment_score attribute.")
 
+
 def _energy_crisis(state):
     try:
-        state.variables.energy_price_index = min(1.0, state.variables.energy_price_index + 0.3)
+        state.variables.energy_price_index = min(
+            1.0, state.variables.energy_price_index + 0.3
+        )
     except AttributeError:
         logging.error("State missing energy_price_index attribute.")
     adjust_overlay(state, "fatigue", +0.02)
     adjust_capital(state, "nvda", -350)
 
+
 def _gov_trust_break(state):
     adjust_overlay(state, "trust", -0.03)
     adjust_overlay(state, "despair", +0.015)
     try:
-        state.variables.public_trust_level = max(0.0, state.variables.public_trust_level - 0.3)
+        state.variables.public_trust_level = max(
+            0.0, state.variables.public_trust_level - 0.3
+        )
     except AttributeError:
         logging.error("State missing public_trust_level attribute.")
+
 
 _signal_handlers: Dict[str, Callable] = {
     "ai_panic": _ai_panic,
@@ -83,6 +96,7 @@ _signal_handlers: Dict[str, Callable] = {
     "gov_trust_break": _gov_trust_break,
     "election_crisis": _gov_trust_break,
 }
+
 
 def route_signal(state: WorldState, signal: str) -> bool:
     """
@@ -110,9 +124,11 @@ def route_signal(state: WorldState, signal: str) -> bool:
         logging.warning(f"Unknown signal: {signal}")
         return False
 
+
 def _test_route_signal():
     # Use the actual WorldState class for type correctness
     from simulation_engine.worldstate import WorldState
+
     s = WorldState()
     # Set required variables for testing
     s.variables.ai_policy_risk = 0.0

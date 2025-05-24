@@ -1,15 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
+
 class TrustScoringStrategy(ABC):
     @abstractmethod
     def score(self, forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
         pass
 
+
 class DefaultTrustScoringStrategy(TrustScoringStrategy):
     """
     Default trust scoring logic, extracted from TrustEngine.
     """
+
     def score(self, forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
         from trust_system.trust_engine import compute_risk_score
         from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
@@ -38,7 +41,9 @@ class DefaultTrustScoringStrategy(TrustScoringStrategy):
                 curr_change = fcast.get("symbolic_change", {})
                 past_change = past.get("forecast", {}).get("symbolic_change", {})
                 if curr_change and past_change:
-                    common = set(curr_change.keys()).intersection(set(past_change.keys()))
+                    common = set(curr_change.keys()).intersection(
+                        set(past_change.keys())
+                    )
                     if common:
                         diff = sum(abs(curr_change[k] - past_change[k]) for k in common)
                         sim = 1.0 - min(diff / len(common), 1.0)
@@ -68,12 +73,14 @@ class DefaultTrustScoringStrategy(TrustScoringStrategy):
         novelty_weight = 0.1
 
         final_confidence = (
-            baseline_weight * baseline_confidence +
-            risk_weight * (1 - risk_score) +
-            historical_weight * historical_consistency +
-            novelty_weight * novelty_score
+            baseline_weight * baseline_confidence
+            + risk_weight * (1 - risk_score)
+            + historical_weight * historical_consistency
+            + novelty_weight * novelty_score
         )
         if USE_SYMBOLIC_OVERLAYS:
             final_confidence -= compute_symbolic_drift_penalty(forecast)
-        final_confidence = round(min(max(final_confidence, CONFIDENCE_THRESHOLD), 1.0), 3)
+        final_confidence = round(
+            min(max(final_confidence, CONFIDENCE_THRESHOLD), 1.0), 3
+        )
         return final_confidence

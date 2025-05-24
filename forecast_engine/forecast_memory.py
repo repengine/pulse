@@ -1,4 +1,4 @@
-""" 
+"""
 forecast_memory.py
 
 Archives forecast metadata snapshots for long-term memory and validation.
@@ -15,12 +15,10 @@ Future extensions:
 Author: Pulse v0.10
 """
 
-import os
-import json
-from datetime import datetime
 from typing import Dict, Any, Optional, List
 from core.pulse_config import MODULES_ENABLED
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
@@ -32,7 +30,9 @@ forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 logger = get_logger(__name__)
 
 
-def save_forecast_to_memory(forecast_id: str, metadata: Dict[str, Any], domain: Optional[str] = None) -> Dict[str, Any]:
+def save_forecast_to_memory(
+    forecast_id: str, metadata: Dict[str, Any], domain: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Stores a forecast and its metadata to memory.
 
@@ -43,15 +43,14 @@ def save_forecast_to_memory(forecast_id: str, metadata: Dict[str, Any], domain: 
     Returns:
         dict: The stored entry
     """
-    entry = {
-        "forecast_id": forecast_id,
-        "metadata": metadata,
-        "domain": domain
-    }
+    entry = {"forecast_id": forecast_id, "metadata": metadata, "domain": domain}
     forecast_memory.store(entry)
     return entry
 
-def load_forecast_history(limit: int = 10, domain_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+
+def load_forecast_history(
+    limit: int = 10, domain_filter: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """
     Loads up to N recent forecast memory entries.
 

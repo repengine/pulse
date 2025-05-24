@@ -12,14 +12,15 @@ Author: [Your Name]
 Date: 2025-04-24
 """
 
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Optional
 from intelligence.forecast_schema import ForecastSchema
 from pydantic import ValidationError
+
 
 def compute_symbolic_convergence_loss(
     pulse_output: ForecastSchema,
     gpt_output: ForecastSchema,
-    weights: Optional[Dict[str, float]] = None
+    weights: Optional[Dict[str, float]] = None,
 ) -> float:
     """
     Computes the symbolic convergence loss between Pulse and GPT outputs.
@@ -37,14 +38,21 @@ def compute_symbolic_convergence_loss(
             "symbolic_tag": 1.0,
             "capital_outcome": 1.0,
             "rule_trace": 1.0,
-            "trust_penalty": 1.0
+            "trust_penalty": 1.0,
         }
     loss = 0.0
-    loss += weights["symbolic_tag"] * delta(pulse_output.symbolic_tag, gpt_output.symbolic_tag)
-    loss += weights["capital_outcome"] * delta(pulse_output.capital_outcome, gpt_output.capital_outcome)
-    loss += weights["rule_trace"] * delta(pulse_output.rule_trace, gpt_output.rule_trace)
+    loss += weights["symbolic_tag"] * delta(
+        pulse_output.symbolic_tag, gpt_output.symbolic_tag
+    )
+    loss += weights["capital_outcome"] * delta(
+        pulse_output.capital_outcome, gpt_output.capital_outcome
+    )
+    loss += weights["rule_trace"] * delta(
+        pulse_output.rule_trace, gpt_output.rule_trace
+    )
     loss += weights["trust_penalty"] * delta(pulse_output.trust, gpt_output.trust)
     return loss
+
 
 def delta(a, b) -> float:
     """
@@ -79,9 +87,9 @@ def delta(a, b) -> float:
         return dist / max(len(keys), 1)
     return 1.0
 
+
 def decompose_loss_components(
-    pulse_output: ForecastSchema,
-    gpt_output: ForecastSchema
+    pulse_output: ForecastSchema, gpt_output: ForecastSchema
 ) -> Dict[str, float]:
     """
     Decomposes the symbolic convergence loss into its components.
@@ -95,24 +103,52 @@ def decompose_loss_components(
     """
     return {
         "symbolic_tag": delta(pulse_output.symbolic_tag, gpt_output.symbolic_tag),
-        "capital_outcome": delta(pulse_output.capital_outcome, gpt_output.capital_outcome),
+        "capital_outcome": delta(
+            pulse_output.capital_outcome, gpt_output.capital_outcome
+        ),
         "rule_trace": delta(pulse_output.rule_trace, gpt_output.rule_trace),
-        "trust_penalty": delta(pulse_output.trust, gpt_output.trust)
+        "trust_penalty": delta(pulse_output.trust, gpt_output.trust),
     }
+
 
 # Example usage (for testing)
 if __name__ == "__main__":
     # Example usage (for testing)
     # Create instances of ForecastSchema for testing
-    pulse_data = {"pulse_output": "...", "gpt_struct": "...", "gpt_output": "...", "pulse_domains": [], "pulse_rules": [], "symbolic_tag": "hope", "capital_outcome": 100, "rule_trace": [], "trust": 0.8}
-    gpt_data = {"pulse_output": "...", "gpt_struct": "...", "gpt_output": "...", "pulse_domains": [], "pulse_rules": [], "symbolic_tag": "despair", "capital_outcome": 90, "rule_trace": [], "trust": 0.6}
+    pulse_data = {
+        "pulse_output": "...",
+        "gpt_struct": "...",
+        "gpt_output": "...",
+        "pulse_domains": [],
+        "pulse_rules": [],
+        "symbolic_tag": "hope",
+        "capital_outcome": 100,
+        "rule_trace": [],
+        "trust": 0.8,
+    }
+    gpt_data = {
+        "pulse_output": "...",
+        "gpt_struct": "...",
+        "gpt_output": "...",
+        "pulse_domains": [],
+        "pulse_rules": [],
+        "symbolic_tag": "despair",
+        "capital_outcome": 90,
+        "rule_trace": [],
+        "trust": 0.6,
+    }
 
     try:
         pulse_forecast = ForecastSchema(**pulse_data)
         gpt_forecast = ForecastSchema(**gpt_data)
 
-        print("Total Loss:", compute_symbolic_convergence_loss(pulse_forecast, gpt_forecast))
-        print("Loss Components:", decompose_loss_components(pulse_forecast, gpt_forecast))
+        print(
+            "Total Loss:",
+            compute_symbolic_convergence_loss(pulse_forecast, gpt_forecast),
+        )
+        print(
+            "Loss Components:", decompose_loss_components(pulse_forecast, gpt_forecast)
+        )
 
     except ValidationError as e:
         print(f"Example data validation failed: {e}")

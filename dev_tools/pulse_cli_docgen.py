@@ -13,12 +13,14 @@ Usage:
 - Prints a summary of the number of hooks per category
 - Handles missing or malformed config files
 """
+
 import json
 import argparse
+from typing import Dict, List
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from typing import Dict, List
 
 CONFIG = "dev_tools/pulse_hooks_config.json"
 DEFAULT_OUTFILE = str(PATHS["CLI_DOC"])
@@ -26,6 +28,7 @@ DEFAULT_OUTFILE = str(PATHS["CLI_DOC"])
 logger = get_logger(__name__)
 
 ALL_CATEGORIES = ["suite", "batch", "test", "tool"]
+
 
 def generate_cli_doc(outfile: str = DEFAULT_OUTFILE, mode_type: str = "all") -> None:
     """
@@ -35,7 +38,7 @@ def generate_cli_doc(outfile: str = DEFAULT_OUTFILE, mode_type: str = "all") -> 
         mode_type (str): Filter by mode type (suite, batch, test, tool, all)
     """
     try:
-        with open(CONFIG, 'r', encoding='utf-8') as f:
+        with open(CONFIG, "r", encoding="utf-8") as f:
             config = json.load(f)
     except Exception as e:
         logger.error(f"[DocGen] Failed to load hook config: {e}")
@@ -46,7 +49,7 @@ def generate_cli_doc(outfile: str = DEFAULT_OUTFILE, mode_type: str = "all") -> 
         "# 🧭 Pulse CLI Reference",
         "",
         "Below are all available auto-hooked CLI tools, grouped by category.",
-        ""
+        "",
     ]
 
     categories: Dict[str, List] = {cat: [] for cat in ALL_CATEGORIES}
@@ -69,7 +72,7 @@ def generate_cli_doc(outfile: str = DEFAULT_OUTFILE, mode_type: str = "all") -> 
         lines.append("")
 
     try:
-        with open(outfile, "w", encoding='utf-8') as f:
+        with open(outfile, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
         print(f"✅ CLI reference generated: {outfile}")
         print(f"Summary: {total_hooks} hooks documented.")
@@ -77,9 +80,18 @@ def generate_cli_doc(outfile: str = DEFAULT_OUTFILE, mode_type: str = "all") -> 
         logger.error(f"[DocGen] Failed to write CLI doc: {e}")
         print(f"[DocGen] Error: Could not write CLI doc to {outfile}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse CLI DocGen")
-    parser.add_argument("--outfile", type=str, default=DEFAULT_OUTFILE, help="Output markdown file path")
-    parser.add_argument("--type", type=str, default="all", choices=ALL_CATEGORIES + ["all"], help="Filter by mode type")
+    parser.add_argument(
+        "--outfile", type=str, default=DEFAULT_OUTFILE, help="Output markdown file path"
+    )
+    parser.add_argument(
+        "--type",
+        type=str,
+        default="all",
+        choices=ALL_CATEGORIES + ["all"],
+        help="Filter by mode type",
+    )
     args = parser.parse_args()
     generate_cli_doc(outfile=args.outfile, mode_type=args.type)

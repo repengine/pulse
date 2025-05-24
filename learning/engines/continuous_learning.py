@@ -4,10 +4,12 @@ ContinuousLearningEngine
 Supports online/meta-learning and real-time trust weight updates.
 """
 
+
 class ContinuousLearningEngine:
     """
     Engine for continuous/online learning and trust weight updates.
     """
+
     def update_trust_weights(self, data):
         """
         Update trust weights based on new data.
@@ -21,6 +23,7 @@ class ContinuousLearningEngine:
             return {"status": "success", "updated": True}
         except Exception as e:
             return {"status": "error", "error": str(e)}
+
 
 if __name__ == "__main__":
     engine = ContinuousLearningEngine()

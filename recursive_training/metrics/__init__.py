@@ -1,7 +1,7 @@
 """
 Recursive Training Metrics Module
 
-This module provides metrics tracking and monitoring capabilities for the 
+This module provides metrics tracking and monitoring capabilities for the
 recursive training system. It includes components for storing, retrieving,
 and analyzing metrics data, as well as integration with Pulse's trust system.
 
@@ -19,5 +19,5 @@ __all__ = [
     "MetricsStore",
     "get_metrics_store",
     "RecursiveTrainingMetrics",
-    "BayesianAdapter"
+    "BayesianAdapter",
 ]

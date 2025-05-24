@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest signal log to per-turn WorldState snapshots."""
+
 import argparse
-import json
 import os
 
 from simulation_engine.worldstate import WorldState
@@ -9,8 +9,13 @@ from core.variable_accessor import set_variable
 from simulation_engine.utils.worldstate_io import save_worldstate_to_file
 
 from iris.iris_plugins import IrisPluginManager
+
 # Import the historical_ingestion_plugin module directly
-from iris.iris_plugins_variable_ingestion import historical_ingestion_plugin, HISTORY_SNAPSHOT_PREFIX
+from iris.iris_plugins_variable_ingestion import (
+    historical_ingestion_plugin,
+    HISTORY_SNAPSHOT_PREFIX,
+)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -18,10 +23,11 @@ def parse_args():
     )
     parser.add_argument(
         "--output-dir",
-        default="snapshots", # Default to snapshots directory
-        help="Directory to write historical WorldState snapshots."
+        default="snapshots",  # Default to snapshots directory
+        help="Directory to write historical WorldState snapshots.",
     )
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -42,7 +48,9 @@ def main():
             break
 
     if historical_plugin_fn is None:
-        print("Error: historical_ingestion_plugin function not found in loaded plugins.")
+        print(
+            "Error: historical_ingestion_plugin function not found in loaded plugins."
+        )
         return
 
     # Run the historical ingestion plugin to get the timeline of signals
@@ -69,6 +77,7 @@ def main():
             print(f"Generated {turn} snapshots...")
 
     print("Historical snapshot generation complete.")
+
 
 if __name__ == "__main__":
     main()

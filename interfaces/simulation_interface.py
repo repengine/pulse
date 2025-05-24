@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
+
 class SimulationInterface(ABC):
     @abstractmethod
     def reset_state(self, state: Any) -> None:
@@ -35,5 +36,11 @@ class SimulationInterface(ABC):
         pass
 
     @abstractmethod
-    def reverse_rule_engine(self, state: Any, overlays: Dict[str, float], variables: Dict[str, float], step: int = 1):
+    def reverse_rule_engine(
+        self,
+        state: Any,
+        overlays: Dict[str, float],
+        variables: Dict[str, float],
+        step: int = 1,
+    ):
         pass

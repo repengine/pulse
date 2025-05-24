@@ -1,6 +1,7 @@
 import os
 import ast
 
+
 class FullPhantomScanner:
     def __init__(self, root_dir):
         self.root_dir = root_dir
@@ -10,7 +11,7 @@ class FullPhantomScanner:
     def scan(self):
         for dirpath, dirnames, filenames in os.walk(self.root_dir):
             # Ignore hidden directories
-            dirnames[:] = [d for d in dirnames if not d.startswith('.')]
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
             for filename in filenames:
                 if filename.endswith(".py"):
                     self._process_file(os.path.join(dirpath, filename))
@@ -43,11 +44,12 @@ class FullPhantomScanner:
         print(f"Total Functions Defined: {len(self.defined_functions)}")
         print(f"Total Functions Called: {len(self.called_functions)}")
         if missing:
-            print(f"\n❌ Potential Phantoms (no local definition or import seen):")
+            print("\n❌ Potential Phantoms (no local definition or import seen):")
             for name in sorted(missing):
                 print(f" - {name}()")
         else:
             print("\n✅ No phantom calls detected (locally).")
+
 
 if __name__ == "__main__":
     project_path = input("Enter path to Pulse project root: ").strip().strip('"')

@@ -7,14 +7,21 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 LOG_FILE_PATH = str(PATHS.get("LOG_FILE", "logs/pulse.log"))
 
-DEFAULT_LOG_FORMAT = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+DEFAULT_LOG_FORMAT = "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
 
 
-def get_logger(name, level=logging.INFO, log_to_file: bool = True, max_bytes: int = 5_000_000, backup_count: int = 3):
+def get_logger(
+    name,
+    level=logging.INFO,
+    log_to_file: bool = True,
+    max_bytes: int = 5_000_000,
+    backup_count: int = 3,
+):
     """
     Returns a configured logger with standardized format and optional log rotation.
     Args:
@@ -35,7 +42,10 @@ def get_logger(name, level=logging.INFO, log_to_file: bool = True, max_bytes: in
         if log_to_file:
             os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
             file_handler = RotatingFileHandler(
-                LOG_FILE_PATH, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
+                LOG_FILE_PATH,
+                maxBytes=max_bytes,
+                backupCount=backup_count,
+                encoding="utf-8",
             )
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)

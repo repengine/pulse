@@ -19,12 +19,14 @@ pfpa_memory = ForecastMemory()
 
 TRUST_UPDATE_PLUGINS: List[Callable[[Dict[str, float]], None]] = []
 
+
 def register_trust_update_plugin(plugin_fn: Callable[[Dict[str, float]], None]) -> None:
     """
     Register a plugin function for post-update actions.
     Plugin signature: plugin_fn(weights: Dict[str, float]) -> None
     """
     TRUST_UPDATE_PLUGINS.append(plugin_fn)
+
 
 def run_trust_update_plugins(weights: Dict[str, float]) -> None:
     """
@@ -36,9 +38,11 @@ def run_trust_update_plugins(weights: Dict[str, float]) -> None:
         except Exception as e:
             logger.warning(f"[TrustUpdate] Plugin {plugin.__name__} failed: {e}")
 
+
 def get_pfpa_archive() -> List[Dict]:
     """Return the most recent 100 forecasts from PFPA memory."""
     return pfpa_memory.get_recent(100)
+
 
 def update_trust_weights_from_retrodiction() -> Dict[str, float]:
     """
@@ -75,11 +79,14 @@ def update_trust_weights_from_retrodiction() -> Dict[str, float]:
             weights[tid] = base
             explanations[tid] = f"Neutral retrodiction ({retro:.2f}); base weight kept."
 
-    logger.info(f"[TrustUpdate] Updated {len(weights)} trust weights from PFPA archive.")
+    logger.info(
+        f"[TrustUpdate] Updated {len(weights)} trust weights from PFPA archive."
+    )
     for tid, w in weights.items():
         logger.debug(f"[TrustUpdate] {tid} → weight: {w:.2f} | {explanations[tid]}")
     run_trust_update_plugins(weights)
     return weights
+
 
 def simulate_weight_report() -> None:
     """
@@ -88,6 +95,7 @@ def simulate_weight_report() -> None:
     weights = update_trust_weights_from_retrodiction()
     for tid, w in weights.items():
         print(f"[MEMORY] {tid} → weight: {w:.2f}")
+
 
 # --- Unit test for trust update logic ---
 def _test_update_trust_weights_from_retrodiction():
@@ -105,6 +113,7 @@ def _test_update_trust_weights_from_retrodiction():
     assert abs(weights["t3"] - 0.6) < 1e-6
     assert abs(weights["t4"] - 0.5) < 1e-6
     print("✅ trust_update unit test passed.")
+
 
 if __name__ == "__main__":
     simulate_weight_report()

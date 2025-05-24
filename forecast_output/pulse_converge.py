@@ -74,9 +74,24 @@ def export_converged_narrative(consensus: Dict, path: str):
 
 def _test_pulse_converge():
     dummy = [
-        {"arc_label": "Hope Surge", "alignment_score": 0.8, "confidence": 0.7, "trace_id": "a"},
-        {"arc_label": "Hope Surge", "alignment_score": 0.7, "confidence": 0.6, "trace_id": "b"},
-        {"arc_label": "Collapse Risk", "alignment_score": 0.4, "confidence": 0.4, "trace_id": "c"},
+        {
+            "arc_label": "Hope Surge",
+            "alignment_score": 0.8,
+            "confidence": 0.7,
+            "trace_id": "a",
+        },
+        {
+            "arc_label": "Hope Surge",
+            "alignment_score": 0.7,
+            "confidence": 0.6,
+            "trace_id": "b",
+        },
+        {
+            "arc_label": "Collapse Risk",
+            "alignment_score": 0.4,
+            "confidence": 0.4,
+            "trace_id": "c",
+        },
     ]
     consensus = converge_forecast_cluster(dummy)
     assert consensus["consensus_symbol"] == "Hope Surge"

@@ -12,16 +12,17 @@ All rule access should use get_all_rule_fingerprints from rule_matching_utils.
 """
 
 import json
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints
+
 
 def match_forecast_to_rules(forecast: Dict, rules: Dict) -> List[Dict]:
     """
-    Score all rules against a single forecast.
-    Returns ranked list of rule matches
-# Use centralized get_all_rule_fingerprints for all rule access
+        Score all rules against a single forecast.
+        Returns ranked list of rule matches
+    # Use centralized get_all_rule_fingerprints for all rule access
 
-"""
+    """
     trigger = forecast.get("trigger", forecast.get("alignment", {}))
     outcome = forecast.get("forecast", {}).get("symbolic_change", {})
     score_list = []
@@ -46,15 +47,18 @@ def match_forecast_to_rules(forecast: Dict, rules: Dict) -> List[Dict]:
 
         if total > 0:
             confidence = round(match_count / total, 3)
-            score_list.append({
-                "rule_id": rule_id,
-                "trigger_matches": match_count,
-                "total_fields": total,
-                "confidence": confidence,
-                "description": rule.get("description", "")
-            })
+            score_list.append(
+                {
+                    "rule_id": rule_id,
+                    "trigger_matches": match_count,
+                    "total_fields": total,
+                    "confidence": confidence,
+                    "description": rule.get("description", ""),
+                }
+            )
 
     return sorted(score_list, key=lambda x: -x["confidence"])
+
 
 def explain_forecast(forecast: Dict, rules: Dict) -> Dict:
     """
@@ -64,25 +68,36 @@ def explain_forecast(forecast: Dict, rules: Dict) -> Dict:
     return {
         "trace_id": forecast.get("trace_id"),
         "symbolic_tag": forecast.get("symbolic_tag"),
-        "top_rules": top_rules
+        "top_rules": top_rules,
     }
+
 
 def load_rule_fingerprints(rule_file=None):
     if rule_file:
         with open(rule_file, "r") as f:
             rules = json.load(f)
-        return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(rules) if r.get("effects") or r.get("effect")}
+        return {
+            r.get("rule_id", r.get("id", str(i))): r
+            for i, r in enumerate(rules)
+            if r.get("effects") or r.get("effect")
+        }
     else:
         # Use centralized get_all_rule_fingerprints
-        return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
+        return {
+            r.get("rule_id", r.get("id", str(i))): r
+            for i, r in enumerate(get_all_rule_fingerprints())
+        }
+
 
 def explain_forecast_batch(forecasts: List[Dict], rule_file=None) -> List[Dict]:
     rules = load_rule_fingerprints(rule_file)
     return [explain_forecast(f, rules) for f in forecasts]
 
+
 # CLI
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Pulse Rule Explainer CLI")
     parser.add_argument("--file", required=True, help="Forecast batch (.jsonl)")
     args = parser.parse_args()
@@ -92,7 +107,7 @@ if __name__ == "__main__":
         for line in f:
             try:
                 forecasts.append(json.loads(line.strip()))
-            except:
+            except Exception:
                 continue
 
     explanations = explain_forecast_batch(forecasts)

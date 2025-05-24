@@ -14,18 +14,27 @@ Version: 0.42
 import sys
 import json
 import argparse
-from typing import Any, Dict, List, Set, Optional
+from typing import Any, Dict, List, Set
 from intelligence.intelligence_core import IntelligenceCore
 from intelligence.function_router import FunctionRouter
 from intelligence.simulation_executor import SimulationExecutor
 from intelligence.intelligence_observer import Observer
 from intelligence.upgrade_sandbox_manager import UpgradeSandboxManager
 
+
 class IntelligenceShell:
     """
     Command-line interface for interacting with the Pulse Intelligence Core.
     """
-    verbs: Set[str] = {"forecast", "compress", "retrodict", "train-gpt", "status", "exit"}
+
+    verbs: Set[str] = {
+        "forecast",
+        "compress",
+        "retrodict",
+        "train-gpt",
+        "status",
+        "exit",
+    }
 
     def __init__(self) -> None:
         """
@@ -42,7 +51,7 @@ class IntelligenceShell:
             router=self.router,
             executor=self.executor,
             observer=self.observer,
-            sandbox=self.sandbox
+            sandbox=self.sandbox,
         )
         self.core.load_standard_modules()
 
@@ -52,35 +61,76 @@ class IntelligenceShell:
         corresponding intelligence core function.
         """
         parser = argparse.ArgumentParser(prog="pulse")
-        subparsers = parser.add_subparsers(dest="verb", required=True, help="Available verbs")
+        subparsers = parser.add_subparsers(
+            dest="verb", required=True, help="Available verbs"
+        )
 
         # forecast verb
-        forecast_parser: argparse.ArgumentParser = subparsers.add_parser("forecast", help="Run forecast cycle")
-        forecast_parser.add_argument("--start-year", type=int, default=2023, help="Starting year for forecast")
-        forecast_parser.add_argument("--turns", type=int, default=52, help="Number of turns to forecast")
-        forecast_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        forecast_parser: argparse.ArgumentParser = subparsers.add_parser(
+            "forecast", help="Run forecast cycle"
+        )
+        forecast_parser.add_argument(
+            "--start-year", type=int, default=2023, help="Starting year for forecast"
+        )
+        forecast_parser.add_argument(
+            "--turns", type=int, default=52, help="Number of turns to forecast"
+        )
+        forecast_parser.add_argument(
+            "--args", type=str, help="Override arguments as JSON object"
+        )
 
         # compress verb
-        compress_parser: argparse.ArgumentParser = subparsers.add_parser("compress", help="Compress forecasts")
-        compress_parser.add_argument("--input-file", required=True, help="Path to input forecasts file")
-        compress_parser.add_argument("--output-file", required=True, help="Path to output compressed file")
-        compress_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        compress_parser: argparse.ArgumentParser = subparsers.add_parser(
+            "compress", help="Compress forecasts"
+        )
+        compress_parser.add_argument(
+            "--input-file", required=True, help="Path to input forecasts file"
+        )
+        compress_parser.add_argument(
+            "--output-file", required=True, help="Path to output compressed file"
+        )
+        compress_parser.add_argument(
+            "--args", type=str, help="Override arguments as JSON object"
+        )
 
         # retrodict verb
-        retrodict_parser: argparse.ArgumentParser = subparsers.add_parser("retrodict", help="Run retrodiction cycle")
-        retrodict_parser.add_argument("--start-date", type=str, default="2017-01-01", help="Start date for retrodiction (YYYY-MM-DD)")
-        retrodict_parser.add_argument("--days", type=int, default=30, help="Number of days to retrodict")
-        retrodict_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        retrodict_parser: argparse.ArgumentParser = subparsers.add_parser(
+            "retrodict", help="Run retrodiction cycle"
+        )
+        retrodict_parser.add_argument(
+            "--start-date",
+            type=str,
+            default="2017-01-01",
+            help="Start date for retrodiction (YYYY-MM-DD)",
+        )
+        retrodict_parser.add_argument(
+            "--days", type=int, default=30, help="Number of days to retrodict"
+        )
+        retrodict_parser.add_argument(
+            "--args", type=str, help="Override arguments as JSON object"
+        )
 
         # train-gpt verb
-        train_parser: argparse.ArgumentParser = subparsers.add_parser("train-gpt", help="Run GPT training cycle")
-        train_parser.add_argument("--dataset-path", type=str, required=True, help="Path to training dataset")
-        train_parser.add_argument("--epochs", type=int, default=1, help="Number of training epochs")
-        train_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        train_parser: argparse.ArgumentParser = subparsers.add_parser(
+            "train-gpt", help="Run GPT training cycle"
+        )
+        train_parser.add_argument(
+            "--dataset-path", type=str, required=True, help="Path to training dataset"
+        )
+        train_parser.add_argument(
+            "--epochs", type=int, default=1, help="Number of training epochs"
+        )
+        train_parser.add_argument(
+            "--args", type=str, help="Override arguments as JSON object"
+        )
 
         # status verb
-        status_parser: argparse.ArgumentParser = subparsers.add_parser("status", help="Generate status report")
-        status_parser.add_argument("--args", type=str, help="Override arguments as JSON object")
+        status_parser: argparse.ArgumentParser = subparsers.add_parser(
+            "status", help="Generate status report"
+        )
+        status_parser.add_argument(
+            "--args", type=str, help="Override arguments as JSON object"
+        )
 
         # exit verb
         subparsers.add_parser("exit", help="Exit the shell")
@@ -118,14 +168,19 @@ class IntelligenceShell:
             if verb == "forecast":
                 log_path: str = "gpt_forecast_divergence_log.jsonl"
                 print(f"[IntelligenceShell] Observing divergence log at {log_path}")
-                divergences: List[Dict[str, Any]] = self.core.observer.observe_simulation_outputs(log_path)
-                print(f"[IntelligenceShell] Loaded {len(divergences)} divergence entries.")
+                divergences: List[Dict[str, Any]] = (
+                    self.core.observer.observe_simulation_outputs(log_path)
+                )
+                print(
+                    f"[IntelligenceShell] Loaded {len(divergences)} divergence entries."
+                )
 
             sys.exit(0)
         except Exception as e:
             error: Dict[str, str] = {"error": str(e)}
             print(json.dumps(error))
             sys.exit(1)
+
 
 if __name__ == "__main__":
     IntelligenceShell().run_cli()

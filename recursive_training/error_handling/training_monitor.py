@@ -8,6 +8,7 @@ Provides real-time alerts and integrates with error handling and recovery.
 import logging
 from typing import Any, Dict, Optional, Callable
 
+
 class RecursiveTrainingMonitor:
     """
     Monitors recursive training runs for errors, metric anomalies, and alert thresholds.
@@ -16,11 +17,9 @@ class RecursiveTrainingMonitor:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.logger = logging.getLogger("RecursiveTrainingMonitor")
-        self.alert_thresholds = self.config.get("alert_thresholds", {
-            "mse": 1.0,
-            "uncertainty": 0.5,
-            "drift": True
-        })
+        self.alert_thresholds = self.config.get(
+            "alert_thresholds", {"mse": 1.0, "uncertainty": 0.5, "drift": True}
+        )
         self.alert_callback: Optional[Callable[[str, Dict[str, Any]], None]] = None
         self.last_alert = None
 
@@ -33,7 +32,9 @@ class RecursiveTrainingMonitor:
         """
         self.alert_callback = callback
 
-    def monitor_metrics(self, metrics: Dict[str, Any], context: Optional[Dict[str, Any]] = None):
+    def monitor_metrics(
+        self, metrics: Dict[str, Any], context: Optional[Dict[str, Any]] = None
+    ):
         """
         Checks metrics for threshold violations and triggers alerts if needed.
 
@@ -50,7 +51,9 @@ class RecursiveTrainingMonitor:
 
         # Check uncertainty threshold
         uncertainty = metrics.get("uncertainty", {}).get("mean")
-        if uncertainty is not None and uncertainty > self.alert_thresholds.get("uncertainty", float("inf")):
+        if uncertainty is not None and uncertainty > self.alert_thresholds.get(
+            "uncertainty", float("inf")
+        ):
             alerts.append(("uncertainty_threshold", {"uncertainty": uncertainty}))
 
         # Check drift detection
@@ -61,7 +64,12 @@ class RecursiveTrainingMonitor:
         for alert_type, alert_context in alerts:
             self.trigger_alert(alert_type, alert_context, context)
 
-    def trigger_alert(self, alert_type: str, alert_context: Dict[str, Any], context: Optional[Dict[str, Any]] = None):
+    def trigger_alert(
+        self,
+        alert_type: str,
+        alert_context: Dict[str, Any],
+        context: Optional[Dict[str, Any]] = None,
+    ):
         """
         Triggers an alert and calls the alert callback if set.
 

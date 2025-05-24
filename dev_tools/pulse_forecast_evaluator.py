@@ -16,8 +16,7 @@ Version: v0.5.2
 import argparse
 import json
 import os
-from typing import List, Dict, Union
-import math
+from typing import List, Dict
 
 
 def load_trace(path: str) -> List[Dict]:
@@ -40,7 +39,9 @@ def load_trace(path: str) -> List[Dict]:
         return []
 
 
-def mse_forecast_vs_real(real: List[Dict], forecast: List[Dict], key: str, mode: str = "variables") -> float:
+def mse_forecast_vs_real(
+    real: List[Dict], forecast: List[Dict], key: str, mode: str = "variables"
+) -> float:
     """
     Compute mean squared error between variable/overlay values over time.
 
@@ -88,7 +89,9 @@ def tag_alignment_score(real: List[Dict], forecast: List[Dict]) -> float:
     return round((matches / total) * 100, 2) if total else 0.0
 
 
-def evaluate_forecast(real_path: str, forecast_path: str, variable: str = "hope", mode: str = "overlays") -> Dict:
+def evaluate_forecast(
+    real_path: str, forecast_path: str, variable: str = "hope", mode: str = "overlays"
+) -> Dict:
     """
     Perform overall comparison and score forecast accuracy.
 
@@ -100,20 +103,38 @@ def evaluate_forecast(real_path: str, forecast_path: str, variable: str = "hope"
     return {
         "mse_variable": mse_forecast_vs_real(real, forecast, key=variable, mode=mode),
         "tag_alignment_percent": tag_alignment_score(real, forecast),
-        "steps_compared": min(len(real), len(forecast))
+        "steps_compared": min(len(real), len(forecast)),
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Forecast Evaluator")
-    parser.add_argument("--real", required=True, help="Path to real world trace (.jsonl)")
-    parser.add_argument("--forecast", required=True, help="Path to Pulse forecast trace (.jsonl)")
-    parser.add_argument("--var", type=str, default="hope", help="Variable/overlay to compare (default: hope)")
-    parser.add_argument("--mode", choices=["variables", "overlays"], default="overlays", help="Data mode")
-    parser.add_argument("--export", type=str, help="Optional: path to save results (JSON)")
+    parser.add_argument(
+        "--real", required=True, help="Path to real world trace (.jsonl)"
+    )
+    parser.add_argument(
+        "--forecast", required=True, help="Path to Pulse forecast trace (.jsonl)"
+    )
+    parser.add_argument(
+        "--var",
+        type=str,
+        default="hope",
+        help="Variable/overlay to compare (default: hope)",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["variables", "overlays"],
+        default="overlays",
+        help="Data mode",
+    )
+    parser.add_argument(
+        "--export", type=str, help="Optional: path to save results (JSON)"
+    )
     args = parser.parse_args()
 
-    result = evaluate_forecast(args.real, args.forecast, variable=args.var, mode=args.mode)
+    result = evaluate_forecast(
+        args.real, args.forecast, variable=args.var, mode=args.mode
+    )
 
     print("\n📊 Forecast Evaluation Summary:")
     for k, v in result.items():

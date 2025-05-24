@@ -7,7 +7,11 @@ Usage:
     python -m capital_engine.capital_layer_cli
 """
 
-from capital_engine.capital_layer import run_shortview_forecast, summarize_exposure, portfolio_alignment_tags
+from capital_engine.capital_layer import (
+    run_shortview_forecast,
+    summarize_exposure,
+    portfolio_alignment_tags,
+)
 from simulation_engine.worldstate import WorldState
 
 # Dummy worldstate values for testing
@@ -18,7 +22,7 @@ mock_vars = {
     "trust": 0.7,
     "rage": 0.1,
     "inflation_index": 0.03,
-    "market_volatility_index": 0.4
+    "market_volatility_index": 0.4,
 }
 
 if __name__ == "__main__":

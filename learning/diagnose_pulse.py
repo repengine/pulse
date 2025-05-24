@@ -8,7 +8,10 @@ Author: Pulse v3.5
 """
 
 from simulation_engine.worldstate import WorldState
-from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_fragility_index
+from symbolic_system.symbolic_utils import (
+    get_overlay_snapshot,
+    symbolic_fragility_index,
+)
 from capital_engine.capital_layer import summarize_exposure, exposure_percentages
 from typing import Dict, Any
 from utils.log_utils import get_logger
@@ -52,7 +55,7 @@ def run_diagnostics() -> Dict[str, Any]:
 
     print("\nExposure % Breakdown:")
     for asset, pct in report["capital_percentages"].items():
-        print(f"  {asset.upper():<5} : {pct*100:.2f}%")
+        print(f"  {asset.upper():<5} : {pct * 100:.2f}%")
 
     return report
 

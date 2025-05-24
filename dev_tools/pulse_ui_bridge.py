@@ -31,7 +31,12 @@ def generate_markdown_brief(report_path: str, out_path: str = "pulse_brief.md") 
     try:
         with open(report_path, "r") as f:
             data = json.load(f)
-        required_keys = ["confidence_delta", "retrodiction_error_delta", "trust_distribution_current", "arc_shift_summary"]
+        required_keys = [
+            "confidence_delta",
+            "retrodiction_error_delta",
+            "trust_distribution_current",
+            "arc_shift_summary",
+        ]
         if not all(k in data for k in required_keys):
             raise ValueError("Missing one or more required keys in audit report.")
 
@@ -39,7 +44,9 @@ def generate_markdown_brief(report_path: str, out_path: str = "pulse_brief.md") 
             f.write("# 🧠 Pulse Operator Brief\n\n")
             f.write("## 🔄 Recursive Forecast Audit\n")
             f.write(f"- Confidence Delta: `{data.get('confidence_delta')}`\n")
-            f.write(f"- Retrodiction Error Delta: `{data.get('retrodiction_error_delta')}`\n")
+            f.write(
+                f"- Retrodiction Error Delta: `{data.get('retrodiction_error_delta')}`\n"
+            )
             f.write("\n### Trust Label Distribution\n")
             for label, count in data.get("trust_distribution_current", {}).items():
                 f.write(f"- {label}: {count}\n")
@@ -51,7 +58,9 @@ def generate_markdown_brief(report_path: str, out_path: str = "pulse_brief.md") 
         return f"❌ Failed to generate brief: {e}"
 
 
-def run_variable_graph(path: str, variables: list, export_path: Optional[str] = None) -> str:
+def run_variable_graph(
+    path: str, variables: list, export_path: Optional[str] = None
+) -> str:
     """Plot one or more variables from a history trace."""
     try:
         if not os.path.exists(path):
@@ -66,6 +75,7 @@ def run_variable_graph(path: str, variables: list, export_path: Optional[str] = 
 
 
 # Optional: hookable UI helpers
+
 
 def prompt_and_run_audit(log):
     prev = filedialog.askopenfilename(title="Select previous forecast .jsonl")
@@ -93,9 +103,15 @@ def prompt_and_plot_variables(log):
     file = filedialog.askopenfilename(title="Select variable history trace")
     if not file:
         return
-    var = simpledialog.askstring("Variable(s)", "Enter variable(s) to plot (comma separated):")
+    var = simpledialog.askstring(
+        "Variable(s)", "Enter variable(s) to plot (comma separated):"
+    )
     if not var:
         return
-    export = filedialog.asksaveasfilename(defaultextension=".png", title="Export graph image (optional)")
-    result = run_variable_graph(file, [v.strip() for v in var.split(",")], export_path=export or None)
+    export = filedialog.asksaveasfilename(
+        defaultextension=".png", title="Export graph image (optional)"
+    )
+    result = run_variable_graph(
+        file, [v.strip() for v in var.split(",")], export_path=export or None
+    )
     log(result)

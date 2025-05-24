@@ -7,28 +7,33 @@ Supports symbolic tagging, replay, and integration with PFPA trust scoring.
 """
 
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
+import os
+import json
+import re
 from typing import List, Dict, Optional
-
-# 🧩 Import license enforcement utilities for use in memory/export flows
-from trust_system.license_enforcer import annotate_forecasts, filter_licensed
-from core.pulse_learning_log import log_learning_event
 from datetime import datetime
-
+from core.pulse_learning_log import log_learning_event
 from utils.log_utils import get_logger
+
 logger = get_logger(__name__)
 
 BLOCKED_MEMORY_LOG = "logs/blocked_memory_log.jsonl"
+
 
 class ForecastMemory:
     """
     Unified forecast storage and retrieval.
     Supports memory limit enforcement and pruning of unused/old entries.
     """
+
     MAX_MEMORY_ENTRIES: int = 1000  # Default maximum number of forecasts to retain
 
-    def __init__(self, persist_dir: Optional[str] = None, max_entries: Optional[int] = None):
+    def __init__(
+        self, persist_dir: Optional[str] = None, max_entries: Optional[int] = None
+    ):
         """
         Args:
             persist_dir: Directory to persist forecasts. Defaults to PATHS["FORECAST_HISTORY"].
@@ -50,27 +55,40 @@ class ForecastMemory:
         Ensures that forecast_id is always present and is a string (UUID or fallback).
         This prevents downstream errors where a numeric ID is assumed.
         """
-        import re
-        import uuid
         # Type validation: Only allow dict-like objects
         if not isinstance(forecast_obj, dict):
-            logger.warning(f"Attempted to store non-dictionary forecast of type {type(forecast_obj)}. Skipping.")
+            logger.warning(
+                f"Attempted to store non-dictionary forecast of type {type(forecast_obj)}. Skipping."
+            )
             return
 
         # Ensure numeric values are properly typed
-        for numeric_field in ['confidence', 'fragility', 'priority', 'retrodiction_score']:
+        for numeric_field in [
+            "confidence",
+            "fragility",
+            "priority",
+            "retrodiction_score",
+        ]:
             if numeric_field in forecast_obj:
                 val = forecast_obj[numeric_field]
                 # Check if it looks like a UUID string
-                uuid_like = isinstance(val, str) and re.match(r"^[0-9a-fA-F-]{32,36}$", str(val))
+                uuid_like = isinstance(val, str) and re.match(
+                    r"^[0-9a-fA-F-]{32,36}$", str(val)
+                )
                 if uuid_like:
-                    logger.warning(f"UUID-like string in numeric field {numeric_field}: {val}. Setting to 0.0")
+                    logger.warning(
+                        f"UUID-like string in numeric field {numeric_field}: {val}. Setting to 0.0"
+                    )
                     forecast_obj[numeric_field] = 0.0
                 else:
                     try:
-                        forecast_obj[numeric_field] = float(val) if val is not None else 0.0
+                        forecast_obj[numeric_field] = (
+                            float(val) if val is not None else 0.0
+                        )
                     except (ValueError, TypeError):
-                        logger.warning(f"Invalid value for {numeric_field}: {val}. Using 0.0")
+                        logger.warning(
+                            f"Invalid value for {numeric_field}: {val}. Using 0.0"
+                        )
                         forecast_obj[numeric_field] = 0.0
 
         # Ensure forecast_id is present and is a string (UUID or fallback)
@@ -87,17 +105,20 @@ class ForecastMemory:
             "[Forecast Pipeline] Storing forecast in memory: type=%s, keys=%s, sample=%s",
             type(forecast_obj),
             list(forecast_obj.keys())[:5],
-            {k: forecast_obj[k] for k in list(forecast_obj.keys())[:3]}
+            {k: forecast_obj[k] for k in list(forecast_obj.keys())[:3]},
         )
         self._memory.append(forecast_obj)
         self._enforce_memory_limit()
         if self.persist_dir:
             self._persist_to_file(forecast_obj)
-        log_learning_event("memory_update", {
-            "event": "forecast_stored",
-            "forecast_id": forecast_obj["forecast_id"],
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        log_learning_event(
+            "memory_update",
+            {
+                "event": "forecast_stored",
+                "forecast_id": forecast_obj["forecast_id"],
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
     def get_recent(self, n: int = 10, domain: Optional[str] = None) -> List[Dict]:
         """Retrieves the N most recent forecasts, optionally filtered by domain."""
@@ -122,11 +143,17 @@ class ForecastMemory:
         """
         before = len(self._memory)
         if min_confidence is not None:
-            self._memory = [f for f in self._memory if float(f.get("confidence", 0)) >= min_confidence]
+            self._memory = [
+                f
+                for f in self._memory
+                if float(f.get("confidence", 0)) >= min_confidence
+            ]
         self._enforce_memory_limit()
         return before - len(self._memory)
 
-    def gate_memory_retention_by_license(self, license_loss_percent: float, threshold: float = 40.0):
+    def gate_memory_retention_by_license(
+        self, license_loss_percent: float, threshold: float = 40.0
+    ):
         """
         Prevent memory retention if trust breaks down. Logs discarded content.
 
@@ -134,9 +161,10 @@ class ForecastMemory:
             license_loss_percent (float): How many forecasts failed license test
             threshold (float): Block memory if over this %
         """
-        import json
         if license_loss_percent > threshold:
-            print(f"⚠️ Memory blocked due to license instability ({license_loss_percent:.1f}%)")
+            print(
+                f"⚠️ Memory blocked due to license instability ({license_loss_percent:.1f}%)"
+            )
             try:
                 with open(BLOCKED_MEMORY_LOG, "a") as f:
                     for entry in self._memory:
@@ -150,10 +178,7 @@ class ForecastMemory:
 
     def retain_only_stable_forecasts(self):
         """Exclude unstable symbolic paths from memory retention."""
-        self._memory = [
-            f for f in self._memory
-            if not f.get("unstable_symbolic_path")
-        ]
+        self._memory = [f for f in self._memory if not f.get("unstable_symbolic_path")]
         print(f"✅ Retained {len(self._memory)} stable forecasts in memory.")
 
     def retain_certified_forecasts(self):
@@ -171,27 +196,30 @@ class ForecastMemory:
         """Keep only the most evolved forecast per narrative cluster."""
         from memory.cluster_mutation_tracker import (
             track_cluster_lineage,
-            select_most_evolved
+            select_most_evolved,
         )
+
         clusters = track_cluster_lineage(self._memory)
         leaders = select_most_evolved(clusters)
         self._memory = list(leaders.values())
-        print(f"🔁 Memory compressed to most evolved forecast per cluster ({len(self._memory)} retained).")
+        print(
+            f"🔁 Memory compressed to most evolved forecast per cluster ({len(self._memory)} retained)."
+        )
 
     def _enforce_memory_limit(self) -> None:
         """Ensure memory does not exceed max_entries; prune oldest if needed."""
         if len(self._memory) > self.max_entries:
-            self._memory = self._memory[-self.max_entries:]
+            self._memory = self._memory[-self.max_entries :]
 
     def _persist_to_file(self, forecast_obj: Dict) -> None:
         if not self.persist_dir:
             return
-        import os, json
         # --- PATCH: Ensure overlays are serializable ---
         def overlay_to_dict(overlay):
             if hasattr(overlay, "as_dict"):
                 return overlay.as_dict()
             return dict(overlay)
+
         if "overlays" in forecast_obj:
             forecast_obj["overlays"] = overlay_to_dict(forecast_obj["overlays"])
         if "forks" in forecast_obj:
@@ -203,17 +231,17 @@ class ForecastMemory:
         forecast_id = forecast_obj.get("forecast_id", "unknown")
         path = os.path.join(self.persist_dir, f"{forecast_id}.json")
         with open(path, "w", encoding="utf-8") as f:
-            import json
             json.dump(forecast_obj, f, indent=2)
 
     def _load_from_files(self) -> None:
-        import os, json
         if not os.path.isdir(self.persist_dir):
             return
         for fname in os.listdir(self.persist_dir):
             if fname.endswith(".json"):
                 try:
-                    with open(os.path.join(self.persist_dir, fname), "r", encoding="utf-8") as f:
+                    with open(
+                        os.path.join(self.persist_dir, fname), "r", encoding="utf-8"
+                    ) as f:
                         self._memory.append(json.load(f))
                 except Exception as e:
                     print(f"[ForecastMemory] Skipped corrupted file {fname}: {e}")

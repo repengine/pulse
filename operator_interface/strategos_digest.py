@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, List, Dict, Any
 from forecast_output.forecast_licenser import filter_licensed_forecasts
+
 # from forecast_output.forecast_compressor import compress_forecasts  # Removed unused import
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from forecast_output.strategos_digest_builder import build_digest
@@ -11,10 +12,21 @@ from trust_system.forecast_episode_logger import summarize_episodes
 from trust_system.trust_engine import compute_symbolic_attention_score
 from trust_system.forecast_licensing_shell import license_forecast
 from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
-from trust_system.license_enforcer import annotate_forecasts, filter_licensed, summarize_license_distribution
-from forecast_output.mutation_compression_engine import compress_episode_chain, plot_symbolic_trajectory
+from trust_system.license_enforcer import (
+    annotate_forecasts,
+    filter_licensed,
+    summarize_license_distribution,
+)
+from forecast_output.mutation_compression_engine import (
+    compress_episode_chain,
+    plot_symbolic_trajectory,
+)
 from memory.forecast_episode_tracer import build_episode_chain
-from symbolic_system.symbolic_transition_graph import build_symbolic_graph, visualize_symbolic_graph
+from symbolic_system.symbolic_transition_graph import (
+    build_symbolic_graph,
+    visualize_symbolic_graph,
+)
+
 # from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs  # Removed unused import
 import matplotlib.pyplot as plt
 import os
@@ -22,18 +34,27 @@ import json
 
 # --- PATCH: Import resonance scanner ---
 from forecast_output.forecast_resonance_scanner import generate_resonance_summary
+
 # --- PATCH: Import forecast certification digest ---
 from forecast_output.forecast_fidelity_certifier import generate_certified_digest
+
 # --- PATCH: Import forecast prioritization engine ---
 from forecast_output.forecast_prioritization_engine import select_top_forecasts
-# --- PATCH: Import narrative cluster classifier ---
-from forecast_output.forecast_cluster_classifier import classify_forecast_cluster, summarize_cluster_counts
 
-from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md  # PATCH 2
+# --- PATCH: Import narrative cluster classifier ---
+from forecast_output.forecast_cluster_classifier import (
+    classify_forecast_cluster,
+    summarize_cluster_counts,
+)
+
+from operator_interface.rule_cluster_digest_formatter import (
+    format_cluster_digest_md,
+)  # PATCH 2
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 DIGEST_DIR = PATHS.get("DIGEST_DIR", PATHS["WORLDSTATE_LOG_DIR"])
+
 
 def safe_save_plot(fig, path: str) -> bool:
     """Safely save a matplotlib figure to disk."""
@@ -45,7 +66,10 @@ def safe_save_plot(fig, path: str) -> bool:
         logging.error(f"Failed to save plot to {path}: {e}")
         return False
 
-def group_by_confidence(forecasts: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+
+def group_by_confidence(
+    forecasts: List[Dict[str, Any]],
+) -> Dict[str, List[Dict[str, Any]]]:
     """
     Group forecasts by confidence levels.
 
@@ -69,8 +93,12 @@ def group_by_confidence(forecasts: List[Dict[str, Any]]) -> Dict[str, List[Dict[
             groups["🔘 Unscored"].append(f)
     # Sort by priority_score, then confidence (descending)
     for label in groups:
-        groups[label].sort(key=lambda f: (f.get('priority_score', 0.0), f.get("confidence", 0.0)), reverse=True)
+        groups[label].sort(
+            key=lambda f: (f.get("priority_score", 0.0), f.get("confidence", 0.0)),
+            reverse=True,
+        )
     return groups
+
 
 def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
     """
@@ -90,17 +118,24 @@ def compute_arc_drift(prev_path: str, curr_path: str) -> Dict[str, int]:
         print(f"⚠️ Error summarizing episodes: {e}")
         return {}
     # --- FIX: Add type conversion for values ---
-    arcs_prev = {k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
-                for k, v in prev.items() if k.startswith("arc_")}
-    arcs_curr = {k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
-                for k, v in curr.items() if k.startswith("arc_")}
+    arcs_prev = {
+        k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
+        for k, v in prev.items()
+        if k.startswith("arc_")
+    }
+    arcs_curr = {
+        k.replace("arc_", ""): float(v) if isinstance(v, (int, float, str)) else 0
+        for k, v in curr.items()
+        if k.startswith("arc_")
+    }
     all_keys = set(arcs_prev) | set(arcs_curr)
     return {k: arcs_curr.get(k, 0) - arcs_prev.get(k, 0) for k in all_keys}
+
 
 def flag_drift_sensitive_forecasts(
     forecasts: List[Dict[str, Any]],
     drift_report: Dict[str, Any],
-    threshold: float = 0.2
+    threshold: float = 0.2,
 ) -> List[Dict[str, Any]]:
     """
     Flags forecasts if they belong to unstable arcs or drift-prone rule sets.
@@ -113,8 +148,14 @@ def flag_drift_sensitive_forecasts(
     Returns:
         List[Dict]: forecasts updated with 'drift_flag'
     """
-    volatile_rules = {r for r, delta in drift_report.get("rule_trigger_delta", {}).items() if abs(delta) > threshold * 10}
-    unstable_overlays = {k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold}
+    volatile_rules = {
+        r
+        for r, delta in drift_report.get("rule_trigger_delta", {}).items()
+        if abs(delta) > threshold * 10
+    }
+    unstable_overlays = {
+        k for k, v in drift_report.get("overlay_drift", {}).items() if v > threshold
+    }
 
     for fc in forecasts:
         # arc = fc.get("arc_label", "unknown")  # Removed unused variable
@@ -132,12 +173,14 @@ def flag_drift_sensitive_forecasts(
             fc["drift_flag"] = "✅ Stable"
     return forecasts
 
+
 def _extract_symbolic_flip_patterns(_: List[Dict[str, Any]]) -> List[str]:
     """
     Placeholder: Extract symbolic flip patterns from forecasts.
     """
     # TODO: Implement actual pattern detection
     return ["ARC: Despair → ARC: Rage (4x)", "TAG: Neutral → TAG: Collapse Risk (3x)"]
+
 
 def _extract_detected_loops(_: List[Dict[str, Any]]) -> List[str]:
     """
@@ -146,6 +189,7 @@ def _extract_detected_loops(_: List[Dict[str, Any]]) -> List[str]:
     # TODO: Implement actual loop detection
     return ["TAG: Fatigue ↔ TAG: Despair", "ARC: Collapse Risk ↔ ARC: Stabilization"]
 
+
 def generate_strategos_digest(
     memory: ForecastMemory,
     n: int = 5,
@@ -153,7 +197,7 @@ def generate_strategos_digest(
     previous_episode_log: Optional[str] = None,
     current_episode_log: Optional[str] = None,
     previous_trace_path: Optional[str] = None,
-    current_trace_path: Optional[str] = None
+    current_trace_path: Optional[str] = None,
 ) -> str:
     """
     Generate a Strategos digest from forecast memory.
@@ -237,7 +281,10 @@ def generate_strategos_digest(
                 digest["compressed_episodes"].append(compressed)
 
     # --- Symbolic learning profile integration ---
-    from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
+    from symbolic_system.pulse_symbolic_learning_loop import (
+        generate_learning_profile,
+        learn_from_tuning_log,
+    )
     from symbolic_system.symbolic_upgrade_planner import propose_symbolic_upgrades
 
     tuning_log = "logs/tuning_results.jsonl"
@@ -256,8 +303,6 @@ def generate_strategos_digest(
     from trust_system.recovered_forecast_scorer import summarize_repair_quality
 
     digest["symbolic_tuning_summary"] = {}
-
-    upgrade_log = "plans/symbolic_upgrade_plan.json"
 
     # Learn
     results = learn_from_tuning_log(tuning_log)
@@ -281,7 +326,9 @@ def generate_strategos_digest(
         digest["symbolic_tuning_summary"]["total_mutations"] = 0
 
     # --- PATCH: Symbolic resonance summary ---
-    digest["symbolic_resonance"] = generate_resonance_summary(forecasts, key="arc_label")
+    digest["symbolic_resonance"] = generate_resonance_summary(
+        forecasts, key="arc_label"
+    )
 
     # --- PATCH: Add forecast certification summary to digest ---
     digest["forecast_certification"] = generate_certified_digest(forecasts)
@@ -295,17 +342,22 @@ def generate_strategos_digest(
     digest["narrative_cluster_summary"] = summarize_cluster_counts(forecasts)
 
     # Optionally sort by alignment_score (top-N)
-    forecasts = sorted(forecasts, key=lambda f: f.get("alignment_score", 0), reverse=True)
+    forecasts = sorted(
+        forecasts, key=lambda f: f.get("alignment_score", 0), reverse=True
+    )
 
     # --- PATCH: Top Strategic Forecasts Integration ---
     top_forecasts = select_top_forecasts(forecasts, top_n=5)
-    digest["strategic_top_forecasts"] = [{
-        "trace_id": f.get("trace_id"),
-        "arc": f.get("arc_label"),
-        "tag": f.get("symbolic_tag"),
-        "alignment": f.get("alignment_score"),
-        "confidence": f.get("confidence")
-    } for f in top_forecasts]
+    digest["strategic_top_forecasts"] = [
+        {
+            "trace_id": f.get("trace_id"),
+            "arc": f.get("arc_label"),
+            "tag": f.get("symbolic_tag"),
+            "alignment": f.get("alignment_score"),
+            "confidence": f.get("confidence"),
+        }
+        for f in top_forecasts
+    ]
 
     groups = group_by_confidence(forecasts)
     header = title or "Strategos Forecast Digest"
@@ -319,7 +371,7 @@ def generate_strategos_digest(
         sections.append("|----------|-----|-----|-----------|------------|")
         for fc in digest["strategic_top_forecasts"]:
             sections.append(
-                f"| {fc.get('trace_id','')} | {fc.get('arc','')} | {fc.get('tag','')} | {fc.get('alignment','')} | {fc.get('confidence','')} |"
+                f"| {fc.get('trace_id', '')} | {fc.get('arc', '')} | {fc.get('tag', '')} | {fc.get('alignment', '')} | {fc.get('confidence', '')} |"
             )
         sections.append("")
 
@@ -366,7 +418,12 @@ def generate_strategos_digest(
 
     # Arc drift summary
     arc_drift = {}
-    if previous_episode_log and current_episode_log and os.path.exists(previous_episode_log) and os.path.exists(current_episode_log):
+    if (
+        previous_episode_log
+        and current_episode_log
+        and os.path.exists(previous_episode_log)
+        and os.path.exists(current_episode_log)
+    ):
         arc_drift = compute_arc_drift(previous_episode_log, current_episode_log)
         if arc_drift:
             sections.append("## 🌀 Arc Drift This Cycle")
@@ -377,11 +434,20 @@ def generate_strategos_digest(
 
     # Simulation drift summary
     drift_report = None
-    if previous_trace_path and current_trace_path and os.path.exists(previous_trace_path) and os.path.exists(current_trace_path):
+    if (
+        previous_trace_path
+        and current_trace_path
+        and os.path.exists(previous_trace_path)
+        and os.path.exists(current_trace_path)
+    ):
         try:
-            drift_report = run_simulation_drift_analysis(previous_trace_path, current_trace_path)
+            drift_report = run_simulation_drift_analysis(
+                previous_trace_path, current_trace_path
+            )
             if "error" in drift_report:
-                sections.append(f"⚠️ Simulation drift analysis failed: {drift_report['error']}")
+                sections.append(
+                    f"⚠️ Simulation drift analysis failed: {drift_report['error']}"
+                )
             else:
                 sections.append("## 🧪 Simulation Drift Summary")
                 for k, v in drift_report.get("overlay_drift", {}).items():
@@ -392,7 +458,10 @@ def generate_strategos_digest(
                     for rule, delta in drift_report["rule_trigger_delta"].items():
                         sign = "+" if delta > 0 else ""
                         sections.append(f"  - {rule}: {sign}{delta}")
-                if drift_report.get("structure_shift") and "turn_diff" in drift_report["structure_shift"]:
+                if (
+                    drift_report.get("structure_shift")
+                    and "turn_diff" in drift_report["structure_shift"]
+                ):
                     td = drift_report["structure_shift"]["turn_diff"]
                     sign = "+" if td > 0 else ""
                     sections.append(f"- Turn count changed by: {sign}{td}")
@@ -405,7 +474,11 @@ def generate_strategos_digest(
         forecasts = flag_drift_sensitive_forecasts(forecasts, drift_report)
 
     # --- Drift-Flagged Forecasts Section ---
-    drifted = [f for f in forecasts if f.get("drift_flag") in {"⚠️ Rule Instability", "⚠️ Overlay Volatility"}]
+    drifted = [
+        f
+        for f in forecasts
+        if f.get("drift_flag") in {"⚠️ Rule Instability", "⚠️ Overlay Volatility"}
+    ]
     if drifted:
         sections.append("## 🔥 Drift-Flagged Forecasts")
         for fc in drifted[:10]:
@@ -431,8 +504,7 @@ def generate_strategos_digest(
             plot_path = os.path.join("plots", f"symbolic_trajectory_{root_id}.png")
             try:
                 plot_symbolic_trajectory(
-                    ce.get("mutation_compressed_from", []),
-                    export_path=plot_path
+                    ce.get("mutation_compressed_from", []), export_path=plot_path
                 )
                 sections.append(f"![Trajectory]({plot_path})")
             except Exception as e:
@@ -489,7 +561,9 @@ def generate_strategos_digest(
         up = sts.get("upgrade_plan", {})
         if up:
             boost = up.get("boost", []) or up.get("boost_tags", [])
-            replace = up.get("replace") or up.get("retune") or up.get("replace_retune") or []
+            replace = (
+                up.get("replace") or up.get("retune") or up.get("replace_retune") or []
+            )
             if boost:
                 sections.append(f"- Boost: {boost}")
             if replace:
@@ -536,9 +610,11 @@ def generate_strategos_digest(
                         attention = f" | ⚡️Attention: {attn_score}"
                     elif attn_score > 0:
                         attention = f" | Attention: {attn_score}"
-                except Exception as e:
+                except Exception:
                     attention = " | ⚠️ Attention Error"
-            drift_note = f" | {drift_flag}" if drift_flag and drift_flag != "✅ Stable" else ""
+            drift_note = (
+                f" | {drift_flag}" if drift_flag and drift_flag != "✅ Stable" else ""
+            )
             try:
                 tile_str = format_strategos_tile(tile)
             except Exception as e:
@@ -548,8 +624,16 @@ def generate_strategos_digest(
         sections.append("")
 
     try:
-        ret_scores = [f.get("retrodiction_score", 0.0) for f in forecasts if isinstance(f.get("retrodiction_score"), (float, int))]
-        sym_scores = [f.get("symbolic_score", 0.0) for f in forecasts if isinstance(f.get("symbolic_score"), (float, int))]
+        ret_scores = [
+            f.get("retrodiction_score", 0.0)
+            for f in forecasts
+            if isinstance(f.get("retrodiction_score"), (float, int))
+        ]
+        sym_scores = [
+            f.get("symbolic_score", 0.0)
+            for f in forecasts
+            if isinstance(f.get("symbolic_score"), (float, int))
+        ]
         avg_r = round(sum(ret_scores) / len(ret_scores), 3) if ret_scores else 0.0
         avg_s = round(sum(sym_scores) / len(sym_scores), 3) if sym_scores else 0.0
         sections.append(f"🎯 Avg Retrodiction Score: {avg_r} | Symbolic Score: {avg_s}")
@@ -579,12 +663,13 @@ def generate_strategos_digest(
 
     return "\n".join(sections)
 
+
 def live_digest_ui(
     memory: ForecastMemory,
     prompt: Optional[str] = None,
     n: int = 10,
     export_fmt: str = "markdown",
-    template: str = "full"
+    template: str = "full",
 ) -> str:
     """
     Live UI hook: Build and display strategos digest, optionally filtered by prompt and template.
@@ -602,28 +687,62 @@ def live_digest_ui(
     raw = memory.get_recent(n + 10)
     if prompt:
         try:
-            from forecast_output.strategos_digest_builder import filter_forecasts_by_prompt
+            from forecast_output.strategos_digest_builder import (
+                filter_forecasts_by_prompt,
+            )
+
             raw = filter_forecasts_by_prompt(raw, prompt)
         except Exception as e:
             print(f"⚠️ Error filtering by prompt: {e}")
     try:
-        digest = build_digest(raw, fmt=export_fmt, config={"top_n": 3, "actionable_only": False}, template=template)
+        digest = build_digest(
+            raw,
+            fmt=export_fmt,
+            config={"top_n": 3, "actionable_only": False},
+            template=template,
+        )
     except Exception as e:
         digest = f"❌ Error building digest: {e}"
     print(digest)
     return digest
 
+
 # --- Simple test function for manual validation ---
 def _test_digest():
     """Basic test for strategos digest generation."""
     import unittest
+
     class DummyMemory(ForecastMemory):
         def get_recent(self, n, domain=None, default=None):
             # Add a malformed entry for robustness
             return [
-                {"confidence": 0.8, "alignment_score": 80, "trust_label": "🟢 Trusted", "priority_score": 1, "retrodiction_score": 0.9, "symbolic_score": 0.8, "age_hours": 2},
-                {"confidence": 0.6, "alignment_score": 60, "trust_label": "⚠️ Moderate", "priority_score": 0.5, "retrodiction_score": 0.7, "symbolic_score": 0.6, "age_hours": 5},
-                {"confidence": 0.4, "alignment_score": 40, "trust_label": "🔴 Fragile", "priority_score": 0.2, "retrodiction_score": 0.5, "symbolic_score": 0.4, "age_hours": 10},
+                {
+                    "confidence": 0.8,
+                    "alignment_score": 80,
+                    "trust_label": "🟢 Trusted",
+                    "priority_score": 1,
+                    "retrodiction_score": 0.9,
+                    "symbolic_score": 0.8,
+                    "age_hours": 2,
+                },
+                {
+                    "confidence": 0.6,
+                    "alignment_score": 60,
+                    "trust_label": "⚠️ Moderate",
+                    "priority_score": 0.5,
+                    "retrodiction_score": 0.7,
+                    "symbolic_score": 0.6,
+                    "age_hours": 5,
+                },
+                {
+                    "confidence": 0.4,
+                    "alignment_score": 40,
+                    "trust_label": "🔴 Fragile",
+                    "priority_score": 0.2,
+                    "retrodiction_score": 0.5,
+                    "symbolic_score": 0.4,
+                    "age_hours": 10,
+                },
                 {},  # malformed
             ]
 
@@ -633,7 +752,11 @@ def _test_digest():
             self.assertIn("Test Digest", digest)
             self.assertIn("🛡️ Trust Enforcement Report", digest)
             self.assertIn("Strategos Forecast Digest", digest or "")
-    unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(StrategosDigestTest))
+
+    unittest.TextTestRunner().run(
+        unittest.TestLoader().loadTestsFromTestCase(StrategosDigestTest)
+    )
+
 
 if __name__ == "__main__":
     _test_digest()

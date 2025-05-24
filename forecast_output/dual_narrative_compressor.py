@@ -12,8 +12,7 @@ Version: v1.0.0
 
 import json
 import logging
-from typing import List, Dict, Tuple
-from collections import Counter
+from typing import List, Dict
 from forecast_output.forecast_divergence_detector import detect_symbolic_opposition
 
 logger = logging.getLogger("dual_narrative_compressor")
@@ -41,14 +40,8 @@ def compress_dual_pair(forecasts: List[Dict], arc_a: str, arc_b: str) -> Dict:
     b_set = sorted(arc_map.get(arc_b, []), key=score_forecast, reverse=True)
 
     return {
-        "scenario_a": {
-            "arc": arc_a,
-            "forecast": a_set[0] if a_set else None
-        },
-        "scenario_b": {
-            "arc": arc_b,
-            "forecast": b_set[0] if b_set else None
-        }
+        "scenario_a": {"arc": arc_a, "forecast": a_set[0] if a_set else None},
+        "scenario_b": {"arc": arc_b, "forecast": b_set[0] if b_set else None},
     }
 
 

@@ -15,20 +15,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def license_forecast(forecast: Optional[Dict], thresholds: Optional[Dict] = None) -> str:
+
+def license_forecast(
+    forecast: Optional[Dict], thresholds: Optional[Dict] = None
+) -> str:
     """
     Determines the licensing status of a forecast based on confidence, trust, alignment, and drift.
-    
+
     Args:
-        forecast (Dict): The forecast to evaluate, containing trust_label, confidence, 
+        forecast (Dict): The forecast to evaluate, containing trust_label, confidence,
                          alignment_score, and drift_flag keys.
         thresholds (Dict, optional): Custom thresholds for confidence and alignment.
                                      Defaults to {"confidence_min": 0.60, "alignment_min": 0.75}.
-    
+
     Returns:
-        str: License status (one of: "✅ Approved", "❌ No Confidence", "🚫 Untrusted", 
+        str: License status (one of: "✅ Approved", "❌ No Confidence", "🚫 Untrusted",
              "🔴 Blocked - {drift_flag}", "⚠️ Low Alignment")
-    
+
     Raises:
         ValueError: If the forecast is None or not a dictionary
     """
@@ -38,7 +41,7 @@ def license_forecast(forecast: Optional[Dict], thresholds: Optional[Dict] = None
 
     # Default thresholds
     t = thresholds or {"confidence_min": 0.60, "alignment_min": 0.75}
-    
+
     # Extract and validate confidence
     try:
         conf = forecast.get("confidence", 0.0)
@@ -48,7 +51,7 @@ def license_forecast(forecast: Optional[Dict], thresholds: Optional[Dict] = None
     except Exception as e:
         logger.error(f"Error extracting confidence: {e}")
         conf = 0.0
-    
+
     # Extract and validate alignment score
     try:
         align = forecast.get("alignment_score", 0.0)
@@ -75,32 +78,59 @@ def license_forecast(forecast: Optional[Dict], thresholds: Optional[Dict] = None
 
     return "✅ Approved"
 
+
 # --- Simple test function for manual validation ---
 def _test_license():
     """Basic test for forecast licensing shell."""
     test_forecasts = [
-        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
-        {"confidence": 0.4, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
-        {"confidence": 0.8, "trust_label": "🔴 Rejected", "alignment_score": 0.9, "drift_flag": "✅ Stable"},
-        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.5, "drift_flag": "✅ Stable"},
-        {"confidence": 0.8, "trust_label": "🟢 Trusted", "alignment_score": 0.9, "drift_flag": "⚠️ Overlay Volatility"},
+        {
+            "confidence": 0.8,
+            "trust_label": "🟢 Trusted",
+            "alignment_score": 0.9,
+            "drift_flag": "✅ Stable",
+        },
+        {
+            "confidence": 0.4,
+            "trust_label": "🟢 Trusted",
+            "alignment_score": 0.9,
+            "drift_flag": "✅ Stable",
+        },
+        {
+            "confidence": 0.8,
+            "trust_label": "🔴 Rejected",
+            "alignment_score": 0.9,
+            "drift_flag": "✅ Stable",
+        },
+        {
+            "confidence": 0.8,
+            "trust_label": "🟢 Trusted",
+            "alignment_score": 0.5,
+            "drift_flag": "✅ Stable",
+        },
+        {
+            "confidence": 0.8,
+            "trust_label": "🟢 Trusted",
+            "alignment_score": 0.9,
+            "drift_flag": "⚠️ Overlay Volatility",
+        },
     ]
-    
+
     for i, fc in enumerate(test_forecasts):
         status = license_forecast(fc)
-        print(f"Test {i+1}: {status}")
-    
+        print(f"Test {i + 1}: {status}")
+
     # Edge case testing
     try:
         print(f"Edge case 1: {license_forecast(None)}")
     except ValueError as e:
         print(f"Edge case 1 correctly failed: {e}")
-    
+
     try:
         print(f"Edge case 2: {license_forecast({'confidence': 'invalid'})}")
         print(f"Edge case 3: {license_forecast({'alignment_score': 'invalid'})}")
     except Exception as e:
         print(f"Unexpected failure: {e}")
+
 
 if __name__ == "__main__":
     _test_license()

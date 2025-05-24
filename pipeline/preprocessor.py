@@ -1,7 +1,7 @@
 import pandas as pd
-import json
-from typing import List, Dict
+from typing import Dict
 from pathlib import Path
+
 
 class Preprocessor:
     def __init__(self, raw_data_dir: str, feature_store_path: str) -> None:

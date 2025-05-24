@@ -58,7 +58,7 @@ def analyze_flip_patterns(chains: List[List[Dict]]) -> Dict:
         "total_flips": len(all_flips),
         "unique_flips": len(counter),
         "top_flips": sorted_flips[:10],
-        "all_flips": dict(counter)
+        "all_flips": dict(counter),
     }
 
 

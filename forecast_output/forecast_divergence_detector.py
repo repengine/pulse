@@ -20,11 +20,13 @@ OPPOSING_ARCS = {
     "Collapse Risk": "Hope Surge",
     "Stabilization": "Despair Drop",
     "Despair Drop": "Stabilization",
-    "Reconstruction": "Fatigue Loop"
+    "Reconstruction": "Fatigue Loop",
 }
 
 
-def detect_symbolic_opposition(forecasts: List[Dict], key: str = "arc_label") -> List[Tuple[str, str]]:
+def detect_symbolic_opposition(
+    forecasts: List[Dict], key: str = "arc_label"
+) -> List[Tuple[str, str]]:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
     """
@@ -58,7 +60,9 @@ def score_batch_divergence(forecasts: List[Dict], key: str = "arc_label") -> flo
     return round((a / total) * (b / total), 3)
 
 
-def group_conflicting_forecasts(forecasts: List[Dict], key: str = "arc_label") -> Dict[str, List[Dict]]:
+def group_conflicting_forecasts(
+    forecasts: List[Dict], key: str = "arc_label"
+) -> Dict[str, List[Dict]]:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
     """
@@ -87,7 +91,7 @@ def generate_divergence_report(forecasts: List[Dict], key: str = "arc_label") ->
     return {
         "divergence_score": score,
         "symbolic_conflicts": conflicts,
-        "cluster_sizes": {k: len(v) for k, v in conflict_groups.items()}
+        "cluster_sizes": {k: len(v) for k, v in conflict_groups.items()},
     }
 
 

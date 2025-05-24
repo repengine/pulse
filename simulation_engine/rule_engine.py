@@ -1,4 +1,4 @@
-""" 
+"""
 rule_engine.py
 
 Executes static causal rules to mutate WorldState based on conditions.
@@ -12,6 +12,7 @@ from simulation_engine.rules.static_rules import build_static_rules
 from simulation_engine.rules.rule_audit_layer import audit_rule
 import copy
 from symbolic_system.symbolic_bias_tracker import SymbolicBiasTracker
+
 bias_tracker = SymbolicBiasTracker()
 
 
@@ -44,12 +45,14 @@ def run_rules(state: WorldState, verbose: bool = True) -> list[dict]:
                     state_before=state_before,
                     state_after=state,
                     symbolic_tags=rule.get("symbolic_tags", []),
-                    turn=state.turn
+                    turn=state.turn,
                 )
                 execution_log.append(audit)
                 for tag in rule.get("symbolic_tags", []):
                     bias_tracker.record(tag)
-                state.log_event(f"Rule triggered: {rule['id']} → tags={rule.get('symbolic_tags')}")
+                state.log_event(
+                    f"Rule triggered: {rule['id']} → tags={rule.get('symbolic_tags')}"
+                )
             elif verbose:
                 state.log_event(f"Rule checked but not triggered: {rule['id']}")
         except Exception as e:

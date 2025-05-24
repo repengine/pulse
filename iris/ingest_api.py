@@ -1,12 +1,13 @@
 """
 HTTP API ingestion for Pulse using FastAPI (production-ready)
 """
+
 import os
 import logging
 from iris.iris_scraper import IrisScraper
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
 from core.celery_app import celery_app
@@ -22,11 +23,13 @@ logger = logging.getLogger("pulse.ingest_api")
 app = FastAPI()
 scraper = IrisScraper()
 
+
 class SignalIn(BaseModel):
     name: str
     value: float
     source: Optional[str] = "api"
     timestamp: Optional[str] = None
+
 
 def get_api_key(request: Request):
     key = request.headers.get("x-api-key")
@@ -34,18 +37,22 @@ def get_api_key(request: Request):
         raise HTTPException(status_code=401, detail="Invalid API key.")
     return True
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 @app.on_event("startup")
 def startup_event():
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
 
+
 @app.get("/metrics")
 def metrics():
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @app.post("/ingest", dependencies=[Depends(get_api_key)])
 async def ingest_signal(signal: SignalIn):
@@ -57,12 +64,9 @@ async def ingest_signal(signal: SignalIn):
         logger.error(f"API ingest error for signal {signal.dict()}: {e}")
         return JSONResponse(
             status_code=400,
-            content={
-                "status": "error",
-                "error": str(e),
-                "signal": signal.dict()
-            }
+            content={"status": "error", "error": str(e), "signal": signal.dict()},
         )
+
 
 @app.post("/ingest_batch", dependencies=[Depends(get_api_key)])
 async def ingest_batch(signals: List[SignalIn]):
@@ -73,13 +77,16 @@ async def ingest_batch(signals: List[SignalIn]):
             results.append({"name": signal.name, "status": "submitted"})
         except Exception as e:
             logger.error(f"Batch ingest error for signal {signal.dict()}: {e}")
-            results.append({
-                "name": signal.name,
-                "status": "error",
-                "error": str(e),
-                "signal": signal.dict()
-            })
+            results.append(
+                {
+                    "name": signal.name,
+                    "status": "error",
+                    "error": str(e),
+                    "signal": signal.dict(),
+                }
+            )
     return {"results": results}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

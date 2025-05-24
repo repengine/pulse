@@ -10,12 +10,14 @@ Author: Pulse v0.39
 import os
 from memory.variable_cluster_engine import summarize_clusters
 
+
 def highlight_volatility(score: float) -> str:
     if score > 0.7:
         return "🔴"
     elif score > 0.4:
         return "🟡"
     return "🟢"
+
 
 def format_variable_cluster_digest_md(limit: int = 10) -> str:
     clusters = summarize_clusters()
@@ -30,6 +32,7 @@ def format_variable_cluster_digest_md(limit: int = 10) -> str:
         lines.append("")
     return "\n".join(lines)
 
+
 def export_variable_cluster_digest_md(path: str = "logs/variable_cluster_digest.md"):
     md = format_variable_cluster_digest_md()
     try:
@@ -39,6 +42,7 @@ def export_variable_cluster_digest_md(path: str = "logs/variable_cluster_digest.
         print(f"✅ Markdown digest saved to {path}")
     except Exception as e:
         print(f"❌ Failed to save digest: {e}")
+
 
 if __name__ == "__main__":
     print(format_variable_cluster_digest_md())

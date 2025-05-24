@@ -16,12 +16,14 @@ Version: v1.0.0
 
 import json
 import logging
-from typing import Dict, Optional, Any
+from typing import Dict, Any
 from trust_system.alignment_index import compute_alignment_index
 from trust_system.license_enforcer import license_forecast
 
 
-def apply_revision_plan(forecast: Dict[str, Any], plan: Dict[str, str]) -> Dict[str, Any]:
+def apply_revision_plan(
+    forecast: Dict[str, Any], plan: Dict[str, str]
+) -> Dict[str, Any]:
     """
     Apply symbolic tuning suggestions to forecast.
 
@@ -44,15 +46,21 @@ def apply_revision_plan(forecast: Dict[str, Any], plan: Dict[str, str]) -> Dict[
         if k.startswith("overlay_"):
             overlay_key = k.replace("overlay_", "")
             try:
-                revised.setdefault("overlays", {})[overlay_key] = float(str(v).split()[0])
+                revised.setdefault("overlays", {})[overlay_key] = float(
+                    str(v).split()[0]
+                )
             except Exception as e:
-                logging.error(f"Failed to parse overlay value for {overlay_key}: {v} ({e})")
+                logging.error(
+                    f"Failed to parse overlay value for {overlay_key}: {v} ({e})"
+                )
 
     revised["revision_applied"] = True
     return revised
 
 
-def simulate_revised_forecast(forecast: Dict[str, Any], plan: Dict[str, str]) -> Dict[str, Any]:
+def simulate_revised_forecast(
+    forecast: Dict[str, Any], plan: Dict[str, str]
+) -> Dict[str, Any]:
     """
     Apply revision and rescore alignment + trust.
 
@@ -90,11 +98,17 @@ def compare_scores(original: Dict[str, Any], revised: Dict[str, Any]) -> Dict[st
         b = original.get(f, 0)
         deltas[f] = round(a - b, 4)
 
-    deltas["license_status_change"] = f"{original.get('license_status')} → {revised.get('license_status')}"
+    deltas["license_status_change"] = (
+        f"{original.get('license_status')} → {revised.get('license_status')}"
+    )
     return deltas
 
 
-def log_tuning_result(original: Dict[str, Any], revised: Dict[str, Any], path: str = "logs/tuning_results.jsonl"):
+def log_tuning_result(
+    original: Dict[str, Any],
+    revised: Dict[str, Any],
+    path: str = "logs/tuning_results.jsonl",
+):
     """
     Log original + revised pair to audit trail.
 
@@ -108,7 +122,9 @@ def log_tuning_result(original: Dict[str, Any], revised: Dict[str, Any], path: s
         "revised_trace_id": revised.get("trace_id", "unknown") + "_rev",
         "original_license": original.get("license_status"),
         "revised_license": revised.get("license_status"),
-        "alignment_delta": round(revised.get("alignment_score", 0) - original.get("alignment_score", 0), 4),
+        "alignment_delta": round(
+            revised.get("alignment_score", 0) - original.get("alignment_score", 0), 4
+        ),
         "symbolic_revision_plan": revised.get("revision_plan", {}),
     }
     try:
@@ -127,9 +143,14 @@ def _test_symbolic_tuning_engine():
         "overlays": {"rage": 0.7, "hope": 0.1},
         "license_status": "❌ Rejected",
         "alignment_score": 0.2,
-        "trace_id": "fc_test"
+        "trace_id": "fc_test",
     }
-    plan = {"arc_label": "Stabilization Phase", "symbolic_tag": "Neutralization", "overlay_rage": "0.3", "overlay_hope": "0.4"}
+    plan = {
+        "arc_label": "Stabilization Phase",
+        "symbolic_tag": "Neutralization",
+        "overlay_rage": "0.3",
+        "overlay_hope": "0.4",
+    }
     revised = apply_revision_plan(dummy, plan)
     assert revised["arc_label"] == "Stabilization Phase"
     assert revised["symbolic_tag"] == "Neutralization"

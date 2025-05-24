@@ -25,19 +25,29 @@ from datetime import datetime, timezone
 from typing import Dict, Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
 SYMBOLIC_LOG_PATH = PATHS.get("SYMBOLIC_LOG_PATH", "logs/symbolic_memory_log.jsonl")
 
+
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "default", log_path: Optional[str] = None):
+
+def record_symbolic_state(
+    turn: int,
+    overlays: Dict[str, float],
+    sim_id: str = "default",
+    log_path: Optional[str] = None,
+):
     if not isinstance(turn, int) or turn < 0:
         raise ValueError("Turn must be a non-negative integer.")
-    if not isinstance(overlays, dict) or not all(isinstance(v, (int, float)) for v in overlays.values()):
+    if not isinstance(overlays, dict) or not all(
+        isinstance(v, (int, float)) for v in overlays.values()
+    ):
         raise ValueError("Overlays must be a dictionary of floats.")
 
     path = log_path or PATHS["WORLDSTATE_LOG_DIR"]
@@ -52,8 +62,8 @@ def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "
         "symbolic_overlays": overlays,
         "metadata": {
             "version": "v0.21.1",
-            "source": "main/symbolic_system/symbolic_memory.py"
-        }
+            "source": "main/symbolic_system/symbolic_memory.py",
+        },
     }
     try:
         with open(path, "a") as f:
@@ -61,10 +71,11 @@ def record_symbolic_state(turn: int, overlays: Dict[str, float], sim_id: str = "
     except Exception as e:
         logger.error(f"[SymbolicMemory] Error writing log: {e}")
 
+
 # Example usage
 if __name__ == "__main__":
     record_symbolic_state(
         turn=1,
         overlays={"hope": 0.51, "despair": 0.28, "rage": 0.12, "fatigue": 0.09},
-        sim_id="sim_0425A"
+        sim_id="sim_0425A",
     )

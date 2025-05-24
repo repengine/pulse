@@ -30,7 +30,7 @@ def generate_forecast_audit(
     current_state: Optional[Dict] = None,
     memory: Optional[List[Dict]] = None,
     arc_volatility: Optional[float] = None,
-    tag_match: Optional[float] = None
+    tag_match: Optional[float] = None,
 ) -> Dict:
     """
     Generate an audit trail record for a forecast.
@@ -50,19 +50,23 @@ def generate_forecast_audit(
         current_state=current_state,
         memory=memory,
         arc_volatility=arc_volatility,
-        tag_match=tag_match
+        tag_match=tag_match,
     )
 
     ret_error = None
     if current_state:
         try:
-            from learning.learning import compute_retrodiction_error  # moved import here to avoid circular import
+            from learning.learning import (
+                compute_retrodiction_error,
+            )  # moved import here to avoid circular import
+
             ret_error = compute_retrodiction_error(forecast, current_state)
-        except Exception as e:
+        except Exception:
             ret_error = None
 
     # Ensure license status and explanation are present
     from trust_system.license_enforcer import annotate_forecasts  # Moved import here
+
     annotate_forecasts([forecast])  # Mutates forecast in-place
 
     return {
@@ -77,7 +81,7 @@ def generate_forecast_audit(
         "rule_ids": forecast.get("fired_rules", []),
         "components": alignment["components"],
         "license_status": forecast.get("license_status", None),
-        "license_explanation": forecast.get("license_explanation", None)
+        "license_explanation": forecast.get("license_explanation", None),
     }
 
 

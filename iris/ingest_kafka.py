@@ -1,10 +1,10 @@
 """
 Kafka consumer ingestion for Pulse (production-ready)
 """
+
 import os
 import json
 import logging
-from iris.iris_scraper import IrisScraper
 from kafka import KafkaConsumer, errors as kafka_errors
 from core.celery_app import celery_app
 from core.metrics import start_metrics_server
@@ -18,19 +18,19 @@ KAFKA_GROUP = os.getenv("PULSE_KAFKA_GROUP", "pulse_ingest_group")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pulse.ingest_kafka")
 
+
 def run_kafka_ingestion():
     # Start Prometheus metrics server in a background thread
     threading.Thread(target=start_metrics_server, daemon=True).start()
-    scraper = IrisScraper()
     try:
         consumer = KafkaConsumer(
             KAFKA_TOPIC,
             bootstrap_servers=KAFKA_BOOTSTRAP,
             group_id=KAFKA_GROUP,
-            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            auto_offset_reset='latest',
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+            auto_offset_reset="latest",
             enable_auto_commit=True,
-            consumer_timeout_ms=10000
+            consumer_timeout_ms=10000,
         )
         logger.info(f"Connected to Kafka topic '{KAFKA_TOPIC}' at {KAFKA_BOOTSTRAP}")
     except kafka_errors.NoBrokersAvailable:
@@ -59,6 +59,7 @@ def run_kafka_ingestion():
             except Exception:
                 pass
             import time
+
             time.sleep(5)
             return run_kafka_ingestion()
         except KeyboardInterrupt:
@@ -67,5 +68,6 @@ def run_kafka_ingestion():
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_kafka_ingestion()

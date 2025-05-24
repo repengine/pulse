@@ -24,18 +24,31 @@ except ImportError:
     from iris.iris_trust import IrisTrustScorer
     from iris.iris_archive import IrisArchive
 
+
 def main():
     parser = argparse.ArgumentParser(description="Pulse Signal Router CLI")
-    parser.add_argument('--type', type=str, required=True, help="Type of the signal (symbolic, trust, etc.)")
-    parser.add_argument('--source', type=str, required=True, help="Source identifier for the signal")
-    parser.add_argument('--payload', type=str, required=True, help="Payload content (format: key1=value1,key2=value2)")
+    parser.add_argument(
+        "--type",
+        type=str,
+        required=True,
+        help="Type of the signal (symbolic, trust, etc.)",
+    )
+    parser.add_argument(
+        "--source", type=str, required=True, help="Source identifier for the signal"
+    )
+    parser.add_argument(
+        "--payload",
+        type=str,
+        required=True,
+        help="Payload content (format: key1=value1,key2=value2)",
+    )
     args = parser.parse_args()
 
     # Initialize IRIS Core modules
     symbolism = IrisSymbolismTagger()
     trust = IrisTrustScorer()
     archive = IrisArchive()
-    
+
     router = PulseSignalRouter(symbolism, trust, archive)
 
     # Parse payload into dict
@@ -46,15 +59,17 @@ def main():
             key, value = pair.split("=")
             payload_dict[key.strip()] = float(value.strip())  # Assume numeric payloads
     except Exception as e:
-        print(f"[CLI Error] Failed to parse payload. Expected format key1=value1,key2=value2. Error: {e}")
+        print(
+            f"[CLI Error] Failed to parse payload. Expected format key1=value1,key2=value2. Error: {e}"
+        )
         return
 
     # Build signal
     signal = {
-        'type': args.type,
-        'source': args.source,
-        'payload': payload_dict,
-        'timestamp': datetime.now(timezone.utc).isoformat()
+        "type": args.type,
+        "source": args.source,
+        "payload": payload_dict,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     # Route the signal
@@ -63,6 +78,7 @@ def main():
         print(f"[PulseSignalRouter CLI] Signal routed successfully: {signal}")
     except Exception as e:
         print(f"[CLI Error] Failed to route signal. Error: {e}")
+
 
 if __name__ == "__main__":
     main()

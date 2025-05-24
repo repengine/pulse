@@ -1,8 +1,7 @@
 import pytest
-import os
 import json
 import yaml
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 
 # Need to import the actual module to test its functions and classes
 from core.pulse_config import (
@@ -11,9 +10,9 @@ from core.pulse_config import (
     update_threshold,
     ConfigLoader,
     get_config,
-    PATHS, # Import PATHS to potentially mock it if needed
-    _thresholds # Import the internal _thresholds for testing update_threshold
+    _thresholds,  # Import the internal _thresholds for testing update_threshold
 )
+
 
 # Fixture to create a temporary thresholds.json file
 @pytest.fixture
@@ -26,6 +25,7 @@ def temp_thresholds_file(tmp_path):
     # Patch the THRESHOLD_CONFIG_PATH to point to the temporary file
     with patch("core.pulse_config.THRESHOLD_CONFIG_PATH", str(file_path)):
         yield file_path
+
 
 # Fixture to create temporary YAML config files
 @pytest.fixture
@@ -53,22 +53,32 @@ def temp_config_dir(tmp_path):
         mock_config_loader.load_all_configs.side_effect = real_loader.load_all_configs
         mock_config_loader.get_config_value.side_effect = real_loader.get_config_value
         mock_config_loader.reload_config.side_effect = real_loader.reload_config
-        mock_config_loader.configs = real_loader.configs # Ensure the configs dict is shared
+        mock_config_loader.configs = (
+            real_loader.configs
+        )  # Ensure the configs dict is shared
 
-        yield config_dir # Yield the directory path for potential use in tests
+        yield config_dir  # Yield the directory path for potential use in tests
+
 
 # Test load_thresholds function
 def test_load_thresholds_exists(temp_thresholds_file):
     """Test load_thresholds when the file exists."""
     thresholds = load_thresholds()
-    assert thresholds == {"CONFIDENCE_THRESHOLD": 0.8, "DEFAULT_FRAGILITY_THRESHOLD": 0.9}
+    assert thresholds == {
+        "CONFIDENCE_THRESHOLD": 0.8,
+        "DEFAULT_FRAGILITY_THRESHOLD": 0.9,
+    }
+
 
 def test_load_thresholds_not_exists(tmp_path):
     """Test load_thresholds when the file does not exist."""
     # Patch the THRESHOLD_CONFIG_PATH to a non-existent file
-    with patch("core.pulse_config.THRESHOLD_CONFIG_PATH", str(tmp_path / "non_existent.json")):
+    with patch(
+        "core.pulse_config.THRESHOLD_CONFIG_PATH", str(tmp_path / "non_existent.json")
+    ):
         thresholds = load_thresholds()
         assert thresholds == {}
+
 
 # Test save_thresholds function
 def test_save_thresholds(tmp_path):
@@ -80,6 +90,7 @@ def test_save_thresholds(tmp_path):
         with open(file_path, "r") as f:
             loaded_data = json.load(f)
         assert loaded_data == test_data
+
 
 # Test update_threshold function
 def test_update_threshold(temp_thresholds_file):
@@ -101,8 +112,8 @@ def test_update_threshold(temp_thresholds_file):
 
     # Verify the global variable is updated (requires patching globals)
     with patch("core.pulse_config.globals") as mock_globals:
-         update_threshold("TEST_THRESHOLD", 0.1)
-         mock_globals().__setitem__.assert_called_with("TEST_THRESHOLD", 0.1)
+        update_threshold("TEST_THRESHOLD", 0.1)
+        mock_globals().__setitem__.assert_called_with("TEST_THRESHOLD", 0.1)
 
 
 # Test ConfigLoader class
@@ -113,6 +124,7 @@ def test_configloader_load_config_exists(temp_config_dir):
     assert config == {"setting1": "value1", "setting2": 123}
     assert "config1.yaml" in loader.configs
 
+
 def test_configloader_load_config_not_exists(temp_config_dir, capsys):
     """Test ConfigLoader.load_config when the file does not exist."""
     loader = ConfigLoader(config_dir=str(temp_config_dir))
@@ -121,6 +133,7 @@ def test_configloader_load_config_not_exists(temp_config_dir, capsys):
     captured = capsys.readouterr()
     assert "Error loading configuration from" in captured.out
 
+
 def test_configloader_load_all_configs(temp_config_dir):
     """Test ConfigLoader.load_all_configs."""
     loader = ConfigLoader(config_dir=str(temp_config_dir))
@@ -128,7 +141,11 @@ def test_configloader_load_all_configs(temp_config_dir):
     assert "config1.yaml" in loader.configs
     assert "config2.yaml" in loader.configs
     assert loader.configs["config1.yaml"] == {"setting1": "value1", "setting2": 123}
-    assert loader.configs["config2.yaml"] == {"list_setting": [1, 2, 3], "bool_setting": True}
+    assert loader.configs["config2.yaml"] == {
+        "list_setting": [1, 2, 3],
+        "bool_setting": True,
+    }
+
 
 def test_configloader_get_config_value(temp_config_dir):
     """Test ConfigLoader.get_config_value."""
@@ -148,7 +165,9 @@ def test_configloader_get_config_value(temp_config_dir):
     assert value is None
 
     # Test getting a non-existent key with a default
-    value = loader.get_config_value("config1.yaml", "non_existent_key", default="default_value")
+    value = loader.get_config_value(
+        "config1.yaml", "non_existent_key", default="default_value"
+    )
     assert value == "default_value"
 
     # Test getting a value from a non-existent file
@@ -156,7 +175,9 @@ def test_configloader_get_config_value(temp_config_dir):
     assert value is None
 
     # Test getting a value from a non-existent file with a default
-    value = loader.get_config_value("non_existent.yaml", "some_key", default="default_value")
+    value = loader.get_config_value(
+        "non_existent.yaml", "some_key", default="default_value"
+    )
     assert value == "default_value"
 
 
@@ -180,6 +201,7 @@ def test_configloader_reload_config(temp_config_dir):
     assert reloaded_config == new_data
     assert loader.configs["config1.yaml"] == new_data
 
+
 # Test get_config function
 def test_get_config_whole(temp_config_dir):
     """Test get_config to retrieve the whole config dictionary."""
@@ -187,17 +209,20 @@ def test_get_config_whole(temp_config_dir):
     config = get_config("config1.yaml")
     assert config == {"setting1": "value1", "setting2": 123}
 
+
 def test_get_config_value(temp_config_dir):
     """Test get_config to retrieve a specific value."""
     # get_config uses the global config_loader, which is patched by the fixture
     value = get_config("config2.yaml", "bool_setting")
     assert value is True
 
+
 def test_get_config_value_default(temp_config_dir):
     """Test get_config to retrieve a specific value with a default."""
     # get_config uses the global config_loader, which is patched by the fixture
     value = get_config("config1.yaml", "non_existent_key", default="default_value")
     assert value == "default_value"
+
 
 def test_get_config_non_existent_file(temp_config_dir, capsys):
     """Test get_config for a non-existent file."""
@@ -207,6 +232,7 @@ def test_get_config_non_existent_file(temp_config_dir, capsys):
     captured = capsys.readouterr()
     assert "Error loading configuration from" in captured.out
 
+
 def test_get_config_value_non_existent_file(temp_config_dir, capsys):
     """Test get_config for a value from a non-existent file."""
     # get_config uses the global config_loader, which is patched by the fixture
@@ -214,6 +240,7 @@ def test_get_config_value_non_existent_file(temp_config_dir, capsys):
     assert value is None
     captured = capsys.readouterr()
     assert "Error loading configuration from" in captured.out
+
 
 def test_get_config_value_non_existent_file_default(temp_config_dir, capsys):
     """Test get_config for a value from a non-existent file with a default."""

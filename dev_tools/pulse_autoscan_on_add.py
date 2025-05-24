@@ -13,10 +13,10 @@ Usage:
 - Prints a summary when a scan is triggered.
 - Handles errors in subprocess and file I/O.
 """
+
 import time
 import os
 import subprocess
-import logging
 import argparse
 from typing import List, Dict
 from utils.log_utils import get_logger
@@ -87,14 +87,21 @@ def parse_args():
         (List[str], int): (watch_paths, interval)
     """
     parser = argparse.ArgumentParser(description="Pulse Autoscan On Add")
-    parser.add_argument("--interval", type=int, default=3, help="Watch interval in seconds")
-    parser.add_argument("--paths", nargs="*", default=DEFAULT_WATCH_PATHS, help="Directories to watch")
+    parser.add_argument(
+        "--interval", type=int, default=3, help="Watch interval in seconds"
+    )
+    parser.add_argument(
+        "--paths", nargs="*", default=DEFAULT_WATCH_PATHS, help="Directories to watch"
+    )
     args = parser.parse_args()
     return args.paths, args.interval
 
+
 if __name__ == "__main__":
     watch_paths, interval = parse_args()
-    logger.info(f"👁️  Watching for new CLI modules in: {watch_paths} (interval: {interval}s). Ctrl+C to stop.")
+    logger.info(
+        f"👁️  Watching for new CLI modules in: {watch_paths} (interval: {interval}s). Ctrl+C to stop."
+    )
     last_scan = load_last_time()
 
     while True:
@@ -103,9 +110,15 @@ if __name__ == "__main__":
         newest_change = max(current_files.values(), default=0)
 
         if newest_change > last_scan:
-            logger.info(f"🔁 Detected new or modified file at {time.ctime(newest_change)}. Running hook scan...")
+            logger.info(
+                f"🔁 Detected new or modified file at {time.ctime(newest_change)}. Running hook scan..."
+            )
             try:
-                result = subprocess.run(["python", "dev_tools/pulse_scan_hooks.py"], capture_output=True, text=True)
+                result = subprocess.run(
+                    ["python", "dev_tools/pulse_scan_hooks.py"],
+                    capture_output=True,
+                    text=True,
+                )
                 if result.returncode == 0:
                     logger.info("[Watcher] Hook scan completed successfully.")
                 else:

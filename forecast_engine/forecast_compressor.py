@@ -1,9 +1,9 @@
 import numpy as np
 from typing import List, Dict
 
+
 def compress_mc_samples(
-    mc_samples: List[Dict[str, np.ndarray]], 
-    alpha: float = 0.9
+    mc_samples: List[Dict[str, np.ndarray]], alpha: float = 0.9
 ) -> Dict[str, Dict[str, np.ndarray]]:
     """
     Compress Monte Carlo forecast samples into mean and prediction interval.

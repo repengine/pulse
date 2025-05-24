@@ -29,11 +29,7 @@ def capital_delta_magnitude(start: Dict[str, float], end: Dict[str, float]) -> f
     return round(min(delta_sum / 1000.0, 1.0), 3)
 
 
-def rank_forecasts(
-    forecasts: List[Dict],
-    weights=None,
-    debug=False
-) -> List[Dict]:
+def rank_forecasts(forecasts: List[Dict], weights=None, debug=False) -> List[Dict]:
     """
     Scores and ranks forecasts based on:
     - Fragility
@@ -49,11 +45,7 @@ def rank_forecasts(
         List[Dict]: Forecasts sorted by priority_score (descending)
     """
     if weights is None:
-        weights = {
-            "fragility": 0.5,
-            "novelty": 0.3,
-            "capital": 0.2
-        }
+        weights = {"fragility": 0.5, "novelty": 0.3, "capital": 0.2}
 
     ranked = []
 
@@ -67,9 +59,9 @@ def rank_forecasts(
         capital = capital_delta_magnitude(capital_start, capital_end)
 
         score = (
-            fragility * weights["fragility"] +
-            novelty * weights["novelty"] +
-            capital * weights["capital"]
+            fragility * weights["fragility"]
+            + novelty * weights["novelty"]
+            + capital * weights["capital"]
         )
 
         f["priority_score"] = round(score, 3)
@@ -77,7 +69,9 @@ def rank_forecasts(
         if age > 0:
             f["priority_score"] = round(max(0.05, f["priority_score"] - age * 0.01), 3)
         if debug:
-            print(f"[PRIORITY] {f.get('trace_id')} → F:{fragility} N:{novelty} C:{capital} = {score:.3f}")
+            print(
+                f"[PRIORITY] {f.get('trace_id')} → F:{fragility} N:{novelty} C:{capital} = {score:.3f}"
+            )
 
         ranked.append(f)
 
@@ -87,6 +81,7 @@ def rank_forecasts(
 # === Local test hook ===
 def simulate_priority_test():
     from forecast_output.pfpa_logger import PFPA_ARCHIVE
+
     if not PFPA_ARCHIVE:
         print("⚠️ No forecasts available for prioritization.")
         return
@@ -94,7 +89,9 @@ def simulate_priority_test():
     top = rank_forecasts(PFPA_ARCHIVE[-10:], debug=True)
     print("\n🧠 Top Prioritized Forecasts:")
     for f in top[:5]:
-        print(f"  → {f.get('trace_id')} | Priority: {f['priority_score']} | Conf: {f.get('confidence')}")
+        print(
+            f"  → {f.get('trace_id')} | Priority: {f['priority_score']} | Conf: {f.get('confidence')}"
+        )
 
 
 if __name__ == "__main__":

@@ -1,12 +1,11 @@
 import requests
-import pandas as pd
-from datetime import datetime
 from iris.iris_utils.ingestion_persistence import save_data_point_incremental
 import os
 
 # TODO: Add FRED API key configuration
 FRED_API_KEY = os.environ.get("FRED_API_KEY")
 BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+
 
 class FREDPlugin:
     def __init__(self):
@@ -42,179 +41,193 @@ class FREDPlugin:
     def ingest_interest_rates_yield_curves(self):
         # TODO: Find and add FRED series IDs for interest rates and yield curves
         series_ids = {
-            "US_TREASURY_YIELD_10Y": "GS10", # 10-Year Treasury Constant Maturity Rate
-            "US_TREASURY_YIELD_3M": "DTB3", # 3-Month Treasury Bill Secondary Market Rate
-            "US_TREASURY_YIELD_2Y": "GS2", # 2-Year Treasury Constant Maturity Rate
-            "US_TREASURY_YIELD_30Y": "GS30", # 30-Year Treasury Constant Maturity Rate
+            "US_TREASURY_YIELD_10Y": "GS10",  # 10-Year Treasury Constant Maturity Rate
+            "US_TREASURY_YIELD_3M": "DTB3",  # 3-Month Treasury Bill Secondary Market Rate
+            "US_TREASURY_YIELD_2Y": "GS2",  # 2-Year Treasury Constant Maturity Rate
+            "US_TREASURY_YIELD_30Y": "GS30",  # 30-Year Treasury Constant Maturity Rate
         }
         print("Ingesting Interest Rates & Yield Curves from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.': # FRED uses '.' for missing values
+                    if obs["value"] != ".":  # FRED uses '.' for missing values
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_industrial_production_pmi(self):
         # TODO: Find and add FRED series IDs for industrial production
         series_ids = {
-            "INDUSTRIAL_PRODUCTION_INDEX": "INDPRO", # Industrial Production Index
-            "MANUFACTURING_PRODUCTION_INDEX": "IPMAN", # Manufacturing Sector: Production Index
-            "CAPACITY_UTILIZATION_RATE": "TCU", # Capacity Utilization: Total Industry
+            "INDUSTRIAL_PRODUCTION_INDEX": "INDPRO",  # Industrial Production Index
+            "MANUFACTURING_PRODUCTION_INDEX": "IPMAN",  # Manufacturing Sector: Production Index
+            "CAPACITY_UTILIZATION_RATE": "TCU",  # Capacity Utilization: Total Industry
         }
         print("Ingesting Industrial Production from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_unemployment_labor_force(self):
         # TODO: Find and add FRED series IDs for unemployment and labor force participation
         series_ids = {
-            "UNEMPLOYMENT_RATE": "UNRATE", # Unemployment Rate
-            "LABOR_FORCE_PARTICIPATION_RATE": "CIVPART", # Labor Force Participation Rate
+            "UNEMPLOYMENT_RATE": "UNRATE",  # Unemployment Rate
+            "LABOR_FORCE_PARTICIPATION_RATE": "CIVPART",  # Labor Force Participation Rate
         }
         print("Ingesting Unemployment & Labor Force from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_money_supply(self):
         # TODO: Find and add FRED series IDs for money supply aggregates
         series_ids = {
-            "MONEY_SUPPLY_M2": "M2SL", # M2 Money Stock
-            "MONEY_SUPPLY_M1": "M1SL", # M1 Money Stock
+            "MONEY_SUPPLY_M2": "M2SL",  # M2 Money Stock
+            "MONEY_SUPPLY_M1": "M1SL",  # M1 Money Stock
         }
         print("Ingesting Money Supply from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_exchange_rates(self):
         # TODO: Find and add FRED series IDs for exchange rates
         series_ids = {
-            "US_EURO_EXCHANGE_RATE": "DEXUSEU", # U.S. / Euro Foreign Exchange Rate
-            "US_YEN_EXCHANGE_RATE": "DEXJPUS", # U.S. / Japanese Yen Foreign Exchange Rate
-            "US_POUND_EXCHANGE_RATE": "DEXUSUK", # U.S. / U.K. Pound Exchange Rate
+            "US_EURO_EXCHANGE_RATE": "DEXUSEU",  # U.S. / Euro Foreign Exchange Rate
+            "US_YEN_EXCHANGE_RATE": "DEXJPUS",  # U.S. / Japanese Yen Foreign Exchange Rate
+            "US_POUND_EXCHANGE_RATE": "DEXUSUK",  # U.S. / U.K. Pound Exchange Rate
         }
         print("Ingesting Exchange Rates from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_credit_spreads_volatility(self):
         # TODO: Find and add FRED series IDs for credit spreads and volatility indices
         series_ids = {
-            "ICE_BOFA_Baa_SPREAD": "BAMLC0A4C", # ICE BofA US Corporate BAA Option-Adjusted Spread
-            "ICE_BOFA_US_HIGH_YIELD_SPREAD": "BAMLH0A0HYM2", # ICE BofA US High Yield Option-Adjusted Spread
+            "ICE_BOFA_Baa_SPREAD": "BAMLC0A4C",  # ICE BofA US Corporate BAA Option-Adjusted Spread
+            "ICE_BOFA_US_HIGH_YIELD_SPREAD": "BAMLH0A0HYM2",  # ICE BofA US High Yield Option-Adjusted Spread
         }
         print("Ingesting Credit Spreads from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_housing_starts_permits(self):
         # TODO: Find and add FRED series IDs for housing starts and building permits
         series_ids = {
-            "HOUSING_STARTS_TOTAL": "HOUST", # Housing Starts: Total: New Privately-Owned Housing Units Started
-            "BUILDING_PERMITS_TOTAL": "PERMIT", # New Privately-Owned Housing Units Authorized by Building Permits: Total
+            "HOUSING_STARTS_TOTAL": "HOUST",  # Housing Starts: Total: New Privately-Owned Housing Units Started
+            "BUILDING_PERMITS_TOTAL": "PERMIT",  # New Privately-Owned Housing Units Authorized by Building Permits: Total
         }
         print("Ingesting Housing Starts & Building Permits from FRED...")
         for name, series_id in series_ids.items():
             # Fetch data from a comprehensive historical range
-            observations = self.fetch_series_data(series_id, start_date='1900-01-01')
+            observations = self.fetch_series_data(series_id, start_date="1900-01-01")
             if observations:
                 for obs in observations:
-                    if obs['value'] != '.':
+                    if obs["value"] != ".":
                         data_point = {
                             "variable_name": name,
-                            "timestamp": obs['date'],
-                            "value": float(obs['value']),
+                            "timestamp": obs["date"],
+                            "value": float(obs["value"]),
                             "source": "FRED",
-                            "series_id": series_id
+                            "series_id": series_id,
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
-                print(f"Successfully ingested {len(observations)} observations for {name}")
+                print(
+                    f"Successfully ingested {len(observations)} observations for {name}"
+                )
             else:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
@@ -229,10 +242,11 @@ class FREDPlugin:
         self.ingest_housing_starts_permits()
         print("FRED data ingestion finished.")
 
+
 if __name__ == "__main__":
     # Example usage:
     # Set the FRED_API_KEY environment variable before running
     # os.environ["FRED_API_KEY"] = "YOUR_FRED_API_KEY"
     # fred_plugin = FREDPlugin()
     # fred_plugin.ingest_all()
-    pass # Prevent execution when imported
+    pass  # Prevent execution when imported

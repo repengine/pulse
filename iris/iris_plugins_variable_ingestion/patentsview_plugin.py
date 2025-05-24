@@ -2,12 +2,14 @@
 
 Set `enabled=True` when ready and fill in `fetch_signals`.
 """
+
 from typing import List, Dict, Any
 from iris.iris_plugins import IrisPluginManager
 
+
 class PatentsviewPlugin(IrisPluginManager):
     plugin_name = "patentsview_plugin"
-    enabled = False     # flip to True and provide API key to activate
+    enabled = False  # flip to True and provide API key to activate
     concurrency = 2
 
     def fetch_signals(self) -> List[Dict[str, Any]]:
@@ -15,5 +17,4 @@ class PatentsviewPlugin(IrisPluginManager):
         return []
 
     def additional_method(self) -> None:
-
         pass

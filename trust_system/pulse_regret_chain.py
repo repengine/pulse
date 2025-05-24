@@ -24,9 +24,11 @@ logger = logging.getLogger("pulse_regret_chain")
 
 REGRET_LOG = "data/regret_chain.jsonl"
 
+
 def ensure_log_path(path: str = REGRET_LOG) -> None:
     """Ensure the regret log directory exists."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
 
 def log_regret_event(
     trace_id: str,
@@ -35,7 +37,7 @@ def log_regret_event(
     rule_id: Optional[str] = None,
     timestamp: Optional[str] = None,
     feedback: str = "",
-    review_status: str = "Unreviewed"
+    review_status: str = "Unreviewed",
 ) -> Dict:
     """
     Append a regret event to the regret chain log.
@@ -48,7 +50,7 @@ def log_regret_event(
         "rule_id": rule_id,
         "timestamp": timestamp,
         "feedback": feedback,
-        "review_status": review_status
+        "review_status": review_status,
     }
     try:
         with open(REGRET_LOG, "a") as f:
@@ -57,6 +59,7 @@ def log_regret_event(
     except Exception as e:
         logger.error(f"Failed to log regret event: {e}")
     return event
+
 
 def get_regret_chain() -> List[Dict]:
     """
@@ -73,6 +76,7 @@ def get_regret_chain() -> List[Dict]:
                     logger.warning(f"Malformed regret entry skipped: {e}")
                     continue
     return regrets
+
 
 def print_regret_summary(regrets: List[Dict]) -> None:
     """
@@ -94,6 +98,7 @@ def print_regret_summary(regrets: List[Dict]) -> None:
         print(f"  {k}: {v}")
     print(f"Summary: {len(arc_count)} unique arcs, {len(rule_count)} unique rules.")
 
+
 def mark_regret_reviewed(trace_id: str, status: str = "Operator-Reviewed") -> bool:
     """
     Update a regret entry to mark it as reviewed.
@@ -112,6 +117,7 @@ def mark_regret_reviewed(trace_id: str, status: str = "Operator-Reviewed") -> bo
         logger.error(f"Failed to mark regret reviewed: {e}")
     return updated
 
+
 def score_symbolic_regret() -> dict:
     """
     Analyze the regret chain and return normalized regret scores per arc_label.
@@ -124,8 +130,12 @@ def score_symbolic_regret() -> dict:
         arc = r.get("arc_label", "Unknown")
         arc_count[arc] = arc_count.get(arc, 0) + 1
     total = sum(arc_count.values())
-    regret_scores = {arc: round(count / total, 4) if total else 0.0 for arc, count in arc_count.items()}
+    regret_scores = {
+        arc: round(count / total, 4) if total else 0.0
+        for arc, count in arc_count.items()
+    }
     return {"regret_scores": regret_scores, "total_regrets": total}
+
 
 # --- Unit test for regret logging and summary ---
 def _test_regret_chain():
@@ -136,23 +146,35 @@ def _test_regret_chain():
     assert mark_regret_reviewed("t1")
     print("✅ pulse_regret_chain unit test passed.")
 
+
 # CLI entry
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Pulse Regret Chain CLI")
-    parser.add_argument("--add", nargs=2, metavar=("trace_id", "reason"), help="Add a new regret")
+    parser.add_argument(
+        "--add", nargs=2, metavar=("trace_id", "reason"), help="Add a new regret"
+    )
     parser.add_argument("--arc", help="Arc label for new regret")
     parser.add_argument("--rule", help="Rule ID for new regret")
     parser.add_argument("--timestamp", help="Timestamp for new regret")
     parser.add_argument("--feedback", help="Operator notes")
     parser.add_argument("--summary", action="store_true", help="Print regret summary")
-    parser.add_argument("--review", metavar="trace_id", help="Mark a regret as reviewed")
+    parser.add_argument(
+        "--review", metavar="trace_id", help="Mark a regret as reviewed"
+    )
 
     args = parser.parse_args()
     if args.add:
         trace_id, reason = args.add
-        event = log_regret_event(trace_id, reason, arc_label=args.arc, rule_id=args.rule,
-                                 timestamp=args.timestamp, feedback=args.feedback)
+        event = log_regret_event(
+            trace_id,
+            reason,
+            arc_label=args.arc,
+            rule_id=args.rule,
+            timestamp=args.timestamp,
+            feedback=args.feedback,
+        )
         print("Logged regret:", event)
     elif args.review:
         updated = mark_regret_reviewed(args.review)

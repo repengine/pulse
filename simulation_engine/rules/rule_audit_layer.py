@@ -20,7 +20,7 @@ def audit_rule(
     state_before: WorldState,
     state_after: WorldState,
     symbolic_tags: list[str],
-    turn: int
+    turn: int,
 ) -> Dict[str, Any]:
     """
     Audits a single rule execution and returns structured trace.
@@ -30,7 +30,10 @@ def audit_rule(
         after_val = state_after.variables.as_dict().get(key)
         if after_val != before_val:
             if before_val is not None and after_val is not None:
-                var_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+                var_deltas[key] = {
+                    "from": round(before_val, 4),
+                    "to": round(after_val, 4),
+                }
             else:
                 var_deltas[key] = {"from": before_val, "to": after_val}
 
@@ -39,7 +42,10 @@ def audit_rule(
         after_val = state_after.overlays.as_dict().get(key)
         if after_val != before_val:
             if before_val is not None and after_val is not None:
-                overlay_deltas[key] = {"from": round(before_val, 4), "to": round(after_val, 4)}
+                overlay_deltas[key] = {
+                    "from": round(before_val, 4),
+                    "to": round(after_val, 4),
+                }
             else:
                 overlay_deltas[key] = {"from": before_val, "to": after_val}
 
@@ -48,5 +54,5 @@ def audit_rule(
         "timestamp": turn,
         "symbolic_tags": symbolic_tags,
         "variables_changed": var_deltas,
-        "overlays_changed": overlay_deltas
+        "overlays_changed": overlay_deltas,
     }

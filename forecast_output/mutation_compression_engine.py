@@ -30,9 +30,9 @@ def select_best_forecast(chain: List[Dict]) -> Dict:
         key=lambda fc: (
             fc.get("license_status") == "✅ Approved",
             fc.get("alignment_score", 0),
-            fc.get("confidence", 0)
+            fc.get("confidence", 0),
         ),
-        reverse=True
+        reverse=True,
     )
     return sorted_chain[0] if sorted_chain else {}
 
@@ -116,7 +116,7 @@ def export_compressed_episode(forecast: Dict, path: str) -> None:
 def plot_symbolic_trajectory(
     chain: List[Dict],
     title: str = "Symbolic Trajectory",
-    export_path: Optional[str] = None
+    export_path: Optional[str] = None,
 ):
     """
     Plot and optionally export symbolic arc + tag timeline across forecast chain.
@@ -132,8 +132,17 @@ def plot_symbolic_trajectory(
     tags = [fc.get("symbolic_tag", "unknown") for fc in chain]
 
     plt.figure(figsize=(10, 4))
-    plt.plot(steps, arc_labels, marker='o', linestyle='--', label="Arc Label", color="royalblue")
-    plt.plot(steps, tags, marker='x', linestyle='-', label="Symbolic Tag", color="firebrick")
+    plt.plot(
+        steps,
+        arc_labels,
+        marker="o",
+        linestyle="--",
+        label="Arc Label",
+        color="royalblue",
+    )
+    plt.plot(
+        steps, tags, marker="x", linestyle="-", label="Symbolic Tag", color="firebrick"
+    )
     plt.title(title)
     plt.xlabel("Forecast Version")
     plt.ylabel("Symbolic State")
@@ -147,7 +156,9 @@ def plot_symbolic_trajectory(
     else:
         plt.show()
 
+
 # Add this to mutation_compression_engine.py
+
 
 def summarize_mutation_log(forecast_batch: List[Dict], fmt: str = "markdown") -> str:
     """
@@ -162,7 +173,9 @@ def summarize_mutation_log(forecast_batch: List[Dict], fmt: str = "markdown") ->
     """
     compressed = []
     for forecast in forecast_batch:
-        if (lineage := forecast.get("lineage", [])) and (compressed_forecast := compress_episode_chain(lineage)):
+        if (lineage := forecast.get("lineage", [])) and (
+            compressed_forecast := compress_episode_chain(lineage)
+        ):
             compressed.append(compressed_forecast)
 
     if not compressed:
@@ -170,6 +183,7 @@ def summarize_mutation_log(forecast_batch: List[Dict], fmt: str = "markdown") ->
 
     if fmt == "json":
         import json
+
         return json.dumps(compressed, indent=2)
 
     # Default: Markdown
@@ -179,11 +193,13 @@ def summarize_mutation_log(forecast_batch: List[Dict], fmt: str = "markdown") ->
         stability = fc.get("symbolic_stability_score", "N/A")
         flips = fc.get("arc_flips", "N/A")
         total_versions = fc.get("total_versions", "N/A")
-        lines.extend([
-            f"### Forecast {trace_id}",
-            f"- Symbolic Stability Score: {stability}",
-            f"- Arc Flips: {flips}",
-            f"- Total Versions: {total_versions}",
-            ""
-        ])
+        lines.extend(
+            [
+                f"### Forecast {trace_id}",
+                f"- Symbolic Stability Score: {stability}",
+                f"- Arc Flips: {flips}",
+                f"- Total Versions: {total_versions}",
+                "",
+            ]
+        )
     return "\n".join(lines)

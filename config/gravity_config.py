@@ -31,13 +31,23 @@ DEFAULT_WEIGHT_PRUNING_THRESHOLD = 1e-4  # Threshold for pruning small weights
 
 # Shadow Model Trigger Configuration
 DEFAULT_ENABLE_SHADOW_MODEL_TRIGGER = True  # Enable shadow model trigger by default
-DEFAULT_SHADOW_MODEL_VARIANCE_THRESHOLD = 0.30  # Threshold for variance explained to trigger review
-DEFAULT_SHADOW_MODEL_WINDOW_SIZE = 100  # Size of the rolling window for residual tracking
-DEFAULT_SHADOW_MODEL_MIN_TRIGGER_SAMPLES = 30  # Minimum samples required before variance check
-DEFAULT_SHADOW_MODEL_MIN_CAUSAL_VARIANCE = 1e-6  # Minimum variance in causal residuals to avoid division by zero
+DEFAULT_SHADOW_MODEL_VARIANCE_THRESHOLD = (
+    0.30  # Threshold for variance explained to trigger review
+)
+DEFAULT_SHADOW_MODEL_WINDOW_SIZE = (
+    100  # Size of the rolling window for residual tracking
+)
+DEFAULT_SHADOW_MODEL_MIN_TRIGGER_SAMPLES = (
+    30  # Minimum samples required before variance check
+)
+DEFAULT_SHADOW_MODEL_MIN_CAUSAL_VARIANCE = (
+    1e-6  # Minimum variance in causal residuals to avoid division by zero
+)
 
 # Contributor tracking
-SIGNIFICANT_CONTRIBUTOR_THRESHOLD = 0.001  # For tracking significant gravity contributors
+SIGNIFICANT_CONTRIBUTOR_THRESHOLD = (
+    0.001  # For tracking significant gravity contributors
+)
 
 # Adaptive lambda configuration
 MIN_LAMBDA_SCALE_FACTOR = 0.1  # Minimum scaling for adaptive lambda
@@ -47,8 +57,12 @@ CIRCUIT_BREAKER_LAMBDA_REDUCTION = 0.5  # Lambda reduction when circuit breaker 
 DEFAULT_ADAPTIVE_LAMBDA_MIN = 0.01  # Minimum value for adaptive lambda
 DEFAULT_ADAPTIVE_LAMBDA_MAX = 1.0  # Maximum value for adaptive lambda
 DEFAULT_ADAPTIVE_LAMBDA_WINDOW_SIZE = 20  # Window size for adaptive lambda calculation
-DEFAULT_ADAPTIVE_LAMBDA_RESIDUAL_THRESHOLD_HIGH = 0.5  # Upper threshold for increasing lambda
-DEFAULT_ADAPTIVE_LAMBDA_RESIDUAL_THRESHOLD_LOW = 0.1  # Lower threshold for decreasing lambda
+DEFAULT_ADAPTIVE_LAMBDA_RESIDUAL_THRESHOLD_HIGH = (
+    0.5  # Upper threshold for increasing lambda
+)
+DEFAULT_ADAPTIVE_LAMBDA_RESIDUAL_THRESHOLD_LOW = (
+    0.1  # Lower threshold for decreasing lambda
+)
 DEFAULT_ADAPTIVE_LAMBDA_INCREASE_FACTOR = 1.05  # Factor to increase lambda by
 DEFAULT_ADAPTIVE_LAMBDA_DECREASE_FACTOR = 0.95  # Factor to decrease lambda by
 
@@ -69,4 +83,6 @@ LOW_CORRECTION_EFFICIENCY_THRESHOLD = 0.3  # Threshold for low correction effici
 MIN_UPDATES_FOR_EFFICIENCY_CHECK = 20  # Minimum updates for correction efficiency check
 
 # EWMA (Exponentially Weighted Moving Average) configuration
-DEFAULT_EWMA_SPAN = 30.0  # Span parameter for EWMA decay of impact matrix (alpha = 2/(span+1))
+DEFAULT_EWMA_SPAN = (
+    30.0  # Span parameter for EWMA decay of impact matrix (alpha = 2/(span+1))
+)

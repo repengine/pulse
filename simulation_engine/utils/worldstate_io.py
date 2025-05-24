@@ -14,7 +14,9 @@ from typing import Optional
 from simulation_engine.worldstate import WorldState
 
 
-def save_worldstate_to_file(state: WorldState, directory: str, filename: Optional[str] = None) -> str:
+def save_worldstate_to_file(
+    state: WorldState, directory: str, filename: Optional[str] = None
+) -> str:
     """
     Save a WorldState object to a JSON file.
 
@@ -34,7 +36,7 @@ def save_worldstate_to_file(state: WorldState, directory: str, filename: Optiona
 
     full_path = os.path.join(directory, filename)
     try:
-        with open(full_path, 'w') as f:
+        with open(full_path, "w") as f:
             json.dump(state.to_dict(), f, indent=2)
     except Exception as e:
         raise IOError(f"Failed to save WorldState: {e}")
@@ -55,7 +57,7 @@ def load_worldstate_from_file(filepath: str) -> WorldState:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"WorldState file not found: {filepath}")
 
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         data = json.load(f)
 
     try:

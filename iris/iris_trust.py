@@ -13,7 +13,8 @@ Date: 2025-04-27
 import numpy as np
 from datetime import datetime, timezone
 from sklearn.ensemble import IsolationForest
-from typing import List, Optional
+from typing import List
+
 
 class IrisTrustScorer:
     def __init__(self):
@@ -77,7 +78,9 @@ class IrisTrustScorer:
         z = (value - mean) / std
         return bool(abs(z) > 3.0)
 
-    def compute_signal_trust_index(self, recency_score: float, anomaly_flag: bool) -> float:
+    def compute_signal_trust_index(
+        self, recency_score: float, anomaly_flag: bool
+    ) -> float:
         """
         Compute the Signal Trust Index (STI).
 

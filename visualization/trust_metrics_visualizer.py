@@ -7,18 +7,18 @@ Author: Pulse v0.32
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 import os
-import math
 from core.bayesian_trust_tracker import bayesian_trust_tracker
 from core.pulse_learning_log import generate_trust_report
 
-def plot_trust_evolution(key: str, kind: str = "variable", save_path: Optional[str] = None):
+
+def plot_trust_evolution(
+    key: str, kind: str = "variable", save_path: Optional[str] = None
+):
     """
     Plot the evolution of trust metrics over time.
-    
+
     Args:
         key: Variable or rule key
         kind: 'variable' or 'rule'
@@ -28,39 +28,44 @@ def plot_trust_evolution(key: str, kind: str = "variable", save_path: Optional[s
     if not timestamps:
         print(f"No timestamp data available for {kind} {key}")
         return
-    
+
     times, values = zip(*timestamps)
-    
+
     # Convert to relative times in hours
     start_time = min(times)
     rel_times = [(t - start_time) / 3600 for t in times]
-    
+
     plt.figure(figsize=(10, 6))
-    plt.plot(rel_times, values, 'b-', linewidth=2)
-    
+    plt.plot(rel_times, values, "b-", linewidth=2)
+
     # Add confidence intervals if we have at least 5 data points
     if len(times) >= 5:
         ci_low, ci_high = bayesian_trust_tracker.get_confidence_interval(key)
-        plt.axhline(y=ci_low, color='r', linestyle='--', alpha=0.5)
-        plt.axhline(y=ci_high, color='r', linestyle='--', alpha=0.5)
-        plt.axhline(y=bayesian_trust_tracker.get_trust(key), color='g', linestyle='-', alpha=0.5)
-    
+        plt.axhline(y=ci_low, color="r", linestyle="--", alpha=0.5)
+        plt.axhline(y=ci_high, color="r", linestyle="--", alpha=0.5)
+        plt.axhline(
+            y=bayesian_trust_tracker.get_trust(key), color="g", linestyle="-", alpha=0.5
+        )
+
     plt.title(f"Trust Evolution for {kind.capitalize()} {key}")
     plt.xlabel("Time (hours)")
     plt.ylabel("Trust Score")
     plt.grid(True, alpha=0.3)
-    
+
     if save_path:
         plt.savefig(save_path)
     else:
         plt.show()
-    
+
     plt.close()
 
-def plot_trust_histogram(kind: str = "all", min_samples: int = 5, save_path: Optional[str] = None):
+
+def plot_trust_histogram(
+    kind: str = "all", min_samples: int = 5, save_path: Optional[str] = None
+):
     """
     Plot histogram of trust scores.
-    
+
     Args:
         kind: 'variable', 'rule', or 'all'
         min_samples: Minimum samples to include
@@ -68,12 +73,17 @@ def plot_trust_histogram(kind: str = "all", min_samples: int = 5, save_path: Opt
     """
     trust_scores = []
     labels = []
-    
+
     report = generate_trust_report(min_samples)
-    
+
     # Combine high and low trust items for comprehensive view
-    all_items = report["high_trust"] + report["low_trust"] + report["high_confidence"] + report["low_confidence"]
-    
+    all_items = (
+        report["high_trust"]
+        + report["low_trust"]
+        + report["high_confidence"]
+        + report["low_confidence"]
+    )
+
     # Deduplicate by key
     seen_keys = set()
     unique_items = []
@@ -81,41 +91,44 @@ def plot_trust_histogram(kind: str = "all", min_samples: int = 5, save_path: Opt
         if item["key"] not in seen_keys:
             seen_keys.add(item["key"])
             unique_items.append(item)
-    
+
     # Filter by kind if specified
     filtered_items = unique_items
     if kind != "all":
         filtered_items = [item for item in unique_items if item["key"].startswith(kind)]
-    
+
     if not filtered_items:
         print(f"No {kind} data with minimum {min_samples} samples available")
         return
-    
+
     for item in filtered_items:
         trust_scores.append(item["trust"])
         labels.append(item["key"])
-    
+
     plt.figure(figsize=(12, 6))
-    
+
     # Plot histogram
-    plt.hist(trust_scores, bins=10, alpha=0.7, color='blue', edgecolor='black')
-    
+    plt.hist(trust_scores, bins=10, alpha=0.7, color="blue", edgecolor="black")
+
     plt.title(f"Trust Score Distribution ({kind})")
     plt.xlabel("Trust Score")
     plt.ylabel("Frequency")
     plt.grid(True, alpha=0.3)
-    
+
     if save_path:
         plt.savefig(save_path)
     else:
         plt.show()
-    
+
     plt.close()
 
-def plot_confidence_vs_trust(kind: str = "all", min_samples: int = 5, save_path: Optional[str] = None):
+
+def plot_confidence_vs_trust(
+    kind: str = "all", min_samples: int = 5, save_path: Optional[str] = None
+):
     """
     Scatter plot of confidence vs trust scores.
-    
+
     Args:
         kind: 'variable', 'rule', or 'all'
         min_samples: Minimum samples to include
@@ -125,10 +138,15 @@ def plot_confidence_vs_trust(kind: str = "all", min_samples: int = 5, save_path:
     confidence_scores = []
     sample_sizes = []
     labels = []
-    
+
     report = generate_trust_report(min_samples)
-    all_items = report["high_trust"] + report["low_trust"] + report["high_confidence"] + report["low_confidence"]
-    
+    all_items = (
+        report["high_trust"]
+        + report["low_trust"]
+        + report["high_confidence"]
+        + report["low_confidence"]
+    )
+
     # Deduplicate by key
     seen_keys = set()
     unique_items = []
@@ -136,106 +154,137 @@ def plot_confidence_vs_trust(kind: str = "all", min_samples: int = 5, save_path:
         if item["key"] not in seen_keys:
             seen_keys.add(item["key"])
             unique_items.append(item)
-    
+
     # Filter by kind if specified
     filtered_items = unique_items
     if kind != "all":
         filtered_items = [item for item in unique_items if item["key"].startswith(kind)]
-    
+
     if not filtered_items:
         print(f"No {kind} data with minimum {min_samples} samples available")
         return
-    
+
     for item in filtered_items:
         trust_scores.append(item["trust"])
         confidence_scores.append(item["confidence"])
         sample_sizes.append(item["sample_size"])
         labels.append(item["key"])
-    
+
     plt.figure(figsize=(12, 8))
-    
+
     # Calculate marker sizes based on sample size (scaled for visibility)
     marker_sizes = [20 + 5 * min(20, s) for s in sample_sizes]
-    
+
     # Create scatter plot
-    scatter = plt.scatter(trust_scores, confidence_scores, s=marker_sizes, 
-                         c=trust_scores, cmap='viridis', alpha=0.7, 
-                         edgecolors='black', linewidths=1)
-    
+    scatter = plt.scatter(
+        trust_scores,
+        confidence_scores,
+        s=marker_sizes,
+        c=trust_scores,
+        cmap="viridis",
+        alpha=0.7,
+        edgecolors="black",
+        linewidths=1,
+    )
+
     # Add colorbar
     cbar = plt.colorbar(scatter)
-    cbar.set_label('Trust Score')
-    
+    cbar.set_label("Trust Score")
+
     # Add annotations for top N points
     top_n = min(10, len(labels))
-    sorted_indices = sorted(range(len(sample_sizes)), key=lambda i: sample_sizes[i], reverse=True)
-    
+    sorted_indices = sorted(
+        range(len(sample_sizes)), key=lambda i: sample_sizes[i], reverse=True
+    )
+
     for i in sorted_indices[:top_n]:
-        plt.annotate(labels[i], 
-                    (trust_scores[i], confidence_scores[i]),
-                    xytext=(5, 5),
-                    textcoords='offset points',
-                    fontsize=8)
-    
+        plt.annotate(
+            labels[i],
+            (trust_scores[i], confidence_scores[i]),
+            xytext=(5, 5),
+            textcoords="offset points",
+            fontsize=8,
+        )
+
     plt.title(f"Confidence vs Trust ({kind})")
     plt.xlabel("Trust Score")
     plt.ylabel("Confidence Score")
     plt.grid(True, alpha=0.3)
-    
+
     # Add reference lines
-    plt.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
-    plt.axvline(x=0.5, color='gray', linestyle='--', alpha=0.5)
-    
+    plt.axhline(y=0.5, color="gray", linestyle="--", alpha=0.5)
+    plt.axvline(x=0.5, color="gray", linestyle="--", alpha=0.5)
+
     if save_path:
         plt.savefig(save_path)
     else:
         plt.show()
-    
+
     plt.close()
+
 
 def generate_trust_dashboard(output_dir: str = "trust_dashboard"):
     """
     Generate a complete trust metrics dashboard.
-    
+
     Args:
         output_dir: Directory to save dashboard files
     """
     os.makedirs(output_dir, exist_ok=True)
-    
+
     # Generate summary report
     report = generate_trust_report(min_samples=5)
-    
+
     # Plot trust histogram for all, variables, and rules
-    plot_trust_histogram("all", save_path=os.path.join(output_dir, "trust_histogram_all.png"))
-    plot_trust_histogram("R", save_path=os.path.join(output_dir, "trust_histogram_rules.png"))
-    plot_trust_histogram("V", save_path=os.path.join(output_dir, "trust_histogram_variables.png"))
-    
+    plot_trust_histogram(
+        "all", save_path=os.path.join(output_dir, "trust_histogram_all.png")
+    )
+    plot_trust_histogram(
+        "R", save_path=os.path.join(output_dir, "trust_histogram_rules.png")
+    )
+    plot_trust_histogram(
+        "V", save_path=os.path.join(output_dir, "trust_histogram_variables.png")
+    )
+
     # Plot confidence vs trust
-    plot_confidence_vs_trust("all", save_path=os.path.join(output_dir, "confidence_vs_trust_all.png"))
-    plot_confidence_vs_trust("R", save_path=os.path.join(output_dir, "confidence_vs_trust_rules.png"))
-    plot_confidence_vs_trust("V", save_path=os.path.join(output_dir, "confidence_vs_trust_variables.png"))
-    
+    plot_confidence_vs_trust(
+        "all", save_path=os.path.join(output_dir, "confidence_vs_trust_all.png")
+    )
+    plot_confidence_vs_trust(
+        "R", save_path=os.path.join(output_dir, "confidence_vs_trust_rules.png")
+    )
+    plot_confidence_vs_trust(
+        "V", save_path=os.path.join(output_dir, "confidence_vs_trust_variables.png")
+    )
+
     # Plot top 5 and bottom 5 trust evolutions
     top_rules = sorted(report["high_trust"], key=lambda x: x["trust"], reverse=True)[:5]
     bottom_rules = sorted(report["low_trust"], key=lambda x: x["trust"])[:5]
-    
+
     for item in top_rules:
-        plot_trust_evolution(item["key"], "rule" if item["key"].startswith("R") else "variable", 
-                           save_path=os.path.join(output_dir, f"trust_evolution_{item['key']}.png"))
-    
+        plot_trust_evolution(
+            item["key"],
+            "rule" if item["key"].startswith("R") else "variable",
+            save_path=os.path.join(output_dir, f"trust_evolution_{item['key']}.png"),
+        )
+
     for item in bottom_rules:
-        plot_trust_evolution(item["key"], "rule" if item["key"].startswith("R") else "variable",
-                           save_path=os.path.join(output_dir, f"trust_evolution_{item['key']}.png"))
-    
+        plot_trust_evolution(
+            item["key"],
+            "rule" if item["key"].startswith("R") else "variable",
+            save_path=os.path.join(output_dir, f"trust_evolution_{item['key']}.png"),
+        )
+
     # Generate HTML dashboard
     generate_html_dashboard(output_dir, report)
-    
+
     print(f"Trust dashboard generated in {output_dir}")
+
 
 def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
     """
     Generate an HTML dashboard from the trust report and visualizations.
-    
+
     Args:
         output_dir: Directory with visualization files
         report: Trust report dictionary
@@ -390,55 +439,59 @@ def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
     </body>
     </html>
     """
-    
+
     # Replace placeholders
     import datetime
-    html = html.replace("TIMESTAMP", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+    html = html.replace(
+        "TIMESTAMP", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
     html = html.replace("TOTAL_ENTITIES", str(report["summary"]["total_entities"]))
     html = html.replace("ACTIVE_ENTITIES", str(report["summary"]["active_entities"]))
     html = html.replace("AVG_TRUST", f"{report['summary']['avg_trust']:.3f}")
     html = html.replace("AVG_CONFIDENCE", f"{report['summary']['avg_confidence']:.3f}")
-    
+
     # Generate high trust table rows
     high_trust_rows = ""
     for item in sorted(report["high_trust"], key=lambda x: x["trust"], reverse=True):
         high_trust_rows += f"""
         <tr>
-            <td>{item['key']}</td>
-            <td>{item['trust']:.3f}</td>
-            <td>{item['confidence']:.3f}</td>
-            <td>{item['sample_size']}</td>
+            <td>{item["key"]}</td>
+            <td>{item["trust"]:.3f}</td>
+            <td>{item["confidence"]:.3f}</td>
+            <td>{item["sample_size"]}</td>
         </tr>
         """
     html = html.replace("HIGH_TRUST_TABLE", high_trust_rows)
-    
+
     # Generate low trust table rows
     low_trust_rows = ""
     for item in sorted(report["low_trust"], key=lambda x: x["trust"]):
         low_trust_rows += f"""
         <tr>
-            <td>{item['key']}</td>
-            <td>{item['trust']:.3f}</td>
-            <td>{item['confidence']:.3f}</td>
-            <td>{item['sample_size']}</td>
+            <td>{item["key"]}</td>
+            <td>{item["trust"]:.3f}</td>
+            <td>{item["confidence"]:.3f}</td>
+            <td>{item["sample_size"]}</td>
         </tr>
         """
     html = html.replace("LOW_TRUST_TABLE", low_trust_rows)
-    
+
     # Write HTML file
     with open(os.path.join(output_dir, "index.html"), "w") as f:
         f.write(html)
 
+
 if __name__ == "__main__":
     # Example usage
     import random
-    
+
     # Simulate some data for testing
     for i in range(20):
-        rule_id = f"R{i+1:03d}"
+        rule_id = f"R{i + 1:03d}"
         for j in range(random.randint(5, 20)):
             success = random.random() > 0.3
             bayesian_trust_tracker.update(rule_id, success)
-    
+
     # Generate dashboard
     generate_trust_dashboard()

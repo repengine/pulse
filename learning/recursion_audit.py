@@ -8,18 +8,25 @@ Author: Pulse AI Engine
 Version: v0.4.1
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from collections import Counter
-import math
 
 
 def average_confidence(forecasts: List[Dict]) -> float:
-    values = [f.get("confidence", 0.0) for f in forecasts if isinstance(f.get("confidence"), (int, float))]
+    values = [
+        f.get("confidence", 0.0)
+        for f in forecasts
+        if isinstance(f.get("confidence"), (int, float))
+    ]
     return round(sum(values) / len(values), 4) if values else 0.0
 
 
 def average_retrodiction_error(forecasts: List[Dict]) -> float:
-    values = [f.get("retrodiction_error", 0.0) for f in forecasts if isinstance(f.get("retrodiction_error"), (int, float))]
+    values = [
+        f.get("retrodiction_error", 0.0)
+        for f in forecasts
+        if isinstance(f.get("retrodiction_error"), (int, float))
+    ]
     return round(sum(values) / len(values), 4) if values else 0.0
 
 
@@ -59,8 +66,13 @@ def generate_recursion_report(previous: List[Dict], current: List[Dict]) -> Dict
         Dict: Summary statistics and audit metrics
     """
     return {
-        "confidence_delta": round(average_confidence(current) - average_confidence(previous), 4),
-        "retrodiction_error_delta": round(average_retrodiction_error(previous) - average_retrodiction_error(current), 4),
+        "confidence_delta": round(
+            average_confidence(current) - average_confidence(previous), 4
+        ),
+        "retrodiction_error_delta": round(
+            average_retrodiction_error(previous) - average_retrodiction_error(current),
+            4,
+        ),
         "trust_distribution_current": trust_label_distribution(current),
         "arc_shift_summary": symbolic_arc_shift(previous, current),
     }

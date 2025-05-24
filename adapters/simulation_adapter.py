@@ -1,6 +1,7 @@
 from interfaces.simulation_interface import SimulationInterface
 from simulation_engine import simulator_core
 
+
 class SimulationAdapter(SimulationInterface):
     def reset_state(self, state):
         return simulator_core.reset_state(state)

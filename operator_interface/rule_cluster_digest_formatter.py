@@ -8,8 +8,8 @@ Author: Pulse v0.39
 """
 
 import os
-import json
 from memory.rule_cluster_engine import summarize_rule_clusters
+
 
 def highlight_volatility(score: float) -> str:
     if score > 0.7:
@@ -18,6 +18,7 @@ def highlight_volatility(score: float) -> str:
         return "🟡"
     else:
         return "🟢"
+
 
 def format_cluster_digest_md(limit: int = 10) -> str:
     clusters = summarize_rule_clusters()
@@ -32,6 +33,7 @@ def format_cluster_digest_md(limit: int = 10) -> str:
         lines.append("")
     return "\n".join(lines)
 
+
 def export_cluster_digest_md(path: str = "logs/rule_cluster_digest.md"):
     md = format_cluster_digest_md()
     try:
@@ -41,6 +43,7 @@ def export_cluster_digest_md(path: str = "logs/rule_cluster_digest.md"):
         print(f"✅ Markdown digest saved to {path}")
     except Exception as e:
         print(f"❌ Failed to save digest: {e}")
+
 
 if __name__ == "__main__":
     print(format_cluster_digest_md())

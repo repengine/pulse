@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+
 class CoreInterface(ABC):
     @abstractmethod
     def load_config(self, filename: str) -> Any:
@@ -19,5 +20,7 @@ class CoreInterface(ABC):
         pass
 
     @abstractmethod
-    def get_config(self, filename: str, key: Optional[str] = None, default: Any = None) -> Any:
+    def get_config(
+        self, filename: str, key: Optional[str] = None, default: Any = None
+    ) -> Any:
         pass

@@ -21,15 +21,13 @@ mgr.register_plugin(WikidataPlugin())
 print(mgr.run_plugins())
 ```
 """
+
 import datetime as dt
 import logging
-import os
 import time
 import random
-from typing import List, Dict, Any, Optional, Set, Tuple, Union
-import json
+from typing import List, Dict, Any, Optional
 import re
-from urllib.parse import quote
 
 import requests
 from iris.iris_plugins import IrisPluginManager
@@ -37,7 +35,7 @@ from iris.iris_utils.ingestion_persistence import (
     ensure_data_directory,
     save_request_metadata,
     save_api_response,
-    save_processed_data
+    save_processed_data,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,7 +47,9 @@ _SOURCE_NAME = "wikidata"
 _SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
 
 # User agent for Wikidata API requests (they require a descriptive user agent)
-_USER_AGENT = "PulseEconomicForecastTool/1.0 (https://github.com/pulse-economic-forecasting)"
+_USER_AGENT = (
+    "PulseEconomicForecastTool/1.0 (https://github.com/pulse-economic-forecasting)"
+)
 
 # Domain topics to query
 _DOMAINS = {
@@ -116,7 +116,7 @@ _DOMAINS = {
         {"id": "Q181076", "name": "unemployment"},
         {"id": "Q190813", "name": "interest rate"},
         {"id": "Q846750", "name": "foreign exchange reserves"},
-    ]
+    ],
 }
 
 # SPARQL query templates
@@ -143,7 +143,6 @@ _QUERY_TEMPLATES = {
           SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """,
-    
     "country_economic_data": """
         SELECT ?countryLabel ?population ?gdpUSD ?gdpPerCapitaUSD ?currencyLabel ?inflationRate ?unemploymentRate ?centralBankLabel WHERE {
           BIND(wd:%s AS ?country)
@@ -161,7 +160,6 @@ _QUERY_TEMPLATES = {
           SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """,
-    
     "central_bank_info": """
         SELECT ?centralBankLabel ?foundingDate ?countryLabel ?currencyLabel ?bankRatePercent ?reservesUSD ?governorLabel WHERE {
           BIND(wd:%s AS ?centralBank)
@@ -180,7 +178,6 @@ _QUERY_TEMPLATES = {
           SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """,
-    
     "commodity_info": """
         SELECT ?commodityLabel ?commodityClassLabel ?unitLabel ?priceUSD ?abundanceEarth WHERE {
           BIND(wd:%s AS ?commodity)
@@ -195,7 +192,6 @@ _QUERY_TEMPLATES = {
           SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """,
-    
     "economic_indicator_info": """
         SELECT ?indicatorLabel ?definitionLabel ?publicationFrequency ?publisherLabel ?relatedIndicatorsLabel WHERE {
           BIND(wd:%s AS ?indicator)
@@ -213,16 +209,17 @@ _QUERY_TEMPLATES = {
     """,
 }
 
+
 class WikidataPlugin(IrisPluginManager):
     plugin_name = "wikidata_plugin"
-    enabled = True     # No API key required for basic usage
-    concurrency = 1    # Lower concurrency due to Wikidata rate limits
-    
+    enabled = True  # No API key required for basic usage
+    concurrency = 1  # Lower concurrency due to Wikidata rate limits
+
     # Request configuration
     REQUEST_TIMEOUT = 20.0  # SPARQL queries can take time
-    RETRY_WAIT = 5.0        # Longer wait for rate limiting
+    RETRY_WAIT = 5.0  # Longer wait for rate limiting
     MAX_RETRIES = 2
-    
+
     def __init__(self):
         """Initialize the Wikidata plugin."""
         # Ensure data directory exists for this source
@@ -231,42 +228,44 @@ class WikidataPlugin(IrisPluginManager):
     def fetch_signals(self) -> List[Dict[str, Any]]:
         """Fetch structured knowledge data from Wikidata SPARQL endpoint."""
         signals = []
-        
+
         # Choose a domain to query based on day of month to distribute API calls
         day_of_month = dt.datetime.now().day
         domains = list(_DOMAINS.keys())
         domain_idx = day_of_month % len(domains)
         domain = domains[domain_idx]
-        
+
         logger.info(f"[wikidata_plugin] Fetching data for domain: {domain}")
-        
+
         # Choose a random entity from the selected domain
         entities = _DOMAINS[domain]
         entity = random.choice(entities)
         entity_id = entity["id"]
         entity_name = entity["name"]
-        
+
         logger.info(f"[wikidata_plugin] Selected entity: {entity_name} (Q{entity_id})")
-        
+
         # Select the appropriate query template for the domain
         query_type = self._get_query_type_for_domain(domain)
-        
+
         # Execute the query for the selected entity
         query_results = self._execute_sparql_query(entity_id, query_type)
-        
+
         # Process the results into signals
         if query_results:
-            entity_signals = self._process_query_results(domain, entity_id, entity_name, query_type, query_results)
+            entity_signals = self._process_query_results(
+                domain, entity_id, entity_name, query_type, query_results
+            )
             signals.extend(entity_signals)
-        
+
         return signals
-    
+
     def _get_query_type_for_domain(self, domain: str) -> str:
         """Get the appropriate query template for the domain.
-        
+
         Args:
             domain: Domain name (e.g., 'companies', 'countries')
-            
+
         Returns:
             Query type key for _QUERY_TEMPLATES
         """
@@ -275,18 +274,20 @@ class WikidataPlugin(IrisPluginManager):
             "central_banks": "central_bank_info",
             "countries": "country_economic_data",
             "commodities": "commodity_info",
-            "economic_indicators": "economic_indicator_info"
+            "economic_indicators": "economic_indicator_info",
         }
-        
+
         return domain_query_map.get(domain, "company_info")  # Default to company_info
-    
-    def _execute_sparql_query(self, entity_id: str, query_type: str) -> Optional[List[Dict[str, Any]]]:
+
+    def _execute_sparql_query(
+        self, entity_id: str, query_type: str
+    ) -> Optional[List[Dict[str, Any]]]:
         """Execute a SPARQL query for the given entity.
-        
+
         Args:
             entity_id: Wikidata entity ID
             query_type: Type of query to execute
-            
+
         Returns:
             Query results as processed JSON, or None if query failed
         """
@@ -295,32 +296,23 @@ class WikidataPlugin(IrisPluginManager):
         if not query_template:
             logger.error(f"[wikidata_plugin] Unknown query type: {query_type}")
             return None
-        
+
         # Format the query with the entity ID
         query = query_template % entity_id
-        
+
         # Set up request parameters
-        params = {
-            "query": query,
-            "format": "json"
-        }
-        
+        params = {"query": query, "format": "json"}
+
         # Set up headers
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": _USER_AGENT
-        }
-        
+        headers = {"Accept": "application/json", "User-Agent": _USER_AGENT}
+
         dataset_id = f"wikidata_{query_type}_{entity_id}"
-        
+
         # Save request metadata before making the request
         save_request_metadata(
-            dataset_id,
-            params,
-            source_name=_SOURCE_NAME,
-            url=_SPARQL_ENDPOINT
+            dataset_id, params, source_name=_SOURCE_NAME, url=_SPARQL_ENDPOINT
         )
-        
+
         # Make the API request with retries
         query_results = None
         for attempt in range(self.MAX_RETRIES + 1):
@@ -329,11 +321,11 @@ class WikidataPlugin(IrisPluginManager):
                     _SPARQL_ENDPOINT,
                     params=params,
                     headers=headers,
-                    timeout=self.REQUEST_TIMEOUT
+                    timeout=self.REQUEST_TIMEOUT,
                 )
                 response.raise_for_status()
                 query_results = response.json()
-                
+
                 # Save API response
                 save_api_response(
                     dataset_id,
@@ -341,28 +333,34 @@ class WikidataPlugin(IrisPluginManager):
                     source_name=_SOURCE_NAME,
                     timestamp=dt.datetime.now().isoformat(),
                     status_code=response.status_code,
-                    headers=dict(response.headers)
+                    headers=dict(response.headers),
                 )
-                
+
                 break
             except Exception as e:
-                logger.warning(f"[wikidata_plugin] Request attempt {attempt+1} failed: {e}")
+                logger.warning(
+                    f"[wikidata_plugin] Request attempt {attempt + 1} failed: {e}"
+                )
                 if attempt < self.MAX_RETRIES:
                     time.sleep(self.RETRY_WAIT)
-        
+
         # If all attempts failed, return None
         if not query_results:
-            logger.error(f"[wikidata_plugin] Failed to fetch data for entity {entity_id} after {self.MAX_RETRIES + 1} attempts")
+            logger.error(
+                f"[wikidata_plugin] Failed to fetch data for entity {entity_id} after {self.MAX_RETRIES + 1} attempts"
+            )
             return None
-        
+
         # Process the results
         try:
             # Extract the bindings from the results
             bindings = query_results.get("results", {}).get("bindings", [])
             if not bindings:
-                logger.warning(f"[wikidata_plugin] No results found for entity {entity_id}")
+                logger.warning(
+                    f"[wikidata_plugin] No results found for entity {entity_id}"
+                )
                 return None
-            
+
             # Process the bindings into a more usable format
             processed_results = []
             for binding in bindings:
@@ -375,7 +373,10 @@ class WikidataPlugin(IrisPluginManager):
                         if "datatype" in value and "date" in value["datatype"]:
                             # Parse dates
                             processed_result[key] = value["value"]
-                        elif "datatype" in value and any(num_type in value["datatype"] for num_type in ["decimal", "integer", "float"]):
+                        elif "datatype" in value and any(
+                            num_type in value["datatype"]
+                            for num_type in ["decimal", "integer", "float"]
+                        ):
                             # Parse numbers
                             try:
                                 processed_result[key] = float(value["value"])
@@ -384,34 +385,43 @@ class WikidataPlugin(IrisPluginManager):
                         else:
                             # Keep as string
                             processed_result[key] = value["value"]
-                
+
                 processed_results.append(processed_result)
-            
+
             return processed_results
         except Exception as e:
-            logger.error(f"[wikidata_plugin] Error processing query results for entity {entity_id}: {e}")
+            logger.error(
+                f"[wikidata_plugin] Error processing query results for entity {entity_id}: {e}"
+            )
             return None
-    
-    def _process_query_results(self, domain: str, entity_id: str, entity_name: str, query_type: str, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+
+    def _process_query_results(
+        self,
+        domain: str,
+        entity_id: str,
+        entity_name: str,
+        query_type: str,
+        results: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
         """Process SPARQL query results into signals.
-        
+
         Args:
             domain: Domain of the entity
             entity_id: Wikidata entity ID
             entity_name: Human-readable name of the entity
             query_type: Type of query that was executed
             results: Results from the SPARQL query
-            
+
         Returns:
             List of signal dictionaries
         """
         signals = []
-        
+
         # Process the first result (SPARQL queries typically return just one row for our queries)
         if results:
             result = results[0]  # Take the first result
-            safe_entity_name = re.sub(r'[^a-zA-Z0-9]', '_', entity_name.lower())
-            
+            safe_entity_name = re.sub(r"[^a-zA-Z0-9]", "_", entity_name.lower())
+
             # Process based on the query type
             if query_type == "company_info":
                 # Extract company information
@@ -426,17 +436,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "employee_count",
-                            "unit": "employees"
-                        }
+                            "unit": "employees",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_employee_count",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "revenueUSD" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_revenue",
@@ -448,17 +458,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "revenue",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_revenue",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "netIncomeUSD" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_net_income",
@@ -470,17 +480,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "net_income",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_net_income",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 # Create a company profile signal with all available data
                 profile_data = {k: v for k, v in result.items()}
                 profile_signal = {
@@ -493,17 +503,17 @@ class WikidataPlugin(IrisPluginManager):
                         "entity_name": entity_name,
                         "domain": domain,
                         "data_type": "company_profile",
-                        "profile": profile_data
-                    }
+                        "profile": profile_data,
+                    },
                 }
                 signals.append(profile_signal)
                 save_processed_data(
                     f"{domain}_{safe_entity_name}_profile",
                     profile_signal,
                     source_name=_SOURCE_NAME,
-                    timestamp=profile_signal["timestamp"]
+                    timestamp=profile_signal["timestamp"],
                 )
-                
+
             elif query_type == "country_economic_data":
                 # Extract country economic data
                 if "population" in result:
@@ -517,17 +527,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "population",
-                            "unit": "people"
-                        }
+                            "unit": "people",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_population",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "gdpUSD" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_gdp",
@@ -539,17 +549,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "gdp",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_gdp",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "gdpPerCapitaUSD" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_gdp_per_capita",
@@ -561,17 +571,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "gdp_per_capita",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_gdp_per_capita",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "inflationRate" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_inflation_rate",
@@ -583,17 +593,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "inflation_rate",
-                            "unit": "%"
-                        }
+                            "unit": "%",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_inflation_rate",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "unemploymentRate" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_unemployment_rate",
@@ -605,17 +615,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "unemployment_rate",
-                            "unit": "%"
-                        }
+                            "unit": "%",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_unemployment_rate",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 # Country profile with all data
                 profile_data = {k: v for k, v in result.items()}
                 profile_signal = {
@@ -628,17 +638,17 @@ class WikidataPlugin(IrisPluginManager):
                         "entity_name": entity_name,
                         "domain": domain,
                         "data_type": "country_profile",
-                        "profile": profile_data
-                    }
+                        "profile": profile_data,
+                    },
                 }
                 signals.append(profile_signal)
                 save_processed_data(
                     f"{domain}_{safe_entity_name}_profile",
                     profile_signal,
                     source_name=_SOURCE_NAME,
-                    timestamp=profile_signal["timestamp"]
+                    timestamp=profile_signal["timestamp"],
                 )
-                
+
             elif query_type == "central_bank_info":
                 # Extract central bank information
                 if "bankRatePercent" in result:
@@ -652,17 +662,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "bank_rate",
-                            "unit": "%"
-                        }
+                            "unit": "%",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_bank_rate",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "reservesUSD" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_reserves",
@@ -674,17 +684,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "reserves",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_reserves",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 # Central bank profile
                 profile_data = {k: v for k, v in result.items()}
                 profile_signal = {
@@ -697,17 +707,17 @@ class WikidataPlugin(IrisPluginManager):
                         "entity_name": entity_name,
                         "domain": domain,
                         "data_type": "central_bank_profile",
-                        "profile": profile_data
-                    }
+                        "profile": profile_data,
+                    },
                 }
                 signals.append(profile_signal)
                 save_processed_data(
                     f"{domain}_{safe_entity_name}_profile",
                     profile_signal,
                     source_name=_SOURCE_NAME,
-                    timestamp=profile_signal["timestamp"]
+                    timestamp=profile_signal["timestamp"],
                 )
-                
+
             elif query_type == "commodity_info":
                 # Extract commodity information
                 if "priceUSD" in result:
@@ -721,17 +731,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "price",
-                            "unit": "USD"
-                        }
+                            "unit": "USD",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_price",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 if "abundanceEarth" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_abundance",
@@ -743,17 +753,17 @@ class WikidataPlugin(IrisPluginManager):
                             "entity_name": entity_name,
                             "domain": domain,
                             "data_type": "abundance",
-                            "unit": "ppm"
-                        }
+                            "unit": "ppm",
+                        },
                     }
                     signals.append(signal)
                     save_processed_data(
                         f"{domain}_{safe_entity_name}_abundance",
                         signal,
                         source_name=_SOURCE_NAME,
-                        timestamp=signal["timestamp"]
+                        timestamp=signal["timestamp"],
                     )
-                
+
                 # Commodity profile
                 profile_data = {k: v for k, v in result.items()}
                 profile_signal = {
@@ -766,17 +776,17 @@ class WikidataPlugin(IrisPluginManager):
                         "entity_name": entity_name,
                         "domain": domain,
                         "data_type": "commodity_profile",
-                        "profile": profile_data
-                    }
+                        "profile": profile_data,
+                    },
                 }
                 signals.append(profile_signal)
                 save_processed_data(
                     f"{domain}_{safe_entity_name}_profile",
                     profile_signal,
                     source_name=_SOURCE_NAME,
-                    timestamp=profile_signal["timestamp"]
+                    timestamp=profile_signal["timestamp"],
                 )
-                
+
             elif query_type == "economic_indicator_info":
                 # Economic indicator profile
                 profile_data = {k: v for k, v in result.items()}
@@ -790,37 +800,37 @@ class WikidataPlugin(IrisPluginManager):
                         "entity_name": entity_name,
                         "domain": domain,
                         "data_type": "economic_indicator_profile",
-                        "profile": profile_data
-                    }
+                        "profile": profile_data,
+                    },
                 }
                 signals.append(profile_signal)
                 save_processed_data(
                     f"{domain}_{safe_entity_name}_profile",
                     profile_signal,
                     source_name=_SOURCE_NAME,
-                    timestamp=profile_signal["timestamp"]
+                    timestamp=profile_signal["timestamp"],
                 )
-        
+
         return signals
-    
+
     def get_knowledge_domains(self) -> Dict[str, List[str]]:
         """Get available knowledge domains.
-        
+
         Returns:
             Dictionary with domain names as keys and lists of entity names as values
         """
         domains = {}
         for domain, entities in _DOMAINS.items():
             domains[domain] = [entity["name"] for entity in entities]
-        
+
         return domains
-    
+
     def get_entity_by_name(self, name: str) -> Optional[Dict[str, str]]:
         """Get entity details by name.
-        
+
         Args:
             name: Name of the entity to find
-            
+
         Returns:
             Dictionary with entity details, or None if not found
         """
@@ -828,6 +838,10 @@ class WikidataPlugin(IrisPluginManager):
         for domain, entities in _DOMAINS.items():
             for entity in entities:
                 if entity["name"].lower() == name.lower():
-                    return {"id": entity["id"], "name": entity["name"], "domain": domain}
-        
+                    return {
+                        "id": entity["id"],
+                        "name": entity["name"],
+                        "domain": domain,
+                    }
+
         return None

@@ -10,7 +10,6 @@ Author: Pulse v0.36
 import random
 import json
 import logging
-import os
 from typing import Dict, List, Any
 
 from core.path_registry import PATHS
@@ -22,18 +21,23 @@ from datetime import datetime
 RULE_MUTATION_LOG = PATHS.get("RULE_MUTATION_LOG", "logs/rule_mutation_log.jsonl")
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
+
 def get_all_rules() -> dict:
     """Return all rules from the unified registry keyed by rule_id or id."""
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)}
+    return {
+        r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)
+    }
 
-def propose_rule_mutations(rules: Dict[str, Dict[str, Any]], top_n: int = 5) -> List[Dict[str, Any]]:
+
+def propose_rule_mutations(
+    rules: Dict[str, Dict[str, Any]], top_n: int = 5
+) -> List[Dict[str, Any]]:
     """
     Proposes mutations to the top-N rules.
     Mutates the 'threshold' field within [0, 1] bounds.
@@ -43,7 +47,9 @@ def propose_rule_mutations(rules: Dict[str, Dict[str, Any]], top_n: int = 5) -> 
         logging.warning("No rules to mutate.")
         return []
     volatility = score_rule_volatility(rules)
-    sorted_rules = sorted(rules.items(), key=lambda x: volatility.get(x[0], 0), reverse=True)
+    sorted_rules = sorted(
+        rules.items(), key=lambda x: volatility.get(x[0], 0), reverse=True
+    )
     candidates = sorted_rules[:top_n]
     mutations = []
     for rule_id, rule in candidates:
@@ -56,8 +62,17 @@ def propose_rule_mutations(rules: Dict[str, Dict[str, Any]], top_n: int = 5) -> 
         rule["threshold"] = new_threshold
         mutations.append({"rule": rule_id, "from": old, "to": new_threshold})
         logging.info(f"Mutated rule {rule_id}: threshold {old} -> {new_threshold}")
-        log_learning_event("rule_mutation", {"rule_id": rule_id, "from": old, "to": new_threshold, "timestamp": datetime.utcnow().isoformat()})
+        log_learning_event(
+            "rule_mutation",
+            {
+                "rule_id": rule_id,
+                "from": old,
+                "to": new_threshold,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
     return mutations
+
 
 def apply_rule_mutations() -> None:
     """
@@ -78,10 +93,21 @@ def apply_rule_mutations() -> None:
             for m in mutations:
                 f.write(json.dumps({"mutation": m}) + "\n")
         print(f"✅ Applied {len(mutations)} rule mutations.")
-        log_learning_event("rule_mutation_batch", {"count": len(mutations), "timestamp": datetime.utcnow().isoformat()})
+        log_learning_event(
+            "rule_mutation_batch",
+            {"count": len(mutations), "timestamp": datetime.utcnow().isoformat()},
+        )
     except Exception as e:
         logging.error(f"Failed to log rule mutations: {e}")
-        log_learning_event("exception", {"error": str(e), "context": "apply_rule_mutations", "timestamp": datetime.utcnow().isoformat()})
+        log_learning_event(
+            "exception",
+            {
+                "error": str(e),
+                "context": "apply_rule_mutations",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
 
 def test_rule_mutation_engine():
     """
@@ -91,7 +117,7 @@ def test_rule_mutation_engine():
     dummy_rules = {
         "rule1": {"threshold": 0.5},
         "rule2": {"threshold": 0.8},
-        "rule3": {"threshold": 0.2}
+        "rule3": {"threshold": 0.2},
     }
     mutations = propose_rule_mutations(dummy_rules, top_n=2)
     assert len(mutations) == 2, "Should mutate top 2 rules"
@@ -99,9 +125,11 @@ def test_rule_mutation_engine():
         assert 0.0 <= m["to"] <= 1.0, "Threshold out of bounds"
     print("Rule mutation engine test passed.")
 
+
 if __name__ == "__main__":
     # Run main mutation logic or test
     import sys
+
     if "--test" in sys.argv:
         test_rule_mutation_engine()
     else:

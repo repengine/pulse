@@ -1,5 +1,6 @@
 from simulation_engine.rules.rule_fingerprint_expander import suggest_fingerprints
 
+
 def test_suggest_fingerprints_trust_weighted():
     forecasts = [
         {"trace_id": "t1", "confidence": 0.9, "effects": {"a": 1}},

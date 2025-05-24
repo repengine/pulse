@@ -18,7 +18,7 @@ import json
 from typing import List, Dict, Optional
 from collections import Counter
 import matplotlib.pyplot as plt
-import os
+
 
 def track_symbolic_arcs(forecasts: List[Dict]) -> Dict[str, int]:
     """
@@ -94,7 +94,11 @@ def export_arc_summary(arc_counts: Dict[str, int], path: str) -> None:
         print(f"❌ Failed to save arc summary: {e}")
 
 
-def plot_arc_distribution(arc_counts: Dict[str, int], title: Optional[str] = "Symbolic Arc Distribution", export_path: Optional[str] = None) -> None:
+def plot_arc_distribution(
+    arc_counts: Dict[str, int],
+    title: Optional[str] = "Symbolic Arc Distribution",
+    export_path: Optional[str] = None,
+) -> None:
     """
     Plot arc label distribution as a bar chart.
 
@@ -121,6 +125,7 @@ def plot_arc_distribution(arc_counts: Dict[str, int], title: Optional[str] = "Sy
             plt.show()
     except Exception as e:
         print(f"❌ Failed to plot arc distribution: {e}")
+
 
 def compute_arc_label(forecast: Dict) -> str:
     """

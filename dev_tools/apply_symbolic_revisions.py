@@ -16,8 +16,9 @@ import os
 from forecast_output.symbolic_tuning_engine import (
     simulate_revised_forecast,
     compare_scores,
-    log_tuning_result
+    log_tuning_result,
 )
+
 
 def load_jsonl(path: str) -> List[Dict[str, Any]]:
     if not os.path.isfile(path):
@@ -29,6 +30,7 @@ def load_jsonl(path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"❌ Failed to load {path}: {e}")
         return []
+
 
 def apply_symbolic_revisions(batch_path=None, plans_path=None):
     """
@@ -76,12 +78,16 @@ def apply_symbolic_revisions(batch_path=None, plans_path=None):
     print(f"✅ Revised {len(revised_forecasts)} forecasts out of {len(forecasts)}")
     return revised_forecasts
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Apply symbolic revisions to a batch of forecasts using revision plans.")
+    parser = argparse.ArgumentParser(
+        description="Apply symbolic revisions to a batch of forecasts using revision plans."
+    )
     parser.add_argument("--batch", required=True, help="Forecasts to revise (.jsonl)")
     parser.add_argument("--plans", required=True, help="Revision plans (.json)")
     args = parser.parse_args()
     apply_symbolic_revisions(args.batch, args.plans)
+
 
 if __name__ == "__main__":
     main()

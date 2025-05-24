@@ -13,13 +13,13 @@ Version: v1.0.0
 import json
 import os
 import logging
-from typing import Dict, List, Any
-from collections import Counter
+from typing import Dict, List
 
 LEARNING_LOG_PATH = "logs/symbolic_learning_log.jsonl"
 
 logger = logging.getLogger("pulse_symbolic_learning_loop")
 logging.basicConfig(level=logging.INFO)
+
 
 def learn_from_tuning_log(path: str) -> List[Dict]:
     """
@@ -54,6 +54,7 @@ def learn_from_tuning_log(path: str) -> List[Dict]:
             except json.JSONDecodeError as e:
                 logger.error(f"Malformed JSON in {path}: {e}")
     return results
+
 
 def score_symbolic_paths(results: List[Dict]) -> Dict[str, Dict[str, int]]:
     """
@@ -92,6 +93,7 @@ def score_symbolic_paths(results: List[Dict]) -> Dict[str, Dict[str, int]]:
 
     return {"arc_label": arc_scores, "symbolic_tag": tag_scores}
 
+
 def generate_learning_profile(results: List[Dict]) -> Dict:
     """
     Output symbolic strengths and weaknesses for future tuning.
@@ -111,7 +113,7 @@ def generate_learning_profile(results: List[Dict]) -> Dict:
             "arc_performance": {},
             "tag_performance": {},
             "last_updated": None,
-            "total_records": 0
+            "total_records": 0,
         }
     scores = score_symbolic_paths(results)
 
@@ -127,8 +129,9 @@ def generate_learning_profile(results: List[Dict]) -> Dict:
         "arc_performance": rank(scores["arc_label"]),
         "tag_performance": rank(scores["symbolic_tag"]),
         "last_updated": results[-1].get("timestamp") if results else None,
-        "total_records": len(results)
+        "total_records": len(results),
     }
+
 
 def log_symbolic_learning(profile: Dict, path: str = LEARNING_LOG_PATH):
     """
@@ -148,17 +151,54 @@ def log_symbolic_learning(profile: Dict, path: str = LEARNING_LOG_PATH):
     except Exception as e:
         logger.error(f"Failed to log learning profile: {e}")
 
+
 def _test_symbolic_learning_loop():
     """Basic test for symbolic learning loop."""
     # Simulate a few tuning results
     dummy_results = [
-        {"symbolic_revision_plan": {"arc_label": "Hope Surge", "symbolic_tag": "optimism"}, "revised_license": "✅ Approved", "timestamp": "2024-06-01T12:00:00"},
-        {"symbolic_revision_plan": {"arc_label": "Hope Surge", "symbolic_tag": "optimism"}, "revised_license": "❌ Rejected", "timestamp": "2024-06-01T12:01:00"},
-        {"symbolic_revision_plan": {"arc_label": "Collapse Risk", "symbolic_tag": "fear"}, "revised_license": "❌ Rejected", "timestamp": "2024-06-01T12:02:00"},
-        {"symbolic_revision_plan": {"arc_label": "Collapse Risk", "symbolic_tag": "fear"}, "revised_license": "✅ Approved", "timestamp": "2024-06-01T12:03:00"},
+        {
+            "symbolic_revision_plan": {
+                "arc_label": "Hope Surge",
+                "symbolic_tag": "optimism",
+            },
+            "revised_license": "✅ Approved",
+            "timestamp": "2024-06-01T12:00:00",
+        },
+        {
+            "symbolic_revision_plan": {
+                "arc_label": "Hope Surge",
+                "symbolic_tag": "optimism",
+            },
+            "revised_license": "❌ Rejected",
+            "timestamp": "2024-06-01T12:01:00",
+        },
+        {
+            "symbolic_revision_plan": {
+                "arc_label": "Collapse Risk",
+                "symbolic_tag": "fear",
+            },
+            "revised_license": "❌ Rejected",
+            "timestamp": "2024-06-01T12:02:00",
+        },
+        {
+            "symbolic_revision_plan": {
+                "arc_label": "Collapse Risk",
+                "symbolic_tag": "fear",
+            },
+            "revised_license": "✅ Approved",
+            "timestamp": "2024-06-01T12:03:00",
+        },
         # Edge cases
-        {"symbolic_revision_plan": {"arc_label": "Fatigue Loop"}, "revised_license": "❌ Rejected", "timestamp": "2024-06-01T12:04:00"},
-        {"symbolic_revision_plan": {}, "revised_license": "✅ Approved", "timestamp": "2024-06-01T12:05:00"},
+        {
+            "symbolic_revision_plan": {"arc_label": "Fatigue Loop"},
+            "revised_license": "❌ Rejected",
+            "timestamp": "2024-06-01T12:04:00",
+        },
+        {
+            "symbolic_revision_plan": {},
+            "revised_license": "✅ Approved",
+            "timestamp": "2024-06-01T12:05:00",
+        },
         {},  # malformed
     ]
     profile = generate_learning_profile(dummy_results)
@@ -167,6 +207,7 @@ def _test_symbolic_learning_loop():
     assert isinstance(profile["tag_performance"], dict)
     assert profile["total_records"] == len(dummy_results)
     logger.info("✅ Symbolic learning loop test passed.")
+
 
 if __name__ == "__main__":
     _test_symbolic_learning_loop()

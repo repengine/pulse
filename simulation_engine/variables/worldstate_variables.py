@@ -10,6 +10,7 @@ Author: Pulse v0.4
 
 from core.variable_registry import get_default_variable_state
 
+
 class WorldstateVariables:
     def __init__(self, **kwargs):
         # Start with registry defaults

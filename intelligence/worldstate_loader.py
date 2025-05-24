@@ -61,8 +61,14 @@ def load_initial_state(
     source_path = Path(source)
     if source_path.exists():
         try:
-            df = pd.read_csv(source_path) if source_path.suffix == ".csv" else pd.read_json(source_path)
-            baseline_vars = {str(k): float(v) for k, v in zip(df.iloc[:, 0], df.iloc[:, 1])}
+            df = (
+                pd.read_csv(source_path)
+                if source_path.suffix == ".csv"
+                else pd.read_json(source_path)
+            )
+            baseline_vars = {
+                str(k): float(v) for k, v in zip(df.iloc[:, 0], df.iloc[:, 1])
+            }
         except Exception as exc:  # noqa: BLE001
             print(f"[WS-LOADER] Failed to read baseline {source_path}: {exc}")
 
@@ -71,17 +77,23 @@ def load_initial_state(
 
     # Separate WorldState constructor args from other overrides like metadata
     valid_constructor_keys = {"turn", "sim_id", "overlays", "capital", "event_log"}
-    constructor_args = {k: v for k, v in overrides.items() if k in valid_constructor_keys}
-    metadata_override = overrides.get("metadata", {}) # Extract metadata if provided
+    constructor_args = {
+        k: v for k, v in overrides.items() if k in valid_constructor_keys
+    }
+    metadata_override = overrides.get("metadata", {})  # Extract metadata if provided
 
     # Optionally inject live variables
     live_vars = {}
     if inject_live:
         live_vars = ingest_live_variables()
-        baseline_vars.update(live_vars) # Live vars can overwrite baseline
+        baseline_vars.update(live_vars)  # Live vars can overwrite baseline
 
     # Create the WorldState instance explicitly passing args with refined type checks
-    from simulation_engine.worldstate import Variables, SymbolicOverlays, CapitalExposure # Local import
+    from simulation_engine.worldstate import (
+        Variables,
+        SymbolicOverlays,
+        CapitalExposure,
+    )  # Local import
 
     ws_args = {}
     turn_val = constructor_args.get("turn")
@@ -89,22 +101,22 @@ def load_initial_state(
 
     sim_id_val = constructor_args.get("sim_id")
     if isinstance(sim_id_val, str) and sim_id_val:
-         ws_args["sim_id"] = sim_id_val
+        ws_args["sim_id"] = sim_id_val
     # else: let default factory handle it
 
     overlays_val = constructor_args.get("overlays")
     if isinstance(overlays_val, (dict, SymbolicOverlays)):
-        ws_args["overlays"] = overlays_val # Pass dict or object, __post_init__ handles
+        ws_args["overlays"] = overlays_val  # Pass dict or object, __post_init__ handles
     # else: let default factory handle it
 
     capital_val = constructor_args.get("capital")
     if isinstance(capital_val, (dict, CapitalExposure)):
-        ws_args["capital"] = capital_val # Pass dict or object, __post_init__ handles
+        ws_args["capital"] = capital_val  # Pass dict or object, __post_init__ handles
     # else: let default factory handle it
 
     event_log_val = constructor_args.get("event_log")
     if isinstance(event_log_val, list):
-        ws_args["event_log"] = event_log_val # Pass list
+        ws_args["event_log"] = event_log_val  # Pass list
     # else: let default factory handle it
 
     state = WorldState(variables=Variables(baseline_vars), **ws_args)
@@ -114,10 +126,10 @@ def load_initial_state(
     if inject_live and live_vars:
         state.metadata["live_ingested"] = list(live_vars.keys())
     if metadata_override:
-        state.metadata.update(metadata_override) # Apply metadata overrides
+        state.metadata.update(metadata_override)  # Apply metadata overrides
 
     # Report any missing keys registered in VariableRegistry
-    if (missing := registry.flag_missing_variables(state.variables.as_dict())):
+    if missing := registry.flag_missing_variables(state.variables.as_dict()):
         state.log_event(f"[WS-LOADER] Missing baseline variables: {missing}")
 
     return state
@@ -126,6 +138,7 @@ def load_initial_state(
 # ----------------------------------------------------------------------#
 # Historical Snapshot Loading                                           #
 # ----------------------------------------------------------------------#
+
 
 def load_historical_snapshot(
     date: str,
@@ -175,10 +188,14 @@ def load_historical_snapshot(
         )
 
     baseline_vars: Dict[str, float] = {}
-    state: Optional[WorldState] = None # Initialize state to None
+    state: Optional[WorldState] = None  # Initialize state to None
 
     try:
-        df = pd.read_csv(snapshot_path) if snapshot_path.suffix == ".csv" else pd.read_json(snapshot_path)
+        df = (
+            pd.read_csv(snapshot_path)
+            if snapshot_path.suffix == ".csv"
+            else pd.read_json(snapshot_path)
+        )
         # Assume first column is name, second is value
         baseline_vars = {str(k): float(v) for k, v in zip(df.iloc[:, 0], df.iloc[:, 1])}
 
@@ -187,34 +204,48 @@ def load_historical_snapshot(
 
         # Separate WorldState constructor args from other overrides like metadata
         valid_constructor_keys = {"turn", "sim_id", "overlays", "capital", "event_log"}
-        constructor_args = {k: v for k, v in overrides.items() if k in valid_constructor_keys}
-        metadata_override = overrides.get("metadata", {}) # Extract metadata if provided
+        constructor_args = {
+            k: v for k, v in overrides.items() if k in valid_constructor_keys
+        }
+        metadata_override = overrides.get(
+            "metadata", {}
+        )  # Extract metadata if provided
 
         # Create the WorldState instance explicitly passing args with refined type checks
-        from simulation_engine.worldstate import Variables, SymbolicOverlays, CapitalExposure # Local import
+        from simulation_engine.worldstate import (
+            Variables,
+            SymbolicOverlays,
+            CapitalExposure,
+        )  # Local import
 
         ws_args = {}
         turn_val = constructor_args.get("turn")
-        ws_args["turn"] = int(turn_val) if isinstance(turn_val, (int, float, str)) else 0
+        ws_args["turn"] = (
+            int(turn_val) if isinstance(turn_val, (int, float, str)) else 0
+        )
 
         sim_id_val = constructor_args.get("sim_id")
         if isinstance(sim_id_val, str) and sim_id_val:
-             ws_args["sim_id"] = sim_id_val
+            ws_args["sim_id"] = sim_id_val
         # else: let default factory handle it
 
         overlays_val = constructor_args.get("overlays")
         if isinstance(overlays_val, (dict, SymbolicOverlays)):
-            ws_args["overlays"] = overlays_val # Pass dict or object, __post_init__ handles
+            ws_args["overlays"] = (
+                overlays_val  # Pass dict or object, __post_init__ handles
+            )
         # else: let default factory handle it
 
         capital_val = constructor_args.get("capital")
         if isinstance(capital_val, (dict, CapitalExposure)):
-            ws_args["capital"] = capital_val # Pass dict or object, __post_init__ handles
+            ws_args["capital"] = (
+                capital_val  # Pass dict or object, __post_init__ handles
+            )
         # else: let default factory handle it
 
         event_log_val = constructor_args.get("event_log")
         if isinstance(event_log_val, list):
-            ws_args["event_log"] = event_log_val # Pass list
+            ws_args["event_log"] = event_log_val  # Pass list
         # else: let default factory handle it
 
         state = WorldState(variables=Variables(baseline_vars), **ws_args)
@@ -224,21 +255,25 @@ def load_historical_snapshot(
         state.metadata["historical_date"] = date
         state.metadata["load_type"] = "historical_snapshot"
         if metadata_override:
-            state.metadata.update(metadata_override) # Apply metadata overrides
+            state.metadata.update(metadata_override)  # Apply metadata overrides
 
         # Report any missing keys registered in VariableRegistry (inside try block)
         # Note: This compares against the *current* registry, which might have
         # evolved since the snapshot was taken.
-        if (missing := registry.flag_missing_variables(state.variables.as_dict())):
-            state.log_event(f"[WS-LOADER-HISTORICAL] Missing registered variables in snapshot: {missing}")
+        if missing := registry.flag_missing_variables(state.variables.as_dict()):
+            state.log_event(
+                f"[WS-LOADER-HISTORICAL] Missing registered variables in snapshot: {missing}"
+            )
 
     except Exception as exc:
-        print(f"[WS-LOADER-HISTORICAL] Failed processing snapshot {snapshot_path}: {exc}")
+        print(
+            f"[WS-LOADER-HISTORICAL] Failed processing snapshot {snapshot_path}: {exc}"
+        )
         # Re-raise to signal failure
         raise exc
 
     # If we reach here, state must have been assigned successfully
     if state is None:
-         # This should theoretically not happen if exceptions are raised correctly
-         raise RuntimeError("Failed to create WorldState from historical snapshot.")
+        # This should theoretically not happen if exceptions are raised correctly
+        raise RuntimeError("Failed to create WorldState from historical snapshot.")
     return state

@@ -10,7 +10,7 @@ Date: 2025-04-27
 """
 
 import logging
-from typing import Optional, List
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +20,16 @@ SYMBOLIC_CATEGORIES = ["hope", "despair", "rage", "fatigue"]
 # Attempt to load zero-shot model (optional)
 try:
     from transformers import pipeline
-    zero_shot_pipeline = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+
+    zero_shot_pipeline = pipeline(
+        "zero-shot-classification", model="facebook/bart-large-mnli"
+    )
 except Exception:
     zero_shot_pipeline = None
-    logger.warning("[IrisSymbolism] Zero-shot model unavailable. Using fallback tagging.")
+    logger.warning(
+        "[IrisSymbolism] Zero-shot model unavailable. Using fallback tagging."
+    )
+
 
 class IrisSymbolismTagger:
     def __init__(self):
@@ -53,7 +59,11 @@ class IrisSymbolismTagger:
         if zero_shot_pipeline:
             try:
                 result = zero_shot_pipeline(signal_name, self.symbols)
-                if isinstance(result, dict) and "labels" in result and "scores" in result:
+                if (
+                    isinstance(result, dict)
+                    and "labels" in result
+                    and "scores" in result
+                ):
                     if result["scores"][0] > 0.5:
                         return str(result["labels"][0])
             except Exception as e:

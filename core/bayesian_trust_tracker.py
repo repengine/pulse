@@ -14,16 +14,24 @@ from collections import defaultdict
 from typing import Dict, Tuple, List, Any
 import math
 
+
 class BayesianTrustTracker:
     """
     Tracks successes and failures for each rule/variable and computes trust/confidence.
     Thread-safe for concurrent updates.
     """
+
     def __init__(self):
         self.lock = threading.RLock()
-        self.stats: Dict[str, Tuple[float, float]] = defaultdict(lambda: (1.0, 1.0))  # (alpha, beta) priors
-        self.last_update: Dict[str, float] = defaultdict(float)  # Track last update time
-        self.timestamps: Dict[str, List[Tuple[float, float]]] = defaultdict(list)  # Track (time, trust) over time
+        self.stats: Dict[str, Tuple[float, float]] = defaultdict(
+            lambda: (1.0, 1.0)
+        )  # (alpha, beta) priors
+        self.last_update: Dict[str, float] = defaultdict(
+            float
+        )  # Track last update time
+        self.timestamps: Dict[str, List[Tuple[float, float]]] = defaultdict(
+            list
+        )  # Track (time, trust) over time
 
     def update(self, key: str, success: bool, weight: float = 1.0):
         """
@@ -116,7 +124,7 @@ class BayesianTrustTracker:
     def get_time_since_update(self, key: str) -> float:
         """Get time in seconds since last update."""
         if key not in self.last_update:
-            return float('inf')
+            return float("inf")
         return time.time() - self.last_update[key]
 
     def export_to_file(self, filepath: str):
@@ -126,18 +134,18 @@ class BayesianTrustTracker:
                 "stats": {k: list(v) for k, v in self.stats.items()},
                 "last_update": dict(self.last_update),
                 "timestamps": dict(self.timestamps),
-                "export_time": time.time()
+                "export_time": time.time(),
             }
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(data, f)
 
     def import_from_file(self, filepath: str) -> bool:
         """Import tracker state from a JSON file."""
         if not os.path.exists(filepath):
             return False
-        
+
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, "r") as f:
                 data = json.load(f)
             with self.lock:
                 self.stats = defaultdict(lambda: (1.0, 1.0))
@@ -167,9 +175,9 @@ class BayesianTrustTracker:
             "low_confidence": [],
             "recently_updated": [],
             "stale": [],
-            "summary": {}
+            "summary": {},
         }
-        
+
         with self.lock:
             # Generate lists
             for key, (alpha, beta) in self.stats.items():
@@ -185,7 +193,7 @@ class BayesianTrustTracker:
                     "confidence": confidence,
                     "ci": ci,
                     "sample_size": int(alpha + beta - 2),
-                    "last_update": last_update
+                    "last_update": last_update,
                 }
                 if trust > 0.8:
                     report["high_trust"].append(entry)
@@ -202,12 +210,19 @@ class BayesianTrustTracker:
             # Generate summary
             report["summary"] = {
                 "total_entities": len(self.stats),
-                "active_entities": sum((v[0] + v[1] - 2) >= min_sample_size for v in self.stats.values()),
-                "avg_trust": sum(self.get_trust(k) for k in self.stats) / max(1, len(self.stats)),
-                "avg_confidence": sum(self.get_confidence_strength(k) for k in self.stats) / max(1, len(self.stats)),
+                "active_entities": sum(
+                    (v[0] + v[1] - 2) >= min_sample_size for v in self.stats.values()
+                ),
+                "avg_trust": sum(self.get_trust(k) for k in self.stats)
+                / max(1, len(self.stats)),
+                "avg_confidence": sum(
+                    self.get_confidence_strength(k) for k in self.stats
+                )
+                / max(1, len(self.stats)),
             }
-            
+
         return report
+
 
 # Singleton instance for global use.
 bayesian_trust_tracker = BayesianTrustTracker()

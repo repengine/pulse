@@ -1,13 +1,14 @@
 import unittest
 from trust_system.trust_engine import compute_risk_score, TrustEngine
 
+
 class TestRiskScoring(unittest.TestCase):
     def test_compute_risk_score_no_memory(self):
         forecast = {
             "forecast": {
                 "start_capital": {"nvda": 100, "msft": 200, "ibit": 0, "spy": 0},
                 "end_capital": {"nvda": 300, "msft": 200, "ibit": 0, "spy": 0},
-                "symbolic_change": {"hope": 0.2}
+                "symbolic_change": {"hope": 0.2},
             }
         }
         # Expected risk_volatility: (|300-100|)/2000 = 200/2000 = 0.1
@@ -23,9 +24,9 @@ class TestRiskScoring(unittest.TestCase):
             "forecast": {
                 "start_capital": {"nvda": 100, "msft": 200, "ibit": 50, "spy": 150},
                 "end_capital": {"nvda": 300, "msft": 220, "ibit": 50, "spy": 160},
-                "symbolic_change": {"hope": 0.2}
+                "symbolic_change": {"hope": 0.2},
             },
-            "overlays": {"hope": 0.8}
+            "overlays": {"hope": 0.8},
         }
         # Using an empty memory list for simplicity.
         score = TrustEngine.score_forecast(forecast, memory=[])
@@ -41,20 +42,21 @@ class TestRiskScoring(unittest.TestCase):
         forecast = {
             "confidence": 0.8,
             "fragility": 0.3,
-            "risk_score": 0.8  # High risk exceeds threshold of 0.5
+            "risk_score": 0.8,  # High risk exceeds threshold of 0.5
         }
-        label = TrustEngine.confidence_gate(forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5)
+        label = TrustEngine.confidence_gate(
+            forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5
+        )
         self.assertEqual(label, "🟡 Unstable")
 
     def test_confidence_gate_trusted(self):
         # With low risk, high confidence and acceptable fragility, forecast is trusted.
-        forecast = {
-            "confidence": 0.9,
-            "fragility": 0.3,
-            "risk_score": 0.2
-        }
-        label = TrustEngine.confidence_gate(forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5)
+        forecast = {"confidence": 0.9, "fragility": 0.3, "risk_score": 0.2}
+        label = TrustEngine.confidence_gate(
+            forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5
+        )
         self.assertEqual(label, "🟢 Trusted")
+
 
 if __name__ == "__main__":
     unittest.main()

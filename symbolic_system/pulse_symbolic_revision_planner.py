@@ -15,6 +15,7 @@ Version: v1.0.0
 from typing import Dict, List, Any
 from collections import Counter
 
+
 def plan_symbolic_revision(forecast: Dict[str, Any]) -> Dict[str, str]:
     """
     Generate a symbolic revision suggestion for a forecast.
@@ -28,7 +29,9 @@ def plan_symbolic_revision(forecast: Dict[str, Any]) -> Dict[str, str]:
     plan = {}
     arc = str(forecast.get("arc_label", "")).lower()
     tag = str(forecast.get("symbolic_tag", "")).lower()
-    overlays = forecast.get("forecast", {}).get("symbolic_change", {}) or forecast.get("overlays", {})
+    overlays = forecast.get("forecast", {}).get("symbolic_change", {}) or forecast.get(
+        "overlays", {}
+    )
 
     # Suggest arc relabels
     if arc in {"collapse risk", "despair drop", "fatigue loop"}:
@@ -76,14 +79,13 @@ def generate_revision_report(forecasts: List[Dict[str, Any]]) -> List[Dict[str, 
         if revision_ready(fc):
             plan = plan_symbolic_revision(fc)
             if plan:
-                report.append({
-                    "trace_id": fc.get("trace_id", "unknown"),
-                    "plan": plan
-                })
+                report.append({"trace_id": fc.get("trace_id", "unknown"), "plan": plan})
     return report
 
 
-def plan_revisions_for_fragmented_arcs(forecasts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def plan_revisions_for_fragmented_arcs(
+    forecasts: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     """
     Suggest symbolic revisions for dominant arcs in fragmented forecasts.
 

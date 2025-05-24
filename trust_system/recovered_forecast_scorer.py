@@ -14,7 +14,7 @@ Version: v1.0.0
 
 import json
 from typing import List, Dict
-from trust_system.license_enforcer import annotate_forecasts, filter_licensed
+from trust_system.license_enforcer import annotate_forecasts
 
 
 def score_recovered_forecasts(forecasts: List[Dict]) -> List[Dict]:
@@ -27,7 +27,9 @@ def score_recovered_forecasts(forecasts: List[Dict]) -> List[Dict]:
     return annotate_forecasts(forecasts)
 
 
-def flag_unstable_forecasts(forecasts: List[Dict], align_threshold=70, trust_required="🟢 Trusted") -> List[Dict]:
+def flag_unstable_forecasts(
+    forecasts: List[Dict], align_threshold=70, trust_required="🟢 Trusted"
+) -> List[Dict]:
     """
     Apply instability warnings to re-licensed forecasts.
 
@@ -56,11 +58,7 @@ def summarize_repair_quality(forecasts: List[Dict]) -> Dict[str, int]:
     total = len(forecasts)
     unstable = sum(1 for fc in forecasts if fc.get("symbolic_revision_needed"))
     stable = total - unstable
-    return {
-        "total_repaired": total,
-        "still_unstable": unstable,
-        "stable_now": stable
-    }
+    return {"total_repaired": total, "still_unstable": unstable, "stable_now": stable}
 
 
 def export_flagged_for_revision(forecasts: List[Dict], path: str) -> None:

@@ -17,8 +17,8 @@ Author: Pulse v0.23
 from typing import List, Dict, Optional, Any
 from core.pulse_config import USE_SYMBOLIC_OVERLAYS
 from forecast_output.forecast_compressor import compress_forecasts
-from intelligence.forecast_schema import ForecastSchema # Import ForecastSchema
-from pydantic import ValidationError # Import ValidationError
+from intelligence.forecast_schema import ForecastSchema  # Import ForecastSchema
+from pydantic import ValidationError  # Import ValidationError
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from forecast_output.strategos_digest_builder import build_digest
 from trust_system.trust_engine import TrustEngine
@@ -27,13 +27,13 @@ from memory.trace_audit_engine import assign_trace_metadata, register_trace_to_m
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import log_info
 from forecast_output.forecast_prioritization_engine import select_top_forecasts
-import os, json
+import os
+import json
 
 # Add memory promoter imports
 from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
 
 # --- Capital Layer Imports ---
-from capital_engine.capital_layer import run_capital_forks, summarize_exposure, portfolio_alignment_tags
 
 from forecast_output.forecast_confidence_gate import filter_by_confidence
 from memory.trace_memory import TraceMemory
@@ -42,20 +42,34 @@ from memory.trace_memory import TraceMemory
 from memory.variable_performance_tracker import VariablePerformanceTracker
 
 # Add contradiction detector import
-from forecast_output.forecast_contradiction_detector import detect_forecast_contradictions
+from forecast_output.forecast_contradiction_detector import (
+    detect_forecast_contradictions,
+)
 from core.pulse_learning_log import log_learning_event
 
 # --- Epistemic Mirror Imports ---
-from GPT.gpt_causal_translator import extract_rules_from_gpt_output, label_symbolic_arcs, identify_missing_domains
-from GPT.gpt_rule_fingerprint_extractor import extract_fingerprint_from_gpt_rationale, match_fingerprint_to_pulse_rules, archive_foreign_fingerprint
+from GPT.gpt_causal_translator import (
+    extract_rules_from_gpt_output,
+    label_symbolic_arcs,
+    identify_missing_domains,
+)
+from GPT.gpt_rule_fingerprint_extractor import (
+    extract_fingerprint_from_gpt_rationale,
+    match_fingerprint_to_pulse_rules,
+    archive_foreign_fingerprint,
+)
 from GPT.gpt_symbolic_convergence_loss import compute_symbolic_convergence_loss
-from GPT.gpt_forecast_divergence_logger import tag_divergence_type, log_forecast_divergence
+from GPT.gpt_forecast_divergence_logger import (
+    tag_divergence_type,
+    log_forecast_divergence,
+)
+
 
 def run_forecast_pipeline(
     forecasts: List[Dict[str, Any]],
     batch_id: Optional[str] = None,
     enable_digest: bool = True,
-    save_to_memory: bool = True
+    save_to_memory: bool = True,
 ) -> Dict[str, Any]:
     """
     Executes the full forecast processing pipeline.
@@ -77,15 +91,17 @@ def run_forecast_pipeline(
     # Validate forecast structure
     for i, f in enumerate(forecasts):
         if not isinstance(f, dict):
-            log_info(f"[PIPELINE] Warning: Forecast at index {i} is not a dict. Skipping.")
+            log_info(
+                f"[PIPELINE] Warning: Forecast at index {i} is not a dict. Skipping."
+            )
             continue
 
     # Step 1: Score trust + fragility
     try:
         # Score each forecast individually
         for forecast in forecasts:
-            forecast['confidence'] = TrustEngine.score_forecast(forecast)
-        scored = forecasts # Rename for clarity in subsequent steps
+            forecast["confidence"] = TrustEngine.score_forecast(forecast)
+        scored = forecasts  # Rename for clarity in subsequent steps
         scored = tag_fragility(scored)
         # Apply confidence + fragility filter
         scored = filter_by_confidence(scored)
@@ -99,13 +115,14 @@ def run_forecast_pipeline(
     contradictions = detect_forecast_contradictions(scored)
     if contradictions:
         for tid1, tid2, reason in contradictions:
-            log_learning_event("forecast_contradiction_detected", {
-                "trace_id_1": tid1,
-                "trace_id_2": tid2,
-                "reason": reason
-            })
+            log_learning_event(
+                "forecast_contradiction_detected",
+                {"trace_id_1": tid1, "trace_id_2": tid2, "reason": reason},
+            )
         # Optionally flag involved forecasts as contradictory
-        involved = {tid1 for tid1, _, _ in contradictions} | {tid2 for _, tid2, _ in contradictions}
+        involved = {tid1 for tid1, _, _ in contradictions} | {
+            tid2 for _, tid2, _ in contradictions
+        }
         for f in scored:
             if f.get("trace_id") in involved:
                 f["confidence_status"] = "❌ Contradictory"
@@ -113,7 +130,9 @@ def run_forecast_pipeline(
     # --- Confidence gating: filter out low-confidence forecasts ---
     try:
         scored = filter_by_confidence(scored)
-        log_info(f"[PIPELINE] Confidence gate applied: {len(scored)} forecasts retained.")
+        log_info(
+            f"[PIPELINE] Confidence gate applied: {len(scored)} forecasts retained."
+        )
     except Exception as e:
         log_info(f"[PIPELINE] Confidence gating failed: {e}")
 
@@ -151,10 +170,12 @@ def run_forecast_pipeline(
             trace_logger.log_trace_entry(
                 trace_id=f.get("trace_id", "unknown"),
                 forecast=f,
-                input_state={}  # Replace with state.to_dict() if state is available
+                input_state={},  # Replace with state.to_dict() if state is available
             )
             # Log variable impact to performance tracker
-            input_state = f.get("input_state", {})  # Replace with actual sim state if available
+            input_state = f.get(
+                "input_state", {}
+            )  # Replace with actual sim state if available
             tracker.log_variable_contribution(f, input_state)
         except Exception as e:
             log_info(f"[PIPELINE] Trace assignment/registration failed: {e}")
@@ -162,12 +183,16 @@ def run_forecast_pipeline(
     # Step 3.5: Epistemic Mirror Integration (after scoring, before compression)
     for f in scored:
         # 1. Extract rules/arcs/missing domains from GPT output if present
-        gpt_output = f.get("gpt_output") or f.get("gpt_narrative") or f.get("gpt_forecast")
+        gpt_output = (
+            f.get("gpt_output") or f.get("gpt_narrative") or f.get("gpt_forecast")
+        )
         pulse_domains = f.get("pulse_domains") or []
         if gpt_output:
             f["gpt_extracted_rules"] = extract_rules_from_gpt_output(gpt_output)
             f["gpt_symbolic_arcs"] = label_symbolic_arcs(gpt_output)
-            f["gpt_missing_domains"] = identify_missing_domains(gpt_output, pulse_domains)
+            f["gpt_missing_domains"] = identify_missing_domains(
+                gpt_output, pulse_domains
+            )
         # 2. Extract and archive causal fingerprints from GPT rationale if present
         gpt_rationale = f.get("gpt_rationale") or gpt_output
         if gpt_rationale:
@@ -183,11 +208,15 @@ def run_forecast_pipeline(
                 f["gpt_fingerprint_status"] = "matched"
         # 3. Compute symbolic convergence loss if both Pulse and GPT outputs are present
         # Attempt to extract data conforming to ForecastSchema from nested keys
-        pulse_data = f.get("pulse_data") # Assuming 'pulse_data' key holds Pulse output conforming to schema
-        gpt_data = f.get("gpt_data") # Assuming 'gpt_data' key holds GPT output conforming to schema
+        pulse_data = f.get(
+            "pulse_data"
+        )  # Assuming 'pulse_data' key holds Pulse output conforming to schema
+        gpt_data = f.get(
+            "gpt_data"
+        )  # Assuming 'gpt_data' key holds GPT output conforming to schema
 
-        loss = None # Initialize loss
-        pulse_forecast_schema = None # Initialize schema objects
+        loss = None  # Initialize loss
+        pulse_forecast_schema = None  # Initialize schema objects
         gpt_forecast_schema = None
 
         if pulse_data and gpt_data:
@@ -195,14 +224,18 @@ def run_forecast_pipeline(
                 # Validate and compute loss if data conforms to schema
                 pulse_forecast_schema = ForecastSchema(**pulse_data)
                 gpt_forecast_schema = ForecastSchema(**gpt_data)
-                loss = compute_symbolic_convergence_loss(pulse_forecast_schema, gpt_forecast_schema)
+                loss = compute_symbolic_convergence_loss(
+                    pulse_forecast_schema, gpt_forecast_schema
+                )
                 f["symbolic_convergence_loss"] = loss
-            except (ValidationError, Exception) as e: # Add except block
-                log_info(f"[PIPELINE] Symbolic convergence loss computation failed: {e}")
+            except (ValidationError, Exception) as e:  # Add except block
+                log_info(
+                    f"[PIPELINE] Symbolic convergence loss computation failed: {e}"
+                )
                 f["symbolic_convergence_loss"] = None
         # 4. Log divergence type
         # 4. Log divergence type
-        if pulse_data and gpt_data: # Only attempt if data is available
+        if pulse_data and gpt_data:  # Only attempt if data is available
             try:
                 # Use the original data dictionaries for divergence functions
                 div_type = tag_divergence_type(pulse_data, gpt_data)
@@ -259,7 +292,9 @@ def run_forecast_pipeline(
         promotable = select_promotable_forecasts(top)
         if promotable:
             export_promoted(promotable)
-            log_info(f"[PIPELINE] {len(promotable)} top forecasts auto-promoted to memory.")
+            log_info(
+                f"[PIPELINE] {len(promotable)} top forecasts auto-promoted to memory."
+            )
     except Exception as e:
         log_info(f"[PIPELINE] Top forecast selection/export/promote failed: {e}")
 
@@ -277,11 +312,17 @@ def run_forecast_pipeline(
     # --- Automated Variable Recommendation and Registration ---
     try:
         import subprocess
+
         recommender_cmd = [
-            "python", "-m", "irldata.variable_recommender",
-            "--top_n", "10",
-            "--min_count", "5",
-            "--output", "logs/recommended_vars.json"
+            "python",
+            "-m",
+            "irldata.variable_recommender",
+            "--top_n",
+            "10",
+            "--min_count",
+            "5",
+            "--output",
+            "logs/recommended_vars.json",
         ]
         subprocess.run(recommender_cmd, check=True)
         log_info("[PIPELINE] Variable recommender executed and variables registered.")
@@ -304,15 +345,18 @@ def run_forecast_pipeline(
 
     return result_bundle
 
+
 def _test_pipeline():
     """Basic test for pipeline logic."""
     import json
+
     sample = [
         {"confidence": 0.71, "symbolic_tag": "hope", "drivers": ["AI rally"]},
-        {"confidence": 0.43, "symbolic_tag": "fatigue", "drivers": ["media overload"]}
+        {"confidence": 0.43, "symbolic_tag": "fatigue", "drivers": ["media overload"]},
     ]
     result = run_forecast_pipeline(sample)
     print(json.dumps(result, indent=2))
+
 
 # Example CLI trigger
 if __name__ == "__main__":

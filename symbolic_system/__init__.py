@@ -9,8 +9,8 @@ Author: Pulse v3.5
 """
 
 # Import gravity package
-from symbolic_system import gravity
+from . import gravity
 
 __all__ = [
-    'gravity',
+    "gravity",
 ]

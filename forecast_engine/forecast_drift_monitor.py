@@ -38,10 +38,15 @@ from core.path_registry import PATHS
 
 logger = get_logger(__name__)
 
-DRIFT_LOG_PATH = PATHS.get("DRIFT_LOG_PATH", os.path.join(PATHS["WORLDSTATE_LOG_DIR"], "forecast_drift_log.jsonl"))
+DRIFT_LOG_PATH = PATHS.get(
+    "DRIFT_LOG_PATH",
+    os.path.join(PATHS["WORLDSTATE_LOG_DIR"], "forecast_drift_log.jsonl"),
+)
+
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
 
 def normalize_forecast_clusters(clusters: List[Dict]) -> Dict[str, Dict]:
     norm = {}
@@ -51,9 +56,10 @@ def normalize_forecast_clusters(clusters: List[Dict]) -> Dict[str, Dict]:
         if tag and isinstance(conf, (int, float)):
             norm[tag] = {
                 "avg_confidence": round(conf, 4),
-                "count": entry.get("count", None)
+                "count": entry.get("count", None),
             }
     return norm
+
 
 def score_drift(before: Dict[str, Dict], after: Dict[str, Dict]) -> Dict:
     drift_total = 0.0
@@ -68,12 +74,15 @@ def score_drift(before: Dict[str, Dict], after: Dict[str, Dict]) -> Dict:
         tag_deltas[tag] = delta
 
     drift_score = round(drift_total / len(all_tags), 4)
-    return {
-        "drift_score": drift_score,
-        "tag_deltas": tag_deltas
-    }
+    return {"drift_score": drift_score, "tag_deltas": tag_deltas}
 
-def compare_forecast_clusters(before_run: List[Dict], after_run: List[Dict], run_id: str = "default", log_path: Optional[str] = None) -> Dict:
+
+def compare_forecast_clusters(
+    before_run: List[Dict],
+    after_run: List[Dict],
+    run_id: str = "default",
+    log_path: Optional[str] = None,
+) -> Dict:
     path = str(log_path or DRIFT_LOG_PATH)
     ensure_log_dir(path)
 
@@ -97,10 +106,7 @@ def compare_forecast_clusters(before_run: List[Dict], after_run: List[Dict], run
         "drift_score": drift_metrics["drift_score"],
         "tag_deltas": drift_metrics["tag_deltas"],
         "symbolic_flips": symbolic_flips,
-        "metadata": {
-            "version": "v0.22.1",
-            "source": "forecast_drift_monitor.py"
-        }
+        "metadata": {"version": "v0.22.1", "source": "forecast_drift_monitor.py"},
     }
 
     try:
@@ -111,12 +117,14 @@ def compare_forecast_clusters(before_run: List[Dict], after_run: List[Dict], run
 
     return result
 
+
 # --- Drift Detectors: ADWIN and KSWIN (river) ---
 try:
     from river.drift import ADWIN, KSWIN
 except ImportError:
     ADWIN = None
     KSWIN = None
+
 
 def detect_adwin_drift(series, delta=0.002):
     """
@@ -133,6 +141,7 @@ def detect_adwin_drift(series, delta=0.002):
             drift_points.append(i)
     return drift_points
 
+
 def detect_kswin_drift(series, window_size=20, stat_size=5, alpha=0.005):
     """
     Run KSWIN drift detection on a numeric series.
@@ -148,17 +157,18 @@ def detect_kswin_drift(series, window_size=20, stat_size=5, alpha=0.005):
             drift_points.append(i)
     return drift_points
 
+
 # Example usage
 if __name__ == "__main__":
     before = [
         {"tag": "hope", "avg_confidence": 0.68},
         {"tag": "fatigue", "avg_confidence": 0.45},
-        {"tag": "despair", "avg_confidence": 0.33}
+        {"tag": "despair", "avg_confidence": 0.33},
     ]
     after = [
         {"tag": "hope", "avg_confidence": 0.41},
         {"tag": "fatigue", "avg_confidence": 0.55},
-        {"tag": "despair", "avg_confidence": 0.48}
+        {"tag": "despair", "avg_confidence": 0.48},
     ]
     summary = compare_forecast_clusters(before, after, run_id="0425_shift")
     logger.info("Forecast Drift Summary:")

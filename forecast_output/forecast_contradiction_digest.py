@@ -13,7 +13,9 @@ from collections import defaultdict
 from typing import List, Dict
 from core.path_registry import PATHS
 
-CONTRADICTION_LOG_PATH = PATHS.get("CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl")
+CONTRADICTION_LOG_PATH = PATHS.get(
+    "CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl"
+)
 
 
 def load_contradiction_log(limit: int = 20) -> List[Dict]:
@@ -46,6 +48,7 @@ def render_digest(logs: List[Dict]):
         for entry in items:
             print(f" - {entry['trace_id_1']} vs {entry['trace_id_2']}")
         print("---")
+
 
 if __name__ == "__main__":
     logs = load_contradiction_log(limit=25)

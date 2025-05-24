@@ -10,7 +10,6 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-import json
 from typing import List, Dict
 
 
@@ -35,7 +34,13 @@ def compare_forecast_versions(a: Dict, b: Dict) -> Dict:
         Dict: Field-by-field differences
     """
     diffs = {}
-    fields = ["symbolic_tag", "arc_label", "confidence", "alignment_score", "license_status"]
+    fields = [
+        "symbolic_tag",
+        "arc_label",
+        "confidence",
+        "alignment_score",
+        "license_status",
+    ]
 
     for f in fields:
         va, vb = a.get(f), b.get(f)
@@ -78,14 +83,16 @@ def summarize_lineage_drift(chain: List[Dict]) -> Dict:
     arc_flips = 0
     total = len(chain)
     for i in range(1, total):
-        if chain[i].get("symbolic_tag") != chain[i-1].get("symbolic_tag"):
+        if chain[i].get("symbolic_tag") != chain[i - 1].get("symbolic_tag"):
             tag_flips += 1
-        if chain[i].get("arc_label") != chain[i-1].get("arc_label"):
+        if chain[i].get("arc_label") != chain[i - 1].get("arc_label"):
             arc_flips += 1
 
     return {
         "total_versions": total,
         "tag_flips": tag_flips,
         "arc_flips": arc_flips,
-        "symbolic_stability_score": round(1 - ((tag_flips + arc_flips) / max(total - 1, 1)), 3)
+        "symbolic_stability_score": round(
+            1 - ((tag_flips + arc_flips) / max(total - 1, 1)), 3
+        ),
     }

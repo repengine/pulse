@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 def license_forecast(
     forecast: Dict,
     confidence_threshold: float = CONFIDENCE_THRESHOLD,
-    fragility_threshold: float = DEFAULT_FRAGILITY_THRESHOLD
+    fragility_threshold: float = DEFAULT_FRAGILITY_THRESHOLD,
 ) -> Dict:
     """
     Assigns a license tag to a forecast based on trustworthiness.
@@ -32,29 +32,44 @@ def license_forecast(
     """
     # Safe type conversion
     try:
-        conf = float(forecast.get("confidence", 0.0)) if forecast.get("confidence") is not None else 0.0
-        frag = float(forecast.get("fragility", 0.0)) if forecast.get("fragility") is not None else 0.0
+        conf = (
+            float(forecast.get("confidence", 0.0))
+            if forecast.get("confidence") is not None
+            else 0.0
+        )
+        frag = (
+            float(forecast.get("fragility", 0.0))
+            if forecast.get("fragility") is not None
+            else 0.0
+        )
     except (ValueError, TypeError):
-        logger.warning(f"Invalid numeric values in forecast {forecast.get('trace_id', '-')}")
+        logger.warning(
+            f"Invalid numeric values in forecast {forecast.get('trace_id', '-')}"
+        )
         conf = 0.0
         frag = 0.0
 
     if conf >= confidence_threshold and frag < fragility_threshold:
         forecast["license_status"] = "✅ Licensed"
-        logger.info(f"Forecast {forecast.get('trace_id', '-')}: Licensed (conf={conf}, frag={frag})")
+        logger.info(
+            f"Forecast {forecast.get('trace_id', '-')}: Licensed (conf={conf}, frag={frag})"
+        )
     elif conf >= 0.4:
         forecast["license_status"] = "⚠️ Unlicensed (low trust)"
-        logger.warning(f"Forecast {forecast.get('trace_id', '-')}: Unlicensed (low trust) (conf={conf}, frag={frag})")
+        logger.warning(
+            f"Forecast {forecast.get('trace_id', '-')}: Unlicensed (low trust) (conf={conf}, frag={frag})"
+        )
     else:
         forecast["license_status"] = "❌ Suppressed (very low trust)"
-        logger.error(f"Forecast {forecast.get('trace_id', '-')}: Suppressed (very low trust) (conf={conf}, frag={frag})")
+        logger.error(
+            f"Forecast {forecast.get('trace_id', '-')}: Suppressed (very low trust) (conf={conf}, frag={frag})"
+        )
 
     return forecast
 
 
 def filter_licensed_forecasts(
-    forecasts: List[Dict],
-    strict: bool = False
+    forecasts: List[Dict], strict: bool = False
 ) -> List[Dict]:
     """
     Filters forecasts using license_forecast().
@@ -97,6 +112,7 @@ def test_license_generation():
     assert results[1]["license_status"].startswith("⚠️")
     assert results[2]["license_status"].startswith("❌")
     logger.info("test_license_generation passed.")
+
 
 if __name__ == "__main__":
     test_license_generation()

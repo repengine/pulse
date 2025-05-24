@@ -12,7 +12,8 @@ Changelog:
 - Added minimal inline tests.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Union
+
 
 def format_shortview_markdown(forecast: Dict[str, Any]) -> str:
     """
@@ -29,19 +30,17 @@ def format_shortview_markdown(forecast: Dict[str, Any]) -> str:
     Returns:
         str: Markdown-formatted summary.
     """
-    lines = [
-        "### 🧠 Shortview Capital Forecast"
-    ]
+    lines = ["### 🧠 Shortview Capital Forecast"]
 
     # Duration
-    duration = forecast.get('duration_days')
+    duration = forecast.get("duration_days")
     if isinstance(duration, int):
         lines.append(f"**Duration:** {duration} days")
     else:
         lines.append("**Duration:** ? days")
 
     # Fragility Index
-    fragility = forecast.get('symbolic_fragility')
+    fragility = forecast.get("symbolic_fragility")
     if fragility is not None:
         try:
             fragility_str = f"{float(fragility):.3f}"
@@ -87,7 +86,6 @@ def format_shortview_markdown(forecast: Dict[str, Any]) -> str:
 
     return "\n".join(lines)
 
-from typing import Union
 
 def render_portfolio_snapshot(snapshot: Dict[str, Union[float, str]]) -> str:
     """
@@ -110,6 +108,7 @@ def render_portfolio_snapshot(snapshot: Dict[str, Union[float, str]]) -> str:
             lines.append(f"- `{asset}`: ?")
     return "\n".join(lines)
 
+
 def summarize_alignment_tags(tags: Dict[str, str]) -> str:
     """
     Summarizes portfolio alignment tags as markdown.
@@ -128,6 +127,7 @@ def summarize_alignment_tags(tags: Dict[str, str]) -> str:
         lines.append(f"- **{k}**: {v}")
     return "\n".join(lines)
 
+
 # Minimal inline tests for demonstration
 def _test():
     # Test with valid data
@@ -136,7 +136,7 @@ def _test():
         "symbolic_fragility": 0.287,
         "symbolic_change": {"hope": 0.1, "despair": -0.05},
         "capital_delta": {"SPY": 21.4, "BTC": -4.2},
-        "portfolio_alignment": {"bias": "growth-aligned"}
+        "portfolio_alignment": {"bias": "growth-aligned"},
     }
     print(format_shortview_markdown(mock))
     # Test with missing/invalid data
@@ -145,7 +145,7 @@ def _test():
         "symbolic_fragility": "bad",
         "symbolic_change": {"hope": "bad", "fear": None},
         "capital_delta": {},
-        "portfolio_alignment": {}
+        "portfolio_alignment": {},
     }
     print(format_shortview_markdown(mock2))
     # Test snapshot and tags
@@ -153,6 +153,7 @@ def _test():
     print(render_portfolio_snapshot({}))
     print(summarize_alignment_tags({"bias": "neutral"}))
     print(summarize_alignment_tags({}))
+
 
 if __name__ == "__main__":
     _test()

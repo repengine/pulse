@@ -1,10 +1,17 @@
 # tools/apply_symbolic_upgrades.py
 
-from symbolic_system.symbolic_executor import rewrite_forecast_symbolics, log_symbolic_mutation
-import argparse, json
+from symbolic_system.symbolic_executor import (
+    rewrite_forecast_symbolics,
+    log_symbolic_mutation,
+)
+import argparse
+import json
 import os
 
-def apply_symbolic_upgrades(batch_path=None, plan_path=None, out_path="revised_forecasts.jsonl"):
+
+def apply_symbolic_upgrades(
+    batch_path=None, plan_path=None, out_path="revised_forecasts.jsonl"
+):
     """
     Apply symbolic upgrades to a batch of forecasts using an upgrade plan.
     Args:
@@ -53,13 +60,23 @@ def apply_symbolic_upgrades(batch_path=None, plan_path=None, out_path="revised_f
         return []
     return rewritten
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Apply symbolic upgrades to a batch of forecasts using an upgrade plan.")
-    parser.add_argument("--batch", required=True, help="Path to input forecasts (.jsonl)")
+    parser = argparse.ArgumentParser(
+        description="Apply symbolic upgrades to a batch of forecasts using an upgrade plan."
+    )
+    parser.add_argument(
+        "--batch", required=True, help="Path to input forecasts (.jsonl)"
+    )
     parser.add_argument("--plan", required=True, help="Path to upgrade plan (.json)")
-    parser.add_argument("--out", default="revised_forecasts.jsonl", help="Output path for revised forecasts (.jsonl)")
+    parser.add_argument(
+        "--out",
+        default="revised_forecasts.jsonl",
+        help="Output path for revised forecasts (.jsonl)",
+    )
     args = parser.parse_args()
     apply_symbolic_upgrades(args.batch, args.plan, args.out)
+
 
 if __name__ == "__main__":
     main()

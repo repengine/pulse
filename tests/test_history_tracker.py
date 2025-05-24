@@ -5,18 +5,21 @@ import os
 import json
 from learning.history_tracker import track_variable_history
 
+
 class TestHistoryTracker(unittest.TestCase):
     def setUp(self):
         self.mock_states = [
             {"variables": {"hope": 0.6, "fatigue": 0.2}},
             {"variables": {"hope": 0.58, "fatigue": 0.3}},
-            {"variables": {"hope": 0.63, "fatigue": 0.4}}
+            {"variables": {"hope": 0.63, "fatigue": 0.4}},
         ]
         self.output_dir = "test_logs"
         self.run_id = "test001"
 
     def test_basic_write_and_structure(self):
-        track_variable_history(self.run_id, self.mock_states, output_dir=self.output_dir)
+        track_variable_history(
+            self.run_id, self.mock_states, output_dir=self.output_dir
+        )
         path = os.path.join(self.output_dir, f"vars_{self.run_id}.jsonl")
         self.assertTrue(os.path.exists(path))
 
@@ -38,5 +41,6 @@ class TestHistoryTracker(unittest.TestCase):
         except Exception:
             pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main(verbosity=2)

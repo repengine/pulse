@@ -6,16 +6,20 @@ Central orchestrator for Pulse simulation and learning cycles.
 Manages the interaction between the Function Router, Simulation Executor,
 Intelligence Observer, and Upgrade Sandbox Manager.
 """
+
 from __future__ import annotations
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Optional, Union
 
 from intelligence.function_router import FunctionRouter
 from intelligence.worldstate_loader import load_initial_state
 from intelligence.simulation_executor import SimulationExecutor
 from intelligence.intelligence_observer import Observer
 from intelligence.upgrade_sandbox_manager import UpgradeSandboxManager
-from simulation_engine.worldstate import WorldState # Import WorldState for type hinting
+from simulation_engine.worldstate import (
+    WorldState,
+)  # Import WorldState for type hinting
+
 
 class IntelligenceCore:
     """
@@ -30,7 +34,13 @@ class IntelligenceCore:
         loaded_modules: A list of names of modules loaded by the router.
     """
 
-    def __init__(self, router: FunctionRouter, executor: SimulationExecutor, observer: Observer, sandbox: UpgradeSandboxManager) -> None:
+    def __init__(
+        self,
+        router: FunctionRouter,
+        executor: SimulationExecutor,
+        observer: Observer,
+        sandbox: UpgradeSandboxManager,
+    ) -> None:
         """
         Initializes the IntelligenceCore with injected dependencies.
 
@@ -45,23 +55,34 @@ class IntelligenceCore:
         self.observer: Observer = observer
         self.sandbox: UpgradeSandboxManager = sandbox
         self.last_worldstate: Optional[WorldState] = None
-        self.loaded_modules: List[str] = [] # This attribute is no longer directly managed here, consider removing if unused.
+        self.loaded_modules: List[
+            str
+        ] = []  # This attribute is no longer directly managed here, consider removing if unused.
 
     # ------------------------------------------------------------------
     def load_standard_modules(self) -> None:
         """
         Loads the standard set of modules required for core operations.
         """
-        self.router.load_modules({
-            "turn_engine": "simulation_engine.turn_engine",
-            "causal_rules": "simulation_engine.causal_rules",
-            "retrodiction": "simulation_engine.historical_retrodiction_runner",
-            "forecast_engine": "forecast_engine.forecast_generator", # Added forecast_engine
-        })
-        self.loaded_modules = ["turn_engine", "causal_rules", "retrodiction", "forecast_engine"] # Updated list
+        self.router.load_modules(
+            {
+                "turn_engine": "simulation_engine.turn_engine",
+                "causal_rules": "simulation_engine.causal_rules",
+                "retrodiction": "simulation_engine.historical_retrodiction_runner",
+                "forecast_engine": "forecast_engine.forecast_generator",  # Added forecast_engine
+            }
+        )
+        self.loaded_modules = [
+            "turn_engine",
+            "causal_rules",
+            "retrodiction",
+            "forecast_engine",
+        ]  # Updated list
 
     # ------------------------------------------------------------------
-    def initialize_worldstate(self, source: Union[str, Path, None] = None, **overrides: Any) -> WorldState:
+    def initialize_worldstate(
+        self, source: Union[str, Path, None] = None, **overrides: Any
+    ) -> WorldState:
         """
         Initializes the WorldState from a source and optional overrides.
 
@@ -92,7 +113,9 @@ class IntelligenceCore:
         return getattr(state, "metadata", {}).get("start_year", 2023)
 
     # ------------------------------------------------------------------
-    def run_forecast_cycle(self, turns: int = 12, *, _batch_tag: Optional[str] = None) -> Dict[str, Any]:
+    def run_forecast_cycle(
+        self, turns: int = 12, *, _batch_tag: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Runs a complete forecast simulation cycle.
 
@@ -109,15 +132,25 @@ class IntelligenceCore:
         if self.last_worldstate is None:
             self.initialize_worldstate()
         # Ensure last_worldstate is not None before passing to _extract_start_year
-        start_year: int = self._extract_start_year(self.last_worldstate) if self.last_worldstate else 2023
+        start_year: int = (
+            self._extract_start_year(self.last_worldstate)
+            if self.last_worldstate
+            else 2023
+        )
         # run_chunked_forecast returns Tuple[Optional[WorldState], Union[List[Dict[str, Any]], Any]]
         ws_obj, _ = self.executor.run_chunked_forecast(
             start_year=start_year,
             total_turns=turns,
             chunk_size=turns,
         )
-        self.last_worldstate = ws_obj # Assuming run_chunked_forecast returns a WorldState or similar
-        snapshot: Dict[str, Any] = ws_obj.snapshot() if ws_obj is not None and hasattr(ws_obj, 'snapshot') else {} # Ensure snapshot method exists and ws_obj is not None
+        self.last_worldstate = (
+            ws_obj  # Assuming run_chunked_forecast returns a WorldState or similar
+        )
+        snapshot: Dict[str, Any] = (
+            ws_obj.snapshot()
+            if ws_obj is not None and hasattr(ws_obj, "snapshot")
+            else {}
+        )  # Ensure snapshot method exists and ws_obj is not None
         self._post_cycle_audit(snapshot)
         return snapshot
 
@@ -148,6 +181,10 @@ class IntelligenceCore:
             snapshot: The snapshot of the WorldState after a cycle.
         """
         # Ensure observe_symbolic_divergence expects a list of snapshots
-        divergence_report: Dict[str, Any] = self.observer.observe_symbolic_divergence([snapshot])
-        if upgrade_id := self.observer.propose_symbolic_upgrades_live(divergence_report):
+        divergence_report: Dict[str, Any] = self.observer.observe_symbolic_divergence(
+            [snapshot]
+        )
+        if upgrade_id := self.observer.propose_symbolic_upgrades_live(
+            divergence_report
+        ):
             print(f"[IntelligenceCore] 🚀 Upgrade proposal submitted: {upgrade_id}")

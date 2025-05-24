@@ -9,9 +9,10 @@ Used for symbolic audit, strategic coherence checks, and contradiction memory ta
 Author: Pulse v0.40
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from collections import defaultdict
 from itertools import combinations
+
 
 def cluster_symbolic_conflicts(forecasts: List[Dict]) -> List[Dict]:
     """
@@ -37,7 +38,13 @@ def cluster_symbolic_conflicts(forecasts: List[Dict]) -> List[Dict]:
             if hgap > 0.6 and dgap > 0.6:
                 conflicts.append((tid1, tid2, "Hope vs Despair Paradox"))
             if f1.get("arc_label") != f2.get("arc_label"):
-                conflicts.append((tid1, tid2, f"Arc Conflict: {f1.get('arc_label')} vs {f2.get('arc_label')}"))
+                conflicts.append(
+                    (
+                        tid1,
+                        tid2,
+                        f"Arc Conflict: {f1.get('arc_label')} vs {f2.get('arc_label')}",
+                    )
+                )
         if conflicts:
             results.append({"origin_turn": turn, "conflicts": conflicts})
     return results
@@ -49,13 +56,26 @@ def summarize_contradiction_clusters(conflict_clusters: List[Dict]) -> None:
     """
     print("\n🧠 Symbolic Contradiction Cluster Summary:")
     for c in conflict_clusters:
-        print(f"\n📦 Origin Turn: {c['origin_turn']} | Conflicts: {len(c['conflicts'])}")
+        print(
+            f"\n📦 Origin Turn: {c['origin_turn']} | Conflicts: {len(c['conflicts'])}"
+        )
         for a, b, reason in c["conflicts"]:
             print(f" - {a} vs {b} → {reason}")
 
+
 if __name__ == "__main__":
     # Sample forecast pair for demonstration
-    f1 = {"trace_id": "T1", "origin_turn": 3, "arc_label": "Hope Surge", "forecast": {"symbolic_change": {"hope": 0.9, "despair": 0.1}}}
-    f2 = {"trace_id": "T2", "origin_turn": 3, "arc_label": "Collapse Risk", "forecast": {"symbolic_change": {"hope": 0.2, "despair": 0.8}}}
+    f1 = {
+        "trace_id": "T1",
+        "origin_turn": 3,
+        "arc_label": "Hope Surge",
+        "forecast": {"symbolic_change": {"hope": 0.9, "despair": 0.1}},
+    }
+    f2 = {
+        "trace_id": "T2",
+        "origin_turn": 3,
+        "arc_label": "Collapse Risk",
+        "forecast": {"symbolic_change": {"hope": 0.2, "despair": 0.8}},
+    }
     cluster = cluster_symbolic_conflicts([f1, f2])
     summarize_contradiction_clusters(cluster)

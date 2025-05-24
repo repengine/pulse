@@ -16,7 +16,7 @@ Version: v1.0.1
 import os
 import json
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 import matplotlib.pyplot as plt
 from collections import Counter
 
@@ -31,7 +31,11 @@ def log_episode(forecast: Dict, path: str = EPISODE_LOG_PATH) -> None:
         forecast (Dict): Forecast object
         path (str): JSONL output path
     """
-    overlays = forecast.get("forecast", {}).get("symbolic_change") or forecast.get("overlays") or {}
+    overlays = (
+        forecast.get("forecast", {}).get("symbolic_change")
+        or forecast.get("overlays")
+        or {}
+    )
     if not isinstance(overlays, dict):
         overlays = {}
 
@@ -41,7 +45,7 @@ def log_episode(forecast: Dict, path: str = EPISODE_LOG_PATH) -> None:
         "symbolic_tag": forecast.get("symbolic_tag", "unknown"),
         "confidence": forecast.get("confidence"),
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "overlays": overlays
+        "overlays": overlays,
     }
 
     try:
@@ -101,7 +105,7 @@ def summarize_episodes(path: str = EPISODE_LOG_PATH) -> Dict[str, int]:
         "unique_tags": len(tags),
         "skipped_entries": skipped,
         **{f"arc_{k}": v for k, v in arcs.items()},
-        **{f"tag_{k}": v for k, v in tags.items()}
+        **{f"tag_{k}": v for k, v in tags.items()},
     }
     return summary
 
@@ -114,7 +118,9 @@ def plot_episode_arcs(path: str = EPISODE_LOG_PATH):
         path (str): JSONL episode log
     """
     summary = summarize_episodes(path)
-    arcs = {k.replace("arc_", ""): v for k, v in summary.items() if k.startswith("arc_")}
+    arcs = {
+        k.replace("arc_", ""): v for k, v in summary.items() if k.startswith("arc_")
+    }
     if not arcs:
         print("❌ No arc data to plot.")
         return
@@ -130,7 +136,10 @@ def plot_episode_arcs(path: str = EPISODE_LOG_PATH):
     plt.tight_layout()
     plt.show()
 
-def log_episode_event(event_type: str, payload: Any, path: str = EPISODE_LOG_PATH) -> None:
+
+def log_episode_event(
+    event_type: str, payload: Any, path: str = EPISODE_LOG_PATH
+) -> None:
     """
     Log a generic episode event to disk.
 
@@ -144,7 +153,7 @@ def log_episode_event(event_type: str, payload: Any, path: str = EPISODE_LOG_PAT
         entry = {
             "event_type": event_type,
             "payload": payload,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         with open(path, "a") as f:
             f.write(json.dumps(entry) + "\n")

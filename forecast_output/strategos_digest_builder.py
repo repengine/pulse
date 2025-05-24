@@ -22,8 +22,9 @@ Note:
 Author: Pulse AI Engine
 """
 
-from typing import List, Dict, Any, Optional, Union
-import os, json
+from typing import List, Dict, Any, Optional
+import os
+import json
 from collections import defaultdict
 import logging
 from forecast_output.digest_trace_hooks import summarize_trace_for_digest
@@ -32,18 +33,28 @@ from forecast_output.pulse_forecast_lineage import get_prompt_hash
 # Add import for divergence detector
 from forecast_output.forecast_divergence_detector import (
     generate_divergence_report,
-    group_conflicting_forecasts
+    group_conflicting_forecasts,
 )
 
 logger = logging.getLogger("strategos_digest_builder")
 
 DEFAULT_FIELDS = [
-    "trace_id", "turn", "confidence", "fragility", "trust_label", "symbolic_tag", "overlays", "exposure_delta"
+    "trace_id",
+    "turn",
+    "confidence",
+    "fragility",
+    "trust_label",
+    "symbolic_tag",
+    "overlays",
+    "exposure_delta",
 ]
 
 # --- PATCH: Import learning summary, mutation logs, capital/symbolic trends ---
 try:
-    from symbolic_system.pulse_symbolic_learning_loop import generate_learning_profile, learn_from_tuning_log
+    from symbolic_system.pulse_symbolic_learning_loop import (
+        generate_learning_profile,
+        learn_from_tuning_log,
+    )
 except ImportError:
     generate_learning_profile = None
     learn_from_tuning_log = None
@@ -55,15 +66,20 @@ except ImportError:
 
 # ✅ PATCH B Step 1: Import contradiction digest formatter
 try:
-    from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md, load_symbolic_conflict_events
+    from operator_interface.symbolic_contradiction_digest import (
+        format_contradiction_cluster_md,
+        load_symbolic_conflict_events,
+    )
 except ImportError:
     format_contradiction_cluster_md = None
     load_symbolic_conflict_events = None
+
 
 def validate_forecast_schema(f: Dict) -> bool:
     """Basic schema validation for forecast objects."""
     required = ["trace_id", "confidence", "fragility", "symbolic_tag", "overlays"]
     return all(k in f for k in required)
+
 
 def flatten_forecast(f: Dict) -> Dict:
     """If forecast is nested under 'forecast', flatten it into the parent dict."""
@@ -73,6 +89,7 @@ def flatten_forecast(f: Dict) -> Dict:
         return merged
     return f
 
+
 def cluster_by_key(forecasts: List[Dict], key: str) -> Dict[str, List[Dict]]:
     """Cluster forecasts by any key (e.g., symbolic_tag, trust_label, narrative_theme)."""
     clusters = defaultdict(list)
@@ -80,6 +97,7 @@ def cluster_by_key(forecasts: List[Dict], key: str) -> Dict[str, List[Dict]]:
         label = f.get(key, "unknown")
         clusters[label].append(f)
     return clusters
+
 
 def consensus_score(cluster: List[Dict], overlay_key: str = "hope") -> float:
     """Score consensus for a symbolic overlay (e.g., % with hope rising)."""
@@ -91,6 +109,7 @@ def consensus_score(cluster: List[Dict], overlay_key: str = "hope") -> float:
             count += 1
     return round(count / len(cluster), 2) if cluster else 0.0
 
+
 def summarize_stats(forecasts: List[Dict]) -> Dict[str, Any]:
     """Compute summary statistics for the digest footer.
 
@@ -98,38 +117,66 @@ def summarize_stats(forecasts: List[Dict]) -> Dict[str, Any]:
     produced by the unified simulate_forward function during simulation.
     """
     stats = {}
-    confidences = [f.get("confidence", 0.0) for f in forecasts if isinstance(f.get("confidence", 0.0), (float, int))]
-    ret_scores = [f.get("retrodiction_score", 0.0) for f in forecasts if isinstance(f.get("retrodiction_score", 0.0), (float, int))]
-    sym_scores = [f.get("symbolic_score", 0.0) for f in forecasts if isinstance(f.get("symbolic_score", 0.0), (float, int))]
-    ages = [f.get("age_hours", 0.0) for f in forecasts if isinstance(f.get("age_hours", 0.0), (float, int))]
-    stats["avg_confidence"] = round(sum(confidences) / len(confidences), 3) if confidences else 0.0
-    stats["avg_retrodiction"] = round(sum(ret_scores) / len(ret_scores), 3) if ret_scores else 0.0
-    stats["avg_symbolic"] = round(sum(sym_scores) / len(sym_scores), 3) if sym_scores else 0.0
+    confidences = [
+        f.get("confidence", 0.0)
+        for f in forecasts
+        if isinstance(f.get("confidence", 0.0), (float, int))
+    ]
+    ret_scores = [
+        f.get("retrodiction_score", 0.0)
+        for f in forecasts
+        if isinstance(f.get("retrodiction_score", 0.0), (float, int))
+    ]
+    sym_scores = [
+        f.get("symbolic_score", 0.0)
+        for f in forecasts
+        if isinstance(f.get("symbolic_score", 0.0), (float, int))
+    ]
+    ages = [
+        f.get("age_hours", 0.0)
+        for f in forecasts
+        if isinstance(f.get("age_hours", 0.0), (float, int))
+    ]
+    stats["avg_confidence"] = (
+        round(sum(confidences) / len(confidences), 3) if confidences else 0.0
+    )
+    stats["avg_retrodiction"] = (
+        round(sum(ret_scores) / len(ret_scores), 3) if ret_scores else 0.0
+    )
+    stats["avg_symbolic"] = (
+        round(sum(sym_scores) / len(sym_scores), 3) if sym_scores else 0.0
+    )
     stats["avg_age"] = round(sum(ages) / len(ages), 2) if ages else 0.0
     stats["max_age"] = max(ages) if ages else 0.0
     stats["total"] = len(forecasts)
     stats["confidence_sparkline"] = [round(c, 2) for c in confidences]
     return stats
 
-def get_top_clusters(clusters: Dict[str, List[Dict]], n: int = 3, sort_by: str = "count") -> List[tuple]:
+
+def get_top_clusters(
+    clusters: Dict[str, List[Dict]], n: int = 3, sort_by: str = "count"
+) -> List[tuple]:
     """
     Return the top N clusters by count or average confidence.
     """
     if sort_by == "confidence":
         ranked = sorted(
             clusters.items(),
-            key=lambda x: sum(f.get("confidence", 0) or 0 for f in x[1]) / max(len(x[1]), 1),
-            reverse=True
+            key=lambda x: sum(f.get("confidence", 0) or 0 for f in x[1])
+            / max(len(x[1]), 1),
+            reverse=True,
         )
     else:
         ranked = sorted(clusters.items(), key=lambda x: len(x[1]), reverse=True)
     return ranked[:n]
+
 
 def summarize_drivers(cluster: List[Dict], top_k: int = 3) -> List[str]:
     """
     Summarize top drivers in a cluster.
     """
     from collections import Counter
+
     drivers = []
     for f in cluster:
         ds = f.get("drivers") or f.get("driver") or []
@@ -139,6 +186,7 @@ def summarize_drivers(cluster: List[Dict], top_k: int = 3) -> List[str]:
     counter = Counter(drivers)
     return [d for d, _ in counter.most_common(top_k)]
 
+
 def render_fields(f: Dict[str, Any], fields: List[str]) -> List[str]:
     """Render a forecast dict as lines for the digest."""
     lines = []
@@ -146,13 +194,19 @@ def render_fields(f: Dict[str, Any], fields: List[str]) -> List[str]:
         v = f.get(k, "N/A")
         lines.append(f"{k.capitalize():<14}: {v}")
     return lines
+
+
 from datetime import datetime
-def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"):
+
+
+def log_prompt(
+    prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"
+):
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "prompt": prompt,
         "config": config,
-        "overlays": overlays
+        "overlays": overlays,
     }
     try:
         with open(path, "a", encoding="utf-8") as f:
@@ -160,6 +214,7 @@ def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prom
         logger.info(f"Prompt logged to {path}")
     except Exception as e:
         logger.error(f"Prompt log error: {e}")
+
 
 def process_forecasts(forecast_list):
     for forecast in forecast_list:
@@ -171,11 +226,12 @@ def process_forecasts(forecast_list):
                 forecast_output += f"\n[Trace {trace_id[:8]}] {trace_summary}"
         print(forecast_output)
 
+
 def build_digest(
     forecast_batch: List[Dict[str, Any]],
     fmt: str = "markdown",
     config: Optional[dict] = None,
-    template: str = "full"
+    template: str = "full",
 ) -> str:
     """
     Build a strategos digest from a batch of forecasts.
@@ -211,11 +267,15 @@ def build_digest(
     elif template == "symbolic_only":
         fields = ["trace_id", "symbolic_tag", "overlays"]
     else:
-        fields = config.get("fields") if config.get("fields") is not None else DEFAULT_FIELDS
+        fields = (
+            config.get("fields") if config.get("fields") is not None else DEFAULT_FIELDS
+        )
 
     tag_filter = config.get("tag_filter") if config else None
     overlay_key = config.get("consensus_overlay", "hope") if config else "hope"
-    cluster_key = config.get("cluster_key", "symbolic_tag") if config else "symbolic_tag"
+    cluster_key = (
+        config.get("cluster_key", "symbolic_tag") if config else "symbolic_tag"
+    )
     top_n = config.get("top_n", None) if config else None
     actionable_only = config.get("actionable_only", False) if config else False
     sort_clusters_by = config.get("sort_clusters_by", "count") if config else "count"
@@ -238,18 +298,21 @@ def build_digest(
     # --- Symbolic Divergence Report ---
     divergence_report = generate_divergence_report(flattened, key="arc_label")
     conflict_groups = group_conflicting_forecasts(flattened, key="arc_label")
-    divergent_ids = {f.get("trace_id") for flist in conflict_groups.values() for f in flist}
+    divergent_ids = {
+        f.get("trace_id") for flist in conflict_groups.values() for f in flist
+    }
     for fc in flattened:
         if fc.get("trace_id") in divergent_ids:
             fc["divergent"] = True
 
     # Symbolic Fragmentation Summary
     from collections import Counter
+
     fragmented = [f for f in flattened if f.get("symbolic_fragmented")]
     fragment_summary = Counter(f.get("arc_label", "unknown") for f in fragmented)
     symbolic_fragmentation = {
         "total": len(fragmented),
-        "by_arc": dict(fragment_summary)
+        "by_arc": dict(fragment_summary),
     }
 
     # --- Most Evolved Forecasts by Cluster ---
@@ -257,8 +320,9 @@ def build_digest(
         from memory.cluster_mutation_tracker import (
             track_cluster_lineage,
             select_most_evolved,
-            summarize_mutation_depths
+            summarize_mutation_depths,
         )
+
         cluster_map = track_cluster_lineage(flattened)
         lineage_leaders = select_most_evolved(cluster_map)
         mutation_depths = summarize_mutation_depths(cluster_map)
@@ -268,11 +332,11 @@ def build_digest(
                     "trace_id": fc.get("trace_id"),
                     "arc": fc.get("arc_label"),
                     "tag": fc.get("symbolic_tag"),
-                    "depth": len(fc.get("lineage", {}).get("ancestors", []))
+                    "depth": len(fc.get("lineage", {}).get("ancestors", [])),
                 }
                 for fc in lineage_leaders.values()
             ],
-            "mutation_depths": mutation_depths
+            "mutation_depths": mutation_depths,
         }
     except Exception as e:
         logger.warning(f"Could not compute most evolved forecasts: {e}")
@@ -282,7 +346,7 @@ def build_digest(
     try:
         from forecast_output.dual_narrative_compressor import generate_dual_scenarios
         from forecast_output.strategic_fork_resolver import resolve_all_forks
-        from forecast_output.cluster_memory_compressor import score_forecast # Corrected import
+
         dual_narrative_scenarios = generate_dual_scenarios(flattened)
         fork_decisions = resolve_all_forks(dual_narrative_scenarios)
     except Exception as e:
@@ -290,7 +354,11 @@ def build_digest(
         dual_narrative_scenarios = []
         fork_decisions = []
     # Mark fork winners in forecasts
-    decision_ids = {r["selected_trace_id"] for r in fork_decisions if r.get("decision") in {"A", "B"}}
+    decision_ids = {
+        r["selected_trace_id"]
+        for r in fork_decisions
+        if r.get("decision") in {"A", "B"}
+    }
     for fc in flattened:
         if fc.get("trace_id") in decision_ids:
             fc["fork_winner"] = True
@@ -298,16 +366,23 @@ def build_digest(
     # --- Symbolic Entropy Report ---
     try:
         from memory.forecast_memory_entropy import generate_entropy_report
+
         # Optionally, load memory forecasts if available in config
         memory_forecasts = None
         if config and "memory_forecasts" in config:
             memory_forecasts = config["memory_forecasts"]
         else:
             # Try to load from default memory file if exists
-            mem_path = config.get("memory_path") if config and "memory_path" in config else None
+            mem_path = (
+                config.get("memory_path")
+                if config and "memory_path" in config
+                else None
+            )
             if mem_path and os.path.exists(mem_path):
                 with open(mem_path, "r", encoding="utf-8") as f:
-                    memory_forecasts = [json.loads(line.strip()) for line in f if line.strip()]
+                    memory_forecasts = [
+                        json.loads(line.strip()) for line in f if line.strip()
+                    ]
         if memory_forecasts:
             entropy_report = generate_entropy_report(flattened, memory_forecasts)
         else:
@@ -320,7 +395,11 @@ def build_digest(
     learning_summary_md = ""
     if generate_learning_profile and learn_from_tuning_log:
         try:
-            tune_log = config.get("tuning_log", "logs/tuning_results.jsonl") if config else "logs/tuning_results.jsonl"
+            tune_log = (
+                config.get("tuning_log", "logs/tuning_results.jsonl")
+                if config
+                else "logs/tuning_results.jsonl"
+            )
             if os.path.exists(tune_log):
                 results = learn_from_tuning_log(tune_log)
                 profile = generate_learning_profile(results)
@@ -351,10 +430,14 @@ def build_digest(
 
     # Actionable only filter
     if actionable_only:
-        flattened = [f for f in flattened if f.get("confidence_status") == "✅ Actionable"]
+        flattened = [
+            f for f in flattened if f.get("confidence_status") == "✅ Actionable"
+        ]
 
     # Prefer narrative_theme if present and requested
-    if cluster_key == "narrative_theme" and not any("narrative_theme" in f for f in flattened):
+    if cluster_key == "narrative_theme" and not any(
+        "narrative_theme" in f for f in flattened
+    ):
         cluster_key = "symbolic_tag"
 
     clusters = cluster_by_key(flattened, cluster_key)
@@ -365,6 +448,7 @@ def build_digest(
 
     # --- Compressed Cluster Memory Section ---
     from forecast_output.cluster_memory_compressor import compress_by_cluster
+
     compressed_cluster_forecasts = compress_by_cluster(flattened)
 
     try:
@@ -372,21 +456,26 @@ def build_digest(
             # Include all keys from the flattened forecast dictionaries for comprehensive JSON output
             digest_json = flattened
             # Add most evolved section, divergence report, dual narrative scenarios, fork decisions, and entropy report
-            return json.dumps({
-                "forecasts": digest_json,
-                "most_evolved_per_cluster": most_evolved_digest,
-                "symbolic_divergence": divergence_report,
-                "dual_narrative_scenarios": dual_narrative_scenarios,
-                "fork_decisions": fork_decisions,
-                "symbolic_entropy_report": entropy_report,
-                "symbolic_fragmentation": symbolic_fragmentation, # Include fragmentation summary
-                "compressed_cluster_memory": compressed_cluster_forecasts # Include compressed memory
-            }, indent=2)
+            return json.dumps(
+                {
+                    "forecasts": digest_json,
+                    "most_evolved_per_cluster": most_evolved_digest,
+                    "symbolic_divergence": divergence_report,
+                    "dual_narrative_scenarios": dual_narrative_scenarios,
+                    "fork_decisions": fork_decisions,
+                    "symbolic_entropy_report": entropy_report,
+                    "symbolic_fragmentation": symbolic_fragmentation,  # Include fragmentation summary
+                    "compressed_cluster_memory": compressed_cluster_forecasts,  # Include compressed memory
+                },
+                indent=2,
+            )
         if fmt == "html":
             lines = ["<h1>Strategos Digest</h1>"]
             # --- Symbolic Divergence Report (HTML) ---
             lines.append("<h2>⚔️ Symbolic Divergence Report</h2>")
-            lines.append(f"<b>Divergence Score:</b> {divergence_report['divergence_score']}<br>")
+            lines.append(
+                f"<b>Divergence Score:</b> {divergence_report['divergence_score']}<br>"
+            )
             if divergence_report["symbolic_conflicts"]:
                 lines.append("<b>Conflicting Narratives Detected:</b><ul>")
                 for a, b in divergence_report["symbolic_conflicts"]:
@@ -407,13 +496,17 @@ def build_digest(
                 fields = DEFAULT_FIELDS
             for label, cluster in cluster_items:
                 lines.append(f"<h2>{label}</h2>")
-                lines.append(f"<b>Consensus ({overlay_key} rising):</b> {consensus_score(cluster, overlay_key)*100:.0f}%<br>")
+                lines.append(
+                    f"<b>Consensus ({overlay_key} rising):</b> {consensus_score(cluster, overlay_key) * 100:.0f}%<br>"
+                )
                 if show_drivers:
                     drivers = summarize_drivers(cluster)
                     if drivers:
                         lines.append(f"<b>Top Drivers:</b> {', '.join(drivers)}<br>")
                 for f in cluster:
-                    calculated_prompt_hash = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
+                    calculated_prompt_hash = f.get("prompt_hash") or get_prompt_hash(
+                        f.get("trace_id", "")
+                    )
                     f["prompt_hash"] = calculated_prompt_hash
                     for k in fields:
                         v = f.get(k, "N/A")
@@ -421,24 +514,36 @@ def build_digest(
                     # --- Causal Explanation (HTML) ---
                     if "causal_explanation" in f:
                         ce = f["causal_explanation"]
-                        lines.append(f"<b>Causal Explanation:</b> {ce.get('variable', '')} &rarr; Parents: {', '.join(ce.get('parents', []))}<br>")
+                        lines.append(
+                            f"<b>Causal Explanation:</b> {ce.get('variable', '')} &rarr; Parents: {', '.join(ce.get('parents', []))}<br>"
+                        )
                 lines.append("<hr>")
             if not clusters:
                 lines.append("<i>No forecasts available.</i>")
             stats = summarize_stats(flattened)
-            lines.append(f"<b>Avg Retrodiction Score:</b> {stats['avg_retrodiction']} | <b>Symbolic Score:</b> {stats['avg_symbolic']}<br>")
-            lines.append(f"<b>Confidence Sparkline:</b> {stats['confidence_sparkline']}<br>")
-            lines.append(f"<b>Forecast Age:</b> Avg {stats['avg_age']}h | Max: {stats['max_age']}h<br>")
+            lines.append(
+                f"<b>Avg Retrodiction Score:</b> {stats['avg_retrodiction']} | <b>Symbolic Score:</b> {stats['avg_symbolic']}<br>"
+            )
+            lines.append(
+                f"<b>Confidence Sparkline:</b> {stats['confidence_sparkline']}<br>"
+            )
+            lines.append(
+                f"<b>Forecast Age:</b> Avg {stats['avg_age']}h | Max: {stats['max_age']}h<br>"
+            )
             lines.append(f"<b>Total Forecasts:</b> {stats['total']}<br>")
             # Insert Most Evolved section in HTML
             lines.append("<h2>🧬 Most Evolved Forecasts by Cluster</h2>")
-            lines.append("<table><tr><th>Cluster</th><th>Trace ID</th><th>Arc Label</th><th>Depth</th></tr>")
+            lines.append(
+                "<table><tr><th>Cluster</th><th>Trace ID</th><th>Arc Label</th><th>Depth</th></tr>"
+            )
             for leader in most_evolved_digest["leaders"]:
                 lines.append(
                     f"<tr><td>{leader['tag']}</td><td>{leader['trace_id']}</td><td>{leader['arc']}</td><td>{leader['depth']}</td></tr>"
                 )
             lines.append("</table>")
-            lines.append(f"<b>Mutation Depths:</b> {most_evolved_digest['mutation_depths']}<br>")
+            lines.append(
+                f"<b>Mutation Depths:</b> {most_evolved_digest['mutation_depths']}<br>"
+            )
             # Insert Symbolic Entropy Report (HTML)
             if entropy_report:
                 lines.append("<h2>🌐 Symbolic Entropy Report</h2>")
@@ -468,8 +573,12 @@ def build_digest(
                     winner = d.get("winner_label", "N/A")
                     winner_id = d.get("selected_trace_id", "N/A")
                     winner_align = d.get("winner_alignment", "N/A")
-                    lines.append(f"<b>{a.get('arc', 'A')} vs {b.get('arc', 'B')}</b> &rarr; ✅ {winner}<br>")
-                    lines.append(f"&nbsp;&nbsp;- Winner: {winner_id} (Align: {winner_align})<br>")
+                    lines.append(
+                        f"<b>{a.get('arc', 'A')} vs {b.get('arc', 'B')}</b> &rarr; ✅ {winner}<br>"
+                    )
+                    lines.append(
+                        f"&nbsp;&nbsp;- Winner: {winner_id} (Align: {winner_align})<br>"
+                    )
             return "\n".join(lines)
         # Default: markdown
         lines = ["# Strategos Digest\n"]
@@ -523,7 +632,9 @@ def build_digest(
         lines.append("| Cluster           | Trace ID | Arc Label     | Depth |")
         lines.append("|-------------------|----------|---------------|-------|")
         for leader in most_evolved_digest["leaders"]:
-            lines.append(f"| {leader['tag']:<17} | {leader['trace_id']:<8} | {leader['arc'] or 'N/A':<13} | {leader['depth']}     |")
+            lines.append(
+                f"| {leader['tag']:<17} | {leader['trace_id']:<8} | {leader['arc'] or 'N/A':<13} | {leader['depth']}     |"
+            )
         if not most_evolved_digest["leaders"]:
             lines.append("| _None found_      |          |               |       |")
         lines.append("")
@@ -561,27 +672,35 @@ def build_digest(
                 winner = d.get("winner_label", "N/A")
                 winner_id = d.get("selected_trace_id", "N/A")
                 winner_align = d.get("winner_alignment", "N/A")
-                lines.append(f"- {a.get('arc', 'A')} vs {b.get('arc', 'B')} → ✅ {winner}")
+                lines.append(
+                    f"- {a.get('arc', 'A')} vs {b.get('arc', 'B')} → ✅ {winner}"
+                )
                 lines.append(f"  - Winner: {winner_id} (Align: {winner_align})\n")
 
         if isinstance(clusters, dict):
             cluster_items = clusters.items()
         elif isinstance(clusters, list):
             # If clusters is a list, treat each element as a cluster with a generated label
-            cluster_items = [(f"Cluster {i+1}", cluster) for i, cluster in enumerate(clusters)]
+            cluster_items = [
+                (f"Cluster {i + 1}", cluster) for i, cluster in enumerate(clusters)
+            ]
         else:
             cluster_items = []
         for label, cluster in cluster_items:
             lines.append(f"==== {label} ====")
             # Ensure cluster is a list before passing to consensus_score
             cluster_list = cluster if isinstance(cluster, list) else []
-            lines.append(f"Consensus ({overlay_key} rising): {consensus_score(cluster_list, overlay_key)*100:.0f}%")
+            lines.append(
+                f"Consensus ({overlay_key} rising): {consensus_score(cluster_list, overlay_key) * 100:.0f}%"
+            )
             if show_drivers:
                 drivers = summarize_drivers(cluster_list)
                 if drivers and isinstance(drivers, list) and len(drivers) > 0:
                     lines.append(f"Top Drivers: {', '.join(drivers)}")
             for f in cluster_list:
-                prompt_hash_value = f.get("prompt_hash") or get_prompt_hash(f.get("trace_id", ""))
+                prompt_hash_value = f.get("prompt_hash") or get_prompt_hash(
+                    f.get("trace_id", "")
+                )
                 f["prompt_hash"] = prompt_hash_value
                 # Ensure fields is a list before passing to render_fields
                 safe_fields = fields if isinstance(fields, list) else DEFAULT_FIELDS
@@ -589,19 +708,26 @@ def build_digest(
                 # --- Causal Explanation (Markdown) ---
                 if "causal_explanation" in f:
                     ce = f["causal_explanation"]
-                    lines.append(f"Causal Explanation: {ce.get('variable', '')} 2 Parents: {', '.join(ce.get('parents', []))}")
+                    lines.append(
+                        f"Causal Explanation: {ce.get('variable', '')} 2 Parents: {', '.join(ce.get('parents', []))}"
+                    )
                 lines.append("")
         if not clusters:
             lines.append("_No forecasts available._")
         stats = summarize_stats(flattened)
-        lines.append(f"🎯 Avg Retrodiction Score: {stats['avg_retrodiction']} | Symbolic Score: {stats['avg_symbolic']}")
+        lines.append(
+            f"🎯 Avg Retrodiction Score: {stats['avg_retrodiction']} | Symbolic Score: {stats['avg_symbolic']}"
+        )
         lines.append(f"📊 Confidence Sparkline: {stats['confidence_sparkline']}")
-        lines.append(f"🕓 Forecast Age: Avg {stats['avg_age']}h | Max: {stats['max_age']}h")
+        lines.append(
+            f"🕓 Forecast Age: Avg {stats['avg_age']}h | Max: {stats['max_age']}h"
+        )
         lines.append(f"Total Forecasts: {stats['total']}")
         return "\n".join(lines)
     except Exception as e:
         logger.error(f"Digest build error: {e}")
         return f"⚠️ Digest build error: {e}"
+
 
 def filter_forecasts_by_prompt(forecasts: List[Dict], prompt: str) -> List[Dict]:
     """
@@ -615,18 +741,51 @@ def filter_forecasts_by_prompt(forecasts: List[Dict], prompt: str) -> List[Dict]
             result.append(f)
     return result
 
+
 if __name__ == "__main__":
     import argparse
     from core.path_registry import PATHS
+
     parser = argparse.ArgumentParser(description="Strategos Digest Builder CLI")
-    parser.add_argument("--from-prompt", type=str, default=None, help="Filter forecasts by prompt substring")
-    parser.add_argument("--input", type=str, default=PATHS.get("FORECAST_COMPRESSED", "logs/forecast_output_compressed.jsonl"), help="Input JSON file (compressed forecasts)")
-    parser.add_argument("--export", type=str, default="markdown", choices=["markdown", "json", "html"], help="Export format")
+    parser.add_argument(
+        "--from-prompt",
+        type=str,
+        default=None,
+        help="Filter forecasts by prompt substring",
+    )
+    parser.add_argument(
+        "--input",
+        type=str,
+        default=PATHS.get(
+            "FORECAST_COMPRESSED", "logs/forecast_output_compressed.jsonl"
+        ),
+        help="Input JSON file (compressed forecasts)",
+    )
+    parser.add_argument(
+        "--export",
+        type=str,
+        default="markdown",
+        choices=["markdown", "json", "html"],
+        help="Export format",
+    )
     parser.add_argument("--output", type=str, default="digest.md", help="Output file")
-    parser.add_argument("--top-n", type=int, default=None, help="Show only top N clusters")
-    parser.add_argument("--cluster-key", type=str, default="symbolic_tag", help="Cluster key")
-    parser.add_argument("--actionable-only", action="store_true", help="Only include actionable forecasts")
-    parser.add_argument("--template", type=str, default="full", help="Digest template (full, short, symbolic_only)")
+    parser.add_argument(
+        "--top-n", type=int, default=None, help="Show only top N clusters"
+    )
+    parser.add_argument(
+        "--cluster-key", type=str, default="symbolic_tag", help="Cluster key"
+    )
+    parser.add_argument(
+        "--actionable-only",
+        action="store_true",
+        help="Only include actionable forecasts",
+    )
+    parser.add_argument(
+        "--template",
+        type=str,
+        default="full",
+        help="Digest template (full, short, symbolic_only)",
+    )
 
     args = parser.parse_args()
 
@@ -663,7 +822,9 @@ if __name__ == "__main__":
         "cluster_key": args.cluster_key,
         "actionable_only": args.actionable_only,
     }
-    digest = build_digest(forecasts, fmt=args.export, config=config, template=args.template)
+    digest = build_digest(
+        forecasts, fmt=args.export, config=config, template=args.template
+    )
 
     # Export
     if args.export == "markdown":
@@ -677,9 +838,11 @@ if __name__ == "__main__":
     elif args.export == "html":
         try:
             import markdown2
+
             html = markdown2.markdown(digest)
             try:
                 import bleach
+
                 allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ["h1", "h2", "h3"]
                 html = bleach.clean(html, tags=allowed_tags, strip=True)
             except ImportError:
@@ -690,6 +853,8 @@ if __name__ == "__main__":
         except ImportError:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write("<pre>\n" + digest + "\n</pre>")
-            print(f"Digest HTML exported to {args.output} (preformatted, markdown2 not installed)")
+            print(
+                f"Digest HTML exported to {args.output} (preformatted, markdown2 not installed)"
+            )
     else:
         print("Unknown export format.")

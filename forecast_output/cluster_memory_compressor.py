@@ -19,6 +19,7 @@ from forecast_output.forecast_cluster_classifier import classify_forecast_cluste
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def score_forecast(forecast: Dict) -> float:
     """
     Simple scoring function based on alignment + confidence.
@@ -32,10 +33,7 @@ def score_forecast(forecast: Dict) -> float:
     return forecast.get("alignment_score", 0) + forecast.get("confidence", 0)
 
 
-def compress_by_cluster(
-    forecasts: List[Dict],
-    scoring_fn=score_forecast
-) -> List[Dict]:
+def compress_by_cluster(forecasts: List[Dict], scoring_fn=score_forecast) -> List[Dict]:
     """
     Select the top forecast per narrative cluster.
 
@@ -64,7 +62,9 @@ def compress_by_cluster(
             top = max(fc_list, key=scoring_fn)
             compressed.append(top)
         except Exception as e:
-            logger.error("Error selecting top forecast for cluster '%s': %s", cluster, e)
+            logger.error(
+                "Error selecting top forecast for cluster '%s': %s", cluster, e
+            )
     return compressed
 
 
@@ -99,6 +99,7 @@ def export_cluster_memory(forecasts: List[Dict], path: str):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
         raise
+
 
 # --- Simple test block ---
 if __name__ == "__main__":

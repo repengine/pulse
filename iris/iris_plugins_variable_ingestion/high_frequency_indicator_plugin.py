@@ -12,14 +12,17 @@ from typing import Dict, List, Any
 
 # Assuming these modules exist based on the task description
 from data.high_frequency_data_access import HighFrequencyDataAccess
-from data.high_frequency_data_store import HighFrequencyDataStore # Import HighFrequencyDataStore
+from data.high_frequency_data_store import (
+    HighFrequencyDataStore,
+)  # Import HighFrequencyDataStore
 from iris.high_frequency_indicators import HighFrequencyIndicators
-from core.variable_registry import VARIABLE_REGISTRY
 from iris.iris_plugins import IrisPluginManager
+
 # Assuming AlphaVantagePlugin exists and has STOCK_SYMBOLS
 from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
 
 logger = logging.getLogger(__name__)
+
 
 class HighFrequencyIndicatorPlugin(IrisPluginManager):
     plugin_name = "high_frequency_indicator_plugin"
@@ -47,15 +50,14 @@ class HighFrequencyIndicatorPlugin(IrisPluginManager):
             for var_name, value in indicator_results.items():
                 # Extract symbol and indicator type from variable name
                 # Assuming variable names are in the format hf_<indicator>_<symbol>
-                parts = var_name.split('_')
-                if len(parts) >= 3 and parts[0] == 'hf':
-                    indicator_type = '_'.join(parts[1:-1])
+                parts = var_name.split("_")
+                if len(parts) >= 3 and parts[0] == "hf":
+                    indicator_type = "_".join(parts[1:-1])
                     symbol = parts[-1]
                 else:
                     indicator_type = "unknown"
                     symbol = "unknown"
                     logger.warning(f"Could not parse variable name format: {var_name}")
-
 
                 signal = {
                     "name": var_name,
@@ -67,7 +69,7 @@ class HighFrequencyIndicatorPlugin(IrisPluginManager):
                     "metadata": {
                         "symbol": symbol,
                         "indicator_type": indicator_type,
-                    }
+                    },
                 }
                 signals.append(signal)
 
@@ -78,6 +80,7 @@ class HighFrequencyIndicatorPlugin(IrisPluginManager):
             return []
 
         return signals
+
 
 # Example of how the plugin might be registered if not using autoload
 # manager = IrisPluginManager()

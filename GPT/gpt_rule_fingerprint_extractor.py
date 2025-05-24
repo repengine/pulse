@@ -15,12 +15,14 @@ Date: 2025-04-24
 
 from typing import List, Dict, Any, Optional
 
+
 def extract_fingerprint_from_gpt_rationale(gpt_rationale: str) -> Dict[str, Any]:
     """
     Extracts a causal fingerprint from a GPT rationale/explanation.
     """
     # Naive extraction: look for variable, threshold, and consequence
     import re
+
     fingerprint = {}
     var_match = re.search(r"(\w+) variable", gpt_rationale)
     if var_match:
@@ -34,17 +36,28 @@ def extract_fingerprint_from_gpt_rationale(gpt_rationale: str) -> Dict[str, Any]
     fingerprint["rationale_text"] = gpt_rationale
     return fingerprint
 
-def match_fingerprint_to_pulse_rules(fingerprint: Dict[str, Any], pulse_rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+
+def match_fingerprint_to_pulse_rules(
+    fingerprint: Dict[str, Any], pulse_rules: List[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
     """
     Attempts to match a fingerprint to known Pulse rules.
     """
     for rule in pulse_rules:
-        if (fingerprint.get("variable") and fingerprint.get("variable") in rule.get("condition", "")) \
-            and (fingerprint.get("consequence") and fingerprint.get("consequence") in rule.get("consequence", "")):
+        if (
+            fingerprint.get("variable")
+            and fingerprint.get("variable") in rule.get("condition", "")
+        ) and (
+            fingerprint.get("consequence")
+            and fingerprint.get("consequence") in rule.get("consequence", "")
+        ):
             return rule
     return None
 
-def archive_foreign_fingerprint(fingerprint: Dict[str, Any], archive_path: str = "foreign_causal_archive.jsonl") -> None:
+
+def archive_foreign_fingerprint(
+    fingerprint: Dict[str, Any], archive_path: str = "foreign_causal_archive.jsonl"
+) -> None:
     """
     Archives an unmatched fingerprint in a foreign causal archive.
 
@@ -53,8 +66,10 @@ def archive_foreign_fingerprint(fingerprint: Dict[str, Any], archive_path: str =
         archive_path (str): Path to the archive file.
     """
     import json
+
     with open(archive_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(fingerprint) + "\n")
+
 
 # Example usage (for testing)
 if __name__ == "__main__":

@@ -26,10 +26,12 @@ except ImportError:
 
 
 class PulseSignalRouter:
-    def __init__(self,
-                 symbolism_engine: IrisSymbolismTagger,
-                 trust_engine: IrisTrustScorer,
-                 archive_engine: IrisArchive) -> None:
+    def __init__(
+        self,
+        symbolism_engine: IrisSymbolismTagger,
+        trust_engine: IrisTrustScorer,
+        archive_engine: IrisArchive,
+    ) -> None:
         """
         Initialize the Pulse Signal Router with IRIS Core subsystem references.
 
@@ -56,46 +58,51 @@ class PulseSignalRouter:
         Raises:
             ValueError: If required fields are missing.
         """
-        required_keys = ['type', 'payload', 'source']
+        required_keys = ["type", "payload", "source"]
         if not all(key in signal for key in required_keys):
-            raise ValueError(f"Incoming signal missing required fields: {required_keys}")
+            raise ValueError(
+                f"Incoming signal missing required fields: {required_keys}"
+            )
 
         signal_metadata = {
-            'timestamp': signal.get('timestamp', datetime.now(timezone.utc).isoformat()),
-            'source': signal['source'],
-            'type': signal['type']
+            "timestamp": signal.get(
+                "timestamp", datetime.now(timezone.utc).isoformat()
+            ),
+            "source": signal["source"],
+            "type": signal["type"],
         }
 
-        signal_type = signal['type'].lower()
-        signal_record = {
-            **signal,
-            **signal_metadata
-        }
+        signal_type = signal["type"].lower()
+        signal_record = {**signal, **signal_metadata}
 
-        if signal_type == 'symbolic':
+        if signal_type == "symbolic":
             # Use IrisSymbolismTagger to infer tag
-            tag = self.symbolism_engine.infer_symbolic_tag(str(signal['payload']))
-            signal_record['symbolic_tag'] = tag
+            tag = self.symbolism_engine.infer_symbolic_tag(str(signal["payload"]))
+            signal_record["symbolic_tag"] = tag
             self.archive_engine.append_signal(signal_record)
-        elif signal_type == 'trust':
+        elif signal_type == "trust":
             # Use IrisTrustScorer to compute trust metrics
-            payload = signal['payload']
-            value = payload.get('value', 0.0)
-            timestamp = signal.get('timestamp', datetime.now(timezone.utc).isoformat())
+            payload = signal["payload"]
+            value = payload.get("value", 0.0)
+            timestamp = signal.get("timestamp", datetime.now(timezone.utc).isoformat())
             try:
-                ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                ts = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             except Exception:
                 ts = datetime.now(timezone.utc)
             recency_score = self.trust_engine.score_recency(ts)
             anomaly_flag = self.trust_engine.detect_anomaly_isolation(value)
-            sti = self.trust_engine.compute_signal_trust_index(recency_score, anomaly_flag)
-            signal_record['recency_score'] = recency_score
-            signal_record['anomaly_flag'] = anomaly_flag
-            signal_record['sti'] = sti
+            sti = self.trust_engine.compute_signal_trust_index(
+                recency_score, anomaly_flag
+            )
+            signal_record["recency_score"] = recency_score
+            signal_record["anomaly_flag"] = anomaly_flag
+            signal_record["sti"] = sti
             self.archive_engine.append_signal(signal_record)
         else:
             self.archive_engine.append_signal(signal_record)
-            print(f"[PulseSignalRouter] Unhandled signal type: {signal_type}. Archived only.")
+            print(
+                f"[PulseSignalRouter] Unhandled signal type: {signal_type}. Archived only."
+            )
 
     def batch_route(self, signals: list) -> None:
         """
@@ -120,9 +127,9 @@ if __name__ == "__main__":
     router = PulseSignalRouter(symbolism, trust, archive)
 
     incoming_signal = {
-        'type': 'symbolic',
-        'payload': 'hope resurgence',
-        'source': 'scraper_google_trends'
+        "type": "symbolic",
+        "payload": "hope resurgence",
+        "source": "scraper_google_trends",
     }
 
     router.route_signal(incoming_signal)

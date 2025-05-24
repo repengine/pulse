@@ -4,10 +4,9 @@ import logging
 
 logger = logging.getLogger("symbolic_drift_plot")
 
+
 def flag_high_attention_forecasts(
-    forecasts: List[Dict], 
-    arc_drift: Dict[str, int], 
-    threshold: float = 0.7
+    forecasts: List[Dict], arc_drift: Dict[str, int], threshold: float = 0.7
 ) -> List[Dict]:
     """
     Adds attention flags to forecasts based on symbolic drift volatility.
@@ -31,19 +30,24 @@ def flag_high_attention_forecasts(
         try:
             score = compute_symbolic_attention_score(fc, arc_drift)
             fc["attention_score"] = score
-            fc["attention_flag"] = "🚨 High Attention" if score >= threshold else "✅ Stable"
+            fc["attention_flag"] = (
+                "🚨 High Attention" if score >= threshold else "✅ Stable"
+            )
         except Exception as e:
-            logger.warning(f"Failed to compute attention for forecast: {fc}. Error: {e}")
+            logger.warning(
+                f"Failed to compute attention for forecast: {fc}. Error: {e}"
+            )
             fc["attention_score"] = None
             fc["attention_flag"] = "⚠️ Error"
     return forecasts
+
 
 if __name__ == "__main__":
     # Example/test usage
     test_forecasts = [
         {"arc_label": "Hope Surge"},
         {"arc_label": "Collapse Risk"},
-        {"arc_label": "Unknown"}
+        {"arc_label": "Unknown"},
     ]
     test_arc_drift = {"Hope Surge": 8, "Collapse Risk": 2}
     flagged = flag_high_attention_forecasts(test_forecasts, test_arc_drift)

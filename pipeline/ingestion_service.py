@@ -9,6 +9,7 @@ Thin OO wrapper around run_ingest.py logic so it can be:
 from iris.iris_scraper import IrisScraper
 from typing import Dict, List
 
+
 class IngestionService:
     def __init__(self) -> None:
         self.scraper = IrisScraper()
@@ -25,10 +26,14 @@ class IngestionService:
         """Return the list of Signal Dicts collected in the last run."""
         return getattr(self.scraper, "signal_log", [])
 
+
 # ---------------------------------------------------------------------
 # Optional CLI so you can still run:  `python -m ingestion_service --once`
 if __name__ == "__main__":
-    import argparse, sys, json, pathlib
+    import argparse
+    import sys
+    import json
+
     p = argparse.ArgumentParser()
     p.add_argument("--once", action="store_true", help="Ingest once and exit")
     args = p.parse_args()

@@ -1,10 +1,12 @@
 """
 SimulationEnv: OpenAI Gym-style environment for RL-based rule adaptation in Pulse.
 """
-import gym
+
+import gymnasium as gym
 import numpy as np
 from simulation_engine.rules.static_rules import build_static_rules
 from simulation_engine.rules.rule_param_registry import RULE_PARAM_REGISTRY
+
 
 class SimulationEnv(gym.Env):
     def __init__(self, turns_per_episode=5):
@@ -12,11 +14,25 @@ class SimulationEnv(gym.Env):
         self.turns_per_episode = turns_per_episode
         self.current_turn = 0
         self.rule_ids = list(RULE_PARAM_REGISTRY.keys())
-        self.param_names = [p for rid in self.rule_ids for p in RULE_PARAM_REGISTRY[rid]]
+        self.param_names = [
+            p for rid in self.rule_ids for p in RULE_PARAM_REGISTRY[rid]
+        ]
         self.action_space = gym.spaces.Box(
-            low=np.array([RULE_PARAM_REGISTRY[rid][p]["low"] for rid in self.rule_ids for p in RULE_PARAM_REGISTRY[rid]]),
-            high=np.array([RULE_PARAM_REGISTRY[rid][p]["high"] for rid in self.rule_ids for p in RULE_PARAM_REGISTRY[rid]]),
-            dtype=np.float32
+            low=np.array(
+                [
+                    RULE_PARAM_REGISTRY[rid][p]["low"]
+                    for rid in self.rule_ids
+                    for p in RULE_PARAM_REGISTRY[rid]
+                ]
+            ),
+            high=np.array(
+                [
+                    RULE_PARAM_REGISTRY[rid][p]["high"]
+                    for rid in self.rule_ids
+                    for p in RULE_PARAM_REGISTRY[rid]
+                ]
+            ),
+            dtype=np.float32,
         )
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(len(self.param_names),), dtype=np.float32
@@ -27,19 +43,29 @@ class SimulationEnv(gym.Env):
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self.current_turn = 0
-        self.state = np.array([
-            RULE_PARAM_REGISTRY[rid][p]["default"] for rid in self.rule_ids for p in RULE_PARAM_REGISTRY[rid]
-        ], dtype=np.float32)
+        self.state = np.array(
+            [
+                RULE_PARAM_REGISTRY[rid][p]["default"]
+                for rid in self.rule_ids
+                for p in RULE_PARAM_REGISTRY[rid]
+            ],
+            dtype=np.float32,
+        )
         info = {}
         return self.state.copy(), info
 
     def compute_robustness_reward(self, param_overrides):
         from simulation_engine.simulator_core import simulate_forward
         from simulation_engine.worldstate import WorldState
-        from simulation_engine.rules.static_rules import build_static_rules
+
         state = WorldState()
-        rules = build_static_rules(param_overrides)
-        results = simulate_forward(state, turns=self.turns_per_episode, use_symbolism=True, return_mode="summary")
+        _rules = build_static_rules(param_overrides)
+        results = simulate_forward(
+            state,
+            turns=self.turns_per_episode,
+            use_symbolism=True,
+            return_mode="summary",
+        )
         last = results[-1] if results else {}
         fragility = last.get("fragility", 1.0)
         confidence = last.get("confidence", 0.0)

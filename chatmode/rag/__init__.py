@@ -14,4 +14,4 @@ The RAG implementation follows these principles:
 
 from chatmode.rag.context_provider import ContextProvider
 
-__all__ = ['ContextProvider']
+__all__ = ["ContextProvider"]

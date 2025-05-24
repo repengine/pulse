@@ -18,14 +18,20 @@ import json
 import sys
 from learning.forecast_pipeline_runner import run_forecast_pipeline
 
+
 def load_jsonl(path):
     with open(path, "r") as f:
         return [json.loads(line.strip()) for line in f if line.strip()]
 
+
 def main():
     parser = argparse.ArgumentParser(description="Pulse Forecast Pipeline CLI")
-    parser.add_argument("--input", type=str, required=True, help="Forecast batch (.jsonl)")
-    parser.add_argument("--digest", action="store_true", help="Enable digest generation")
+    parser.add_argument(
+        "--input", type=str, required=True, help="Forecast batch (.jsonl)"
+    )
+    parser.add_argument(
+        "--digest", action="store_true", help="Enable digest generation"
+    )
     parser.add_argument("--memory", action="store_true", help="Enable memory storage")
     args = parser.parse_args()
 
@@ -36,12 +42,11 @@ def main():
         sys.exit(1)
 
     result = run_forecast_pipeline(
-        forecasts,
-        enable_digest=args.digest,
-        save_to_memory=args.memory
+        forecasts, enable_digest=args.digest, save_to_memory=args.memory
     )
     print("\n📦 Pipeline Result:")
     print(json.dumps(result, indent=2))
+
 
 if __name__ == "__main__":
     main()

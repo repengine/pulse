@@ -32,7 +32,7 @@ def compute_alignment_index(
     memory: Optional[list] = None,
     arc_volatility: Optional[float] = None,
     tag_match: Optional[float] = None,
-    weights: Optional[Dict[str, float]] = None
+    weights: Optional[Dict[str, float]] = None,
 ) -> Dict[str, object]:
     """
     Compute the alignment index for a given forecast.
@@ -56,7 +56,7 @@ def compute_alignment_index(
         "retrodiction": 0.2,
         "arc_stability": 0.2,
         "tag_match": 0.15,
-        "novelty": 0.15
+        "novelty": 0.15,
     }
     weights = normalize_weights(weights or default_weights)
 
@@ -71,7 +71,10 @@ def compute_alignment_index(
         if "retrodiction_score" in forecast:
             retrodiction = forecast["retrodiction_score"]
         elif current_state is not None:
-            from learning.learning import compute_retrodiction_error  # moved import here to avoid circular import
+            from learning.learning import (
+                compute_retrodiction_error,
+            )  # moved import here to avoid circular import
+
             retrodiction = 1.0 - compute_retrodiction_error(forecast, current_state)
         else:
             retrodiction = 0.0
@@ -110,7 +113,9 @@ def compute_alignment_index(
         novelty = 1.0
         if memory and isinstance(memory, list):
             tag = forecast.get("symbolic_tag", "").lower()
-            tags = [f.get("symbolic_tag", "").lower() for f in memory if isinstance(f, dict)]
+            tags = [
+                f.get("symbolic_tag", "").lower() for f in memory if isinstance(f, dict)
+            ]
             novelty = 1.0 - (tags.count(tag) / max(1, len(tags)))
             novelty = max(0.0, min(novelty, 1.0))
     except Exception:
@@ -122,7 +127,7 @@ def compute_alignment_index(
         "retrodiction": retrodiction,
         "arc_stability": arc_stability,
         "tag_match": tag_match_val,
-        "novelty": novelty
+        "novelty": novelty,
     }
     alignment_score = sum(components[k] * weights[k] for k in components)
     alignment_score = round(alignment_score * 100, 2)  # 0-100 scale
@@ -130,8 +135,9 @@ def compute_alignment_index(
     return {
         "alignment_score": alignment_score,
         "components": components,
-        "forecast_id": forecast.get("trace_id")
+        "forecast_id": forecast.get("trace_id"),
     }
+
 
 # --- Simple test ---
 if __name__ == "__main__":
@@ -140,7 +146,7 @@ if __name__ == "__main__":
         "confidence": 0.85,
         "retrodiction_score": 0.9,
         "arc_volatility_score": 0.1,
-        "symbolic_tag": "Hope"
+        "symbolic_tag": "Hope",
     }
     result = compute_alignment_index(test_forecast)
     print("Alignment Score:", result["alignment_score"])

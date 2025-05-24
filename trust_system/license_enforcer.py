@@ -11,7 +11,7 @@ Version: v1.0.0
 """
 
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from trust_system.license_explainer import explain_forecast_license
 from trust_system.forecast_licensing_shell import license_forecast
@@ -42,7 +42,8 @@ def filter_licensed(forecasts: List[Dict], only_approved=True) -> List[Dict]:
         List[Dict]: Filtered forecasts
     """
     return [
-        fc for fc in forecasts
+        fc
+        for fc in forecasts
         if not only_approved or fc.get("license_status") == "✅ Approved"
     ]
 
@@ -79,21 +80,26 @@ def export_rejected_forecasts(forecasts: List[Dict], path: str) -> None:
         print(f"❌ Failed to save rejected forecasts: {e}")
 
 
-from typing import Optional
+
 
 def full_trust_license_audit_pipeline(
     forecasts: List[Dict],
     current_state: Optional[Dict] = None,
-    memory: Optional[List[Dict]] = None
+    memory: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     """
     Run trust processing, licensing, and audit trail generation on a batch of forecasts.
     Each forecast is updated in-place with trust, license, and audit metadata.
     Returns the updated forecasts.
     """
-    from trust_system.trust_engine import TrustEngine  # moved import here to avoid circular import
+    from trust_system.trust_engine import (
+        TrustEngine,
+    )  # moved import here to avoid circular import
+
     for fc in forecasts:
         TrustEngine.apply_all([fc])  # TrustEngine.apply_all mutates in-place
         annotate_forecasts([fc])
-        fc["pulse_audit_trail"] = generate_forecast_audit(fc, current_state=current_state, memory=memory)
+        fc["pulse_audit_trail"] = generate_forecast_audit(
+            fc, current_state=current_state, memory=memory
+        )
     return forecasts

@@ -13,11 +13,13 @@ Usage:
 
 import json
 from collections import Counter
-from typing import List, Dict
+from typing import Dict
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 BIAS_LOG_PATH = PATHS.get("SYMBOLIC_BIAS_LOG", "logs/symbolic_bias_log.jsonl")
+
 
 class SymbolicBiasTracker:
     def __init__(self):
@@ -38,6 +40,7 @@ class SymbolicBiasTracker:
 
     def export_csv(self, csv_path="symbolic_bias.csv"):
         import csv
+
         with open(csv_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["tag", "count"])
@@ -47,6 +50,7 @@ class SymbolicBiasTracker:
     def plot_frequencies(self):
         try:
             import matplotlib.pyplot as plt
+
             tags, counts = zip(*self.counter.items())
             plt.bar(tags, counts)
             plt.title("Symbolic Tag Frequencies")

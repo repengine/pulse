@@ -1,4 +1,4 @@
-""" 
+"""
 pulse_dir_cleaner.py
 
 Scans your Pulse project for:
@@ -40,7 +40,7 @@ CANONICAL_PATHS = {
     "pulse_cli_dashboard.py": "dev_tools/",
     "pulse_cli_docgen.py": "dev_tools/",
     "rule_audit_viewer.py": "dev_tools/",
-    "pulse_forecast_test_suite.py": "dev_tools/"
+    "pulse_forecast_test_suite.py": "dev_tools/",
 }
 
 DEFAULT_QUARANTINE_DIR = PATHS.get("QUARANTINE_DIR", "quarantine")
@@ -81,7 +81,11 @@ def move_to_quarantine(path: str, quarantine_dir: str, dry_run: bool = False) ->
             logger.warning(f"[Cleaner] Failed to move {path} to quarantine: {e}")
 
 
-def run_cleaner(dry_run: bool = False, quarantine_dir: str = DEFAULT_QUARANTINE_DIR, verbose: bool = False) -> None:
+def run_cleaner(
+    dry_run: bool = False,
+    quarantine_dir: str = DEFAULT_QUARANTINE_DIR,
+    verbose: bool = False,
+) -> None:
     """
     Run the directory cleaner to quarantine duplicates/misplaced files.
     Args:
@@ -125,7 +129,9 @@ def run_cleaner(dry_run: bool = False, quarantine_dir: str = DEFAULT_QUARANTINE_
         elif verbose:
             print(f"Checked: {newest}")
 
-    print(f"\nSummary: {files_checked} files checked, {flagged} file(s) moved to quarantine.")
+    print(
+        f"\nSummary: {files_checked} files checked, {flagged} file(s) moved to quarantine."
+    )
     if flagged == 0:
         logger.info("✅ No duplicates or misplaced files found.")
     else:
@@ -139,11 +145,21 @@ def parse_args():
         (bool, str, bool): (dry_run, quarantine_dir, verbose)
     """
     parser = argparse.ArgumentParser(description="Pulse Directory Cleaner")
-    parser.add_argument("--dry-run", action="store_true", help="Preview actions without moving files")
-    parser.add_argument("--quarantine", type=str, default=DEFAULT_QUARANTINE_DIR, help="Quarantine directory")
-    parser.add_argument("--verbose", action="store_true", help="Print all files checked")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview actions without moving files"
+    )
+    parser.add_argument(
+        "--quarantine",
+        type=str,
+        default=DEFAULT_QUARANTINE_DIR,
+        help="Quarantine directory",
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print all files checked"
+    )
     args = parser.parse_args()
     return args.dry_run, args.quarantine, args.verbose
+
 
 if __name__ == "__main__":
     dry_run, quarantine_dir, verbose = parse_args()

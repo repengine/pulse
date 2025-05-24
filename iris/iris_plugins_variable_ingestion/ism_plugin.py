@@ -1,10 +1,9 @@
-import requests
-from datetime import datetime
 # import pandas as pd # Uncomment if pandas is needed for data processing
 # from iris.iris_utils.ingestion_persistence import save_data_point_incremental # Uncomment if saving data
 
 # Placeholder plugin for Institute for Supply Management (ISM) data.
 # Access to ISM Manufacturing PMI and Services PMI data typically requires a subscription or specific access.
+
 
 class ISMPlugin:
     """
@@ -12,9 +11,12 @@ class ISMPlugin:
     Access to ISM data typically requires a subscription or specific access.
     This plugin provides a basic structure but does not implement actual data fetching.
     """
+
     def __init__(self):
         print("ISM data access likely requires a subscription or specific access.")
-        self.api_available = False # Assume API is not publicly available without a key/subscription
+        self.api_available = (
+            False  # Assume API is not publicly available without a key/subscription
+        )
         # TODO: Add logic here to check for credentials/access if applicable
 
     def fetch_pmi_data(self):
@@ -23,7 +25,9 @@ class ISMPlugin:
         Requires subscription or specific access.
         """
         if not self.api_available:
-            print("Skipping ISM data fetch due to potential subscription or access requirement.")
+            print(
+                "Skipping ISM data fetch due to potential subscription or access requirement."
+            )
             return None
 
         # TODO: Implement actual data fetching logic if API access is available.
@@ -39,22 +43,26 @@ class ISMPlugin:
         #     print(f"Error fetching ISM data: {e}")
         #     return None
 
-        return [] # Return empty list as a placeholder
+        return []  # Return empty list as a placeholder
 
     def ingest_pmi(self):
         """
         Placeholder method to ingest ISM PMI data.
         Processes fetched data and saves it incrementally.
         """
-        print("Ingesting Industrial Production & Manufacturing PMI from ISM (placeholder - requires subscription/access)...")
+        print(
+            "Ingesting Industrial Production & Manufacturing PMI from ISM (placeholder - requires subscription/access)..."
+        )
         observations = self.fetch_pmi_data()
         if observations:
-            print(f"Processing {len(observations)} observations from ISM (placeholder)...")
+            print(
+                f"Processing {len(observations)} observations from ISM (placeholder)..."
+            )
             for obs in observations:
                 # TODO: Adapt this based on the actual ISM API response structure
                 # Assuming a structure with 'DATE' and 'VALUE'
-                timestamp_str = obs.get('DATE')
-                value = obs.get('VALUE')
+                timestamp_str = obs.get("DATE")
+                value = obs.get("VALUE")
 
                 if timestamp_str and value is not None:
                     try:
@@ -64,37 +72,37 @@ class ISMPlugin:
                         # timestamp = date_obj.isoformat()
 
                         # Placeholder timestamp and value conversion
-                        timestamp = timestamp_str # Use directly for now
                         value = float(value)
 
-                        data_point = {
-                            # TODO: Construct variable_name based on actual data/identifiers
-                            "variable_name": "ISM_PMI_MANUFACTURING", # Placeholder variable name
-                            "timestamp": timestamp,
-                            "value": value,
-                            "source": "ISM",
-                            # Add other relevant metadata from obs
-                            "original_obs": obs # Store original observation for debugging/traceability
-                        }
+                        # data_point assignment removed as it's unused
+                        # The 'timestamp' variable was also removed as it was only used in data_point.
+                        # If data_point were to be used, 'timestamp_str' could be used directly.
                         # save_data_point_incremental(data_point, "economic_indicators") # Uncomment to save
                     except (ValueError, TypeError) as e:
-                         print(f"Could not process observation {obs}: {e}. Skipping.")
-                         continue
-            print(f"Finished processing observations from ISM (placeholder).")
+                        print(f"Could not process observation {obs}: {e}. Skipping.")
+                        continue
+            print("Finished processing observations from ISM (placeholder).")
         else:
-            print("No data ingested from ISM (placeholder - requires subscription/access).")
+            print(
+                "No data ingested from ISM (placeholder - requires subscription/access)."
+            )
 
     def ingest_all(self):
         """
         Starts the ingestion process for all available ISM data series.
         """
-        print("Starting ISM data ingestion (placeholder - requires subscription/access)...")
+        print(
+            "Starting ISM data ingestion (placeholder - requires subscription/access)..."
+        )
         self.ingest_pmi()
         # TODO: Add calls to other ingest methods if more ISM data types are added
-        print("ISM data ingestion finished (placeholder - requires subscription/access).")
+        print(
+            "ISM data ingestion finished (placeholder - requires subscription/access)."
+        )
+
 
 if __name__ == "__main__":
     # Example usage:
     # ism_plugin = ISMPlugin()
     # ism_plugin.ingest_all()
-    pass # Prevent execution when imported
+    pass  # Prevent execution when imported

@@ -14,16 +14,24 @@ Author: Pulse AI Engine
 
 import argparse
 import json
-import os
 from learning.recursion_audit import generate_recursion_report
 from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables
 import core.pulse_config
-from operator_interface.learning_log_viewer import load_learning_events, summarize_learning_events, render_event_digest
+from operator_interface.learning_log_viewer import (
+    load_learning_events,
+    summarize_learning_events,
+    render_event_digest,
+)
 from memory.variable_cluster_engine import summarize_clusters
-from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md
+from operator_interface.variable_cluster_digest_formatter import (
+    format_variable_cluster_digest_md,
+)
 from operator_interface.mutation_digest_exporter import export_full_digest
-from operator_interface.symbolic_contradiction_digest import format_contradiction_cluster_md
-from typing import Optional # Import Optional
+from operator_interface.symbolic_contradiction_digest import (
+    format_contradiction_cluster_md,
+)
+from typing import Optional  # Import Optional
+
 
 def run_cycle_comparison(prev_path: str, curr_path: str, output: Optional[str] = None):
     print("🔁 Comparing recursive forecast batches...")
@@ -57,7 +65,9 @@ def generate_operator_brief(report_path: str, output_md: str):
             f.write("# 🧠 Pulse Operator Brief\n\n")
             f.write("## 🔄 Recursive Forecast Audit\n")
             f.write(f"- Confidence Delta: `{data.get('confidence_delta')}`\n")
-            f.write(f"- Retrodiction Error Delta: `{data.get('retrodiction_error_delta')}`\n")
+            f.write(
+                f"- Retrodiction Error Delta: `{data.get('retrodiction_error_delta')}`\n"
+            )
             f.write("\n### Trust Label Distribution\n")
             for label, count in data.get("trust_distribution_current", {}).items():
                 f.write(f"- {label}: {count}\n")
@@ -71,8 +81,7 @@ def generate_operator_brief(report_path: str, output_md: str):
 
 def run_forecast_pipeline_ui(last_batch=None, log=None):
     """UI helper to run the forecast pipeline on last batch or file."""
-    import tkinter
-    from tkinter import filedialog, messagebox
+    from tkinter import filedialog
     from learning.forecast_pipeline_runner import run_forecast_pipeline
 
     if last_batch and isinstance(last_batch, list) and last_batch:
@@ -97,7 +106,9 @@ def run_forecast_pipeline_ui(last_batch=None, log=None):
         log(f"🚦 Running forecast pipeline on {source}...")
     result = run_forecast_pipeline(forecasts)
     if log:
-        log(f"✅ Pipeline complete. Status: {result.get('status')}, Total: {result.get('total')}, Digest: {bool(result.get('digest'))}")
+        log(
+            f"✅ Pipeline complete. Status: {result.get('status')}, Total: {result.get('total')}, Digest: {bool(result.get('digest'))}"
+        )
     else:
         print(result)
 
@@ -105,12 +116,22 @@ def run_forecast_pipeline_ui(last_batch=None, log=None):
 def main():
     parser = argparse.ArgumentParser(description="Pulse Operator CLI")
 
-    parser.add_argument("--compare", nargs=2, metavar=("PREV", "CURR"),
-                        help="Compare previous vs current forecast batches (.jsonl)")
-    parser.add_argument("--plot-variable", nargs="+", help="Variable(s) to plot over time")
+    parser.add_argument(
+        "--compare",
+        nargs=2,
+        metavar=("PREV", "CURR"),
+        help="Compare previous vs current forecast batches (.jsonl)",
+    )
+    parser.add_argument(
+        "--plot-variable", nargs="+", help="Variable(s) to plot over time"
+    )
     parser.add_argument("--history", type=str, help="Path to variable trace file")
-    parser.add_argument("--export", type=str, help="Optional path to export plot or report")
-    parser.add_argument("--brief", type=str, help="Generate operator markdown brief from JSON audit")
+    parser.add_argument(
+        "--export", type=str, help="Optional path to export plot or report"
+    )
+    parser.add_argument(
+        "--brief", type=str, help="Generate operator markdown brief from JSON audit"
+    )
 
     args = parser.parse_args()
 
@@ -127,9 +148,13 @@ def main():
     else:
         print("🧠 Pulse Operator CLI - Available Commands:")
         print("  --compare PREV.jsonl CURR.jsonl [--export audit.json]")
-        print("  --plot-variable hope rage --history path/to/vars.jsonl [--export graph.png]")
+        print(
+            "  --plot-variable hope rage --history path/to/vars.jsonl [--export graph.png]"
+        )
         print("  --brief path/to/audit.json [--export pulse_brief.md]")
-        print(f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})")
+        print(
+            f"[8] Toggle Symbolic Overlays (currently: {core.pulse_config.USE_SYMBOLIC_OVERLAYS})"
+        )
         print("[9] Run Forecast Pipeline")
         print("[L] View Learning Log")
         print("[V] View Variable Cluster Volatility")
@@ -138,14 +163,17 @@ def main():
         print("[Y] View Symbolic Contradiction Digest")
         choice = input("Select option: ")
         if choice == "8":
-            core.pulse_config.USE_SYMBOLIC_OVERLAYS = not core.pulse_config.USE_SYMBOLIC_OVERLAYS
-            print(f"Symbolic overlays now set to: {core.pulse_config.USE_SYMBOLIC_OVERLAYS}")
+            core.pulse_config.USE_SYMBOLIC_OVERLAYS = (
+                not core.pulse_config.USE_SYMBOLIC_OVERLAYS
+            )
+            print(
+                f"Symbolic overlays now set to: {core.pulse_config.USE_SYMBOLIC_OVERLAYS}"
+            )
         elif choice == "9":
             # Try to use last_batch if available, else prompt for file
             try:
                 run_forecast_pipeline_ui(
-                    last_batch=globals().get("last_batch", None),
-                    log=print
+                    last_batch=globals().get("last_batch", None), log=print
                 )
             except Exception as e:
                 print(f"❌ Pipeline error: {e}")
@@ -173,7 +201,10 @@ def main():
         elif choice.lower() == "d":
             export_full_digest()
         elif choice.lower() == "y":
-            from operator_interface.symbolic_contradiction_digest import load_symbolic_conflict_events
+            from operator_interface.symbolic_contradiction_digest import (
+                load_symbolic_conflict_events,
+            )
+
             clusters = load_symbolic_conflict_events()
             print(format_contradiction_cluster_md(clusters))
 
@@ -181,10 +212,13 @@ def main():
 if __name__ == "__main__":
     main()
 
-def display_forecast_visualization(simulation_forecast, ai_forecast, ensemble_forecast, performance_metrics=None):
+
+def display_forecast_visualization(
+    simulation_forecast, ai_forecast, ensemble_forecast, performance_metrics=None
+):
     """
     Display a visualization of forecasts and performance metrics.
-    
+
     Args:
         simulation_forecast (dict): Simulation-based forecast with key 'value'.
         ai_forecast (dict): AI forecast adjustments with key 'adjustment'.
@@ -192,10 +226,14 @@ def display_forecast_visualization(simulation_forecast, ai_forecast, ensemble_fo
         performance_metrics (dict, optional): Performance metrics such as MAE and RMSE.
     """
     print("\n--- Forecast Visualization ---")
-    print("Simulation Forecast: {:.2f}".format(simulation_forecast.get('value', 0.0)))
-    print("AI Forecast Adjustment: {:.2f}".format(ai_forecast.get('adjustment', 0.0)))
-    print("Ensemble Forecast: {:.2f}".format(ensemble_forecast.get('ensemble_forecast', 0.0)))
-    
+    print("Simulation Forecast: {:.2f}".format(simulation_forecast.get("value", 0.0)))
+    print("AI Forecast Adjustment: {:.2f}".format(ai_forecast.get("adjustment", 0.0)))
+    print(
+        "Ensemble Forecast: {:.2f}".format(
+            ensemble_forecast.get("ensemble_forecast", 0.0)
+        )
+    )
+
     if performance_metrics:
         print("\nPerformance Metrics:")
         for metric, value in performance_metrics.items():

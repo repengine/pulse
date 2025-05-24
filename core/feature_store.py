@@ -2,15 +2,18 @@
 Feature store for Pulse.
 Manages raw and engineered feature pipelines.
 """
+
 from typing import Callable, Dict, List
 import pandas as pd
 import importlib
 from core.pulse_config import FEATURE_PIPELINES
 
+
 class FeatureStore:
     """
     A centralized feature store to register and retrieve raw and transformed features.
     """
+
     def __init__(self):
         self._raw_loaders: Dict[str, Callable[[], pd.DataFrame]] = {}
         self._transforms: Dict[str, Callable[[pd.DataFrame], pd.Series]] = {}
@@ -29,7 +32,9 @@ class FeatureStore:
         """Register a raw data loader by name."""
         self._raw_loaders[name] = loader
 
-    def register_transform(self, name: str, transform: Callable[[pd.DataFrame], pd.Series]):
+    def register_transform(
+        self, name: str, transform: Callable[[pd.DataFrame], pd.Series]
+    ):
         """Register a transform function that takes raw DataFrame and returns a Series."""
         self._transforms[name] = transform
 
@@ -46,8 +51,7 @@ class FeatureStore:
         elif name in self._transforms:
             # apply transform on concatenated raw data
             df = pd.concat(
-                {k: loader() for k, loader in self._raw_loaders.items()},
-                axis=1
+                {k: loader() for k, loader in self._raw_loaders.items()}, axis=1
             )
             series = self._transforms[name](df)
         else:
@@ -72,6 +76,7 @@ class FeatureStore:
         self._raw_loaders.pop(name, None)
         self._transforms.pop(name, None)
         self._cache.pop(name, None)
+
 
 # instantiate a global feature store
 feature_store = FeatureStore()

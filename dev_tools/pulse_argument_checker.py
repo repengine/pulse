@@ -13,6 +13,7 @@ Usage:
 - Use --verbose for more detailed output
 - Prints a summary of files checked and issues found
 """
+
 import ast
 import os
 import logging
@@ -22,6 +23,7 @@ from typing import List, Tuple, Dict
 logger = logging.getLogger("pulse_argument_checker")
 
 DEFAULT_SEARCH_PATHS = ["simulation_engine", "dev_tools"]
+
 
 def extract_function_defs(tree: ast.AST) -> Dict[str, List[str]]:
     """
@@ -36,6 +38,7 @@ def extract_function_defs(tree: ast.AST) -> Dict[str, List[str]]:
         if isinstance(node, ast.FunctionDef):
             defs[node.name] = [arg.arg for arg in node.args.args]
     return defs
+
 
 def check_keyword_args(filepath: str) -> List[Tuple[str, str, List[str]]]:
     """
@@ -61,6 +64,7 @@ def check_keyword_args(filepath: str) -> List[Tuple[str, str, List[str]]]:
                         issues.append((fname, k, valid_args))
     return issues
 
+
 def run_check(search_paths: List[str], verbose: bool = False) -> None:
     """
     Run the keyword argument checker on all .py files in the given search paths.
@@ -73,7 +77,7 @@ def run_check(search_paths: List[str], verbose: bool = False) -> None:
     for root_dir in search_paths:
         for root, dirs, files in os.walk(root_dir):
             # Ignore all directories starting with a dot
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
             for file in files:
                 if file.endswith(".py") and not file.startswith("__"):
                     path = os.path.join(root, file)
@@ -84,12 +88,15 @@ def run_check(search_paths: List[str], verbose: bool = False) -> None:
                             total_issues += len(issues)
                             logger.warning(f"⚠️  Potential keyword mismatch in: {path}")
                             for fname, bad_kw, valid in issues:
-                                logger.warning(f" - {fname}(... {bad_kw}=...) [Valid: {valid}]")
+                                logger.warning(
+                                    f" - {fname}(... {bad_kw}=...) [Valid: {valid}]"
+                                )
                         elif verbose:
                             logger.info(f"Checked: {path}")
                     except Exception as e:
                         logger.warning(f"⚠️  Failed to parse {path}: {e}")
     print(f"\nSummary: {files_checked} files checked, {total_issues} issues found.")
+
 
 def parse_args():
     """
@@ -98,10 +105,15 @@ def parse_args():
         (List[str], bool): (search_paths, verbose)
     """
     parser = argparse.ArgumentParser(description="Pulse Argument Checker")
-    parser.add_argument("--paths", nargs="*", default=DEFAULT_SEARCH_PATHS, help="Directories to search")
-    parser.add_argument("--verbose", action="store_true", help="Print all files checked")
+    parser.add_argument(
+        "--paths", nargs="*", default=DEFAULT_SEARCH_PATHS, help="Directories to search"
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print all files checked"
+    )
     args = parser.parse_args()
     return args.paths, args.verbose
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

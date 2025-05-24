@@ -22,7 +22,10 @@ from core.variable_registry import VARIABLE_REGISTRY
 from core.pulse_learning_log import log_learning_event
 
 LOG_PATH = PATHS.get("VARIABLE_SCORE_LOG", "logs/variable_score_log.jsonl")
-SCORE_EXPORT_PATH = PATHS.get("VARIABLE_SCORE_EXPORT", "logs/variable_score_summary.json")
+SCORE_EXPORT_PATH = PATHS.get(
+    "VARIABLE_SCORE_EXPORT", "logs/variable_score_summary.json"
+)
+
 
 class VariablePerformanceTracker:
     def __init__(self):
@@ -48,22 +51,24 @@ class VariablePerformanceTracker:
         for var, val in state.items():
             if var not in VARIABLE_REGISTRY:
                 continue
-            self.records.append({
-                "timestamp": datetime.utcnow().isoformat(),
-                "variable": var,
-                "value": val,
-                "trace_id": forecast.get("trace_id", "unknown"),
-                "confidence": forecast.get("confidence", 0),
-                "fragility": forecast.get("fragility", 0),
-                "certified": forecast.get("certified", False),
-                "arc_label": forecast.get("arc_label"),
-                "symbolic_tag": forecast.get("symbolic_tag"),
-                "alignment_score": forecast.get("alignment_score"),
-                "confidence_status": forecast.get("confidence_status"),
-            })
+            self.records.append(
+                {
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "variable": var,
+                    "value": val,
+                    "trace_id": forecast.get("trace_id", "unknown"),
+                    "confidence": forecast.get("confidence", 0),
+                    "fragility": forecast.get("fragility", 0),
+                    "certified": forecast.get("certified", False),
+                    "arc_label": forecast.get("arc_label"),
+                    "symbolic_tag": forecast.get("symbolic_tag"),
+                    "alignment_score": forecast.get("alignment_score"),
+                    "confidence_status": forecast.get("confidence_status"),
+                }
+            )
 
         with open(LOG_PATH, "a", encoding="utf-8") as f:
-            for r in self.records[-len(state):]:
+            for r in self.records[-len(state) :]:
                 f.write(json.dumps(r) + "\n")
 
     def score_variable_effectiveness(self) -> Dict[str, Dict]:
@@ -120,7 +125,9 @@ class VariablePerformanceTracker:
         outliers = []
         scores = self.score_variable_effectiveness()
         for var, stat in scores.items():
-            if stat.get("avg_fragility", 0) > threshold or stat.get("certified_ratio", 1) < (1 - threshold):
+            if stat.get("avg_fragility", 0) > threshold or stat.get(
+                "certified_ratio", 1
+            ) < (1 - threshold):
                 outliers.append(var)
         return outliers
 
@@ -128,18 +135,34 @@ class VariablePerformanceTracker:
         """
         Updates the performance of a variable and logs the learning event.
         """
-        log_learning_event("memory_update", {
-            "event": "variable_performance_update",
-            "variable": var_name,
-            "new_score": new_score,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        log_learning_event(
+            "memory_update",
+            {
+                "event": "variable_performance_update",
+                "variable": var_name,
+                "new_score": new_score,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
 
 # === Example CLI usage
 if __name__ == "__main__":
     tracker = VariablePerformanceTracker()
-    dummy_forecast = {"trace_id": "vtest1", "confidence": 0.78, "fragility": 0.22, "certified": True, "arc_label": "Hope", "symbolic_tag": "hope"}
-    dummy_state = {"hope": 0.6, "rage": 0.4, "vix_level": 0.28, "crypto_instability": 0.6}
+    dummy_forecast = {
+        "trace_id": "vtest1",
+        "confidence": 0.78,
+        "fragility": 0.22,
+        "certified": True,
+        "arc_label": "Hope",
+        "symbolic_tag": "hope",
+    }
+    dummy_state = {
+        "hope": 0.6,
+        "rage": 0.4,
+        "vix_level": 0.28,
+        "crypto_instability": 0.6,
+    }
     tracker.log_variable_contribution(dummy_forecast, dummy_state)
     print("Ranked variables:", tracker.rank_variables_by_impact())
     print("Drift-prone:", tracker.detect_variable_drift())

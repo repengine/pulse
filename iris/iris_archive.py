@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 ARCHIVE_DIR = "data/iris_archive"
 ARCHIVE_FILE = os.path.join(ARCHIVE_DIR, "signals_archive.jsonl")
 
+
 class IrisArchive:
     def __init__(self):
         """
@@ -35,7 +36,10 @@ class IrisArchive:
         try:
             with open(ARCHIVE_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(signal_record) + "\n")
-            logger.info("[IrisArchive] Appended signal to archive: %s", signal_record.get("name", "unknown"))
+            logger.info(
+                "[IrisArchive] Appended signal to archive: %s",
+                signal_record.get("name", "unknown"),
+            )
         except Exception as e:
             logger.error("[IrisArchive] Failed to append signal: %s", e)
 
@@ -70,6 +74,7 @@ class IrisArchive:
         except Exception:
             return 0
 
+
 # Example CLI usage (for testing)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -84,7 +89,7 @@ if __name__ == "__main__":
         "symbolic_tag": "hope",
         "recency_score": 0.99,
         "anomaly_flag": False,
-        "sti": 0.93
+        "sti": 0.93,
     }
     archive.append_signal(test_signal)
     total = archive.count_signals()

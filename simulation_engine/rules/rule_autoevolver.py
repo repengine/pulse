@@ -14,14 +14,10 @@ All rule access and validation should use shared utilities for consistency.
 import json
 import logging
 import os
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional
 from simulation_engine.rules.rule_registry import RuleRegistry
 from simulation_engine.rule_mutation_engine import propose_rule_mutations
 from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
-from simulation_engine.rules.rule_coherence_checker import scan_rule_coherence
-from simulation_engine.rules.pulse_rule_expander import get_all_rule_fingerprints
-from simulation_engine.rules.pulse_rule_explainer import explain_forecast
-from memory.rule_cluster_engine import summarize_rule_clusters
 
 MUTATION_LOG_PATH = "logs/rule_mutation_log.jsonl"
 TRUST_LOG_PATH = "logs/rule_trust_log.jsonl"
@@ -32,6 +28,7 @@ logger = logging.getLogger("rule_autoevolver")
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
+
 def log_action(log_path: str, entry: dict):
     """Append an action to a log file."""
     try:
@@ -41,15 +38,25 @@ def log_action(log_path: str, entry: dict):
     except Exception as e:
         logger.error(f"Failed to log action: {e}")
 
+
 def score_rule_from_forecast(rule_id: str, forecast: dict, outcome: dict) -> float:
     """
     Score rule trust based on forecast performance (stub: extend with PFPA, regret, etc).
     Returns a float trust score.
     """
     # Placeholder: use forecast['confidence'] or outcome delta
-    score = forecast.get('confidence', 0.5)
-    log_action(TRUST_LOG_PATH, {"rule_id": rule_id, "score": score, "forecast": forecast.get('trace_id'), "outcome": outcome})
+    score = forecast.get("confidence", 0.5)
+    log_action(
+        TRUST_LOG_PATH,
+        {
+            "rule_id": rule_id,
+            "score": score,
+            "forecast": forecast.get("trace_id"),
+            "outcome": outcome,
+        },
+    )
     return score
+
 
 def detect_drifted_rules(prev_trace: str, curr_trace: str) -> Dict:
     """
@@ -62,23 +69,28 @@ def detect_drifted_rules(prev_trace: str, curr_trace: str) -> Dict:
         logger.error(f"Drift detection failed: {e}")
         return {}
 
+
 def propose_mutation(rule_id: str, dry_run: bool = False) -> Optional[Dict]:
     """
     Suggest mutation for a rule (threshold, effects, tags).
     If dry_run is True, do not apply mutation.
     Returns the mutation dict or None.
     """
-    rules = {r.get('rule_id', r.get('id')): r for r in _registry.rules}
+    rules = {r.get("rule_id", r.get("id")): r for r in _registry.rules}
     if rule_id not in rules:
         logger.warning(f"Rule not found: {rule_id}")
         return None
     mutation = propose_rule_mutations({rule_id: rules[rule_id]}, top_n=1)
     if mutation:
-        log_action(MUTATION_LOG_PATH, {"rule_id": rule_id, "mutation": mutation[0], "dry_run": dry_run})
+        log_action(
+            MUTATION_LOG_PATH,
+            {"rule_id": rule_id, "mutation": mutation[0], "dry_run": dry_run},
+        )
         if not dry_run:
             rules[rule_id].update(mutation[0])
         return mutation[0]
     return None
+
 
 def deprecate(rule_id: str, dry_run: bool = False) -> bool:
     """
@@ -86,13 +98,17 @@ def deprecate(rule_id: str, dry_run: bool = False) -> bool:
     If dry_run is True, do not apply.
     """
     for rule in _registry.rules:
-        if rule.get('rule_id') == rule_id or rule.get('id') == rule_id:
+        if rule.get("rule_id") == rule_id or rule.get("id") == rule_id:
             if not dry_run:
-                rule['enabled'] = False
-            log_action(MUTATION_LOG_PATH, {"rule_id": rule_id, "action": "deprecate", "dry_run": dry_run})
+                rule["enabled"] = False
+            log_action(
+                MUTATION_LOG_PATH,
+                {"rule_id": rule_id, "action": "deprecate", "dry_run": dry_run},
+            )
             return True
     logger.warning(f"Rule not found for deprecation: {rule_id}")
     return False
+
 
 def promote_from_candidate(verbose: bool = False) -> List[str]:
     """
@@ -100,13 +116,20 @@ def promote_from_candidate(verbose: bool = False) -> List[str]:
     """
     promoted = []
     for rule in list(_registry.candidate_rules):
-        if rule.get('enabled', False):
-            _registry.promote_candidate(rule.get('rule_id', rule.get('id')))
-            promoted.append(rule.get('rule_id', rule.get('id')))
-            log_action(MUTATION_LOG_PATH, {"rule_id": rule.get('rule_id', rule.get('id')), "action": "promote_candidate"})
+        if rule.get("enabled", False):
+            _registry.promote_candidate(rule.get("rule_id", rule.get("id")))
+            promoted.append(rule.get("rule_id", rule.get("id")))
+            log_action(
+                MUTATION_LOG_PATH,
+                {
+                    "rule_id": rule.get("rule_id", rule.get("id")),
+                    "action": "promote_candidate",
+                },
+            )
             if verbose:
                 print(f"Promoted candidate: {rule.get('rule_id', rule.get('id'))}")
     return promoted
+
 
 def batch_score_rules(forecast_file: str) -> Dict[str, float]:
     """
@@ -119,12 +142,13 @@ def batch_score_rules(forecast_file: str) -> Dict[str, float]:
         results = {}
         for fc in forecasts:
             for rule in _registry.rules:
-                rid = rule.get('rule_id', rule.get('id'))
-                results[rid] = score_rule_from_forecast(rid, fc, fc.get('outcome', {}))
+                rid = rule.get("rule_id", rule.get("id"))
+                results[rid] = score_rule_from_forecast(rid, fc, fc.get("outcome", {}))
         return results
     except Exception as e:
         logger.error(f"Batch scoring failed: {e}")
         return {}
+
 
 def audit_summary() -> None:
     """
@@ -141,10 +165,13 @@ def audit_summary() -> None:
             for line in f.readlines()[-10:]:
                 print(line.strip())
 
+
 # --- CLI ---
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Pulse Rule Autoevolver CLI\n\n"
+
+    parser = argparse.ArgumentParser(
+        description="Pulse Rule Autoevolver CLI\n\n"
         "--mutate rule_id [--dry-run]         Propose mutation for rule_id\n"
         "--score rule_id forecast.json        Score rule_id against forecast.json\n"
         "--run-drift-checks prev curr        Run drift checks between two traces\n"
@@ -152,27 +179,51 @@ if __name__ == "__main__":
         "--deprecate rule_id [--dry-run]      Deprecate (disable) a rule\n"
         "--batch-score forecast.json          Batch score all rules\n"
         "--audit-summary                      Print recent mutation/trust log entries\n"
-        "--verbose                            Verbose output\n")
+        "--verbose                            Verbose output\n"
+    )
     parser.add_argument("--mutate", type=str, help="Propose mutation for rule_id")
     parser.add_argument("--score", nargs=2, help="Score rule_id against forecast.json")
-    parser.add_argument("--run-drift-checks", nargs=2, metavar=("prev", "curr"), help="Run drift checks between two traces")
-    parser.add_argument("--promote-candidates", action="store_true", help="Promote all eligible candidate rules")
+    parser.add_argument(
+        "--run-drift-checks",
+        nargs=2,
+        metavar=("prev", "curr"),
+        help="Run drift checks between two traces",
+    )
+    parser.add_argument(
+        "--promote-candidates",
+        action="store_true",
+        help="Promote all eligible candidate rules",
+    )
     parser.add_argument("--deprecate", type=str, help="Deprecate (disable) a rule")
-    parser.add_argument("--dry-run", action="store_true", help="Dry run (no changes applied)")
-    parser.add_argument("--batch-score", type=str, help="Batch score all rules against forecast file")
-    parser.add_argument("--audit-summary", action="store_true", help="Print recent mutation/trust log entries")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Dry run (no changes applied)"
+    )
+    parser.add_argument(
+        "--batch-score", type=str, help="Batch score all rules against forecast file"
+    )
+    parser.add_argument(
+        "--audit-summary",
+        action="store_true",
+        help="Print recent mutation/trust log entries",
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
     if args.mutate:
         result = propose_mutation(args.mutate, dry_run=args.dry_run)
-        print(json.dumps(result, indent=2) if result else f"No mutation proposed for {args.mutate}")
+        print(
+            json.dumps(result, indent=2)
+            if result
+            else f"No mutation proposed for {args.mutate}"
+        )
     if args.score:
         rule_id, forecast_file = args.score
         try:
             with open(forecast_file, "r") as f:
                 forecast = json.load(f)
-            score = score_rule_from_forecast(rule_id, forecast, forecast.get('outcome', {}))
+            score = score_rule_from_forecast(
+                rule_id, forecast, forecast.get("outcome", {})
+            )
             print(f"Rule {rule_id} score: {score}")
         except Exception as e:
             logger.error(f"Score failed: {e}")

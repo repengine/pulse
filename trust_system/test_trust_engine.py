@@ -7,6 +7,7 @@ from trust_system.trust_engine import TrustEngine
 # It tests tagging, confidence scoring, trust gating, audit summaries,
 # and metadata embedding across representative forecast scenarios.
 
+
 class TestTrustEngine(unittest.TestCase):
     def setUp(self):
         """
@@ -22,11 +23,11 @@ class TestTrustEngine(unittest.TestCase):
             "overlays": {"hope": 0.8, "despair": 0.1, "rage": 0.1, "fatigue": 0.2},
             "forecast": {
                 "start_capital": {"nvda": 1000},  # Starting capital baseline
-                "end_capital": {"nvda": 1150},    # 15% return → positive signal
+                "end_capital": {"nvda": 1150},  # 15% return → positive signal
                 "symbolic_change": {"hope": 0.3},  # Used for novelty checks
             },
-            "fragility": 0.2,                       # Low fragility → high trust
-            "retrodiction_score": 0.95,            # Strong historical alignment
+            "fragility": 0.2,  # Low fragility → high trust
+            "retrodiction_score": 0.95,  # Strong historical alignment
         }
 
     def test_tag_forecast(self):
@@ -69,7 +70,9 @@ class TestTrustEngine(unittest.TestCase):
         """
         forecast = {}
         label = TrustEngine.confidence_gate(forecast)
-        self.assertIn(label, ["🔴 Rejected", "🟡 Unstable", "🟢 Trusted"])  # Updated to match actual return values
+        self.assertIn(
+            label, ["🔴 Rejected", "🟡 Unstable", "🟢 Trusted"]
+        )  # Updated to match actual return values
 
     def test_malformed_forecast(self):
         """
@@ -99,8 +102,8 @@ class TestTrustEngine(unittest.TestCase):
         forecasts[0]["symbolic_tag"] = "Hope"
         forecasts[0]["arc_label"] = "Hope Surge"
         forecasts[0]["trace_id"] = "trace1"
-        
-        forecasts[1]["symbolic_tag"] = "Despair"     # Opposing tag to cause conflict
+
+        forecasts[1]["symbolic_tag"] = "Despair"  # Opposing tag to cause conflict
         forecasts[1]["arc_label"] = "Collapse Risk"  # Contradictory arc
         forecasts[1]["trace_id"] = "trace2"
         result = TrustEngine.run_trust_audit(forecasts)
@@ -108,6 +111,7 @@ class TestTrustEngine(unittest.TestCase):
         self.assertIn("contradictions", result)
         self.assertIn("lineage_summary", result)
         self.assertGreater(len(result["contradictions"]["symbolic_tag_conflicts"]), 0)
+
 
 # Enable verbose CLI output for easier debugging and CI display
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from trust_system.trust_engine import TrustEngine
 import json
 from pathlib import Path
 
-PFPA_ARCHIVE = Path('forecasts') / 'pfpa_archive.jsonl'
+PFPA_ARCHIVE = Path("forecasts") / "pfpa_archive.jsonl"
 
 logger = get_logger(__name__)
 
@@ -26,8 +26,12 @@ logger = get_logger(__name__)
 pfpa_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 
 
-
-def log_forecast_to_pfpa(forecast_obj: dict, retrodiction_results: Optional[dict] = None, outcome: Optional[dict] = None, status: str = "open") -> None:
+def log_forecast_to_pfpa(
+    forecast_obj: dict,
+    retrodiction_results: Optional[dict] = None,
+    outcome: Optional[dict] = None,
+    status: str = "open",
+) -> None:
     """
     Logs a forecast to the PFPA archive, tagging if below confidence threshold.
     Integrates retrodiction results from the unified simulate_forward function.
@@ -54,7 +58,9 @@ def log_forecast_to_pfpa(forecast_obj: dict, retrodiction_results: Optional[dict
 
     if forecast_obj.get("confidence", 0) < CONFIDENCE_THRESHOLD:
         forecast_obj["trust_label"] = "🔴 Below threshold"
-        logger.warning(f"Forecast {forecast_obj.get('trace_id', '-')} below confidence threshold.")
+        logger.warning(
+            f"Forecast {forecast_obj.get('trace_id', '-')} below confidence threshold."
+        )
 
     # Use retrodiction results from simulate_forward if provided
     if retrodiction_results is None:
@@ -62,7 +68,7 @@ def log_forecast_to_pfpa(forecast_obj: dict, retrodiction_results: Optional[dict
             "retrodiction_score": None,
             "symbolic_score": None,
             "asset_hits": [],
-            "symbolic_hits": []
+            "symbolic_hits": [],
         }
 
     entry = {
@@ -83,15 +89,16 @@ def log_forecast_to_pfpa(forecast_obj: dict, retrodiction_results: Optional[dict
         "retrodiction_hits": retrodiction_results.get("asset_hits"),
         "symbolic_hits": retrodiction_results.get("symbolic_hits"),
         "outcome": outcome or {},
-        "status_tag": status  # Status tag passed as function parameter
+        "status_tag": status,  # Status tag passed as function parameter
     }
     forecast_obj = decay_confidence_and_priority(forecast_obj)
     pfpa_memory.store(entry)
     # Append entry to PFPA archive file
     PFPA_ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
-    with PFPA_ARCHIVE.open('a', encoding='utf-8') as f:
-        f.write(json.dumps(entry) + '\n')
+    with PFPA_ARCHIVE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry) + "\n")
     logger.info(f"Logged forecast {entry['trace_id']} to PFPA archive.")
+
 
 def get_latest_forecasts(n: int = 5) -> List[Dict]:
     """

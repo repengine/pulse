@@ -18,6 +18,7 @@ except ImportError:
 
 logger = logging.getLogger("pulse_forecast_lineage")
 
+
 def build_forecast_lineage(forecasts: List[Dict]) -> Dict[str, List[str]]:
     """
     Build a mapping from forecast_id to its children (descendants).
@@ -44,6 +45,7 @@ def build_forecast_lineage(forecasts: List[Dict]) -> Dict[str, List[str]]:
     logger.info(f"Lineage built for {len(lineage)} parents.")
     return lineage
 
+
 def detect_drift(forecasts: List[Dict], drift_key: str = "symbolic_tag") -> List[str]:
     """
     Detects drift in a specified key (default: symbolic_tag) over time.
@@ -65,12 +67,17 @@ def detect_drift(forecasts: List[Dict], drift_key: str = "symbolic_tag") -> List
     """
     drifts = []
     for i in range(1, len(forecasts)):
-        prev = forecasts[i-1]
+        prev = forecasts[i - 1]
         curr = forecasts[i]
         if prev.get(drift_key) != curr.get(drift_key):
-            drifts.append(f"Drift: {prev.get('trace_id')} → {curr.get('trace_id')} [{drift_key}: {prev.get(drift_key)} → {curr.get(drift_key)}]")
-    logger.info(f"Drift detection: {len(drifts)} drift events found for key '{drift_key}'.")
+            drifts.append(
+                f"Drift: {prev.get('trace_id')} → {curr.get('trace_id')} [{drift_key}: {prev.get(drift_key)} → {curr.get(drift_key)}]"
+            )
+    logger.info(
+        f"Drift detection: {len(drifts)} drift events found for key '{drift_key}'."
+    )
     return drifts
+
 
 def flag_divergence(forecasts: List[Dict]) -> List[str]:
     """
@@ -101,6 +108,7 @@ def flag_divergence(forecasts: List[Dict]) -> List[str]:
     logger.info(f"Divergence flagging: {len(forks)} forks found.")
     return forks
 
+
 def fork_count(forecasts: List[Dict]) -> Dict[str, int]:
     """
     Count how many forks (children) exist from each parent.
@@ -126,7 +134,10 @@ def fork_count(forecasts: List[Dict]) -> Dict[str, int]:
             counts[parent] = counts.get(parent, 0) + 1
     return counts
 
-def drift_score(forecasts: List[Dict], drift_key: str = "symbolic_tag") -> Dict[str, int]:
+
+def drift_score(
+    forecasts: List[Dict], drift_key: str = "symbolic_tag"
+) -> Dict[str, int]:
     """
     Quantify cumulative drift per parent (family).
 
@@ -156,6 +167,7 @@ def drift_score(forecasts: List[Dict], drift_key: str = "symbolic_tag") -> Dict[
                 drift_counts[parent_id] = drift_counts.get(parent_id, 0) + 1
     return drift_counts
 
+
 def get_symbolic_arc(forecast: Dict) -> Optional[Dict]:
     """
     Extract symbolic arc (emotional overlays) from a forecast if present.
@@ -173,17 +185,22 @@ def get_symbolic_arc(forecast: Dict) -> Optional[Dict]:
     for key in ("symbolic_arc", "symbolic_change", "emotional_overlay"):
         if key in forecast:
             return forecast[key]
-    overlays = {k: forecast[k] for k in ("hope", "despair", "rage", "fatigue") if k in forecast}
+    overlays = {
+        k: forecast[k] for k in ("hope", "despair", "rage", "fatigue") if k in forecast
+    }
     return overlays if overlays else None
+
 
 def get_confidence(forecast: Dict) -> Optional[float]:
     return forecast.get("confidence")
+
 
 def get_prompt_hash(forecast: Dict) -> Optional[str]:
     for key in ("prompt_hash", "prompt_id", "origin_hash"):
         if key in forecast:
             return forecast[key]
     return None
+
 
 def symbolic_color(symbolic_tag: Optional[str]) -> str:
     """
@@ -195,9 +212,10 @@ def symbolic_color(symbolic_tag: Optional[str]) -> str:
         "Rage": "orange",
         "Fatigue": "gray",
         "Trust": "blue",
-        None: "black"
+        None: "black",
     }
     return color_map.get(symbolic_tag, "black")
+
 
 def confidence_color(conf: Optional[float]) -> str:
     """
@@ -214,11 +232,8 @@ def confidence_color(conf: Optional[float]) -> str:
     else:
         return "red"
 
-def export_graphviz_dot(
-    forecasts: List[Dict],
-    filepath: str,
-    color_by: str = "arc"
-):
+
+def export_graphviz_dot(forecasts: List[Dict], filepath: str, color_by: str = "arc"):
     """
     Export forecast lineage as a color-coded Graphviz .dot file.
 
@@ -234,12 +249,16 @@ def export_graphviz_dot(
         ... ], "lineage.dot", color_by="arc")
     """
     if graphviz is None:
-        logger.warning("Graphviz is not installed. Please install it to use graph export functionality:")
+        logger.warning(
+            "Graphviz is not installed. Please install it to use graph export functionality:"
+        )
         logger.warning("  1. Install the Python package: pip install graphviz")
         logger.warning("  2. Install the system-level package:")
         logger.warning("     - On Ubuntu/Debian: sudo apt-get install graphviz")
         logger.warning("     - On macOS: brew install graphviz")
-        logger.warning("     - On Windows: Download from https://graphviz.org/download/")
+        logger.warning(
+            "     - On Windows: Download from https://graphviz.org/download/"
+        )
         return None
     dot = graphviz.Digraph(comment="Forecast Lineage")
     ids = set()
@@ -273,6 +292,7 @@ def export_graphviz_dot(
     dot.save(filepath)
     return filepath
 
+
 def print_summary(forecasts: List[Dict]):
     """
     Print summary statistics of the forecast list.
@@ -292,6 +312,7 @@ def print_summary(forecasts: List[Dict]):
     parents = set(f.get("parent_id") for f in forecasts if f.get("parent_id"))
     print(f"Unique parents: {len(parents)}")
 
+
 def save_output(obj: Any, filepath: str):
     """
     Save object as JSON to file.
@@ -306,6 +327,7 @@ def save_output(obj: Any, filepath: str):
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2)
 
+
 def parse_args():
     """
     Parse command-line arguments.
@@ -314,18 +336,39 @@ def parse_args():
         python pulse_forecast_lineage.py --forecasts forecasts.json --summary --export-graph lineage.dot --color-by arc --save forecast_output.json
     """
     parser = argparse.ArgumentParser(description="Pulse Forecast Lineage CLI")
-    parser.add_argument("--forecasts", type=str, required=True, help="Path to forecasts JSON file")
-    parser.add_argument("--drift-key", type=str, default="symbolic_tag", help="Key to check for drift")
+    parser.add_argument(
+        "--forecasts", type=str, required=True, help="Path to forecasts JSON file"
+    )
+    parser.add_argument(
+        "--drift-key", type=str, default="symbolic_tag", help="Key to check for drift"
+    )
     parser.add_argument("--lineage", action="store_true", help="Show forecast lineage")
     parser.add_argument("--drift", action="store_true", help="Detect drift events")
-    parser.add_argument("--divergence", action="store_true", help="Flag divergence forks")
-    parser.add_argument("--fork-count", action="store_true", help="Show fork count per parent")
-    parser.add_argument("--drift-score", action="store_true", help="Show drift score per parent")
-    parser.add_argument("--summary", action="store_true", help="Print summary statistics")
-    parser.add_argument("--export-graph", type=str, help="Export lineage as Graphviz .dot file")
-    parser.add_argument("--color-by", type=str, default="arc", choices=["arc", "confidence", "none"], help="Color nodes by arc, confidence, or none")
+    parser.add_argument(
+        "--divergence", action="store_true", help="Flag divergence forks"
+    )
+    parser.add_argument(
+        "--fork-count", action="store_true", help="Show fork count per parent"
+    )
+    parser.add_argument(
+        "--drift-score", action="store_true", help="Show drift score per parent"
+    )
+    parser.add_argument(
+        "--summary", action="store_true", help="Print summary statistics"
+    )
+    parser.add_argument(
+        "--export-graph", type=str, help="Export lineage as Graphviz .dot file"
+    )
+    parser.add_argument(
+        "--color-by",
+        type=str,
+        default="arc",
+        choices=["arc", "confidence", "none"],
+        help="Color nodes by arc, confidence, or none",
+    )
     parser.add_argument("--save", type=str, help="Save output JSON to file")
     return parser.parse_args()
+
 
 def main():
     """
@@ -364,7 +407,9 @@ def main():
     if args.summary:
         print_summary(forecasts)
     if args.export_graph:
-        result = export_graphviz_dot(forecasts, args.export_graph, color_by=args.color_by)
+        result = export_graphviz_dot(
+            forecasts, args.export_graph, color_by=args.color_by
+        )
         if result is not None:
             print(f"Graph exported to {args.export_graph}")
         else:
@@ -372,6 +417,7 @@ def main():
     if args.save:
         save_output(output, args.save)
         print(f"Output saved to {args.save}")
+
 
 if __name__ == "__main__":
     main()

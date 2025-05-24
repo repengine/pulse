@@ -1,4 +1,4 @@
-""" 
+"""
 rule_dev_shell.py
 
 Command-line tool to test individual rule sets, symbolic interactions,
@@ -13,11 +13,13 @@ from simulation_engine.causal_rules import apply_causal_rules
 from simulation_engine.rule_engine import run_rules
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 RULE_LOG_PATH = PATHS.get("RULE_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 logger = get_logger(__name__)
+
 
 def test_rules(verbose=True):
     state = WorldState()
@@ -40,6 +42,8 @@ def test_rules(verbose=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--quiet", action="store_true", help="Suppress skipped rule logs")
+    parser.add_argument(
+        "--quiet", action="store_true", help="Suppress skipped rule logs"
+    )
     args = parser.parse_args()
     test_rules(verbose=not args.quiet)

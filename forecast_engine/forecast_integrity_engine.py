@@ -1,4 +1,4 @@
-""" 
+"""
 forecast_integrity_engine.py
 
 Final validation layer for Pulse forecast forecast_output.
@@ -15,10 +15,13 @@ Author: Pulse v0.10
 
 from core.pulse_config import CONFIDENCE_THRESHOLD
 from core.path_registry import PATHS
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.variable_accessor import get_variable, get_overlay
 
-def validate_forecast(metadata: dict, min_conf=None, max_frag=None, blocked_tags=None, required_keys=None) -> bool:
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
+
+
+def validate_forecast(
+    metadata: dict, min_conf=None, max_frag=None, blocked_tags=None, required_keys=None
+) -> bool:
     """
     Returns True if forecast is valid for export, False if it should be discarded.
 
@@ -49,6 +52,7 @@ def validate_forecast(metadata: dict, min_conf=None, max_frag=None, blocked_tags
         return False
 
     return True
+
 
 def infer_causal_links(forecast_history: list) -> dict:
     """

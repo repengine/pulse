@@ -1,4 +1,4 @@
-""" 
+"""
 pulse_forecast_test_suite.py
 
 Validates saved forecast files for:
@@ -25,7 +25,7 @@ OUTPUT_DIR = PATHS["FORECAST_TEST_OUTPUT"]
 
 def validate_forecast(file_path):
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             data = json.load(f)
             meta = data.get("metadata", {})
             confidence = meta.get("confidence")
@@ -35,31 +35,33 @@ def validate_forecast(file_path):
             return {
                 "file": os.path.basename(file_path),
                 "valid": (
-                    confidence is not None and
-                    fragility is not None and
-                    symbolic not in (None, "None", "")
+                    confidence is not None
+                    and fragility is not None
+                    and symbolic not in (None, "None", "")
                 ),
                 "confidence": confidence,
                 "fragility": fragility,
-                "symbolic_driver": symbolic
+                "symbolic_driver": symbolic,
             }
     except Exception as e:
-        return {
-            "file": os.path.basename(file_path),
-            "valid": False,
-            "error": str(e)
-        }
+        return {"file": os.path.basename(file_path), "valid": False, "error": str(e)}
 
 
 def run_forecast_validation(log_dir=FORECAST_DIR):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    forecasts = [f for f in os.listdir(log_dir) if f.endswith(".json") and not f.startswith("test")]
+    forecasts = [
+        f
+        for f in os.listdir(log_dir)
+        if f.endswith(".json") and not f.startswith("test")
+    ]
     results = []
 
     for file in forecasts:
         result = validate_forecast(os.path.join(log_dir, file))
         if not result.get("valid"):
-            logger.warning(f"Invalid forecast: {result.get('file')} | Error: {result.get('error', 'Unknown')}")
+            logger.warning(
+                f"Invalid forecast: {result.get('file')} | Error: {result.get('error', 'Unknown')}"
+            )
         results.append(result)
 
     summary = {
@@ -67,18 +69,25 @@ def run_forecast_validation(log_dir=FORECAST_DIR):
         "total_checked": len(results),
         "valid_forecasts": sum(1 for r in results if r["valid"]),
         "invalid_forecasts": sum(1 for r in results if not r["valid"]),
-        "results": results
+        "results": results,
     }
 
-    with open(SUMMARY_FILE, 'w') as f:
+    with open(SUMMARY_FILE, "w") as f:
         json.dump(summary, f, indent=2)
 
-    print(f"✅ Forecast audit complete: {summary['valid_forecasts']} valid / {summary['total_checked']} total")
+    print(
+        f"✅ Forecast audit complete: {summary['valid_forecasts']} valid / {summary['total_checked']} total"
+    )
     print(f"📝 Summary written to {SUMMARY_FILE}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Forecast Audit Suite")
-    parser.add_argument("--log_dir", type=str, default="forecast_output", help="Path to directory of forecast logs")
+    parser.add_argument(
+        "--log_dir",
+        type=str,
+        default="forecast_output",
+        help="Path to directory of forecast logs",
+    )
     args = parser.parse_args()
     run_forecast_validation(log_dir=args.log_dir)

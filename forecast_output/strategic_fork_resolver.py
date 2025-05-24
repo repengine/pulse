@@ -48,7 +48,7 @@ def resolve_fork(pair: Dict) -> Dict:
         "selected_trace_id": a["trace_id"] if decision == "A" else b["trace_id"],
         "reason": f"Score A={scores['A']} vs B={scores['B']}",
         "cluster": classify_forecast_cluster(a if decision == "A" else b),
-        "score": scores
+        "score": scores,
     }
 
 
@@ -65,6 +65,7 @@ def resolve_all_forks(dual_scenarios: List[Dict]) -> List[Dict]:
 def export_fork_decision_summary(results: List[Dict], path: str):
     """Save decision summary to disk."""
     import json
+
     try:
         with open(path, "w") as f:
             json.dump(results, f, indent=2)

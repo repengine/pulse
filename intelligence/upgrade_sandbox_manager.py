@@ -19,10 +19,12 @@ import uuid
 from typing import Dict, Any, List, Optional
 from intelligence.intelligence_config import UPGRADE_SANDBOX_DIR
 
+
 class UpgradeSandboxManager:
     """
     Manages epistemic upgrade proposals in a sandbox directory.
     """
+
     def __init__(self, sandbox_dir: str = UPGRADE_SANDBOX_DIR) -> None:
         """
         Initialize the Upgrade Sandbox Manager.
@@ -32,7 +34,9 @@ class UpgradeSandboxManager:
         """
         self.sandbox_dir: str = sandbox_dir
         os.makedirs(self.sandbox_dir, exist_ok=True)
-        self.pending_upgrades_path: str = os.path.join(self.sandbox_dir, "pending_upgrades.jsonl")
+        self.pending_upgrades_path: str = os.path.join(
+            self.sandbox_dir, "pending_upgrades.jsonl"
+        )
 
     def submit_upgrade(self, upgrade_data: Dict[str, Any]) -> str:
         """
@@ -53,7 +57,9 @@ class UpgradeSandboxManager:
                 f.write(json.dumps(upgrade_data) + "\n")
             print(f"[Sandbox] ✅ Upgrade proposal {upgrade_id} submitted.")
         except IOError as e:
-            print(f"[Sandbox] ❌ Error writing upgrade proposal to {self.pending_upgrades_path}: {e}")
+            print(
+                f"[Sandbox] ❌ Error writing upgrade proposal to {self.pending_upgrades_path}: {e}"
+            )
             # Depending on desired error handling, you might re-raise or return a specific error indicator
             raise
         return upgrade_id
@@ -76,12 +82,16 @@ class UpgradeSandboxManager:
                         upgrade: Dict[str, Any] = json.loads(line)
                         upgrades.append(upgrade.get("upgrade_id", "unknown"))
                     except json.JSONDecodeError as e:
-                        print(f"[Sandbox] ❌ Error decoding JSON line in {self.pending_upgrades_path}: {e}")
+                        print(
+                            f"[Sandbox] ❌ Error decoding JSON line in {self.pending_upgrades_path}: {e}"
+                        )
                         # Continue processing other lines
                         continue
         except IOError as e:
-            print(f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}")
-            return [] # Return empty list on read error
+            print(
+                f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}"
+            )
+            return []  # Return empty list on read error
         return upgrades
 
     def get_upgrade_details(self, upgrade_id: str) -> Optional[Dict[str, Any]]:
@@ -107,13 +117,18 @@ class UpgradeSandboxManager:
                         if upgrade.get("upgrade_id") == upgrade_id:
                             return upgrade
                     except json.JSONDecodeError as e:
-                        print(f"[Sandbox] ❌ Error decoding JSON line while searching for {upgrade_id} in {self.pending_upgrades_path}: {e}")
+                        print(
+                            f"[Sandbox] ❌ Error decoding JSON line while searching for {upgrade_id} in {self.pending_upgrades_path}: {e}"
+                        )
                         # Continue searching other lines
                         continue
         except IOError as e:
-            print(f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}")
-            return None # Return None on read error
+            print(
+                f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}"
+            )
+            return None  # Return None on read error
         return None
+
 
 # Example CLI usage for testing
 if __name__ == "__main__":
@@ -122,7 +137,7 @@ if __name__ == "__main__":
     dummy_upgrade: Dict[str, Any] = {
         "proposed_variables": ["hope_drift", "trust_collapse"],
         "proposed_consequences": ["market_stability_shift"],
-        "notes": "Test upgrade example."
+        "notes": "Test upgrade example.",
     }
     upgrade_id: str = sandbox.submit_upgrade(dummy_upgrade)
     print("[UpgradeSandbox] Pending upgrades:", sandbox.list_pending_upgrades())

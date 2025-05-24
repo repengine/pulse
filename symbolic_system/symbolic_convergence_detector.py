@@ -37,7 +37,9 @@ def compute_convergence_score(forecasts: List[Dict], key: str = "arc_label") -> 
     return round(top / total, 3)
 
 
-def identify_dominant_arcs(forecasts: List[Dict], key: str = "arc_label") -> Dict[str, int]:
+def identify_dominant_arcs(
+    forecasts: List[Dict], key: str = "arc_label"
+) -> Dict[str, int]:
     """
     Return sorted label frequency.
 
@@ -59,7 +61,9 @@ def detect_fragmentation(forecasts: List[Dict], key: str = "arc_label") -> bool:
     return score < 0.4
 
 
-def plot_convergence_bars(forecasts: List[Dict], key: str = "arc_label", title: str = "Symbolic Convergence"):
+def plot_convergence_bars(
+    forecasts: List[Dict], key: str = "arc_label", title: str = "Symbolic Convergence"
+):
     """
     Display a bar chart of arc/tag frequency.
 

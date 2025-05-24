@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 # Diagnostics enabled flag (can be toggled at runtime)
 DIAGNOSTICS_ENABLED = True
 
+
 def set_diagnostics_enabled(enabled: bool):
     """
     Enable or disable PLIA diagnostics dynamically.
@@ -47,7 +48,7 @@ def run_plia_stub(state: WorldState) -> Dict[str, Any]:
         "symbolic_tension": symbolic_tension,
         "capital_deployed": capital_total,
         "symbolic_overlays": symbolic_state,
-        "status": "pass (stub mode)"
+        "status": "pass (stub mode)",
     }
 
     logger.info("\n🧠 [PLIA STUB] Logic Integrity Check:")
@@ -63,6 +64,7 @@ def test_plia_stub():
     Test function for PLIA stub diagnostics.
     """
     from simulation_engine.worldstate import WorldState
+
     set_diagnostics_enabled(True)
     result = run_plia_stub(WorldState())
     assert result["status"].startswith("pass")

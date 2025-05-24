@@ -11,10 +11,12 @@ Usage:
 - Skips common virtual environment and cache directories.
 - Add --root and --dot CLI arguments for flexibility.
 """
+
 import os
 import ast
 import argparse
 from typing import Dict, List, Set
+
 
 def find_py_files(root: str) -> List[str]:
     """
@@ -31,7 +33,10 @@ def find_py_files(root: str) -> List[str]:
                 py_files.append(os.path.join(dirpath, f))
     return py_files
 
-def analyze_imports(root: str = ".", exclude_dirs: Set[str] = {"venv", "env", "__pycache__"}) -> Dict[str, List[str]]:
+
+def analyze_imports(
+    root: str = ".", exclude_dirs: Set[str] = {"venv", "env", "__pycache__", "context7"}
+) -> Dict[str, List[str]]:
     """
     Analyze import dependencies for all .py files under root, skipping excluded directories.
     Args:
@@ -47,11 +52,16 @@ def analyze_imports(root: str = ".", exclude_dirs: Set[str] = {"venv", "env", "_
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 tree = ast.parse(f.read(), filename=fpath)
-                imports = [n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module]
+                imports = [
+                    n.module
+                    for n in ast.walk(tree)
+                    if isinstance(n, ast.ImportFrom) and n.module
+                ]
                 deps[fpath] = imports
         except Exception as e:
             print(f"[DepMap] Failed to parse {fpath}: {e}")
     return deps
+
 
 def export_dot(deps: Dict[str, List[str]], dot_path: str = "module_deps.dot") -> None:
     """
@@ -72,6 +82,7 @@ def export_dot(deps: Dict[str, List[str]], dot_path: str = "module_deps.dot") ->
     except Exception as e:
         print(f"[DepMap] Error: {e}")
 
+
 def print_summary(deps: Dict[str, List[str]]) -> None:
     """
     Print a summary of modules and dependencies found.
@@ -82,14 +93,25 @@ def print_summary(deps: Dict[str, List[str]]) -> None:
     total_edges = sum(len(imps) for imps in deps.values())
     print(f"Total dependencies: {total_edges}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse Module Dependency Map")
-    parser.add_argument("--root", type=str, default="c:/Users/natew/Pulse", help="Root directory to analyze")
-    parser.add_argument("--dot", type=str, default="module_deps.dot", help="Output DOT file path")
+    parser.add_argument(
+        "--root",
+        type=str,
+        default="c:/Users/natew/Pulse",
+        help="Root directory to analyze",
+    )
+    parser.add_argument(
+        "--dot",
+        type=str,
+        default="c:/Users/natew/Pulse/module_deps.dot",
+        help="Output DOT file path",
+    )
     args = parser.parse_args()
 
     deps = analyze_imports(args.root)
-    for mod, imports in deps.items():
-        print(f"{mod}: {set(imports)}")
+    # for mod, imports in deps.items(): # F841
+    #     print(f"{mod}: {set(imports)}") # F841
     print_summary(deps)
     export_dot(deps, args.dot)

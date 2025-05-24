@@ -14,12 +14,14 @@ Usage:
 - Prints a summary of the number of modes per category
 - Handles missing or malformed hook config files
 """
+
 import json
 import argparse
+from typing import Dict, List
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from typing import Dict, List
 
 DASHBOARD_CONFIG = PATHS.get("DASHBOARD_CONFIG", "dev_tools/dashboard_config.json")
 HOOK_CONFIG = PATHS.get("HOOK_CONFIG", "dev_tools/pulse_hooks_config.json")
@@ -29,10 +31,11 @@ CATEGORY_COLORS = {
     "suite": "\033[94m",
     "batch": "\033[92m",
     "test": "\033[93m",
-    "tool": "\033[90m"
+    "tool": "\033[90m",
 }
 
 ALL_CATEGORIES = ["suite", "batch", "test", "tool"]
+
 
 def show_cli_dashboard(mode_type: str = "all", use_color: bool = True) -> None:
     """
@@ -43,7 +46,7 @@ def show_cli_dashboard(mode_type: str = "all", use_color: bool = True) -> None:
     """
     print("🔧 Pulse CLI Dashboard — Available Modes\n")
     try:
-        with open(HOOK_CONFIG, 'r', encoding='utf-8') as f:
+        with open(HOOK_CONFIG, "r", encoding="utf-8") as f:
             config = json.load(f)
     except Exception as e:
         logger.error(f"[Dashboard] Failed to load hook config: {e}")
@@ -71,9 +74,18 @@ def show_cli_dashboard(mode_type: str = "all", use_color: bool = True) -> None:
         print("")
     print(f"Summary: {total_modes} modes displayed.")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pulse CLI Dashboard")
-    parser.add_argument("--type", type=str, default="all", choices=["suite", "batch", "test", "tool", "all"], help="Filter by mode type")
-    parser.add_argument("--no-color", action="store_true", help="Disable ANSI color output")
+    parser.add_argument(
+        "--type",
+        type=str,
+        default="all",
+        choices=["suite", "batch", "test", "tool", "all"],
+        help="Filter by mode type",
+    )
+    parser.add_argument(
+        "--no-color", action="store_true", help="Disable ANSI color output"
+    )
     args = parser.parse_args()
     show_cli_dashboard(mode_type=args.type, use_color=not args.no_color)

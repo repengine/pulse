@@ -29,8 +29,10 @@ from datetime import datetime
 
 SCORE_LOG_PATH = "logs/symbolic_trace_scores.jsonl"
 
+
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
 
 def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
     """
@@ -43,7 +45,7 @@ def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
             "arc_label": "Empty",
             "volatility_score": 0.0,
             "arc_certainty": 0.0,
-            "turns": 0
+            "turns": 0,
         }
 
     hope_vals = [t.get("hope", 0.5) for t in trace]
@@ -52,16 +54,18 @@ def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
     despair_vals = [t.get("despair", 0.5) for t in trace]
 
     def delta_avg(values: List[float]) -> float:
-        return sum(abs(values[i+1] - values[i]) for i in range(len(values)-1)) / (len(values)-1)
+        return sum(abs(values[i + 1] - values[i]) for i in range(len(values) - 1)) / (
+            len(values) - 1
+        )
 
     def trend_direction(values: List[float]) -> str:
         return "up" if values[-1] > values[0] else "down"
 
     volatility = (
-        delta_avg(hope_vals) +
-        delta_avg(fatigue_vals) +
-        delta_avg(rage_vals) +
-        delta_avg(despair_vals)
+        delta_avg(hope_vals)
+        + delta_avg(fatigue_vals)
+        + delta_avg(rage_vals)
+        + delta_avg(despair_vals)
     ) / 4.0
 
     arc = "Neutral"
@@ -71,7 +75,11 @@ def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
         arc = "Fatigue Collapse"
     elif volatility > 0.25:
         arc = "Symbolic Whiplash"
-    elif trend_direction(despair_vals) == "down" and despair_vals[0] > 0.6 and despair_vals[-1] < 0.4:
+    elif (
+        trend_direction(despair_vals) == "down"
+        and despair_vals[0] > 0.6
+        and despair_vals[-1] < 0.4
+    ):
         arc = "Recovery Arc"
 
     symbolic_score = round(1.0 - min(volatility * 1.2, 1.0), 4)
@@ -84,10 +92,7 @@ def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
         "volatility_score": round(volatility, 4),
         "turns": len(trace),
         "timestamp": datetime.utcnow().isoformat(),
-        "metadata": {
-            "version": "v0.022.1",
-            "source": "symbolic_trace_scorer.py"
-        }
+        "metadata": {"version": "v0.022.1", "source": "symbolic_trace_scorer.py"},
     }
 
     try:
@@ -98,13 +103,14 @@ def score_symbolic_trace(trace: List[Dict[str, float]]) -> Dict:
 
     return result
 
+
 # === Example usage
 if __name__ == "__main__":
     example_trace = [
         {"hope": 0.5, "fatigue": 0.4, "rage": 0.3, "despair": 0.6},
         {"hope": 0.55, "fatigue": 0.42, "rage": 0.32, "despair": 0.52},
         {"hope": 0.68, "fatigue": 0.38, "rage": 0.34, "despair": 0.42},
-        {"hope": 0.78, "fatigue": 0.35, "rage": 0.33, "despair": 0.28}
+        {"hope": 0.78, "fatigue": 0.35, "rage": 0.33, "despair": 0.28},
     ]
     score = score_symbolic_trace(example_trace)
     print("Arc:", score["arc_label"], "| Symbolic Score:", score["symbolic_score"])

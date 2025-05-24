@@ -8,13 +8,16 @@ Usage:
 """
 
 import logging
-from typing import List, Dict, Any
+from typing import Dict, Any, Optional
 from memory.forecast_memory import ForecastMemory
 from trust_system.trust_engine import TrustEngine
 
 logger = logging.getLogger(__name__)
 
-def prune_memory(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False):
+
+def prune_memory(
+    memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False
+):
     """
     Prunes memory to retain only the most recent max_entries forecasts.
     If dry_run is True, only prints what would be pruned.
@@ -27,8 +30,11 @@ def prune_memory(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool 
             memory._memory = memory._memory[-max_entries:]
             logger.info(f"[MemoryGuardian] Pruned {excess} oldest forecasts.")
 
+
 # --- Variable Fossilization & Archiving ---
-def archive_variable_fossil(variable_name: str, data: Dict[str, Any], dry_run: bool = False):
+def archive_variable_fossil(
+    variable_name: str, data: Dict[str, Any], dry_run: bool = False
+):
     """
     Archives a variable as a 'fossil' for future analysis.
     In a real implementation, this would persist to disk or a database.
@@ -37,10 +43,14 @@ def archive_variable_fossil(variable_name: str, data: Dict[str, Any], dry_run: b
         logger.info(f"[MemoryGuardian] Would archive variable fossil: {variable_name}")
     else:
         # Stub: Replace with actual persistence logic
-        logger.info(f"[MemoryGuardian] Archived variable fossil: {variable_name} | Data: {data}")
+        logger.info(
+            f"[MemoryGuardian] Archived variable fossil: {variable_name} | Data: {data}"
+        )
 
 
-def soft_retire_variable(variable_name: str, data: Dict[str, Any], dry_run: bool = False):
+def soft_retire_variable(
+    variable_name: str, data: Dict[str, Any], dry_run: bool = False
+):
     """
     Soft-retires a variable (marks as inactive, but not deleted).
     """
@@ -51,15 +61,25 @@ def soft_retire_variable(variable_name: str, data: Dict[str, Any], dry_run: bool
         logger.info(f"[MemoryGuardian] Soft-retired variable: {variable_name}")
 
 
-def reconsider_variable(variable_name: str, data: Dict[str, Any], regime: str = "alternate", dry_run: bool = False):
+def reconsider_variable(
+    variable_name: str,
+    data: Dict[str, Any],
+    regime: str = "alternate",
+    dry_run: bool = False,
+):
     """
     Reconsiders a soft-retired variable under a different symbolic regime.
     """
     if dry_run:
-        logger.info(f"[MemoryGuardian] Would reconsider variable: {variable_name} under regime: {regime}")
+        logger.info(
+            f"[MemoryGuardian] Would reconsider variable: {variable_name} under regime: {regime}"
+        )
     else:
         # Stub: Replace with actual reconsideration logic
-        logger.info(f"[MemoryGuardian] Reconsidered variable: {variable_name} under regime: {regime}")
+        logger.info(
+            f"[MemoryGuardian] Reconsidered variable: {variable_name} under regime: {regime}"
+        )
+
 
 def prune_incoherent_forecasts(memory_batch, verbose=True):
     """
@@ -74,23 +94,42 @@ def prune_incoherent_forecasts(memory_batch, verbose=True):
         if status == "pass":
             retained.append(forecast)
         elif verbose:
-            logger.warning(f"[Guardian] Pruned forecast {forecast.get('trace_id')} due to:")
+            logger.warning(
+                f"[Guardian] Pruned forecast {forecast.get('trace_id')} due to:"
+            )
             for issue in issues:
                 logger.warning("  - %s", issue)
     return retained
 
-def prune_memory_advanced(memory: ForecastMemory, max_entries: int = 1000, dry_run: bool = False, min_confidence: float = None):
+
+def prune_memory_advanced(
+    memory: ForecastMemory,
+    max_entries: int = 1000,
+    dry_run: bool = False,
+    min_confidence: Optional[float] = None,
+):
     """
     Prunes memory to retain only the most recent max_entries forecasts, or by confidence if min_confidence is set.
     If dry_run is True, only prints what would be pruned.
     """
     if min_confidence is not None:
-        before = len(memory._memory)
         if dry_run:
-            to_prune = [f for f in memory._memory if float(f.get("confidence", 0)) < min_confidence]
-            logger.info(f"[MemoryGuardian] Would prune {len(to_prune)} forecasts below confidence {min_confidence}.")
+            to_prune = [
+                f
+                for f in memory._memory
+                if float(f.get("confidence", 0)) < min_confidence
+            ]
+            logger.info(
+                f"[MemoryGuardian] Would prune {len(to_prune)} forecasts below confidence {min_confidence}."
+            )
         else:
-            memory._memory = [f for f in memory._memory if float(f.get("confidence", 0)) >= min_confidence]
-            logger.info(f"[MemoryGuardian] Pruned forecasts below confidence {min_confidence}.")
+            memory._memory = [
+                f
+                for f in memory._memory
+                if float(f.get("confidence", 0)) >= min_confidence
+            ]
+            logger.info(
+                f"[MemoryGuardian] Pruned forecasts below confidence {min_confidence}."
+            )
     else:
         prune_memory(memory, max_entries=max_entries, dry_run=dry_run)

@@ -13,11 +13,10 @@ Used for:
 Author: Pulse v0.38
 """
 
-import json
 import os
 import logging
 from collections import defaultdict
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
 from core.variable_registry import VARIABLE_REGISTRY
 from memory.variable_performance_tracker import VariablePerformanceTracker
 
@@ -107,12 +106,14 @@ def summarize_clusters() -> List[Dict[str, Any]]:
     result: List[Dict[str, Any]] = []
     for label, vars in domain_clusters.items():
         volatility = score_cluster_volatility(vars)
-        result.append({
-            "cluster": label,
-            "variables": vars,
-            "volatility_score": volatility,
-            "size": len(vars)
-        })
+        result.append(
+            {
+                "cluster": label,
+                "variables": vars,
+                "volatility_score": volatility,
+                "size": len(vars),
+            }
+        )
     return sorted(result, key=lambda x: x["volatility_score"], reverse=True)
 
 
@@ -129,7 +130,9 @@ def test_variable_cluster_engine():
     if clusters:
         first_cluster = next(iter(clusters.values()))
         score = score_cluster_volatility(first_cluster)
-        assert isinstance(score, float), "score_cluster_volatility should return a float"
+        assert isinstance(score, float), (
+            "score_cluster_volatility should return a float"
+        )
     summary = summarize_clusters()
     assert isinstance(summary, list), "summarize_clusters should return a list"
     logger.info("All basic tests passed.")
@@ -142,7 +145,7 @@ if __name__ == "__main__":
         for c in clusters:
             print(f"\n📦 Cluster: {c['cluster']}  (size: {c['size']})")
             print(f"Volatility Score: {c['volatility_score']}")
-            for v in c['variables']:
+            for v in c["variables"]:
                 print(f" - {v}")
     except Exception as e:
         logger.error(f"Error in main execution: {e}")

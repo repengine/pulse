@@ -14,7 +14,9 @@ Author: Pulse v0.39
 import os
 from datetime import datetime, timezone
 from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md
-from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md
+from operator_interface.variable_cluster_digest_formatter import (
+    format_variable_cluster_digest_md,
+)
 from operator_interface.mutation_log_viewer import load_log
 from core.path_registry import PATHS
 
@@ -41,7 +43,7 @@ def export_full_digest():
         format_variable_cluster_digest_md(limit=5),
         render_learning_summary_md(limit=15),
         "---",
-        "Pulse v0.39 | Strategos Audit Layer"
+        "Pulse v0.39 | Strategos Audit Layer",
     ]
     try:
         os.makedirs(os.path.dirname(DIGEST_OUT), exist_ok=True)
@@ -50,6 +52,7 @@ def export_full_digest():
         print(f"✅ Digest saved to {DIGEST_OUT}")
     except Exception as e:
         print(f"❌ Failed to export digest: {e}")
+
 
 if __name__ == "__main__":
     export_full_digest()

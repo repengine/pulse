@@ -12,7 +12,6 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-import json
 import math
 from typing import List, Dict
 from collections import Counter
@@ -89,7 +88,7 @@ def generate_entropy_report(forecasts, memory) -> Dict:
     return {
         "current_entropy": score_memory_entropy(memory),
         "new_batch_entropy": score_memory_entropy(forecasts),
-        "symbolic_novelty": compare_against_memory(forecasts, memory)
+        "symbolic_novelty": compare_against_memory(forecasts, memory),
     }
 
 

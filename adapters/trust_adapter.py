@@ -1,6 +1,7 @@
 from interfaces.trust_interface import TrustInterface
 from trust_system.trust_engine import TrustEngine
 
+
 class TrustAdapter(TrustInterface):
     def __init__(self):
         self.engine = TrustEngine()
@@ -8,8 +9,12 @@ class TrustAdapter(TrustInterface):
     def tag_forecast(self, forecast):
         return TrustEngine.tag_forecast(forecast)
 
-    def confidence_gate(self, forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5):
-        return TrustEngine.confidence_gate(forecast, conf_threshold, fragility_threshold, risk_threshold)
+    def confidence_gate(
+        self, forecast, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5
+    ):
+        return TrustEngine.confidence_gate(
+            forecast, conf_threshold, fragility_threshold, risk_threshold
+        )
 
     def score_forecast(self, forecast, memory=None):
         return TrustEngine.score_forecast(forecast, memory)

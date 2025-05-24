@@ -9,11 +9,13 @@ Author: Pulse v0.41
 
 import os
 import json
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, Optional
 from core.path_registry import PATHS
 from memory.forecast_memory import ForecastMemory
 
-RESOLUTION_LOG = PATHS.get("CONTRADICTION_RESOLUTION_LOG", "logs/contradiction_resolution_log.jsonl")
+RESOLUTION_LOG = PATHS.get(
+    "CONTRADICTION_RESOLUTION_LOG", "logs/contradiction_resolution_log.jsonl"
+)
 
 
 def compare_symbolic_outcomes(fc1: Dict, fc2: Dict) -> str:
@@ -29,7 +31,9 @@ def compare_symbolic_outcomes(fc1: Dict, fc2: Dict) -> str:
         return "🌀 Partial Alignment"
 
 
-def track_resolution(trace_id_1: str, trace_id_2: str, memory: Optional[ForecastMemory] = None) -> Optional[str]:
+def track_resolution(
+    trace_id_1: str, trace_id_2: str, memory: Optional[ForecastMemory] = None
+) -> Optional[str]:
     memory = memory or ForecastMemory()
     f1 = memory.find_by_trace_id(trace_id_1)
     f2 = memory.find_by_trace_id(trace_id_2)
@@ -43,11 +47,10 @@ def track_resolution(trace_id_1: str, trace_id_2: str, memory: Optional[Forecast
 def log_resolution_outcome(tid1: str, tid2: str, status: str):
     os.makedirs(os.path.dirname(RESOLUTION_LOG), exist_ok=True)
     with open(RESOLUTION_LOG, "a", encoding="utf-8") as f:
-        f.write(json.dumps({
-            "trace_id_1": tid1,
-            "trace_id_2": tid2,
-            "status": status
-        }) + "\n")
+        f.write(
+            json.dumps({"trace_id_1": tid1, "trace_id_2": tid2, "status": status})
+            + "\n"
+        )
 
 
 def summarize_resolution_outcomes(path: str = str(RESOLUTION_LOG)) -> Dict[str, int]:
@@ -62,6 +65,7 @@ def summarize_resolution_outcomes(path: str = str(RESOLUTION_LOG)) -> Dict[str, 
             except Exception:
                 continue
     return counts
+
 
 if __name__ == "__main__":
     mem = ForecastMemory()

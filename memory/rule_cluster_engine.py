@@ -19,9 +19,12 @@ RULE_MUTATION_LOG = PATHS.get("RULE_MUTATION_LOG", "logs/rule_mutation_log.jsonl
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
+
 def get_all_rules() -> dict:
     """Return all rules from the unified registry keyed by rule_id or id."""
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)}
+    return {
+        r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(_registry.rules)
+    }
 
 
 def cluster_rules_by_domain(rules: Dict[str, Dict]) -> Dict[str, List[str]]:
@@ -33,7 +36,9 @@ def cluster_rules_by_domain(rules: Dict[str, Dict]) -> Dict[str, List[str]]:
     return dict(clusters)
 
 
-def score_rule_volatility(rules: Dict[str, Dict], log_path: Optional[str] = None) -> Dict[str, float]:
+def score_rule_volatility(
+    rules: Dict[str, Dict], log_path: Optional[str] = None
+) -> Dict[str, float]:
     """
     Uses historical mutation frequency to assess rule instability.
     Returns a normalized volatility score for each rule (0–1).
@@ -75,12 +80,14 @@ def summarize_rule_clusters(verbose: bool = False) -> List[Dict]:
     for label, ids in clusters.items():
         v_scores = [volatility.get(r, 0.0) for r in ids]
         avg_v = round(sum(v_scores) / max(1, len(v_scores)), 4)
-        summary.append({
-            "cluster": label,
-            "rules": ids,
-            "volatility_score": avg_v,
-            "size": len(ids)
-        })
+        summary.append(
+            {
+                "cluster": label,
+                "rules": ids,
+                "volatility_score": avg_v,
+                "size": len(ids),
+            }
+        )
         if verbose:
             print(f"[Cluster] {label}: {len(ids)} rules, volatility={avg_v}")
     return sorted(summary, key=lambda x: x["volatility_score"], reverse=True)
@@ -103,5 +110,5 @@ if __name__ == "__main__":
     for c in clusters:
         print(f"\n📦 Domain: {c['cluster']} (size: {c['size']})")
         print(f"Volatility Score: {c['volatility_score']}")
-        for r in c['rules']:
+        for r in c["rules"]:
             print(f" - {r}")

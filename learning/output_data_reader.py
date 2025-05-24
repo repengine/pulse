@@ -19,9 +19,15 @@ Author: Pulse v0.299
 import os
 import json
 import pandas as pd
-from typing import List, Dict, Optional
-from core.schemas import ForecastRecord, OverlayLog, TrustScoreLog, CapitalOutcome, DigestTag
+from core.schemas import (
+    ForecastRecord,
+    OverlayLog,
+    TrustScoreLog,
+    CapitalOutcome,
+    DigestTag,
+)
 from pydantic import ValidationError
+
 
 class OutputDataReader:
     def __init__(self, base_path: str):
@@ -131,14 +137,17 @@ class OutputDataReader:
             df_t = self.load_trust_scores()
             df_c = self.load_capital_outcomes()
             df_d = self.load_digest_tags()
-            df = df_f.merge(df_s, how="left", on="scenario_id")\
-                      .merge(df_t, how="left", on="scenario_id")\
-                      .merge(df_c, how="left", on="scenario_id")\
-                      .merge(df_d, how="left", on="scenario_id")
+            df = (
+                df_f.merge(df_s, how="left", on="scenario_id")
+                .merge(df_t, how="left", on="scenario_id")
+                .merge(df_c, how="left", on="scenario_id")
+                .merge(df_d, how="left", on="scenario_id")
+            )
             return df
         except Exception as e:
             print(f"[OutputDataReader] Metadata merge failed: {e}")
             return pd.DataFrame()
+
 
 # Market, social, ecological data loaders for feature engineering
 def load_market_data() -> pd.DataFrame:
@@ -156,10 +165,13 @@ def load_market_data() -> pd.DataFrame:
                     df = pd.read_csv(os.path.join(data_dir, fname))
                     dfs.append(df)
                 except Exception as e:
-                    print(f"[OutputDataReader] Error reading market data file {fname}: {e}")
+                    print(
+                        f"[OutputDataReader] Error reading market data file {fname}: {e}"
+                    )
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()
+
 
 def load_social_data() -> pd.DataFrame:
     """
@@ -176,10 +188,13 @@ def load_social_data() -> pd.DataFrame:
                     df = pd.read_csv(os.path.join(data_dir, fname))
                     dfs.append(df)
                 except Exception as e:
-                    print(f"[OutputDataReader] Error reading social data file {fname}: {e}")
+                    print(
+                        f"[OutputDataReader] Error reading social data file {fname}: {e}"
+                    )
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()
+
 
 def load_ecological_data() -> pd.DataFrame:
     """
@@ -196,7 +211,9 @@ def load_ecological_data() -> pd.DataFrame:
                     df = pd.read_csv(os.path.join(data_dir, fname))
                     dfs.append(df)
                 except Exception as e:
-                    print(f"[OutputDataReader] Error reading ecological data file {fname}: {e}")
+                    print(
+                        f"[OutputDataReader] Error reading ecological data file {fname}: {e}"
+                    )
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()

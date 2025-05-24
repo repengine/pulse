@@ -13,17 +13,18 @@ Author: Pulse v0.21
 import uuid
 import json
 import os
-from typing import Any, Dict, Optional, List
-from core.path_registry import PATHS
+from typing import Any, Dict, Optional
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
 from core.pulse_config import TRACE_OUTPUT_DIR
 
 logger = get_logger(__name__)
 
+
 def generate_trace_id() -> str:
     """Generates a unique UUID for a trace."""
     return str(uuid.uuid4())
+
 
 def overlay_to_dict(overlay):
     """Convert SymbolicOverlay or dict to dict for JSON serialization."""
@@ -31,13 +32,17 @@ def overlay_to_dict(overlay):
         return overlay.as_dict()
     return dict(overlay)
 
+
 def variables_to_dict(variables):
     """Convert Variables or dict to dict for JSON serialization."""
     if hasattr(variables, "as_dict"):
         return variables.as_dict()
     return dict(variables)
 
-def assign_trace_metadata(sim_input: Dict[str, Any], sim_output: Dict[str, Any]) -> Dict[str, Any]:
+
+def assign_trace_metadata(
+    sim_input: Dict[str, Any], sim_output: Dict[str, Any]
+) -> Dict[str, Any]:
     """Attaches trace ID and metadata to a simulation forecast_output."""
     trace_id = generate_trace_id()
     # Ensure overlays are serializable
@@ -51,6 +56,7 @@ def assign_trace_metadata(sim_input: Dict[str, Any], sim_output: Dict[str, Any])
     save_trace_to_disk(metadata)
     return metadata
 
+
 def save_trace_to_disk(metadata: Dict[str, Any]) -> None:
     """Saves the full trace record to disk in JSON format."""
     os.makedirs(TRACE_OUTPUT_DIR, exist_ok=True)
@@ -58,10 +64,14 @@ def save_trace_to_disk(metadata: Dict[str, Any]) -> None:
     try:
         # Ensure overlays are serializable
         if "output" in metadata and "overlays" in metadata["output"]:
-            metadata["output"]["overlays"] = overlay_to_dict(metadata["output"]["overlays"])
+            metadata["output"]["overlays"] = overlay_to_dict(
+                metadata["output"]["overlays"]
+            )
         # Ensure variables are serializable
         if "output" in metadata and "variables" in metadata["output"]:
-            metadata["output"]["variables"] = variables_to_dict(metadata["output"]["variables"])
+            metadata["output"]["variables"] = variables_to_dict(
+                metadata["output"]["variables"]
+            )
         # PATCH: Recursively convert overlays in forks if present
         if "output" in metadata and "forks" in metadata["output"]:
             for fork in metadata["output"]["forks"]:
@@ -74,6 +84,7 @@ def save_trace_to_disk(metadata: Dict[str, Any]) -> None:
         logger.info(f"[TRACE] Saved trace to {filepath}")
     except Exception as e:
         logger.error(f"[TRACE] Failed to save trace: {e}")
+
 
 def load_trace(trace_id: str) -> Optional[Dict[str, Any]]:
     """Loads a trace from disk by trace ID."""
@@ -88,6 +99,7 @@ def load_trace(trace_id: str) -> Optional[Dict[str, Any]]:
         logger.error(f"[TRACE] Failed to load trace: {e}")
         return None
 
+
 def replay_trace(trace_id: str) -> None:
     """Attempts to replay a simulation from stored inputs."""
     trace = load_trace(trace_id)
@@ -95,11 +107,15 @@ def replay_trace(trace_id: str) -> None:
         return
     try:
         from main import run_simulation  # local call to Pulse engine
+
         logger.info(f"[TRACE] Replaying trace: {trace_id}")
         result = run_simulation(config_override=trace["input"])
-        logger.info(f"[TRACE] Replay completed. (New trust: {result.get('trust', 'n/a')})")
+        logger.info(
+            f"[TRACE] Replay completed. (New trust: {result.get('trust', 'n/a')})"
+        )
     except Exception as e:
         logger.error(f"[TRACE] Failed to replay trace: {e}")
+
 
 def summarize_trace(trace_id: str) -> None:
     """Prints summary statistics of a trace."""
@@ -113,6 +129,7 @@ def summarize_trace(trace_id: str) -> None:
     print(f"Overlays: {overlays}")
     print(f"Trust Score: {trust}")
     print(f"Fork Count: {len(forks)}")
+
 
 def audit_all_traces() -> None:
     """Runs a basic integrity audit across all saved traces."""
@@ -136,15 +153,20 @@ def audit_all_traces() -> None:
                 issues += 1
     logger.info(f"[AUDIT] Completed with {issues} issue(s).")
 
+
 def register_trace_to_memory(trace_metadata: Dict[str, Any]) -> None:
     """Registers a trace to the forecast memory layer."""
     try:
         # Ensure overlays are serializable
         if "output" in trace_metadata and "overlays" in trace_metadata["output"]:
-            trace_metadata["output"]["overlays"] = overlay_to_dict(trace_metadata["output"]["overlays"])
+            trace_metadata["output"]["overlays"] = overlay_to_dict(
+                trace_metadata["output"]["overlays"]
+            )
         # Ensure variables are serializable
         if "output" in trace_metadata and "variables" in trace_metadata["output"]:
-            trace_metadata["output"]["variables"] = variables_to_dict(trace_metadata["output"]["variables"])
+            trace_metadata["output"]["variables"] = variables_to_dict(
+                trace_metadata["output"]["variables"]
+            )
         # PATCH: Recursively convert overlays in forks if present
         if "output" in trace_metadata and "forks" in trace_metadata["output"]:
             for fork in trace_metadata["output"]["forks"]:

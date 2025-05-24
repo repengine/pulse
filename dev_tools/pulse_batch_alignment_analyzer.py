@@ -35,7 +35,9 @@ def save_as_csv(forecasts, path):
         writer = csv.writer(f)
         writer.writerow(["trace_id", "alignment_score"])
         for fc in forecasts:
-            writer.writerow([fc.get("trace_id", "unknown"), fc.get("alignment_score", 0)])
+            writer.writerow(
+                [fc.get("trace_id", "unknown"), fc.get("alignment_score", 0)]
+            )
 
 
 def plot_alignment_scores(forecasts, path):
@@ -66,11 +68,17 @@ def analyze_arc_alignment(forecasts):
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Batch Alignment Analyzer")
-    parser.add_argument("--batch", type=str, required=True, help="Forecast batch (.jsonl)")
-    parser.add_argument("--output", type=str, help="Save output JSONL with alignment scores")
+    parser.add_argument(
+        "--batch", type=str, required=True, help="Forecast batch (.jsonl)"
+    )
+    parser.add_argument(
+        "--output", type=str, help="Save output JSONL with alignment scores"
+    )
     parser.add_argument("--topk", type=int, default=10, help="Print top-K by alignment")
     parser.add_argument("--export-csv", type=str, help="Optional: export scores to CSV")
-    parser.add_argument("--plot", type=str, help="Optional: path to save bar chart of scores")
+    parser.add_argument(
+        "--plot", type=str, help="Optional: path to save bar chart of scores"
+    )
     args = parser.parse_args()
 
     batch = load_forecasts(args.batch)
@@ -96,8 +104,9 @@ def main():
         plot_alignment_scores(ranked, args.plot)
 
     print(f"\n🏆 Top {args.topk} forecasts by alignment:")
-    for fc in ranked[:args.topk]:
+    for fc in ranked[: args.topk]:
         print(f"{fc.get('trace_id', 'unknown')}: {fc['alignment_score']}")
+
 
 if __name__ == "__main__":
     main()

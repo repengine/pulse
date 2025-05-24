@@ -14,7 +14,9 @@ from typing import List, Dict
 from collections import defaultdict, Counter
 
 
-def cluster_resonant_forecasts(forecasts: List[Dict], key: str = "arc_label") -> Dict[str, List[Dict]]:
+def cluster_resonant_forecasts(
+    forecasts: List[Dict], key: str = "arc_label"
+) -> Dict[str, List[Dict]]:
     """
     Group forecasts that share the same arc/tag label.
 
@@ -92,7 +94,7 @@ def generate_resonance_summary(forecasts: List[Dict], key: str = "arc_label") ->
         "resonance_score": score,
         "top_themes": top_themes,
         "cluster_sizes": {k: len(v) for k, v in clusters.items()},
-        "dominant_arc": top_themes[0] if top_themes else "unknown"
+        "dominant_arc": top_themes[0] if top_themes else "unknown",
     }
 
 

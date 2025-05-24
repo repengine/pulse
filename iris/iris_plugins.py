@@ -10,9 +10,12 @@ Date: 2025-04-27
 
 import logging
 from typing import Callable, List, Dict
-import os, importlib, inspect
+import os
+import importlib
+import inspect
 
 logger = logging.getLogger(__name__)
+
 
 class IrisPluginManager:
     def __init__(self):
@@ -45,7 +48,9 @@ class IrisPluginManager:
                 if signals:
                     aggregated_signals.extend(signals)
             except Exception as e:
-                logger.error("[IrisPluginManager] Plugin %s failed: %s", plugin.__name__, e)
+                logger.error(
+                    "[IrisPluginManager] Plugin %s failed: %s", plugin.__name__, e
+                )
         return aggregated_signals
 
     def list_plugins(self) -> List[str]:
@@ -67,25 +72,36 @@ class IrisPluginManager:
         # finance + core variable ingestion
         from .iris_plugins_finance import finance_plugins
         from .iris_plugins_variable_ingestion import vi_plugin
+
         self.register_plugin(finance_plugins)
         self.register_plugin(vi_plugin)
         # register every _plugin function and every enabled IrisIngestionPlugin in the variable_ingestion folder
 
-        var_dir = os.path.join(os.path.dirname(__file__), 'iris_plugins_variable_ingestion')
+        var_dir = os.path.join(
+            os.path.dirname(__file__), "iris_plugins_variable_ingestion"
+        )
         for fname in os.listdir(var_dir):
-            if not fname.endswith('.py') or fname.startswith('_'):
+            if not fname.endswith(".py") or fname.startswith("_"):
                 continue
             mod_name = fname[:-3]
-            mod = importlib.import_module(f"{__package__}.iris_plugins_variable_ingestion.{mod_name}")
+            mod = importlib.import_module(
+                f"{__package__}.iris_plugins_variable_ingestion.{mod_name}"
+            )
             # register any free functions ending in '_plugin'
             for attr in dir(mod):
                 obj = getattr(mod, attr)
-                if callable(obj) and attr.endswith('_plugin'):
+                if callable(obj) and attr.endswith("_plugin"):
                     self.register_plugin(obj)
             # register any enabled IrisIngestionPlugin subclasses
             for cls in vars(mod).values():
-                if inspect.isclass(cls) and issubclass(cls, IrisPluginManager) and cls is not IrisPluginManager:
+                if (
+                    inspect.isclass(cls)
+                    and issubclass(cls, IrisPluginManager)
+                    and cls is not IrisPluginManager
+                ):
                     inst = cls()
-                    if getattr(inst, 'enabled', False):
+                    if getattr(inst, "enabled", False):
                         self.register_plugin(inst.fetch_signals)
-        logger.info("[IrisPluginManager] Autoloaded finance, vi_plugin, and any enabled variable stubs")
+        logger.info(
+            "[IrisPluginManager] Autoloaded finance, vi_plugin, and any enabled variable stubs"
+        )

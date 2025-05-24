@@ -1,6 +1,7 @@
 from interfaces.core_interface import CoreInterface
 from core.pulse_config import ConfigLoader, get_config
 
+
 class CoreAdapter(CoreInterface):
     def __init__(self, config_dir="config"):
         self.loader = ConfigLoader(config_dir)

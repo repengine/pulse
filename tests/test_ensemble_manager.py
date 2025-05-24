@@ -1,12 +1,18 @@
 import unittest
 from forecast_engine.ensemble_manager import EnsembleManager
 
+
 def dummy_model_a(**kwargs):
     return {"value": 10.0}
+
+
 def dummy_model_b(**kwargs):
     return {"value": 20.0}
+
+
 def meta_model(values):
     return sum(values) / len(values)
+
 
 class TestEnsembleManager(unittest.TestCase):
     def setUp(self):
@@ -28,6 +34,7 @@ class TestEnsembleManager(unittest.TestCase):
         outputs = {"a": dummy_model_a(), "b": dummy_model_b()}
         result = self.manager.stack(meta_model, outputs)
         self.assertAlmostEqual(result["stacked_value"], 15.0)
+
 
 if __name__ == "__main__":
     unittest.main()

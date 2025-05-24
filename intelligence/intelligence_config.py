@@ -12,7 +12,7 @@ import os
 
 # Function Router Configuration
 FUNCTION_ROUTER_MAX_RETRIES: int = 3
-FUNCTION_ROUTER_RETRY_SLEEP: float = 1.5 # seconds
+FUNCTION_ROUTER_RETRY_SLEEP: float = 1.5  # seconds
 
 # Intelligence Observer Configuration
 OBSERVER_MEMORY_DIR: str = "data/intelligence_observer_memory"
@@ -38,12 +38,12 @@ GPT_RETRY_SLEEP: int = 5
 # Load Gemini API Key from environment variable
 GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
 # Default Gemini model name
-GEMINI_DEFAULT_MODEL: str = "gemini-pro" # Or specify another suitable model
+GEMINI_DEFAULT_MODEL: str = "gemini-pro"  # Or specify another suitable model
 # Maximum number of retries for Gemini calls
 MAX_GEMINI_RETRIES: int = 3
 # Sleep time between Gemini retries in seconds
 GEMINI_RETRY_SLEEP: int = 5
 # Flag to select the LLM provider ('gpt' or 'gemini')
-LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gpt").lower() # Default to GPT
+LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gpt").lower()  # Default to GPT
 
 # Add other intelligence-specific configurations here

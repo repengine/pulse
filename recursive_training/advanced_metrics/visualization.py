@@ -5,20 +5,22 @@ Provides plotting utilities and dashboards for model performance,
 uncertainty, drift, and convergence diagnostics.
 """
 
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 try:
     import matplotlib.pyplot as plt
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 try:
-    import seaborn as sns
+    # import seaborn as sns
+
     SEABORN_AVAILABLE = True
 except ImportError:
     SEABORN_AVAILABLE = False
+
 
 def plot_metrics_dashboard(metrics_history: List[Dict[str, Any]], show: bool = True):
     """
@@ -39,9 +41,18 @@ def plot_metrics_dashboard(metrics_history: List[Dict[str, Any]], show: bool = T
     iterations = [m.get("iteration", i) for i, m in enumerate(metrics_history)]
     mse = [m.get("metrics", {}).get("mse") for m in metrics_history]
     accuracy = [m.get("metrics", {}).get("accuracy") for m in metrics_history]
-    uncertainty = [m.get("advanced_metrics", {}).get("uncertainty", {}).get("mean") for m in metrics_history]
-    drift = [m.get("advanced_metrics", {}).get("drift", {}).get("detected") for m in metrics_history]
-    convergence = [m.get("advanced_metrics", {}).get("convergence", {}).get("converged") for m in metrics_history]
+    uncertainty = [
+        m.get("advanced_metrics", {}).get("uncertainty", {}).get("mean")
+        for m in metrics_history
+    ]
+    drift = [
+        m.get("advanced_metrics", {}).get("drift", {}).get("detected")
+        for m in metrics_history
+    ]
+    convergence = [
+        m.get("advanced_metrics", {}).get("convergence", {}).get("converged")
+        for m in metrics_history
+    ]
 
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle("Recursive Training Advanced Metrics Dashboard")
@@ -61,15 +72,21 @@ def plot_metrics_dashboard(metrics_history: List[Dict[str, Any]], show: bool = T
     axs[0, 1].grid(True)
 
     # Uncertainty
-    axs[1, 0].plot(iterations, uncertainty, label="Uncertainty (mean)", color="tab:orange")
+    axs[1, 0].plot(
+        iterations, uncertainty, label="Uncertainty (mean)", color="tab:orange"
+    )
     axs[1, 0].set_title("Uncertainty (mean)")
     axs[1, 0].set_xlabel("Iteration")
     axs[1, 0].set_ylabel("Uncertainty")
     axs[1, 0].grid(True)
 
     # Drift and Convergence
-    axs[1, 1].plot(iterations, drift, label="Drift Detected", color="tab:red", linestyle="--")
-    axs[1, 1].plot(iterations, convergence, label="Converged", color="tab:purple", linestyle=":")
+    axs[1, 1].plot(
+        iterations, drift, label="Drift Detected", color="tab:red", linestyle="--"
+    )
+    axs[1, 1].plot(
+        iterations, convergence, label="Converged", color="tab:purple", linestyle=":"
+    )
     axs[1, 1].set_title("Drift & Convergence")
     axs[1, 1].set_xlabel("Iteration")
     axs[1, 1].set_yticks([0, 1])
@@ -80,6 +97,7 @@ def plot_metrics_dashboard(metrics_history: List[Dict[str, Any]], show: bool = T
     plt.tight_layout(rect=(0, 0.03, 1, 0.95))
     if show:
         plt.show()
+
 
 def plot_reliability_diagram(calibration_metrics: Dict[str, Any], show: bool = True):
     """

@@ -19,10 +19,10 @@ Example usage:
 
 from symbolic_system.symbolic_utils import symbolic_tension_score
 from typing import Dict
-from utils.log_utils import get_logger
+import logging
 from core.pulse_config import DEFAULT_FRAGILITY_THRESHOLD
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def compute_fragility(
@@ -30,7 +30,7 @@ def compute_fragility(
     symbolic_change: Dict[str, float],
     tension_weight: float = 0.6,
     volatility_weight: float = 0.4,
-    debug: bool = False
+    debug: bool = False,
 ) -> float:
     """
     Computes fragility index (0.0–1.0) from symbolic data.
@@ -51,7 +51,9 @@ def compute_fragility(
     fragility = round(min(fragility, DEFAULT_FRAGILITY_THRESHOLD), 3)
 
     if debug:
-        logger.info(f"[FRAGILITY] Tension={tension:.3f} | Volatility={volatility:.3f} → Fragility={fragility:.3f}")
+        logger.info(
+            f"[FRAGILITY] Tension={tension:.3f} | Volatility={volatility:.3f} → Fragility={fragility:.3f}"
+        )
 
     return fragility
 

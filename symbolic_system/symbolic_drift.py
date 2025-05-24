@@ -13,7 +13,9 @@ from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tensio
 from typing import Dict
 
 
-def compute_overlay_deltas(prev: Dict[str, float], curr: Dict[str, float]) -> Dict[str, float]:
+def compute_overlay_deltas(
+    prev: Dict[str, float], curr: Dict[str, float]
+) -> Dict[str, float]:
     """
     Computes overlay value changes between turns.
     Adds robust type handling to ensure numeric operations are safe.
@@ -36,7 +38,7 @@ def detect_symbolic_drift(
     previous_state: WorldState,
     current_state: WorldState,
     tension_threshold: float = 0.2,
-    delta_threshold: float = 0.25
+    delta_threshold: float = 0.25,
 ) -> Dict[str, float]:
     """
     Compares two WorldStates and detects overlay drift.

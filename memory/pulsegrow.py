@@ -21,13 +21,20 @@ from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class PulseGrow:
     def __init__(self):
         self.candidates: Dict[str, Dict] = {}
         self.promoted: List[str] = []
         self.rejected: List[str] = []
 
-    def register_variable(self, name: str, meta: Optional[Dict] = None, metadata: Optional[Dict] = None, **kwargs):
+    def register_variable(
+        self,
+        name: str,
+        meta: Optional[Dict] = None,
+        metadata: Optional[Dict] = None,
+        **kwargs,
+    ):
         """Register a new variable for evaluation. Accepts both 'meta' and 'metadata' for compatibility."""
         # Prefer 'meta' if provided, else 'metadata'
         meta = meta or metadata or {}
@@ -39,11 +46,13 @@ class PulseGrow:
             "metadata": meta,
             "scores": [],
             "symbolic_links": [],
-            "attempts": 0
+            "attempts": 0,
         }
         logger.info("[PulseGrow] Registered candidate variable: %s", name)
 
-    def score_variable(self, name: str, score: float, symbolic_link: Optional[str] = None):
+    def score_variable(
+        self, name: str, score: float, symbolic_link: Optional[str] = None
+    ):
         """Log a new score for a variable. Optionally track symbolic linkage."""
         if name not in self.candidates:
             logger.warning("[PulseGrow] Attempted to score unknown variable: %s", name)
@@ -61,24 +70,32 @@ class PulseGrow:
             avg_score = sum(data["scores"]) / max(len(data["scores"]), 1)
             if avg_score >= threshold:
                 self.promoted.append(name)
-                logger.info("[PulseGrow] Promoted variable: %s with score %.2f", name, avg_score)
+                logger.info(
+                    "[PulseGrow] Promoted variable: %s with score %.2f", name, avg_score
+                )
             else:
                 self.rejected.append(name)
-                logger.info("[PulseGrow] Rejected variable: %s with score %.2f", name, avg_score)
+                logger.info(
+                    "[PulseGrow] Rejected variable: %s with score %.2f", name, avg_score
+                )
 
     def promote_to_registry(self):
         """Promote all eligible variables into the canonical registry."""
         try:
             from core.variable_registry import VariableRegistry
+
             vr = VariableRegistry()
             for name in self.promoted:
                 if vr.get(name) is None:
-                    vr.register_variable(name, {
-                        "type": "experimental",
-                        "description": "Auto-promoted from PulseGrow",
-                        "default": 0.0,
-                        "range": [0.0, 1.0]
-                    })
+                    vr.register_variable(
+                        name,
+                        {
+                            "type": "experimental",
+                            "description": "Auto-promoted from PulseGrow",
+                            "default": 0.0,
+                            "range": [0.0, 1.0],
+                        },
+                    )
                     logger.info("[PulseGrow] Promoted %s to VARIABLE_REGISTRY", name)
         except Exception as e:
             logger.error("[PulseGrow] Registry promotion failed: %s", e)
@@ -88,7 +105,7 @@ class PulseGrow:
         return {
             "promoted": self.promoted,
             "rejected": self.rejected,
-            "candidates": list(self.candidates.keys())
+            "candidates": list(self.candidates.keys()),
         }
 
     def auto_tick(self):
@@ -111,15 +128,26 @@ class PulseGrow:
         logger.info(f"[PulseGrow] Logging failed candidate: {name} | Reason: {reason}")
         # Example: PulseMemory.add_failed_candidate(name, reason)
 
-    def track_anomaly(self, name: str, sti: Optional[float] = None, volatility: Optional[float] = None):
+    def track_anomaly(
+        self, name: str, sti: Optional[float] = None, volatility: Optional[float] = None
+    ):
         """Flag variable as anomaly-prone based on STI/volatility."""
         if name in self.candidates:
             self.candidates[name]["anomaly_flag"] = True
             self.candidates[name]["sti"] = sti
             self.candidates[name]["volatility"] = volatility
-            logger.info(f"[PulseGrow] Anomaly tracked for {name}: STI={sti}, Volatility={volatility}")
+            logger.info(
+                f"[PulseGrow] Anomaly tracked for {name}: STI={sti}, Volatility={volatility}"
+            )
 
-    def score_from_scraper(self, name: str, sti: float, volatility: float, sti_threshold: float = 0.7, vol_threshold: float = 0.5):
+    def score_from_scraper(
+        self,
+        name: str,
+        sti: float,
+        volatility: float,
+        sti_threshold: float = 0.7,
+        vol_threshold: float = 0.5,
+    ):
         """Score variable based on STI/volatility from scraper logic."""
         score = 0.0
         if sti > sti_threshold:
@@ -146,8 +174,10 @@ class PulseGrow:
                 # Optionally reconsider under different symbolic regime (stub)
                 # self.reconsider_variable(name, regime="alternate")
 
+
 class PulseGrowAuditRunner:
     """Scaffold for reviewing PulseGrow candidates and thresholds."""
+
     def __init__(self, pulsegrow: PulseGrow):
         self.pulsegrow = pulsegrow
 
@@ -155,7 +185,9 @@ class PulseGrowAuditRunner:
         """Prints a summary of candidate variables and their scores."""
         for name, data in self.pulsegrow.candidates.items():
             avg_score = sum(data["scores"]) / max(len(data["scores"]), 1)
-            print(f"Candidate: {name} | Attempts: {data['attempts']} | Avg Score: {avg_score:.2f} | Symbolic Links: {len(data['symbolic_links'])}")
+            print(
+                f"Candidate: {name} | Attempts: {data['attempts']} | Avg Score: {avg_score:.2f} | Symbolic Links: {len(data['symbolic_links'])}"
+            )
 
     def review_thresholds(self, threshold: float = 0.7, min_attempts: int = 3):
         """Show which candidates would be promoted/rejected under given thresholds."""

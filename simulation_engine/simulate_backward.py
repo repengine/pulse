@@ -12,6 +12,7 @@ from simulation_engine.worldstate import WorldState
 
 DEFAULT_DECAY_RATE: float = 0.01
 
+
 def run_retrodiction(snapshot_time: datetime, steps: int) -> Dict[str, Any]:
     """
     Run retrodiction from a historical snapshot.
@@ -47,11 +48,9 @@ def run_retrodiction(snapshot_time: datetime, steps: int) -> Dict[str, Any]:
             previous_overlays[key] = prior_value
             deltas[key] = round(prior_value - value, 4)
 
-        retrodicted_states.append({
-            "step": i + 1,
-            "overlays": previous_overlays.copy(),
-            "deltas": deltas
-        })
+        retrodicted_states.append(
+            {"step": i + 1, "overlays": previous_overlays.copy(), "deltas": deltas}
+        )
 
         current_overlays = previous_overlays
 
@@ -60,5 +59,5 @@ def run_retrodiction(snapshot_time: datetime, steps: int) -> Dict[str, Any]:
 
     return {
         "retrodicted_states": retrodicted_states,
-        "retrodiction_score": retrodiction_score
+        "retrodiction_score": retrodiction_score,
     }

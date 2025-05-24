@@ -5,37 +5,41 @@ Executes simulation and retrodiction forecasts, integrating with the
 Function Router, GPT Caller, and forecast compression.
 Handles chunked simulation runs and Monte Carlo paths.
 """
+
 from __future__ import annotations
 
 import random
-import sys
-import warnings
 import time
 import json
 import os
-import google.generativeai as genai # Import at top level
+import google.generativeai as genai  # Import at top level
 from typing import List, Dict, Optional, Any, Callable, Union, Tuple
 
 import tempfile
-import os
 
-import numpy as np
 from forecast_engine.forecast_compressor import compress_mc_samples
 from intelligence.forecast_schema import ForecastSchema
 from pydantic import ValidationError
 
 from intelligence.function_router import FunctionRouter
 from pipeline.gpt_caller import GPTCaller
+
 # Import specific config items
 from intelligence.intelligence_config import (
-    GPT_FALLBACK_MODEL, MAX_GPT_RETRIES, GPT_RETRY_SLEEP,
-    GEMINI_API_KEY, GEMINI_DEFAULT_MODEL, MAX_GEMINI_RETRIES,
-    GEMINI_RETRY_SLEEP, LLM_PROVIDER
+    GPT_FALLBACK_MODEL,
+    MAX_GPT_RETRIES,
+    GPT_RETRY_SLEEP,
+    GEMINI_API_KEY,
+    GEMINI_DEFAULT_MODEL,
+    MAX_GEMINI_RETRIES,
+    GEMINI_RETRY_SLEEP,
+    LLM_PROVIDER,
 )
-from config import ai_config # Keep for OPENAI_API_KEY for now
+from config import ai_config  # Keep for OPENAI_API_KEY for now
 from core.variable_registry import VARIABLE_REGISTRY
 from simulation_engine.causal_rules import RULES
 from simulation_engine.worldstate import WorldState
+
 
 class SimulationExecutor:
     """
@@ -72,10 +76,14 @@ class SimulationExecutor:
                     self.gpt_caller = GPTCaller(api_key=openai_api_key, model=gpt_model)
                     print(f"[Executor] GPTCaller initialized with model: {gpt_model}")
                 else:
-                    print("[Executor] OpenAI API key not found or invalid. GPT calls will be skipped.")
+                    print(
+                        "[Executor] OpenAI API key not found or invalid. GPT calls will be skipped."
+                    )
                     self.llm_provider = "none"
             except Exception as e:
-                print(f"[Executor] Error initializing GPTCaller: {e}. GPT calls will be skipped.")
+                print(
+                    f"[Executor] Error initializing GPTCaller: {e}. GPT calls will be skipped."
+                )
                 self.llm_provider = "none"
         elif self.llm_provider == "gemini":
             if GEMINI_API_KEY:
@@ -83,22 +91,36 @@ class SimulationExecutor:
                     # Configure and initialize Gemini client
                     genai.configure(api_key=GEMINI_API_KEY)
                     self.gemini_client = genai.GenerativeModel(GEMINI_DEFAULT_MODEL)
-                    print(f"[Executor] Gemini client initialized with model: {GEMINI_DEFAULT_MODEL}")
-                except ImportError: # Should not happen now, but good practice
-                    print("[Executor] 'google-generativeai' library seems unavailable despite installation. Gemini calls will be skipped.")
+                    print(
+                        f"[Executor] Gemini client initialized with model: {GEMINI_DEFAULT_MODEL}"
+                    )
+                except ImportError:  # Should not happen now, but good practice
+                    print(
+                        "[Executor] 'google-generativeai' library seems unavailable despite installation. Gemini calls will be skipped."
+                    )
                     self.llm_provider = "none"
-                except AttributeError as ae: # Catch if configure/GenerativeModel don't exist
-                     print(f"[Executor] Error initializing Gemini client (likely library version issue): {ae}. Gemini calls will be skipped.")
-                     self.llm_provider = "none"
+                except (
+                    AttributeError
+                ) as ae:  # Catch if configure/GenerativeModel don't exist
+                    print(
+                        f"[Executor] Error initializing Gemini client (likely library version issue): {ae}. Gemini calls will be skipped."
+                    )
+                    self.llm_provider = "none"
                 except Exception as e:
-                    print(f"[Executor] Error initializing Gemini client: {e}. Gemini calls will be skipped.")
+                    print(
+                        f"[Executor] Error initializing Gemini client: {e}. Gemini calls will be skipped."
+                    )
                     self.llm_provider = "none"
             else:
-                print("[Executor] GEMINI_API_KEY not found in environment. Gemini calls will be skipped.")
+                print(
+                    "[Executor] GEMINI_API_KEY not found in environment. Gemini calls will be skipped."
+                )
                 self.llm_provider = "none"
-        else: # Handles LLM_PROVIDER being neither 'gpt' nor 'gemini' or invalid
-             print(f"[Executor] LLM_PROVIDER set to '{self.llm_provider}'. No LLM calls will be made.")
-             self.llm_provider = "none"
+        else:  # Handles LLM_PROVIDER being neither 'gpt' nor 'gemini' or invalid
+            print(
+                f"[Executor] LLM_PROVIDER set to '{self.llm_provider}'. No LLM calls will be made."
+            )
+            self.llm_provider = "none"
 
     # Correctly indented method within the class
     def _call_llm(self, prompt: str) -> Dict[str, Any]:
@@ -128,7 +150,9 @@ class SimulationExecutor:
                 return result
             retries = MAX_GPT_RETRIES
             sleep_time = GPT_RETRY_SLEEP
-            caller_func = self.gpt_caller.generate # This already returns dict with 'gpt_output', 'gpt_struct'
+            caller_func = (
+                self.gpt_caller.generate
+            )  # This already returns dict with 'gpt_output', 'gpt_struct'
             provider_name = "GPT"
 
         elif self.llm_provider == "gemini":
@@ -145,44 +169,59 @@ class SimulationExecutor:
                     response = self.gemini_client.generate_content(p)
 
                     # Basic safety check for response structure
-                    if not hasattr(response, 'text'):
-                         # Handle cases where response might be blocked or empty
-                         safety_ratings = getattr(response, 'prompt_feedback', {}).get('safety_ratings', [])
-                         block_reason = getattr(response, 'prompt_feedback', {}).get('block_reason', 'Unknown')
-                         if safety_ratings:
-                              raise ValueError(f"Gemini response blocked or empty. Reason: {block_reason}. Ratings: {safety_ratings}")
-                         else:
-                              raise ValueError("Gemini response missing 'text' attribute and no clear block reason.")
+                    if not hasattr(response, "text"):
+                        # Handle cases where response might be blocked or empty
+                        safety_ratings = getattr(response, "prompt_feedback", {}).get(
+                            "safety_ratings", []
+                        )
+                        block_reason = getattr(response, "prompt_feedback", {}).get(
+                            "block_reason", "Unknown"
+                        )
+                        if safety_ratings:
+                            raise ValueError(
+                                f"Gemini response blocked or empty. Reason: {block_reason}. Ratings: {safety_ratings}"
+                            )
+                        else:
+                            raise ValueError(
+                                "Gemini response missing 'text' attribute and no clear block reason."
+                            )
 
                     text_output = response.text
                     struct_output = None
                     try:
                         # Look for a JSON block within the text
-                        json_start = text_output.find('{')
-                        json_end = text_output.rfind('}') + 1
-                        if json_start != -1 and json_end != -1 and json_start < json_end:
+                        json_start = text_output.find("{")
+                        json_end = text_output.rfind("}") + 1
+                        if (
+                            json_start != -1
+                            and json_end != -1
+                            and json_start < json_end
+                        ):
                             json_str = text_output[json_start:json_end]
                             struct_output = json.loads(json_str)
                             # Keep full text output for context, don't remove JSON part
                         else:
-                             struct_output = {"raw_text": text_output} # Fallback
+                            struct_output = {"raw_text": text_output}  # Fallback
                     except (json.JSONDecodeError, ValueError) as json_err:
                         print(f"[Executor] Gemini JSON parsing error: {json_err}")
-                        struct_output = {"parsing_error": str(json_err), "raw_text": text_output}
+                        struct_output = {
+                            "parsing_error": str(json_err),
+                            "raw_text": text_output,
+                        }
 
                     # Return standardized keys
                     return {"output": text_output.strip(), "struct": struct_output}
                 except AttributeError as ae:
-                     print(f"[Executor] Gemini response format error: {ae}")
-                     raise ValueError(f"Unexpected Gemini response format: {ae}") from ae
+                    print(f"[Executor] Gemini response format error: {ae}")
+                    raise ValueError(f"Unexpected Gemini response format: {ae}") from ae
                 except Exception as gemini_err:
                     # Propagate other errors (like API errors, ValueErrors from blocking)
                     raise gemini_err
 
             caller_func = gemini_caller_wrapper
         else:
-             result["error"] = f"Unknown LLM provider: {self.llm_provider}"
-             return result
+            result["error"] = f"Unknown LLM provider: {self.llm_provider}"
+            return result
 
         # --- Retry Logic ---
         success: bool = False
@@ -190,7 +229,9 @@ class SimulationExecutor:
         last_exception: Optional[Exception] = None
         while attempt < retries and not success:
             try:
-                print(f"[Executor] {provider_name} call attempt {attempt + 1}/{retries}")
+                print(
+                    f"[Executor] {provider_name} call attempt {attempt + 1}/{retries}"
+                )
                 llm_raw_result: Dict[str, Any] = caller_func(prompt)
 
                 # Standardize keys after the call
@@ -198,27 +239,31 @@ class SimulationExecutor:
                     result["output"] = llm_raw_result.get("gpt_output")
                     result["struct"] = llm_raw_result.get("gpt_struct")
                 elif self.llm_provider == "gemini":
-                     result["output"] = llm_raw_result.get("output")
-                     result["struct"] = llm_raw_result.get("struct")
+                    result["output"] = llm_raw_result.get("output")
+                    result["struct"] = llm_raw_result.get("struct")
 
                 # Basic check if output seems valid (can be refined)
                 if result.get("output") is not None or result.get("struct") is not None:
-                     success = True
+                    success = True
                 else:
-                     # Treat empty/None results as potential transient issues if not an explicit error
-                     raise ValueError(f"{provider_name} returned empty result.")
+                    # Treat empty/None results as potential transient issues if not an explicit error
+                    raise ValueError(f"{provider_name} returned empty result.")
 
             except Exception as exc:
                 last_exception = exc
                 attempt += 1
-                print(f"[Executor] {provider_name} call attempt {attempt}/{retries} failed: {exc}")
+                print(
+                    f"[Executor] {provider_name} call attempt {attempt}/{retries} failed: {exc}"
+                )
                 if attempt < retries:
                     # Exponential backoff
-                    time.sleep(sleep_time * (2 ** (attempt -1)))
+                    time.sleep(sleep_time * (2 ** (attempt - 1)))
                 else:
                     err_msg = f"{provider_name} call failed after {retries} attempts: {last_exception}"
                     result["error"] = err_msg
-                    print(f"[Executor] {provider_name} call failed permanently: {last_exception}")
+                    print(
+                        f"[Executor] {provider_name} call failed permanently: {last_exception}"
+                    )
 
         return result
 
@@ -241,16 +286,20 @@ class SimulationExecutor:
         ws: Optional[WorldState] = None
         temp_file = None
         temp_file_path: Optional[str] = None
-        final_result: Union[List[Dict[str, Any]], Any] = [] # Initialize final_result
+        final_result: Union[List[Dict[str, Any]], Any] = []  # Initialize final_result
 
         try:
             # Create a temporary file to store samples
-            temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.jsonl')
+            temp_file = tempfile.NamedTemporaryFile(
+                mode="w+", delete=False, suffix=".jsonl"
+            )
             temp_file_path = temp_file.name
             print(f"[Executor] Using temporary file for MC samples: {temp_file_path}")
 
             for path_idx in range(n_paths):
-                ws = self.router.run_function("turn_engine.initialize_worldstate", start_year=start_year)
+                ws = self.router.run_function(
+                    "turn_engine.initialize_worldstate", start_year=start_year
+                )
                 done: int = 0
 
                 while done < total_turns:
@@ -260,27 +309,39 @@ class SimulationExecutor:
                     done += step
                     if on_chunk_end:
                         on_chunk_end(done)
-                    print(f"[Executor] 🚀 Completed {done}/{total_turns} turns (path {path_idx+1}/{n_paths})")
+                    print(
+                        f"[Executor] 🚀 Completed {done}/{total_turns} turns (path {path_idx + 1}/{n_paths})"
+                    )
 
                 forecast: Dict[str, Any] = {}
                 try:
-                    generated: Any = self.router.run_function("forecast_engine.generate_forecast", state=ws)
+                    generated: Any = self.router.run_function(
+                        "forecast_engine.generate_forecast", state=ws
+                    )
                     if isinstance(generated, dict):
                         forecast.update(generated)
                     else:
                         forecast["error"] = "Non-dict forecast"
                         forecast["original_type"] = str(type(generated))
-                        print(f"[Executor] Warning: Forecast generator returned {type(generated)}.")
+                        print(
+                            f"[Executor] Warning: Forecast generator returned {type(generated)}."
+                        )
                 except Exception as e:
                     forecast["error"] = str(e)
                     print(f"[Executor] Error calling generate_forecast: {e}")
 
                 forecast["pulse_domains"] = list(VARIABLE_REGISTRY.keys())
-                forecast["pulse_rules"] = RULES # Consider if this is too large/needed per sample
+                forecast["pulse_rules"] = (
+                    RULES  # Consider if this is too large/needed per sample
+                )
 
                 # --- LLM Analysis Call (using _call_llm) ---
                 if self.llm_provider != "none" and "error" not in forecast:
-                    prompt_data: Any = ws.snapshot() if ws is not None and hasattr(ws, "snapshot") else {}
+                    prompt_data: Any = (
+                        ws.snapshot()
+                        if ws is not None and hasattr(ws, "snapshot")
+                        else {}
+                    )
                     prompt: str = ""
                     try:
                         # Construct the prompt (remains the same for now, adapt if needed for Gemini)
@@ -303,7 +364,9 @@ class SimulationExecutor:
                         print(f"[Executor] Error creating LLM prompt: {err}")
 
                     if prompt:
-                        llm_result = self._call_llm(prompt) # Call the unified helper method
+                        llm_result = self._call_llm(
+                            prompt
+                        )  # Call the unified helper method
                         if "error" in llm_result:
                             forecast["llm_error"] = llm_result["error"]
                         else:
@@ -311,7 +374,7 @@ class SimulationExecutor:
                             forecast["llm_output"] = llm_result.get("output")
                             forecast["llm_struct"] = llm_result.get("struct")
                 elif self.llm_provider == "none":
-                     print("[Executor] LLM provider not configured, skipping analysis.")
+                    print("[Executor] LLM provider not configured, skipping analysis.")
                 # --- End LLM Analysis Call ---
 
                 try:
@@ -322,51 +385,59 @@ class SimulationExecutor:
 
                 # Write the forecast to the temporary file
                 json.dump(forecast, temp_file)
-                temp_file.write('\n')
-                temp_file.flush() # Ensure data is written
+                temp_file.write("\n")
+                temp_file.flush()  # Ensure data is written
 
             # After the loop, close the file for writing
             temp_file.close()
 
             # Read samples back from the temporary file
             read_mc_samples: List[Dict[str, Any]] = []
-            with open(temp_file_path, 'r') as f:
+            with open(temp_file_path, "r") as f:
                 for line in f:
                     if line.strip():
                         try:
                             read_mc_samples.append(json.loads(line))
                         except json.JSONDecodeError as json_err:
-                             print(f"[Executor] Warning: Skipping invalid JSON line in temp file: {json_err}")
-
+                            print(
+                                f"[Executor] Warning: Skipping invalid JSON line in temp file: {json_err}"
+                            )
 
             # Compress or return raw samples
             try:
-                if read_mc_samples: # Only compress if there are samples
-                     compressed: Any = compress_mc_samples(read_mc_samples, alpha=0.9)
-                     final_result = compressed
+                if read_mc_samples:  # Only compress if there are samples
+                    compressed: Any = compress_mc_samples(read_mc_samples, alpha=0.9)
+                    final_result = compressed
                 else:
-                     print("[Executor] No valid samples read from temp file.")
-                     final_result = [] # Return empty list if no samples
+                    print("[Executor] No valid samples read from temp file.")
+                    final_result = []  # Return empty list if no samples
             except Exception as e:
-                final_result = read_mc_samples # Fallback to raw samples on compression error
+                final_result = (
+                    read_mc_samples  # Fallback to raw samples on compression error
+                )
                 print(f"[Executor] Compression error: {e}. Returning raw samples.")
 
         finally:
             # Clean up the temporary file
             if temp_file and not temp_file.closed:
-                 temp_file.close()
+                temp_file.close()
             if temp_file_path and os.path.exists(temp_file_path):
                 try:
                     os.unlink(temp_file_path)
                     print(f"[Executor] Cleaned up temporary file: {temp_file_path}")
                 except Exception as e:
-                    print(f"[Executor] Error cleaning up temp file {temp_file_path}: {e}")
+                    print(
+                        f"[Executor] Error cleaning up temp file {temp_file_path}: {e}"
+                    )
 
-
-        if ws is None and not final_result: # Handle case where no paths ran AND no results exist
+        if (
+            ws is None and not final_result
+        ):  # Handle case where no paths ran AND no results exist
             return None, []
-        return ws, final_result # Return final state of last path and the (compressed) result
-
+        return (
+            ws,
+            final_result,
+        )  # Return final state of last path and the (compressed) result
 
     def run_retrodiction_forecast(self, start_date: str, days: int = 30) -> Any:
         """
@@ -374,7 +445,9 @@ class SimulationExecutor:
         """
         try:
             # Assuming retrodiction doesn't use the LLM call currently
-            return self.router.run_function("retrodiction.run_retrodiction_test", start_date=start_date)
+            return self.router.run_function(
+                "retrodiction.run_retrodiction_test", start_date=start_date
+            )
         except Exception as e:
             print(f"[Executor] Retrodiction failed: {e}. Using forward fallback.")
             loader: Optional[Any] = None
@@ -383,8 +456,10 @@ class SimulationExecutor:
                     "retrodiction.get_snapshot_loader", start_date=start_date, days=days
                 )
             except Exception:
-                pass # Ignore error getting loader if retrodiction failed anyway
-            initial: WorldState = self.router.run_function("turn_engine.initialize_worldstate")
+                pass  # Ignore error getting loader if retrodiction failed anyway
+            initial: WorldState = self.router.run_function(
+                "turn_engine.initialize_worldstate"
+            )
             # Assuming forward simulation fallback also doesn't use LLM here
             return self.router.run_function(
                 "simulation_engine.simulator_core.simulate_forward",

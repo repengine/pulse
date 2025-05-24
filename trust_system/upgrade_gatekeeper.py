@@ -10,13 +10,19 @@ Date: 2025-04-27
 
 import json
 import os
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
 # Placeholder imports for future live scoring (e.g., divergence scoring modules)
 # from trust_system.trust_engine import evaluate_upgrade_trust_score
 
+
 class UpgradeGatekeeper:
-    def __init__(self, sandbox_dir: str = "data/pulsemind_sandbox", approved_dir: str = "data/pulsemind_approved", trust_threshold: float = 0.7):
+    def __init__(
+        self,
+        sandbox_dir: str = "data/pulsemind_sandbox",
+        approved_dir: str = "data/pulsemind_approved",
+        trust_threshold: float = 0.7,
+    ):
         """
         Initialize the Upgrade Gatekeeper.
 
@@ -30,9 +36,15 @@ class UpgradeGatekeeper:
         self.trust_threshold = trust_threshold
 
         os.makedirs(self.approved_dir, exist_ok=True)
-        self.pending_upgrades_path = os.path.join(self.sandbox_dir, "pending_upgrades.jsonl")
-        self.approved_upgrades_path = os.path.join(self.approved_dir, "approved_upgrades.jsonl")
-        self.quarantine_path = os.path.join(self.sandbox_dir, "quarantined_upgrades.jsonl")
+        self.pending_upgrades_path = os.path.join(
+            self.sandbox_dir, "pending_upgrades.jsonl"
+        )
+        self.approved_upgrades_path = os.path.join(
+            self.approved_dir, "approved_upgrades.jsonl"
+        )
+        self.quarantine_path = os.path.join(
+            self.sandbox_dir, "quarantined_upgrades.jsonl"
+        )
 
     def load_pending_upgrades(self) -> List[Dict[str, Any]]:
         """
@@ -107,6 +119,7 @@ class UpgradeGatekeeper:
                 for line in f:
                     upgrades.append(json.loads(line))
         return upgrades
+
 
 # Example CLI usage (for testing)
 if __name__ == "__main__":

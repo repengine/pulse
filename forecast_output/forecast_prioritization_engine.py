@@ -52,11 +52,15 @@ def rank_certified_forecasts(forecasts: List[Dict]) -> List[Dict]:
         List[Dict]
     """
     certified = [f for f in forecasts if f.get("certified")]
-    return sorted(certified, key=lambda f: (
-        f.get("alignment_score", 0),
-        f.get("confidence", 0),
-        prioritize_by_arc_weight(f)
-    ), reverse=True)
+    return sorted(
+        certified,
+        key=lambda f: (
+            f.get("alignment_score", 0),
+            f.get("confidence", 0),
+            prioritize_by_arc_weight(f),
+        ),
+        reverse=True,
+    )
 
 
 def select_top_forecasts(forecasts: List[Dict], top_n: int = 10) -> List[Dict]:
@@ -97,9 +101,24 @@ def export_prioritized_forecasts(forecasts: List[Dict], path: str):
 def _test_forecast_prioritization_engine():
     """Basic test for forecast prioritization engine."""
     dummy = [
-        {"arc_label": "Hope Surge", "alignment_score": 0.9, "confidence": 0.8, "certified": True},
-        {"arc_label": "Collapse Risk", "alignment_score": 0.7, "confidence": 0.6, "certified": True},
-        {"arc_label": "Fatigue Loop", "alignment_score": 0.8, "confidence": 0.7, "certified": False},
+        {
+            "arc_label": "Hope Surge",
+            "alignment_score": 0.9,
+            "confidence": 0.8,
+            "certified": True,
+        },
+        {
+            "arc_label": "Collapse Risk",
+            "alignment_score": 0.7,
+            "confidence": 0.6,
+            "certified": True,
+        },
+        {
+            "arc_label": "Fatigue Loop",
+            "alignment_score": 0.8,
+            "confidence": 0.7,
+            "certified": False,
+        },
     ]
     ranked = rank_certified_forecasts(dummy)
     assert ranked and ranked[0]["arc_label"] == "Hope Surge"

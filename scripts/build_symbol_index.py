@@ -13,8 +13,14 @@ Usage (from repo root):
         --db-path vstore \
         --openai-key $OPENAI_API_KEY
 """
+
 from __future__ import annotations
-import argparse, ast, json, os, re, sys, textwrap
+import argparse
+import ast
+import json
+import os
+import re
+import textwrap
 from pathlib import Path
 from typing import Dict, List
 
@@ -25,6 +31,7 @@ from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 PY_EXT = re.compile(r"\.py$", re.I)
 
 # --------------------------- AST utilities --------------------------- #
+
 
 def extract_symbols(path: Path) -> List[Dict]:
     """Return a flat list of symbol dicts from <path>."""
@@ -39,14 +46,17 @@ def extract_symbols(path: Path) -> List[Dict]:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             doc = ast.get_docstring(node) or ""
             summ = textwrap.shorten(doc.replace("\n", " "), 120) or "No docstring."
-            symbols.append({
-                "name": node.name,
-                "kind": node.__class__.__name__,
-                "path": str(path.relative_to(Path.cwd())),
-                "lineno": node.lineno,
-                "summary": summ,
-            })
+            symbols.append(
+                {
+                    "name": node.name,
+                    "kind": node.__class__.__name__,
+                    "path": str(path.relative_to(Path.cwd())),
+                    "lineno": node.lineno,
+                    "summary": summ,
+                }
+            )
     return symbols
+
 
 # --------------------------- Main script ----------------------------- #
 
@@ -68,6 +78,7 @@ ALLOWED_DIRS = {
     "utils",
 }
 
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--repo-path", type=str, default=".")
@@ -77,7 +88,13 @@ def main():
     args = p.parse_args()
 
     repo = Path(args.repo_path).resolve()
-    files = [f for f in repo.rglob("*.py") if PY_EXT.search(str(f)) and not any(part.startswith('.') for part in f.parts) and any(part in ALLOWED_DIRS for part in f.parts)]
+    files = [
+        f
+        for f in repo.rglob("*.py")
+        if PY_EXT.search(str(f))
+        and not any(part.startswith(".") for part in f.parts)
+        and any(part in ALLOWED_DIRS for part in f.parts)
+    ]
 
     print(f"📚 Scanning {len(files)} Python files …")
     all_symbols: List[Dict] = []
@@ -113,6 +130,7 @@ def main():
         metadata = batch
         collection.add(documents=texts, metadatas=metadata, ids=ids)
     print(f"✅ Embedded {len(all_symbols)} symbols into Chroma @ {args.db_path}")
+
 
 if __name__ == "__main__":
     main()

@@ -23,6 +23,7 @@ from forecast_output.forecast_cluster_classifier import classify_forecast_cluste
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def get_mutation_depth(forecast: Dict) -> int:
     """
     Return length of ancestry chain if available.
@@ -64,8 +65,7 @@ def track_cluster_lineage(forecasts) -> Dict[str, List[Dict]]:
 
 
 def select_most_evolved(
-    clusters: Dict[str, List[Dict]],
-    mutation_depth_fn=get_mutation_depth
+    clusters: Dict[str, List[Dict]], mutation_depth_fn=get_mutation_depth
 ) -> Dict[str, Dict]:
     """
     Select the most evolved forecast in each cluster.
@@ -86,13 +86,14 @@ def select_most_evolved(
             deepest = max(fc_list, key=mutation_depth_fn)
             leaders[cluster] = deepest
         except Exception as e:
-            logger.error("Error selecting most evolved for cluster '%s': %s", cluster, e)
+            logger.error(
+                "Error selecting most evolved for cluster '%s': %s", cluster, e
+            )
     return leaders
 
 
 def summarize_mutation_depths(
-    clusters: Dict[str, List[Dict]],
-    mutation_depth_fn=get_mutation_depth
+    clusters: Dict[str, List[Dict]], mutation_depth_fn=get_mutation_depth
 ) -> Dict[str, int]:
     """
     Return mutation depth per cluster.
@@ -112,7 +113,9 @@ def summarize_mutation_depths(
         try:
             summary[cluster] = max(mutation_depth_fn(fc) for fc in fc_list)
         except Exception as e:
-            logger.error("Error summarizing mutation depths for cluster '%s': %s", cluster, e)
+            logger.error(
+                "Error summarizing mutation depths for cluster '%s': %s", cluster, e
+            )
             summary[cluster] = 0
     return summary
 
@@ -149,13 +152,29 @@ def export_mutation_leaders(leaders: Dict[str, Dict], path: str):
             os.remove(tmp_path)
         raise
 
+
 # --- Simple test block ---
 if __name__ == "__main__":
     # Minimal test for robustness
     test_forecasts = [
-        {"id": 1, "lineage": {"ancestors": [0]}, "alignment_score": 0.8, "confidence": 0.7},
-        {"id": 2, "lineage": {"ancestors": [0, 1]}, "alignment_score": 0.9, "confidence": 0.6},
-        {"id": 3, "lineage": {"ancestors": []}, "alignment_score": 0.5, "confidence": 0.5},
+        {
+            "id": 1,
+            "lineage": {"ancestors": [0]},
+            "alignment_score": 0.8,
+            "confidence": 0.7,
+        },
+        {
+            "id": 2,
+            "lineage": {"ancestors": [0, 1]},
+            "alignment_score": 0.9,
+            "confidence": 0.6,
+        },
+        {
+            "id": 3,
+            "lineage": {"ancestors": []},
+            "alignment_score": 0.5,
+            "confidence": 0.5,
+        },
     ]
     clusters = track_cluster_lineage(test_forecasts)
     leaders = select_most_evolved(clusters)

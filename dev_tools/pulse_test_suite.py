@@ -1,4 +1,4 @@
-""" 
+"""
 pulse_test_suite.py
 
 Validates symbolic overlay movement and capital exposure shifts
@@ -12,6 +12,7 @@ from simulation_engine.turn_engine import run_turn
 from utils.log_utils import get_logger
 
 logger = get_logger(__name__)
+
 
 def test_symbolic_shift(threshold=0.01, turns=5):
     logger.info("🔎 Running symbolic overlay drift test...")
@@ -29,6 +30,7 @@ def test_symbolic_shift(threshold=0.01, turns=5):
         else:
             logger.info(f"⚠️  {k} barely changed ({delta})")
 
+
 def test_capital_shift(threshold=1.0, turns=5):
     logger.info("\n💰 Running capital exposure drift test...")
     state = WorldState()
@@ -44,6 +46,7 @@ def test_capital_shift(threshold=1.0, turns=5):
             logger.info(f"✅ {k} shifted by {delta}")
         else:
             logger.info(f"⚠️  {k} barely moved ({delta})")
+
 
 if __name__ == "__main__":
     test_symbolic_shift()

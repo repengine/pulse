@@ -10,7 +10,6 @@ Author: Pulse v3.5
 
 from simulation_engine.worldstate import WorldState
 from typing import Dict
-import math
 
 
 def get_overlay_snapshot(state: WorldState) -> Dict[str, float]:
@@ -44,9 +43,9 @@ def symbolic_tension_score(overlays: Dict[str, float]) -> float:
     )
     # Contradictory pairs (hope vs despair, rage vs trust)
     tension = (
-        (h * d) +               # Hope-Despair conflict
-        (r * t) +               # Rage-Trust conflict
-        (f * h * 0.5)           # Fatigue suppressing Hope
+        (h * d)  # Hope-Despair conflict
+        + (r * t)  # Rage-Trust conflict
+        + (f * h * 0.5)  # Fatigue suppressing Hope
     )
     return round(tension, 3)
 

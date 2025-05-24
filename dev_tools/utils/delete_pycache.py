@@ -1,6 +1,7 @@
 import os
 import shutil
 
+
 def delete_pycache_dirs(root_dir):
     """
     Recursively find and delete all __pycache__ directories under root_dir.
@@ -17,6 +18,7 @@ def delete_pycache_dirs(root_dir):
                 shutil.rmtree(pycache_dir)
                 # Remove from dirnames so os.walk does not visit it
                 dirnames.remove(dirname)
+
 
 if __name__ == "__main__":
     # Delete all __pycache__ dirs from the current directory down

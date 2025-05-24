@@ -1,4 +1,4 @@
-""" 
+"""
 forecast_scoring.py
 
 Scores each forecast after simulation based on:
@@ -14,6 +14,7 @@ from simulation_engine.worldstate import WorldState
 from core.pulse_learning_log import log_learning_event
 from datetime import datetime
 
+
 def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
     """
     Assigns trust metrics to a forecast. Assumes rule_log was returned from run_rules.
@@ -27,18 +28,16 @@ def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
     """
 
     if not rule_log:
-        return {
-            "confidence": 0.1,
-            "fragility": 0.9,
-            "symbolic_driver": "None"
-        }
+        return {"confidence": 0.1, "fragility": 0.9, "symbolic_driver": "None"}
 
     symbolic_counts = {}
     for rule in rule_log:
         for tag in rule.get("symbolic_tags", []):
             symbolic_counts[tag] = symbolic_counts.get(tag, 0) + 1
 
-    symbolic_driver = max(symbolic_counts.keys(), default="unknown", key=symbolic_counts.get)
+    symbolic_driver = max(
+        symbolic_counts.keys(), default="unknown", key=symbolic_counts.get
+    )
 
     # Confidence: more diverse symbolic signals = more believable
     diversity_factor = len(symbolic_counts)
@@ -52,12 +51,15 @@ def score_forecast(state: WorldState, rule_log: list[dict]) -> dict:
     result = {
         "confidence": round(confidence, 3),
         "fragility": round(fragility, 3),
-        "symbolic_driver": symbolic_driver
+        "symbolic_driver": symbolic_driver,
     }
-    log_learning_event("forecast_scored", {
-        "confidence": result["confidence"],
-        "fragility": result["fragility"],
-        "symbolic_driver": result["symbolic_driver"],
-        "timestamp": datetime.utcnow().isoformat()
-    })
+    log_learning_event(
+        "forecast_scored",
+        {
+            "confidence": result["confidence"],
+            "fragility": result["fragility"],
+            "symbolic_driver": result["symbolic_driver"],
+            "timestamp": datetime.utcnow().isoformat(),
+        },
+    )
     return result

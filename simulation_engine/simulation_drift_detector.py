@@ -15,9 +15,9 @@ Version: v1.0.0
 """
 
 import json
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Optional
 from collections import Counter
-import os
+
 
 def load_trace(path: str) -> List[Dict]:
     try:
@@ -35,8 +35,10 @@ def load_trace(path: str) -> List[Dict]:
         print(f"❌ Failed to load trace: {e}")
         return []
 
+
 def compare_rule_patterns(prev: List[Dict], curr: List[Dict]) -> Dict[str, int]:
     """Count how many times each rule was triggered in both runs."""
+
     def count_rules(trace):
         c = Counter()
         for step in trace:
@@ -51,8 +53,12 @@ def compare_rule_patterns(prev: List[Dict], curr: List[Dict]) -> Dict[str, int]:
     delta = {r: curr_counts.get(r, 0) - prev_counts.get(r, 0) for r in all_rules}
     return delta
 
-def compare_overlay_trajectories(prev: List[Dict], curr: List[Dict], keys: Optional[List[str]] = None) -> Dict[str, float]:
+
+def compare_overlay_trajectories(
+    prev: List[Dict], curr: List[Dict], keys: Optional[List[str]] = None
+) -> Dict[str, float]:
     """Compare overlay decay paths over time."""
+
     def get_overlay_series(trace, key):
         return [step.get("overlays", {}).get(key, 0.5) for step in trace]
 
@@ -70,6 +76,7 @@ def compare_overlay_trajectories(prev: List[Dict], curr: List[Dict], keys: Optio
         deltas[k] = round(avg_diff, 4)
     return deltas
 
+
 def compare_simulation_structure(prev: List[Dict], curr: List[Dict]) -> Dict:
     """Compare structure-level changes: turns, forks, collapse."""
     return {
@@ -77,10 +84,13 @@ def compare_simulation_structure(prev: List[Dict], curr: List[Dict]) -> Dict:
         "turn_count_curr": len(curr),
         "turn_diff": len(curr) - len(prev),
         "collapse_trigger_prev": any("collapse" in step for step in prev),
-        "collapse_trigger_curr": any("collapse" in step for step in curr)
+        "collapse_trigger_curr": any("collapse" in step for step in curr),
     }
 
-def run_simulation_drift_analysis(prev_path: str, curr_path: str, overlay_keys: Optional[List[str]] = None) -> Dict:
+
+def run_simulation_drift_analysis(
+    prev_path: str, curr_path: str, overlay_keys: Optional[List[str]] = None
+) -> Dict:
     """Run full simulation drift report between two trace logs."""
     prev = load_trace(prev_path)
     curr = load_trace(curr_path)
@@ -98,18 +108,34 @@ def run_simulation_drift_analysis(prev_path: str, curr_path: str, overlay_keys: 
         "metadata": {
             "source": "simulation_drift_detector.py",
             "prev_path": prev_path,
-            "curr_path": curr_path
-        }
+            "curr_path": curr_path,
+        },
     }
+
 
 # CLI hook
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Simulation Drift Detector CLI")
-    parser.add_argument("--prev", type=str, required=True, help="Path to previous simulation trace (.jsonl)")
-    parser.add_argument("--curr", type=str, required=True, help="Path to current simulation trace (.jsonl)")
+    parser.add_argument(
+        "--prev",
+        type=str,
+        required=True,
+        help="Path to previous simulation trace (.jsonl)",
+    )
+    parser.add_argument(
+        "--curr",
+        type=str,
+        required=True,
+        help="Path to current simulation trace (.jsonl)",
+    )
     parser.add_argument("--export", type=str, help="Path to save JSON output")
-    parser.add_argument("--overlays", type=str, help="Comma-separated overlay keys (default: hope,despair,rage,fatigue,trust)")
+    parser.add_argument(
+        "--overlays",
+        type=str,
+        help="Comma-separated overlay keys (default: hope,despair,rage,fatigue,trust)",
+    )
 
     args = parser.parse_args()
     overlay_keys = args.overlays.split(",") if args.overlays else None
@@ -128,13 +154,21 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Failed to save: {e}")
 
+
 # --- Simple test function for manual validation ---
 def _test_drift_detector():
     """Basic test for drift detector."""
     # Create dummy traces
-    prev = [{"fired_rules": ["A"], "overlays": {"hope": 0.5}}, {"fired_rules": ["B"], "overlays": {"hope": 0.6}}]
-    curr = [{"fired_rules": ["A", "B"], "overlays": {"hope": 0.7}}, {"fired_rules": ["B"], "overlays": {"hope": 0.8}}]
+    prev = [
+        {"fired_rules": ["A"], "overlays": {"hope": 0.5}},
+        {"fired_rules": ["B"], "overlays": {"hope": 0.6}},
+    ]
+    curr = [
+        {"fired_rules": ["A", "B"], "overlays": {"hope": 0.7}},
+        {"fired_rules": ["B"], "overlays": {"hope": 0.8}},
+    ]
     import tempfile
+
     prev_path = tempfile.mktemp(suffix=".jsonl")
     curr_path = tempfile.mktemp(suffix=".jsonl")
     with open(prev_path, "w") as f:
@@ -144,6 +178,7 @@ def _test_drift_detector():
         for step in curr:
             f.write(json.dumps(step) + "\n")
     print(run_simulation_drift_analysis(prev_path, curr_path))
+
 
 if __name__ == "__main__":
     pass  # Remove this if you want to run _test_drift_detector()

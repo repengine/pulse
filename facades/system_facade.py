@@ -1,11 +1,16 @@
 from core.service_registry import ServiceRegistry
 
+
 class SystemFacade:
     @staticmethod
-    def run_simulation_with_trust(state, turns=5, use_symbolism=True, return_mode="summary"):
+    def run_simulation_with_trust(
+        state, turns=5, use_symbolism=True, return_mode="summary"
+    ):
         simulation = ServiceRegistry.get_simulation()
         trust = ServiceRegistry.get_trust()
-        results = simulation.simulate_forward(state, turns=turns, use_symbolism=use_symbolism, return_mode=return_mode)
+        results = simulation.simulate_forward(
+            state, turns=turns, use_symbolism=use_symbolism, return_mode=return_mode
+        )
         # Enrich each result with trust metadata
         for result in results:
             trust.enrich_trust_metadata(result)
@@ -19,4 +24,6 @@ class SystemFacade:
             trace = symbolic.generate_upgrade_trace(forecast, upgraded)
             return {"upgraded": upgraded, "trace": trace}
         else:
-            return symbolic.alignment_report(forecast.get("symbolic_tag", ""), forecast.get("variables", {}))
+            return symbolic.alignment_report(
+                forecast.get("symbolic_tag", ""), forecast.get("variables", {})
+            )

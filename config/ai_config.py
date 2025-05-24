@@ -1,12 +1,6 @@
-import os
+"""AI Configuration using centralized Config loader."""
 
-# Configuration for AI services
+from pulse.config.loader import Config
 
-# OpenAI API Key
-# Loads from environment variable OPENAI_API_KEY if not set here
-OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
-
-# Default OpenAI Model
-DEFAULT_OPENAI_MODEL: str = "gpt-4"
-
-# Add other AI-related configurations here
+OPENAI_API_KEY: str = Config.get("ai.openai_api_key")
+DEFAULT_OPENAI_MODEL: str = Config.get("ai.default_model_name")

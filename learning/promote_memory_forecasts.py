@@ -5,12 +5,15 @@ Usage:
     python tools/promote_memory_forecasts.py --batch forecasts.jsonl
 """
 
-import argparse, json
+import argparse
+import json
 from memory.forecast_memory_promoter import select_promotable_forecasts, export_promoted
+
 
 def load_jsonl(path):
     with open(path, "r") as f:
         return [json.loads(line.strip()) for line in f if line.strip()]
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch", required=True)

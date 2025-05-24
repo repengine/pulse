@@ -7,13 +7,12 @@ Author: Pulse AI Engine
 
 import argparse
 import json
-import os
 from symbolic_system.pulse_symbolic_arc_tracker import (
     track_symbolic_arcs,
     compare_arc_drift,
     compute_arc_stability,
     plot_arc_distribution,
-    export_arc_summary
+    export_arc_summary,
 )
 
 
@@ -25,9 +24,20 @@ def load_jsonl(path):
 def main():
     parser = argparse.ArgumentParser(description="Pulse Arc Tracker CLI")
     parser.add_argument("--batch", type=str, help="Path to forecast batch (.jsonl)")
-    parser.add_argument("--compare", nargs=2, metavar=("prev", "curr"), help="Compare arc labels across batches")
-    parser.add_argument("--export", type=str, help="Path to save arc summary or drift result (JSON)")
-    parser.add_argument("--plot", type=str, help="Path to save arc plot (PNG), or leave empty to display")
+    parser.add_argument(
+        "--compare",
+        nargs=2,
+        metavar=("prev", "curr"),
+        help="Compare arc labels across batches",
+    )
+    parser.add_argument(
+        "--export", type=str, help="Path to save arc summary or drift result (JSON)"
+    )
+    parser.add_argument(
+        "--plot",
+        type=str,
+        help="Path to save arc plot (PNG), or leave empty to display",
+    )
     args = parser.parse_args()
 
     if args.compare:

@@ -2,13 +2,16 @@
 Structural Causal Model representation for Pulse.
 Defines a causal graph and supports setting up relationships.
 """
-from typing import Any, Dict, List, Tuple
+
+from typing import List, Tuple
 import networkx as nx
+
 
 class StructuralCausalModel:
     """
     Represents an SCM as a directed acyclic graph.
     """
+
     def __init__(self):
         # Directed graph where edges indicate causal influence
         self.graph = nx.DiGraph()

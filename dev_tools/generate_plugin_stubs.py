@@ -3,16 +3,18 @@
 Generate empty plugin stubs so devs can fill them incrementally.
 Run once; idempotent (won't overwrite changed files).
 """
-import os, textwrap, pathlib, json
+
+import textwrap
+import pathlib
+import json
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]   # …\pulse
+ROOT = pathlib.Path(__file__).resolve().parents[1]  # …\pulse
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from iris.iris_scraper import IrisScraper
 
-STUBS = json.loads(r'''
+STUBS = json.loads(r"""
 [
   ["gdelt_plugin",         "GDELT v2 REST",            "geopolitics"],
   ["acled_plugin",         "ACLED API",                "geopolitics"],
@@ -44,7 +46,7 @@ STUBS = json.loads(r'''
   ["data_portal_plugin",   "Data.gov / EU Open Data",  "general"],
   ["wolfram_plugin",       "Wolfram Alpha API",        "general"]
 ]
-''')
+""")
 
 BASE_DIR = pathlib.Path("iris_plugins_variable_ingestion")
 BASE_DIR.mkdir(exist_ok=True, parents=True)
@@ -80,7 +82,7 @@ for stub, desc, domain in STUBS:
         desc=desc,
         domain=domain,
         cls="".join(part.title() for part in stub.split("_")),
-        name=stub
+        name=stub,
     )
     path.write_text(code)
     print("created", path)

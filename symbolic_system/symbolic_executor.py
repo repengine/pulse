@@ -42,7 +42,9 @@ def apply_symbolic_upgrade(forecast: Dict, upgrade_map: Dict) -> Dict:
 
     if arc in upgrade_map.get("replace_or_retrain", []):
         revised["arc_label"] = "Narrative Convergence"
-        revised.setdefault("symbolic_mutation", {})["arc"] = f"{arc} → Narrative Convergence"
+        revised.setdefault("symbolic_mutation", {})["arc"] = (
+            f"{arc} → Narrative Convergence"
+        )
 
     revised["mutation_type"] = "symbolic_upgrade"
     return revised
@@ -78,7 +80,7 @@ def generate_upgrade_trace(original: Dict, mutated: Dict) -> Dict:
         "arc_after": mutated.get("arc_label"),
         "tag_before": original.get("symbolic_tag"),
         "tag_after": mutated.get("symbolic_tag"),
-        "mutation_details": mutated.get("symbolic_mutation", {})
+        "mutation_details": mutated.get("symbolic_mutation", {}),
     }
 
 
@@ -93,7 +95,9 @@ def log_symbolic_mutation(trace: Dict, path: str = "logs/symbolic_mutation_log.j
     try:
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(trace, ensure_ascii=False) + "\n")
-        logger.info(f"🧬 Symbolic mutation logged for {trace.get('trace_id', 'unknown')}")
+        logger.info(
+            f"🧬 Symbolic mutation logged for {trace.get('trace_id', 'unknown')}"
+        )
     except Exception as e:
         logger.error(f"❌ Failed to log symbolic mutation: {e}")
 
@@ -102,7 +106,7 @@ def _test_symbolic_executor():
     dummy = {"trace_id": "t1", "arc_label": "Collapse Risk", "symbolic_tag": "fear"}
     upgrade = {"replace_or_retrain": ["Collapse Risk", "fear"], "boost": []}
     mutated = apply_symbolic_upgrade(dummy, upgrade)
-    trace = generate_upgrade_trace(dummy, mutated)
+    _trace = generate_upgrade_trace(dummy, mutated)
     assert mutated["arc_label"] == "Narrative Convergence"
     assert mutated["symbolic_tag"] == "Stabilization"
     assert mutated["mutation_type"] == "symbolic_upgrade"

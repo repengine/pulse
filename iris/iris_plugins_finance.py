@@ -23,6 +23,7 @@ Additional helpers:
 
 Extend by following the template of the *_build_signals() helpers.
 """
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -43,6 +44,7 @@ _MAX_RETRIES = 2
 # Generic helpers                                                             #
 ###############################################################################
 
+
 def _safe_get(url: str, params: dict[str, str] | None = None) -> Optional[dict]:
     """HTTP GET with basic back‑off & JSON parsing. Returns **None** on failure."""
     for attempt in range(_MAX_RETRIES + 1):
@@ -51,7 +53,9 @@ def _safe_get(url: str, params: dict[str, str] | None = None) -> Optional[dict]:
             resp.raise_for_status()
             return resp.json()
         except Exception as exc:  # noqa: BLE001 –– keep lightweight
-            logger.warning("[%s] GET failed (%s/%s): %s", url, attempt + 1, _MAX_RETRIES, exc)
+            logger.warning(
+                "[%s] GET failed (%s/%s): %s", url, attempt + 1, _MAX_RETRIES, exc
+            )
             if attempt < _MAX_RETRIES:
                 time.sleep(_RETRY_WAIT * (attempt + 1))
     return None
@@ -61,9 +65,14 @@ def _to_timestamp(date_str: str | _dt.datetime) -> str:
     if isinstance(date_str, _dt.datetime):
         return date_str.astimezone(_dt.timezone.utc).isoformat()
     try:
-        return _dt.datetime.fromisoformat(date_str).replace(tzinfo=_dt.timezone.utc).isoformat()
+        return (
+            _dt.datetime.fromisoformat(date_str)
+            .replace(tzinfo=_dt.timezone.utc)
+            .isoformat()
+        )
     except Exception:
         return _dt.datetime.now(_dt.timezone.utc).isoformat()
+
 
 ###############################################################################
 # Alpha Vantage                                                               #
@@ -72,7 +81,7 @@ def _to_timestamp(date_str: str | _dt.datetime) -> str:
 _ALPHA_KEY = os.getenv("ALPHA_VANTAGE_KEY")
 _ALPHA_URL = "https://www.alphavantage.co/query"
 _ALPHA_SYMBOLS = {
-    "spx_close": "SPY",   # ETF proxy for S&P 500
+    "spx_close": "SPY",  # ETF proxy for S&P 500
     "btc_usd_close": "BTCUSD",
 }
 
@@ -110,6 +119,7 @@ def _alpha_build_signals() -> List[Dict]:
         )
     return signals
 
+
 ###############################################################################
 # Finnhub                                                                     #
 ###############################################################################
@@ -128,15 +138,21 @@ def _finnhub_build_signals() -> List[Dict]:
         return []
     signals: List[Dict] = []
     for var_name, sym in _FINNHUB_SYMBOLS.items():
-        quote = _safe_get(f"{_FINNHUB_URL}/quote", {"symbol": sym, "token": _FINNHUB_KEY})
+        quote = _safe_get(
+            f"{_FINNHUB_URL}/quote", {"symbol": sym, "token": _FINNHUB_KEY}
+        )
         if not quote or "c" not in quote:
             continue
         price = quote["c"]
         ts = _to_timestamp(_dt.datetime.utcfromtimestamp(quote.get("t", time.time())))
-        signals.append({"name": var_name, "value": price, "source": "finnhub", "timestamp": ts})
+        signals.append(
+            {"name": var_name, "value": price, "source": "finnhub", "timestamp": ts}
+        )
         # Optional: sentiment endpoint (50 calls/min on free tier)
         try:
-            sent = _safe_get(f"{_FINNHUB_URL}/news-sentiment", {"symbol": sym, "token": _FINNHUB_KEY})
+            sent = _safe_get(
+                f"{_FINNHUB_URL}/news-sentiment", {"symbol": sym, "token": _FINNHUB_KEY}
+            )
             if sent and "companyNewsScore" in sent:
                 signals.append(
                     {
@@ -150,6 +166,7 @@ def _finnhub_build_signals() -> List[Dict]:
             pass
     return signals
 
+
 ###############################################################################
 # Public interface                                                            #
 ###############################################################################
@@ -162,7 +179,9 @@ def finance_plugins() -> List[Dict]:
         try:
             signals.extend(builder())
         except Exception as exc:  # noqa: BLE001
-            logger.error("[finance_plugins] builder %s failed: %s", builder.__name__, exc)
+            logger.error(
+                "[finance_plugins] builder %s failed: %s", builder.__name__, exc
+            )
     return signals
 
 

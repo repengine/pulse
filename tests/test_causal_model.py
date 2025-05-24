@@ -4,6 +4,7 @@ from causal_model.structural_causal_model import StructuralCausalModel
 from causal_model.discovery import CausalDiscovery
 from causal_model.counterfactual_engine import CounterfactualEngine
 
+
 class TestStructuralCausalModel(unittest.TestCase):
     def test_add_and_remove_variable_and_edge(self):
         scm = StructuralCausalModel()
@@ -16,6 +17,7 @@ class TestStructuralCausalModel(unittest.TestCase):
         scm.remove_variable("A")
         self.assertNotIn("A", scm.variables())
 
+
 class TestCausalDiscovery(unittest.TestCase):
     def test_run_pc_and_fci(self):
         df = pd.DataFrame({"X": [1, 2, 3], "Y": [1, 2, 3], "Z": [3, 2, 1]})
@@ -24,6 +26,7 @@ class TestCausalDiscovery(unittest.TestCase):
         scm_fci = cd.run_fci(alpha=0.1)
         self.assertTrue(len(scm_pc.edges()) > 0)
         self.assertTrue(len(scm_fci.edges()) > 0)
+
 
 class TestCounterfactualEngine(unittest.TestCase):
     def test_predict_counterfactual(self):
@@ -37,6 +40,7 @@ class TestCounterfactualEngine(unittest.TestCase):
         result = engine.predict_counterfactual(evidence, interventions)
         self.assertEqual(result["X"], 5)
         self.assertEqual(result["Y"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

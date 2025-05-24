@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
+
 
 class TrustInterface(ABC):
     @abstractmethod
@@ -7,11 +8,19 @@ class TrustInterface(ABC):
         pass
 
     @abstractmethod
-    def confidence_gate(self, forecast: Dict, conf_threshold=0.5, fragility_threshold=0.7, risk_threshold=0.5) -> str:
+    def confidence_gate(
+        self,
+        forecast: Dict,
+        conf_threshold=0.5,
+        fragility_threshold=0.7,
+        risk_threshold=0.5,
+    ) -> str:
         pass
 
     @abstractmethod
-    def score_forecast(self, forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
+    def score_forecast(
+        self, forecast: Dict, memory: Optional[List[Dict]] = None
+    ) -> float:
         pass
 
     @abstractmethod
@@ -19,11 +28,15 @@ class TrustInterface(ABC):
         pass
 
     @abstractmethod
-    def check_forecast_coherence(self, forecast_batch: List[Dict]) -> Tuple[str, List[str]]:
+    def check_forecast_coherence(
+        self, forecast_batch: List[Dict]
+    ) -> Tuple[str, List[str]]:
         pass
 
     @abstractmethod
-    def symbolic_tag_conflicts(self, forecasts: List[Dict]) -> List[Tuple[str, str, str]]:
+    def symbolic_tag_conflicts(
+        self, forecasts: List[Dict]
+    ) -> List[Tuple[str, str, str]]:
         pass
 
     @abstractmethod
@@ -31,7 +44,9 @@ class TrustInterface(ABC):
         pass
 
     @abstractmethod
-    def capital_conflicts(self, forecasts: List[Dict], threshold: float = 1000.0) -> List[Tuple[str, str, str]]:
+    def capital_conflicts(
+        self, forecasts: List[Dict], threshold: float = 1000.0
+    ) -> List[Tuple[str, str, str]]:
         pass
 
     @abstractmethod

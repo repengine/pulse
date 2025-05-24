@@ -20,7 +20,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def summarize_trace_for_digest(trace_id: str, overlays_maxlen: int = 120) -> Optional[str]:
+def summarize_trace_for_digest(
+    trace_id: str, overlays_maxlen: int = 120
+) -> Optional[str]:
     """
     Extracts a short summary from a trace ID for digest attachment.
 
@@ -51,7 +53,7 @@ def summarize_trace_for_digest(trace_id: str, overlays_maxlen: int = 120) -> Opt
         # Truncate overlays if too large for summary
         overlays_str = str(overlays)
         if len(overlays_str) > overlays_maxlen:
-            overlays_str = f"{overlays_str[:overlays_maxlen-3]}..."
+            overlays_str = f"{overlays_str[: overlays_maxlen - 3]}..."
 
         return f"(Trust: {trust}, Forks: {len(forks)}, Overlays: {overlays_str})"
     except Exception as e:

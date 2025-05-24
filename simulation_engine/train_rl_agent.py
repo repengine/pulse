@@ -3,11 +3,12 @@ import mlflow
 from stable_baselines3 import PPO
 from simulation_engine.rl_env import SimulationEnv
 
+
 def train(
     total_timesteps: int = 100_000,
     episode_length: int = 5,
     log_dir: str = "rl_runs",
-    mlflow_experiment: str = "Simulation_Robustness_RL"
+    mlflow_experiment: str = "Simulation_Robustness_RL",
 ):
     # Ensure log directory exists
     os.makedirs(log_dir, exist_ok=True)
@@ -29,7 +30,9 @@ def train(
         # Save trained model
         model_path = os.path.join(log_dir, "ppo_simulation_agent")
         model.save(model_path)
-        mlflow.log_artifact(model_path + ".zip" if os.path.exists(model_path + ".zip") else model_path)
+        mlflow.log_artifact(
+            model_path + ".zip" if os.path.exists(model_path + ".zip") else model_path
+        )
 
         # Evaluate trained agent for one episode
         obs = env.reset()
@@ -43,6 +46,7 @@ def train(
         # Log evaluation metrics
         mlflow.log_metric("eval_reward", total_reward)
         print(f"Evaluation reward: {total_reward:.3f}")
+
 
 if __name__ == "__main__":
     train()

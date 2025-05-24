@@ -1,4 +1,4 @@
-""" 
+"""
 pulse_encoding_checker.py
 
 Scans all Python files in the Pulse project for encoding issues.
@@ -12,17 +12,24 @@ from utils.log_utils import get_logger
 
 logger = get_logger(__name__)
 
-SEARCH_PATHS = ["dev_tools", "simulation_engine/forecasting", "simulation_engine/rules", "simulation_engine"]
+SEARCH_PATHS = [
+    "dev_tools",
+    "simulation_engine/forecasting",
+    "simulation_engine/rules",
+    "simulation_engine",
+]
+
 
 def check_file_encoding(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             f.read()
         return True
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         return False
-    except Exception as e:
+    except Exception:
         return False
+
 
 def scan_for_encoding_issues():
     failed_files = []
@@ -41,6 +48,7 @@ def scan_for_encoding_issues():
         logger.warning(f"⚠️ Found {len(failed_files)} file(s) with encoding issues:")
         for f in failed_files:
             logger.warning(f" - {f}")
+
 
 if __name__ == "__main__":
     scan_for_encoding_issues()

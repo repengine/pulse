@@ -12,8 +12,9 @@ from unittest.mock import patch, MagicMock
 import numpy as np
 from recursive_training.advanced_metrics.visualization import (
     plot_metrics_dashboard,
-    plot_reliability_diagram
+    plot_reliability_diagram,
 )
+
 
 @pytest.fixture
 def metrics_history():
@@ -24,8 +25,8 @@ def metrics_history():
             "advanced_metrics": {
                 "uncertainty": {"mean": 0.5},
                 "drift": {"detected": False},
-                "convergence": {"converged": True}
-            }
+                "convergence": {"converged": True},
+            },
         },
         {
             "iteration": 2,
@@ -33,10 +34,11 @@ def metrics_history():
             "advanced_metrics": {
                 "uncertainty": {"mean": 0.4},
                 "drift": {"detected": True},
-                "convergence": {"converged": False}
-            }
-        }
+                "convergence": {"converged": False},
+            },
+        },
     ]
+
 
 @pytest.fixture
 def calibration_metrics():
@@ -45,11 +47,16 @@ def calibration_metrics():
         "ece": 0.08,
         "reliability_diagram": {
             "y_true": [0.0, 0.2, 0.5, 0.7, 1.0],
-            "y_pred": [0.1, 0.3, 0.4, 0.8, 0.9]
+            "y_pred": [0.1, 0.3, 0.4, 0.8, 0.9],
         },
-        "bins": [0.1, 0.2, 0.3], # Kept for other potential tests, not used by plot_reliability_diagram
-        "probs": [0.15, 0.25, 0.35] # Kept for other potential tests
+        "bins": [
+            0.1,
+            0.2,
+            0.3,
+        ],  # Kept for other potential tests, not used by plot_reliability_diagram
+        "probs": [0.15, 0.25, 0.35],  # Kept for other potential tests
     }
+
 
 def test_plot_metrics_dashboard(metrics_history):
     with patch("recursive_training.advanced_metrics.visualization.plt") as mock_plt:
@@ -92,17 +99,18 @@ def test_plot_metrics_dashboard(metrics_history):
         mock_ax_11.legend = MagicMock()
         mock_ax_11.set_yticks = MagicMock()
         mock_ax_11.set_yticklabels = MagicMock()
-        
+
         mock_axs_array = np.empty((2, 2), dtype=object)
         mock_axs_array[0, 0] = mock_ax_00
         mock_axs_array[0, 1] = mock_ax_01
         mock_axs_array[1, 0] = mock_ax_10
         mock_axs_array[1, 1] = mock_ax_11
         mock_plt.subplots.return_value = (mock_fig, mock_axs_array)
-        
+
         plot_metrics_dashboard(metrics_history, show=True)
         assert mock_plt.show.called
         mock_plt.subplots.assert_called_once_with(2, 2, figsize=(12, 8))
+
 
 def test_plot_metrics_dashboard_no_show(metrics_history):
     with patch("recursive_training.advanced_metrics.visualization.plt") as mock_plt:
@@ -155,9 +163,15 @@ def test_plot_metrics_dashboard_no_show(metrics_history):
         assert not mock_plt.show.called
         mock_plt.subplots.assert_called_once_with(2, 2, figsize=(12, 8))
 
+
 def test_plot_reliability_diagram(calibration_metrics):
-    with patch("recursive_training.advanced_metrics.visualization.plt") as mock_plt, \
-         patch("recursive_training.advanced_metrics.visualization.MATPLOTLIB_AVAILABLE", True):
+    with (
+        patch("recursive_training.advanced_metrics.visualization.plt") as mock_plt,
+        patch(
+            "recursive_training.advanced_metrics.visualization.MATPLOTLIB_AVAILABLE",
+            True,
+        ),
+    ):
         mock_fig = MagicMock()
         # plot_reliability_diagram uses plt.figure(), not subplots, so no need to mock subplots here.
         # However, it does call plt.show()
@@ -172,15 +186,17 @@ def test_plot_reliability_diagram_no_show(calibration_metrics):
     with patch("recursive_training.advanced_metrics.visualization.plt") as mock_plt:
         mock_fig = MagicMock()
         mock_plt.figure.return_value = mock_fig
-        
+
         plot_reliability_diagram(calibration_metrics, show=False)
         assert not mock_plt.show.called
         mock_plt.figure.assert_called_once_with(figsize=(6, 6))
+
 
 def test_plot_metrics_dashboard_handles_empty(metrics_history):
     with patch("recursive_training.advanced_metrics.visualization.plt"):
         # Should not raise error on empty input
         plot_metrics_dashboard([], show=False)
+
 
 def test_plot_reliability_diagram_handles_empty():
     with patch("recursive_training.advanced_metrics.visualization.plt"):

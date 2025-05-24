@@ -5,13 +5,14 @@ import os
 import json
 from dev_tools.pulse_ui_plot import load_variable_trace
 
+
 class TestPulseUIPlot(unittest.TestCase):
     def setUp(self):
         self.temp_file = "temp_var_trace.jsonl"
         mock_data = [
             {"step": 0, "variables": {"hope": 0.6}},
             {"step": 1, "variables": {"hope": 0.61}},
-            {"step": 2, "variables": {"hope": 0.58}}
+            {"step": 2, "variables": {"hope": 0.58}},
         ]
         with open(self.temp_file, "w") as f:
             for entry in mock_data:
@@ -37,5 +38,6 @@ class TestPulseUIPlot(unittest.TestCase):
         except Exception:
             pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main(verbosity=2)

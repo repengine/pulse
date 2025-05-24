@@ -12,12 +12,18 @@ from typing import Dict, Optional, List, Any
 from simulation_engine.worldstate import WorldState
 from simulation_engine.state_mutation import adjust_capital
 from core.variable_accessor import get_overlay
-from core.pulse_config import MODULES_ENABLED, CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD, TRUST_WEIGHT, DESPAIR_WEIGHT
 from symbolic_system.symbolic_utils import symbolic_fragility_index
+from pulse.config.loader import Config  # Import the new Config class
+
+# Initialize config
+config = Config()
 
 # === Parameters ===
-TRUST_GROWTH_THRESHOLD = 0.6
-FATIGUE_DEFENSIVE_THRESHOLD = 0.5
+TRUST_GROWTH_THRESHOLD = config.get("capital_engine.trust_growth_threshold", 0.6)
+FATIGUE_DEFENSIVE_THRESHOLD = config.get(
+    "capital_engine.fatigue_defensive_threshold", 0.5
+)
+
 
 # === Symbolic-to-Capital Fork Logic ===
 def simulate_nvda_fork(state: WorldState) -> None:
@@ -25,34 +31,80 @@ def simulate_nvda_fork(state: WorldState) -> None:
     d = get_overlay(state, "despair") or 0.0
     t = get_overlay(state, "trust") or 0.0
     f = get_overlay(state, "fatigue") or 0.0
-    delta = (h * CONFIDENCE_THRESHOLD + t * TRUST_WEIGHT) - (d * DESPAIR_WEIGHT + f * DEFAULT_FRAGILITY_THRESHOLD)
-    adjust_capital(state, "nvda", round(delta * 1000, 2))
-    state.log_event(f"[FORK] NVDA symbolic-driven exposure delta: {round(delta * 1000, 2):.2f}")
+    confidence_threshold = config.get("core.confidence_threshold", 0.5)
+    trust_weight = config.get("core.trust_weight", 1.0)
+    despair_weight = config.get("core.despair_weight", 1.0)
+    default_fragility_threshold = config.get("core.default_fragility_threshold", 0.5)
+    nvda_exposure_multiplier = config.get(
+        "capital_engine.nvda_exposure_multiplier", 1000
+    )
+
+    delta = (h * confidence_threshold + t * trust_weight) - (
+        d * despair_weight + f * default_fragility_threshold
+    )
+    adjust_capital(state, "nvda", round(delta * nvda_exposure_multiplier, 2))
+    state.log_event(
+        f"[FORK] NVDA symbolic-driven exposure delta: {round(delta * nvda_exposure_multiplier, 2):.2f}"
+    )
+
 
 def simulate_msft_fork(state: WorldState) -> None:
     t = get_overlay(state, "trust") or 0.0
     r = get_overlay(state, "rage") or 0.0
     f = get_overlay(state, "fatigue") or 0.0
-    delta = (t * CONFIDENCE_THRESHOLD) - (r * 0.3 + f * DEFAULT_FRAGILITY_THRESHOLD)
-    adjust_capital(state, "msft", round(delta * 800, 2))
-    state.log_event(f"[FORK] MSFT symbolic-driven exposure delta: {round(delta * 800, 2):.2f}")
+    confidence_threshold = config.get("core.confidence_threshold", 0.5)
+    msft_rage_weight = config.get("capital_engine.msft_rage_weight", 0.3)
+    default_fragility_threshold = config.get("core.default_fragility_threshold", 0.5)
+    msft_exposure_multiplier = config.get(
+        "capital_engine.msft_exposure_multiplier", 800
+    )
+
+    delta = (t * confidence_threshold) - (
+        r * msft_rage_weight + f * default_fragility_threshold
+    )
+    adjust_capital(state, "msft", round(delta * msft_exposure_multiplier, 2))
+    state.log_event(
+        f"[FORK] MSFT symbolic-driven exposure delta: {round(delta * msft_exposure_multiplier, 2):.2f}"
+    )
+
 
 def simulate_ibit_fork(state: WorldState) -> None:
     h = get_overlay(state, "hope") or 0.0
     d = get_overlay(state, "despair") or 0.0
     r = get_overlay(state, "rage") or 0.0
-    delta = (h * CONFIDENCE_THRESHOLD) - (d * CONFIDENCE_THRESHOLD + r * 0.2)
-    adjust_capital(state, "ibit", round(delta * 1200, 2))
-    state.log_event(f"[FORK] IBIT symbolic-driven exposure delta: {round(delta * 1200, 2):.2f}")
+    confidence_threshold = config.get("core.confidence_threshold", 0.5)
+    ibit_rage_weight = config.get("capital_engine.ibit_rage_weight", 0.2)
+    ibit_exposure_multiplier = config.get(
+        "capital_engine.ibit_exposure_multiplier", 1200
+    )
+
+    delta = (h * confidence_threshold) - (
+        d * confidence_threshold + r * ibit_rage_weight
+    )
+    adjust_capital(state, "ibit", round(delta * ibit_exposure_multiplier, 2))
+    state.log_event(
+        f"[FORK] IBIT symbolic-driven exposure delta: {round(delta * ibit_exposure_multiplier, 2):.2f}"
+    )
+
 
 def simulate_spy_fork(state: WorldState) -> None:
     h = get_overlay(state, "hope") or 0.0
     d = get_overlay(state, "despair") or 0.0
     f = get_overlay(state, "fatigue") or 0.0
     t = get_overlay(state, "trust") or 0.0
-    delta = (t * CONFIDENCE_THRESHOLD + h * 0.4) - (d * 0.4 + f * DEFAULT_FRAGILITY_THRESHOLD)
-    adjust_capital(state, "spy", round(delta * 900, 2))
-    state.log_event(f"[FORK] SPY symbolic-driven exposure delta: {round(delta * 900, 2):.2f}")
+    confidence_threshold = config.get("core.confidence_threshold", 0.5)
+    spy_hope_despair_weight = config.get("capital_engine.spy_hope_despair_weight", 0.4)
+    default_fragility_threshold = config.get("core.default_fragility_threshold", 0.5)
+    spy_exposure_multiplier = config.get("capital_engine.spy_exposure_multiplier", 900)
+
+    delta = (t * confidence_threshold + h * spy_hope_despair_weight) - (
+        d * spy_hope_despair_weight + f * default_fragility_threshold
+    )
+    adjust_capital(state, "spy", round(delta * spy_exposure_multiplier, 2))
+    state.log_event(
+        f"[FORK] SPY symbolic-driven exposure delta: {round(delta * spy_exposure_multiplier, 2):.2f}"
+    )
+
 
 def run_capital_forks(state: WorldState, assets: Optional[List[str]] = None) -> None:
     if assets is None or "nvda" in assets:
@@ -64,6 +116,7 @@ def run_capital_forks(state: WorldState, assets: Optional[List[str]] = None) -> 
     if assets is None or "spy" in assets:
         simulate_spy_fork(state)
 
+
 # === Portfolio State Summary ===
 def summarize_exposure(state: WorldState) -> Dict[str, float]:
     try:
@@ -71,15 +124,17 @@ def summarize_exposure(state: WorldState) -> Dict[str, float]:
     except AttributeError:
         return {}
 
+
 def total_exposure(state: WorldState) -> float:
-    cap = getattr(state, 'capital', None)
+    cap = getattr(state, "capital", None)
     if not cap:
         return 0.0
     total = sum(getattr(cap, k, 0.0) for k in ["nvda", "msft", "ibit", "spy"])
     return round(total, 2)
 
+
 def exposure_percentages(state: WorldState) -> Dict[str, float]:
-    cap = getattr(state, 'capital', None)
+    cap = getattr(state, "capital", None)
     if not cap:
         return {}
     total = total_exposure(state)
@@ -90,25 +145,33 @@ def exposure_percentages(state: WorldState) -> Dict[str, float]:
     if total == 0:
         return {k: 0.0 for k in asset_dict if k != "cash"}
     return {
-        k: round(getattr(cap, k, 0.0) / total, 4)
-        for k in asset_dict if k != "cash"
+        k: round(getattr(cap, k, 0.0) / total, 4) for k in asset_dict if k != "cash"
     }
+
 
 def portfolio_alignment_tags(state: WorldState) -> Dict[str, str]:
     tags = {}
-    overlays = getattr(state, 'overlays', None)
-    trust = getattr(overlays, 'trust', 0.5) if overlays else 0.5
-    fatigue = getattr(overlays, 'fatigue', 0.5) if overlays else 0.5
-    if trust > TRUST_GROWTH_THRESHOLD:
+    overlays = getattr(state, "overlays", None)
+    trust = getattr(overlays, "trust", 0.5) if overlays else 0.5
+    fatigue = getattr(overlays, "fatigue", 0.5) if overlays else 0.5
+    trust_growth_threshold = config.get("capital_engine.trust_growth_threshold", 0.6)
+    fatigue_defensive_threshold = config.get(
+        "capital_engine.fatigue_defensive_threshold", 0.5
+    )
+
+    if trust > trust_growth_threshold:
         tags["bias"] = "growth-aligned"
-    elif fatigue > FATIGUE_DEFENSIVE_THRESHOLD:
+    elif fatigue > fatigue_defensive_threshold:
         tags["bias"] = "defensive"
     else:
         tags["bias"] = "neutral"
     return tags
 
+
 # === Short-Term Symbolic Forecast Layer ===
-def run_shortview_forecast(state: WorldState, asset_subset: Optional[List[str]] = None, duration_days: int = 2) -> Dict[str, Any]:
+def run_shortview_forecast(
+    state: WorldState, asset_subset: Optional[List[str]] = None, duration_days: int = 2
+) -> Dict[str, Any]:
     """
     Runs a short-term symbolic forecast for the given state and asset subset.
 
@@ -122,10 +185,16 @@ def run_shortview_forecast(state: WorldState, asset_subset: Optional[List[str]] 
     Raises:
         ValueError: If duration_days is outside the allowed range.
     """
-    MIN_DURATION = 1
-    MAX_DURATION = 7
-    if not isinstance(duration_days, int) or duration_days < MIN_DURATION or duration_days > MAX_DURATION:
-        raise ValueError(f"ShortView duration must be between {MIN_DURATION} and {MAX_DURATION} days.")
+    min_duration = config.get("capital_engine.shortview_min_duration_days", 1)
+    max_duration = config.get("capital_engine.shortview_max_duration_days", 7)
+    if (
+        not isinstance(duration_days, int)
+        or duration_days < min_duration
+        or duration_days > max_duration
+    ):
+        raise ValueError(
+            f"ShortView duration must be between {min_duration} and {max_duration} days."
+        )
 
     # Take a snapshot of the initial state
     try:
@@ -160,12 +229,12 @@ def run_shortview_forecast(state: WorldState, asset_subset: Optional[List[str]] 
     # Compose the forecast result
     try:
         fragility = symbolic_fragility_index(state)
-    except Exception as e:
+    except Exception:
         fragility = None  # fallback if symbolic_fragility_index fails
 
     try:
         alignment = portfolio_alignment_tags(state)
-    except Exception as e:
+    except Exception:
         alignment = {}
 
     forecast = {
@@ -176,16 +245,24 @@ def run_shortview_forecast(state: WorldState, asset_subset: Optional[List[str]] 
         "capital_delta": capital_delta,
         "symbolic_change": symbolic_change,
         "portfolio_alignment": alignment,
-        "confidence": None  # Placeholder for future confidence calculation
+        "confidence": None,  # Placeholder for future confidence calculation
     }
 
     # Log the forecast event, handle logging errors gracefully
     try:
-        state.log_event(f"[SHORTVIEW] Forecast run for {duration_days} days. Fragility: {forecast['symbolic_fragility']:.3f}" if forecast['symbolic_fragility'] is not None else "[SHORTVIEW] Forecast run (fragility unavailable).")
+        state.log_event(
+            f"[SHORTVIEW] Forecast run for {duration_days} days. Fragility: {forecast['symbolic_fragility']:.3f}"
+            if forecast["symbolic_fragility"] is not None
+            else "[SHORTVIEW] Forecast run (fragility unavailable)."
+        )
     except Exception:
         pass  # Logging should not break the forecast
 
     # Minimal runtime assertion for output structure (for testing/debugging)
-    assert isinstance(forecast, dict) and "duration_days" in forecast and "capital_delta" in forecast, "Forecast output structure invalid"
+    assert (
+        isinstance(forecast, dict)
+        and "duration_days" in forecast
+        and "capital_delta" in forecast
+    ), "Forecast output structure invalid"
 
     return forecast

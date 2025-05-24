@@ -13,8 +13,9 @@ Author: [Your Name]
 Date: 2025-04-24
 """
 
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any
 import re
+
 
 def extract_rules_from_gpt_output(gpt_output: str) -> List[Dict[str, Any]]:
     """
@@ -25,19 +26,32 @@ def extract_rules_from_gpt_output(gpt_output: str) -> List[Dict[str, Any]]:
     rules = []
     for match in pattern.finditer(gpt_output):
         condition, consequence = match.groups()
-        rules.append({"condition": condition.strip(), "consequence": consequence.strip()})
+        rules.append(
+            {"condition": condition.strip(), "consequence": consequence.strip()}
+        )
     return rules
+
 
 def label_symbolic_arcs(gpt_output: str) -> List[str]:
     """
     Identifies and labels symbolic arcs (e.g., hope, despair, reversal) in GPT narrative output.
     """
     arcs = []
-    arc_keywords = ["hope", "despair", "rage", "fatigue", "trust", "reversal", "optimism", "collapse"]
+    arc_keywords = [
+        "hope",
+        "despair",
+        "rage",
+        "fatigue",
+        "trust",
+        "reversal",
+        "optimism",
+        "collapse",
+    ]
     for arc in arc_keywords:
         if arc in gpt_output.lower():
             arcs.append(arc)
     return arcs
+
 
 def identify_missing_domains(gpt_output: str, pulse_domains: List[str]) -> List[str]:
     """
@@ -48,10 +62,13 @@ def identify_missing_domains(gpt_output: str, pulse_domains: List[str]) -> List[
     missing = [w for w in words if w not in pulse_set and len(w) > 3]
     return list(set(missing))
 
+
 # Example usage (for testing)
 if __name__ == "__main__":
     example_gpt_output = "If the market crashes, then investor confidence will plummet. This triggers a wave of withdrawals, leading to systemic risk."
     pulse_domains = ["market", "investor_confidence", "withdrawals"]
     print("Extracted Rules:", extract_rules_from_gpt_output(example_gpt_output))
     print("Symbolic Arcs:", label_symbolic_arcs(example_gpt_output))
-    print("Missing Domains:", identify_missing_domains(example_gpt_output, pulse_domains))
+    print(
+        "Missing Domains:", identify_missing_domains(example_gpt_output, pulse_domains)
+    )

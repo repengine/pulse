@@ -12,21 +12,28 @@ All rule access should go through this registry for consistency.
 """
 
 from core.path_registry import PATHS
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_config import MODULES_ENABLED
-
-print(f"[DEBUG] PATHS type in rule_registry: {type(PATHS)}")  # Add this line for debugging
-
-RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
-
 import importlib
 import json
 from pathlib import Path
-from simulation_engine.rules.rule_coherence_checker import validate_rule_schema, get_all_rule_fingerprints_dict
+from simulation_engine.rules.rule_coherence_checker import validate_rule_schema
+
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
+
+print(
+    f"[DEBUG] PATHS type in rule_registry: {type(PATHS)}"
+)  # Add this line for debugging
+
+RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
+
+
+
 
 STATIC_RULES_MODULE = "simulation_engine.rules.static_rules"
-FINGERPRINTS_PATH = Path(PATHS.get("RULE_FINGERPRINTS", "simulation_engine/rules/rule_fingerprints.json"))
+FINGERPRINTS_PATH = Path(
+    PATHS.get("RULE_FINGERPRINTS", "simulation_engine/rules/rule_fingerprints.json")
+)
 CANDIDATE_RULES_PATH = Path(PATHS.get("CANDIDATE_RULES", "data/candidate_rules.json"))
+
 
 class RuleRegistry:
     def __init__(self):
@@ -73,7 +80,9 @@ class RuleRegistry:
 
     def validate(self):
         # Use centralized schema/uniqueness validation
-        rules_dict = {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(self.rules)}
+        rules_dict = {
+            r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(self.rules)
+        }
         return validate_rule_schema(rules_dict)
 
     def export_rules(self, path: str):
@@ -107,7 +116,9 @@ class RuleRegistry:
             if rule.get("rule_id") == rule_id or rule.get("id") == rule_id:
                 old = rule.get("trust_weight", 1.0)
                 rule["trust_weight"] = round(old + delta, 3)
-                print(f"[RuleRegistry] Trust updated for {rule_id}: {old} -> {rule['trust_weight']}")
+                print(
+                    f"[RuleRegistry] Trust updated for {rule_id}: {old} -> {rule['trust_weight']}"
+                )
                 return
         print(f"[RuleRegistry] Rule not found: {rule_id}")
 
@@ -115,8 +126,10 @@ class RuleRegistry:
         """Return all rules with a given symbolic tag."""
         return [r for r in self.rules if tag in r.get("symbolic_tags", [])]
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Unified Rule Registry CLI")
     parser.add_argument("--list", action="store_true", help="List all rules")
     parser.add_argument("--validate", action="store_true", help="Validate all rules")

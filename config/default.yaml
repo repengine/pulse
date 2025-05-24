@@ -1,0 +1,136 @@
+# Default configuration for Pulse
+
+app:
+  name: "Pulse Application"
+  version: "1.0.0"
+  debug_mode: true
+
+database:
+  type: "sqlite"
+  host: "localhost"
+  port: 5432
+  name: "pulse_db"
+  user: "admin"
+  password: "CHANGE_ME"  # This will be overridden by .env or OS env
+
+api:
+  base_url: "https://api.pulse.com/v1"
+  timeout_seconds: 10
+
+logging:
+  level: "INFO"
+  file: "pulse.log"
+
+feature_flags:
+  new_dashboard: true
+  experimental_ai: false
+
+capital_engine:
+  trust_growth_threshold: 0.6
+  fatigue_defensive_threshold: 0.5
+  msft_rage_weight: 0.3
+  ibit_rage_weight: 0.2
+  spy_hope_despair_weight: 0.4
+  nvda_exposure_multiplier: 1000
+  msft_exposure_multiplier: 800
+  ibit_exposure_multiplier: 1200
+  spy_exposure_multiplier: 900
+  shortview_min_duration_days: 1
+  shortview_max_duration_days: 7
+
+core:
+  confidence_threshold: 0.5
+  trust_weight: 1.0
+  despair_weight: 1.0
+  default_fragility_threshold: 0.5
+  default_decay_rate: 0.1
+
+ai:
+  openai_api_key: ${OPENAI_API_KEY:""}
+  default_model_name: "gpt-4"
+
+gravity:
+  logging_level: "INFO"
+  core:
+    default_lambda: 0.25
+    default_regularization: 0.001
+    default_learning_rate: 0.01
+    default_momentum: 0.9
+  safety:
+    default_circuit_breaker_threshold: 5.0
+    default_max_correction: 0.5
+    default_fragility_threshold: 3.0
+    critical_max_weight_threshold: 100.0
+    unhealthy_rms_weight_threshold: 10.0
+  features:
+    enable_adaptive_lambda: true
+    enable_weight_pruning: true
+    weight_pruning_threshold: 0.0001
+  shadow_model:
+    enable_shadow_model_trigger: true
+    shadow_model_variance_threshold: 0.3
+    shadow_model_window_size: 100
+    shadow_model_min_trigger_samples: 30
+    shadow_model_min_causal_variance: 0.000001
+  contributor_tracking:
+    significant_contributor_threshold: 0.001
+  adaptive_lambda:
+    min_lambda_scale_factor: 0.1
+    circuit_breaker_lambda_reduction: 0.5
+    adaptive_lambda_min: 0.01
+    adaptive_lambda_max: 1.0
+    adaptive_lambda_window_size: 20
+    adaptive_lambda_residual_threshold_high: 0.5
+    adaptive_lambda_residual_threshold_low: 0.1
+    adaptive_lambda_increase_factor: 1.05
+    adaptive_lambda_decrease_factor: 0.95
+  fragility:
+    fragility_rms_weight: 0.5
+    fragility_volatility_weight: 0.3
+    fragility_breaker_weight: 0.2
+    max_circuit_breaker_trips: 10
+  warnings:
+    warning_circuit_breaker_trips: 5
+    warning_fragility_threshold: 0.8
+  stagnation:
+    stagnant_weight_updates: 100
+    stagnant_weight_rms_threshold: 0.01
+    low_correction_efficiency_threshold: 0.3
+    min_updates_for_efficiency_check: 20
+  ewma:
+    default_ewma_span: 30.0
+
+symbolic:
+  version: "1.0"
+  profiles:
+    default:
+      overlay_thresholds:
+        dominance: 0.65
+        activation: 0.3
+      variable_mappings: {}
+      interaction_strengths:
+        hope->trust: 0.01
+        despair->fatigue: 0.015
+        fatigue->hope: -0.02
+    high_volatility:
+      overlay_thresholds:
+        dominance: 0.6
+        activation: 0.25
+      interaction_strengths:
+        hope->trust: 0.005
+        despair->fatigue: 0.02
+        fatigue->hope: -0.03
+      variable_mappings:
+        volatility_index:
+          high_impact:
+            - fear
+            - despair
+          threshold: 25.0
+    recession:
+      overlay_thresholds:
+        dominance: 0.7
+        activation: 0.4
+      interaction_strengths:
+        hope->trust: 0.02
+        despair->fatigue: 0.01
+        rage->trust: -0.03

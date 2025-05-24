@@ -14,6 +14,7 @@ Usage:
 
 from enum import Enum, auto
 
+
 class ForecastTag(Enum):
     HOPE = auto()
     DESPAIR = auto()
@@ -24,6 +25,7 @@ class ForecastTag(Enum):
     HOPE_RAGE_CONFLICT = auto()
     SYMBOLIC_EXHAUSTION = auto()
     NEUTRAL = auto()
+
 
 TAG_DESCRIPTIONS = {
     ForecastTag.HOPE: "Hope Rising",
@@ -39,13 +41,16 @@ TAG_DESCRIPTIONS = {
 
 LABEL_TO_TAG = {v: k for k, v in TAG_DESCRIPTIONS.items()}
 
+
 def get_tag_label(tag: ForecastTag) -> str:
     """Return the human-readable label for a ForecastTag."""
     return TAG_DESCRIPTIONS.get(tag, "Unknown")
 
+
 def get_tag_by_label(label: str):
     """Return the ForecastTag for a given label, or None if not found."""
     return LABEL_TO_TAG.get(label)
+
 
 def is_valid_tag(label: str) -> bool:
     """Check if a label is a valid forecast tag."""

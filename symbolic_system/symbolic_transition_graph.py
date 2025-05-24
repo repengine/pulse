@@ -13,7 +13,7 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -48,7 +48,11 @@ def build_symbolic_graph(forecasts: List[Dict]) -> nx.DiGraph:
     return G
 
 
-def visualize_symbolic_graph(G: nx.DiGraph, title: str = "Symbolic Transition Graph", highlight_loops: bool = True):
+def visualize_symbolic_graph(
+    G: nx.DiGraph,
+    title: str = "Symbolic Transition Graph",
+    highlight_loops: bool = True,
+):
     """
     Visualize the symbolic transition graph and return the matplotlib Figure.
 
@@ -60,7 +64,6 @@ def visualize_symbolic_graph(G: nx.DiGraph, title: str = "Symbolic Transition Gr
     Returns:
         matplotlib.figure.Figure: The created figure object.
     """
-    import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(12, 8))
     pos = nx.spring_layout(G, seed=42)
@@ -81,7 +84,9 @@ def visualize_symbolic_graph(G: nx.DiGraph, title: str = "Symbolic Transition Gr
     nx.draw_networkx_edges(G, pos, width=1.5, edge_color="gray", arrows=True, ax=ax)
 
     if loop_edges:
-        nx.draw_networkx_edges(G, pos, edgelist=loop_edges, edge_color="crimson", width=2.5, ax=ax)
+        nx.draw_networkx_edges(
+            G, pos, edgelist=loop_edges, edge_color="crimson", width=2.5, ax=ax
+        )
 
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=7, ax=ax)
     ax.set_title(title)

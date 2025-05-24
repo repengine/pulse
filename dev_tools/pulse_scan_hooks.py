@@ -1,4 +1,4 @@
-""" 
+"""
 pulse_scan_hooks.py
 
 Re-scans all hookable modules and rewrites pulse_hooks_config.json automatically.
@@ -21,6 +21,7 @@ HOOKS_DIR = PATHS.get("HOOKS_DIR", "hooks")
 SEARCH_PATHS = ["dev_tools", "simulation_engine/forecasting", HOOKS_DIR]
 HOOKS_JSON = "dev_tools/pulse_hooks_config.json"
 
+
 def scan_for_hooks():
     """
     Scans SEARCH_PATHS for Python modules with CLI hook candidates.
@@ -35,32 +36,44 @@ def scan_for_hooks():
                 if fname.endswith(".py") and not fname.startswith("__"):
                     fpath = os.path.join(root, fname)
                     try:
-                        with open(fpath, 'r') as f:
+                        with open(fpath, "r") as f:
                             node = ast.parse(f.read(), filename=fpath)
-                            has_main = any(isinstance(n, ast.FunctionDef) and n.name in ["main", "run"] for n in node.body)
-                            has_tag = any(isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "__hook__" for n in node.body)
+                            has_main = any(
+                                isinstance(n, ast.FunctionDef)
+                                and n.name in ["main", "run"]
+                                for n in node.body
+                            )
+                            has_tag = any(
+                                isinstance(n, ast.Assign)
+                                and getattr(n.targets[0], "id", "") == "__hook__"
+                                for n in node.body
+                            )
                             if has_main or has_tag:
                                 key = fname.replace(".py", "")
                                 hookable_modules[key] = True
-                                category = "suite" if "test" in fname else "batch" if "batch" in fname else "tool"
+                                category = (
+                                    "suite"
+                                    if "test" in fname
+                                    else "batch"
+                                    if "batch" in fname
+                                    else "tool"
+                                )
                                 metadata[key] = {
                                     "label": f"Auto-hooked CLI tool: {key}",
-                                    "category": category
+                                    "category": category,
                                 }
                     except Exception as e:
                         logger.warning(f"⚠️ Failed to parse {fname}: {e}")
 
     logger.info(f"✅ Found {len(hookable_modules)} hookable modules.")
-    full_data = {
-        "active_hooks": hookable_modules,
-        "metadata": metadata
-    }
+    full_data = {"active_hooks": hookable_modules, "metadata": metadata}
 
     os.makedirs(os.path.dirname(HOOKS_JSON), exist_ok=True)
-    with open(HOOKS_JSON, 'w') as f:
+    with open(HOOKS_JSON, "w") as f:
         json.dump(full_data, f, indent=2)
 
     logger.info(f"🔁 Updated hook config written to {HOOKS_JSON}")
+
 
 if __name__ == "__main__":
     scan_for_hooks()

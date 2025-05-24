@@ -18,13 +18,17 @@ Version: v1.0.0
 import json
 import os
 from datetime import datetime
-from typing import List, Dict
-from memory.memory_repair_queue import load_blocked_memory, retry_licensing, export_recovered
+from typing import Dict
+from memory.memory_repair_queue import (
+    load_blocked_memory,
+    retry_licensing,
+    export_recovered,
+)
 from trust_system.recovered_forecast_scorer import (
     score_recovered_forecasts,
     flag_unstable_forecasts,
     summarize_repair_quality,
-    export_flagged_for_revision
+    export_flagged_for_revision,
 )
 
 
@@ -47,12 +51,12 @@ def run_sweep_now(export: str = RECOVERED_OUTPUT_PATH) -> Dict:
     summary = summarize_repair_quality(recovered)
     print(summary)
     export_flagged_for_revision(recovered, "logs/unresolved_forecasts.jsonl")
-    
+
     result = {
         "timestamp": datetime.utcnow().isoformat(),
         "total_blocked": len(blocked),
         "recovered": len(recovered),
-        "output_path": export
+        "output_path": export,
     }
 
     try:
@@ -73,6 +77,8 @@ def summarize_sweep_log(path: str = SWEEP_LOG_PATH):
             entries = [json.loads(line.strip()) for line in f if line.strip()]
         print(f"📚 Symbolic Sweep History ({len(entries)} entries):")
         for r in entries[-5:]:
-            print(f"- {r['timestamp']} → Recovered {r['recovered']} / {r['total_blocked']}")
+            print(
+                f"- {r['timestamp']} → Recovered {r['recovered']} / {r['total_blocked']}"
+            )
     except Exception as e:
         print(f"❌ Failed to read sweep log: {e}")

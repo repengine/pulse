@@ -15,6 +15,7 @@ from core.path_registry import PATHS
 
 TRACE_DB_PATH = PATHS.get("TRACE_DB", "logs/trace_memory_log.jsonl")
 
+
 class TraceMemory:
     """
     Logs and queries simulation trace metadata linked to forecasts and trust scores.
@@ -24,7 +25,9 @@ class TraceMemory:
         self.path = path or TRACE_DB_PATH
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
 
-    def log_trace_entry(self, trace_id: str, forecast: Dict, input_state: Optional[Dict] = None):
+    def log_trace_entry(
+        self, trace_id: str, forecast: Dict, input_state: Optional[Dict] = None
+    ):
         """
         Logs a full trace-forecast-trust-memory record.
         """
@@ -84,8 +87,16 @@ class TraceMemory:
 
         summary = {
             "count": len(records),
-            "avg_conf": round(sum(r.get("confidence", 0) for r in records) / len(records), 4) if records else 0.0,
-            "avg_fragility": round(sum(r.get("fragility", 0) for r in records) / len(records), 4) if records else 0.0,
+            "avg_conf": round(
+                sum(r.get("confidence", 0) for r in records) / len(records), 4
+            )
+            if records
+            else 0.0,
+            "avg_fragility": round(
+                sum(r.get("fragility", 0) for r in records) / len(records), 4
+            )
+            if records
+            else 0.0,
             "certified": sum(1 for r in records if r.get("certified")),
         }
         if len(records) > 10000:
@@ -132,9 +143,16 @@ class TraceMemory:
             print(f"[TraceMemory] Error deleting trace: {e}")
         return found
 
+
 # === Example usage & simple test
 def _test_trace_memory():
-    sample_forecast = {"trace_id": "abc123", "confidence": 0.8, "certified": True, "arc_label": "Hope Surge", "symbolic_tag": "hope"}
+    sample_forecast = {
+        "trace_id": "abc123",
+        "confidence": 0.8,
+        "certified": True,
+        "arc_label": "Hope Surge",
+        "symbolic_tag": "hope",
+    }
     TM = TraceMemory()
     TM.log_trace_entry("abc123", sample_forecast, input_state={"hope": 0.5})
     result = TM.get_trace("abc123")
@@ -145,6 +163,7 @@ def _test_trace_memory():
     deleted = TM.delete_trace("abc123")
     print("Deleted:", deleted)
     assert deleted
+
 
 if __name__ == "__main__":
     _test_trace_memory()

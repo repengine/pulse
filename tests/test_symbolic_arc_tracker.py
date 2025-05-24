@@ -4,11 +4,11 @@ import unittest
 from symbolic_system.pulse_symbolic_arc_tracker import (
     track_symbolic_arcs,
     compare_arc_drift,
-    compute_arc_stability
+    compute_arc_stability,
 )
 
-class TestSymbolicArcTracker(unittest.TestCase):
 
+class TestSymbolicArcTracker(unittest.TestCase):
     def setUp(self):
         self.prev = [
             {"arc_label": "Hope Surge"},
@@ -38,5 +38,6 @@ class TestSymbolicArcTracker(unittest.TestCase):
         score = compute_arc_stability(drift)
         self.assertTrue(0.0 <= score <= 200.0)  # possible drift range
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

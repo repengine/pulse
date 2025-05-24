@@ -20,7 +20,9 @@ logger = logging.getLogger("symbolic_upgrade_planner")
 logging.basicConfig(level=logging.INFO)
 
 
-def detect_underperforming_symbols(performance: Dict[str, Dict], threshold: float = 0.4, min_total: int = 3) -> List[str]:
+def detect_underperforming_symbols(
+    performance: Dict[str, Dict], threshold: float = 0.4, min_total: int = 3
+) -> List[str]:
     """
     Detect symbolic arcs/tags with low success rates.
 
@@ -32,10 +34,16 @@ def detect_underperforming_symbols(performance: Dict[str, Dict], threshold: floa
     Returns:
         List of symbols below threshold
     """
-    return [k for k, v in performance.items() if v.get("rate", 0) < threshold and v.get("total", 0) >= min_total]
+    return [
+        k
+        for k, v in performance.items()
+        if v.get("rate", 0) < threshold and v.get("total", 0) >= min_total
+    ]
 
 
-def detect_high_performers(performance: Dict[str, Dict], threshold: float = 0.85, min_total: int = 3) -> List[str]:
+def detect_high_performers(
+    performance: Dict[str, Dict], threshold: float = 0.85, min_total: int = 3
+) -> List[str]:
     """
     Detect symbolic arcs/tags with consistent success.
 
@@ -47,7 +55,11 @@ def detect_high_performers(performance: Dict[str, Dict], threshold: float = 0.85
     Returns:
         List of symbols above threshold
     """
-    return [k for k, v in performance.items() if v.get("rate", 0) > threshold and v.get("total", 0) >= min_total]
+    return [
+        k
+        for k, v in performance.items()
+        if v.get("rate", 0) > threshold and v.get("total", 0) >= min_total
+    ]
 
 
 def propose_symbolic_upgrades(profile: Dict) -> Dict:
@@ -75,8 +87,8 @@ def propose_symbolic_upgrades(profile: Dict) -> Dict:
         "strong_tags": tag_strengths,
         "suggestions": {
             "boost": tag_strengths[:3] + arc_strengths[:3],
-            "replace_or_retrain": tag_risks[:3] + arc_risks[:3]
-        }
+            "replace_or_retrain": tag_risks[:3] + arc_risks[:3],
+        },
     }
 
 
@@ -102,12 +114,21 @@ def export_upgrade_plan(plan: Dict, path: str = "plans/symbolic_upgrade_plan.jso
 def _test_symbolic_upgrade_planner():
     """Basic test for symbolic upgrade planner."""
     dummy_profile = {
-        "arc_performance": {"Hope Surge": {"rate": 0.9, "total": 10}, "Collapse Risk": {"rate": 0.2, "total": 5}},
-        "tag_performance": {"optimism": {"rate": 0.95, "total": 8}, "fear": {"rate": 0.3, "total": 6}},
-        "last_updated": "2024-06-01T12:00:00"
+        "arc_performance": {
+            "Hope Surge": {"rate": 0.9, "total": 10},
+            "Collapse Risk": {"rate": 0.2, "total": 5},
+        },
+        "tag_performance": {
+            "optimism": {"rate": 0.95, "total": 8},
+            "fear": {"rate": 0.3, "total": 6},
+        },
+        "last_updated": "2024-06-01T12:00:00",
     }
     plan = propose_symbolic_upgrades(dummy_profile)
-    assert "underperforming_arcs" in plan and "Collapse Risk" in plan["underperforming_arcs"]
+    assert (
+        "underperforming_arcs" in plan
+        and "Collapse Risk" in plan["underperforming_arcs"]
+    )
     assert "strong_tags" in plan and "optimism" in plan["strong_tags"]
     assert isinstance(plan["underperforming_arcs"], list)
     assert isinstance(plan["strong_tags"], list)

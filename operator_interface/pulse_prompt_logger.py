@@ -12,10 +12,11 @@ Author: Pulse AI Engine
 import json
 from datetime import datetime
 import logging
+import hashlib
+from datetime import timezone
 
 logger = logging.getLogger("pulse_prompt_logger")
 
-import hashlib
 
 def prompt_hash(prompt: str, config: dict) -> str:
     """
@@ -25,13 +26,15 @@ def prompt_hash(prompt: str, config: dict) -> str:
     data = prompt + json.dumps(config, sort_keys=True)
     return hashlib.md5(data.encode("utf-8")).hexdigest()[:12]
 
-def log_prompt(prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"):
-    from datetime import timezone
+
+def log_prompt(
+    prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"
+):
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "prompt": prompt,
         "config": config,
-        "overlays": overlays
+        "overlays": overlays,
     }
     try:
         with open(path, "a", encoding="utf-8") as f:

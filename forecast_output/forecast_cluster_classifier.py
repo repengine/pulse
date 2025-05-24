@@ -22,6 +22,7 @@ import logging
 logger = logging.getLogger("forecast_cluster_classifier")
 logging.basicConfig(level=logging.INFO)
 
+
 def classify_forecast_cluster(forecast: Dict) -> str:
     arc = forecast.get("arc_label", "").lower()
     tag = forecast.get("symbolic_tag", "").lower()
@@ -67,6 +68,7 @@ def summarize_cluster_counts(forecasts: List[Dict]) -> Dict[str, int]:
 
 def export_cluster_summary(counts: Dict[str, int], path: str):
     import json
+
     try:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(counts, f, indent=2, ensure_ascii=False)
@@ -77,9 +79,24 @@ def export_cluster_summary(counts: Dict[str, int], path: str):
 
 def _test_forecast_cluster_classifier():
     dummy = [
-        {"arc_label": "Hope Surge", "alignment_score": 0.9, "confidence": 0.8, "certified": True},
-        {"arc_label": "Collapse Risk", "alignment_score": 0.7, "confidence": 0.6, "certified": True},
-        {"arc_label": "Fatigue Loop", "alignment_score": 0.8, "confidence": 0.7, "certified": False},
+        {
+            "arc_label": "Hope Surge",
+            "alignment_score": 0.9,
+            "confidence": 0.8,
+            "certified": True,
+        },
+        {
+            "arc_label": "Collapse Risk",
+            "alignment_score": 0.7,
+            "confidence": 0.6,
+            "certified": True,
+        },
+        {
+            "arc_label": "Fatigue Loop",
+            "alignment_score": 0.8,
+            "confidence": 0.7,
+            "certified": False,
+        },
     ]
     clusters = group_forecasts_by_cluster(dummy)
     counts = summarize_cluster_counts(dummy)

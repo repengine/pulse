@@ -15,15 +15,21 @@ from core.path_registry import PATHS
 LEARNING_LOG = PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")
 DIGEST_OUT = "logs/symbolic_contradiction_digest.md"
 
+
 def load_symbolic_conflict_events() -> List[Dict]:
     if not os.path.exists(LEARNING_LOG):
         return []
     try:
         with open(LEARNING_LOG, "r", encoding="utf-8") as f:
-            return [json.loads(line) for line in f if 'symbolic_contradiction_cluster' in line]
+            return [
+                json.loads(line)
+                for line in f
+                if "symbolic_contradiction_cluster" in line
+            ]
     except Exception as e:
         print(f"[SymbolicDigest] Failed to load log: {e}")
         return []
+
 
 def format_contradiction_cluster_md(clusters: List[Dict]) -> str:
     lines = ["### ♻️ Symbolic Contradiction Digest\n"]
@@ -36,6 +42,7 @@ def format_contradiction_cluster_md(clusters: List[Dict]) -> str:
         lines.append("")
     return "\n".join(lines)
 
+
 def export_contradiction_digest_md(path: str = DIGEST_OUT):
     clusters = load_symbolic_conflict_events()
     md = format_contradiction_cluster_md(clusters)
@@ -46,6 +53,7 @@ def export_contradiction_digest_md(path: str = DIGEST_OUT):
         print(f"✅ Symbolic contradiction digest saved to {path}")
     except Exception as e:
         print(f"❌ Failed to save contradiction digest: {e}")
+
 
 if __name__ == "__main__":
     export_contradiction_digest_md()

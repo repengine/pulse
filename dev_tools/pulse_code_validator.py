@@ -21,6 +21,7 @@ Usage:
 - Prints a summary of files checked and issues found
 - Handles errors and logs warnings for parse failures
 """
+
 import ast
 import os
 import argparse
@@ -28,6 +29,7 @@ from typing import Dict, List, Any
 from utils.log_utils import get_logger
 
 logger = get_logger(__name__)
+
 
 def parse_function_defs(module_path: str) -> Dict[str, Dict[str, Any]]:
     """
@@ -48,11 +50,9 @@ def parse_function_defs(module_path: str) -> Dict[str, Dict[str, Any]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             arg_names = [arg.arg for arg in node.args.args]
-            func_defs[node.name] = {
-                "args": arg_names,
-                "file": module_path
-            }
+            func_defs[node.name] = {"args": arg_names, "file": module_path}
     return func_defs
+
 
 def collect_all_function_defs(root_dir: str = ".") -> Dict[str, List[Dict[str, Any]]]:
     """
@@ -66,7 +66,7 @@ def collect_all_function_defs(root_dir: str = ".") -> Dict[str, List[Dict[str, A
     files_checked = 0
     for root, dirs, files in os.walk(root_dir):
         # Ignore all directories starting with a dot (in-place modification)
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for f in files:
             if f.endswith(".py") and not f.startswith("__"):
                 full_path = os.path.join(root, f)
@@ -76,7 +76,13 @@ def collect_all_function_defs(root_dir: str = ".") -> Dict[str, List[Dict[str, A
                 files_checked += 1
     return func_map
 
-def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any]]], root_dir: str = ".", filter_func: str | None = None, verbose: bool = False) -> List[Dict[str, Any]]:
+
+def validate_keywords_against_definitions(
+    func_map: Dict[str, List[Dict[str, Any]]],
+    root_dir: str = ".",
+    filter_func: str | None = None,
+    verbose: bool = False,
+) -> List[Dict[str, Any]]:
     """
     Validate keyword arguments in function calls against known definitions.
     Args:
@@ -91,13 +97,15 @@ def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any
     files_checked = 0
     for root, dirs, files in os.walk(root_dir):
         # Ignore all directories starting with a dot (in-place modification)
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for f in files:
             if f.endswith(".py") and not f.startswith("__"):
                 full_path = os.path.join(root, f)
                 files_checked += 1
                 try:
-                    with open(full_path, "r", encoding="utf-8", errors="ignore") as file:
+                    with open(
+                        full_path, "r", encoding="utf-8", errors="ignore"
+                    ) as file:
                         tree = ast.parse(file.read(), filename=full_path)
                 except Exception as e:
                     logger.warning(f"⚠️ Failed to parse {full_path}: {e}")
@@ -118,16 +126,22 @@ def validate_keywords_against_definitions(func_map: Dict[str, List[Dict[str, Any
 
                         if func_name in func_map:
                             valid_args = func_map[func_name][0]["args"]
-                            invalids = [kw for kw in node.keywords if kw.arg not in valid_args]
-                            issues.extend({
-                                "file": full_path,
-                                "function": func_name,
-                                "invalid_kw": kw.arg,
-                                "valid_args": valid_args
-                            } for kw in invalids)
+                            invalids = [
+                                kw for kw in node.keywords if kw.arg not in valid_args
+                            ]
+                            issues.extend(
+                                {
+                                    "file": full_path,
+                                    "function": func_name,
+                                    "invalid_kw": kw.arg,
+                                    "valid_args": valid_args,
+                                }
+                                for kw in invalids
+                            )
                 if verbose:
                     logger.info(f"Checked: {full_path}")
     return issues
+
 
 def parse_args():
     """
@@ -136,22 +150,36 @@ def parse_args():
         (str, bool, str): (root, verbose, filter_func)
     """
     parser = argparse.ArgumentParser(description="Pulse Code Validator")
-    parser.add_argument("--root", type=str, default=".", help="Root directory to analyze")
-    parser.add_argument("--verbose", action="store_true", help="Print all files checked")
-    parser.add_argument("--filter", type=str, default=None, help="Only report issues for this function name")
+    parser.add_argument(
+        "--root", type=str, default=".", help="Root directory to analyze"
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print all files checked"
+    )
+    parser.add_argument(
+        "--filter",
+        type=str,
+        default=None,
+        help="Only report issues for this function name",
+    )
     args = parser.parse_args()
     return args.root, args.verbose, args.filter
+
 
 if __name__ == "__main__":
     root, verbose, filter_func = parse_args()
     logger.info(f"🔎 Scanning for argument mismatches in: {root}")
     all_defs = collect_all_function_defs(root)
-    mismatches = validate_keywords_against_definitions(all_defs, root, filter_func, verbose)
+    mismatches = validate_keywords_against_definitions(
+        all_defs, root, filter_func, verbose
+    )
 
     if not mismatches:
         logger.info("✅ No keyword argument issues found.")
     else:
         logger.warning(f"⚠️ Found {len(mismatches)} keyword mismatch(es):")
         for m in mismatches:
-            logger.warning(f" - {m['file']}: {m['function']}(... {m['invalid_kw']}=...) [valid: {m['valid_args']}]")
+            logger.warning(
+                f" - {m['file']}: {m['function']}(... {m['invalid_kw']}=...) [valid: {m['valid_args']}]"
+            )
     print(f"\nSummary: {len(mismatches)} issues found.")

@@ -11,10 +11,9 @@ Used as a strategic checkpoint after simulations.
 Author: Pulse v0.2
 """
 
-from forecast_output.pfpa_logger import PFPA_ARCHIVE, get_latest_forecasts
+from forecast_output.pfpa_logger import get_latest_forecasts
 from statistics import mean
 from utils.log_utils import get_logger
-from core.pulse_config import CONFIDENCE_THRESHOLD, MODULES_ENABLED
 
 logger = get_logger(__name__)
 
@@ -78,7 +77,9 @@ def audit_forecasts(memory=None, recent_n: int = 10) -> None:
                 if isinstance(example, dict):
                     expanded_forecasts.append(example)
                 else:
-                    logger.warning(f"Skipping non-dictionary example in compressed forecast: {type(example)}")
+                    logger.warning(
+                        f"Skipping non-dictionary example in compressed forecast: {type(example)}"
+                    )
         elif isinstance(f, dict):
             expanded_forecasts.append(f)
         else:

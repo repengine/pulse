@@ -8,6 +8,7 @@ Handles rollback, retry, and safe state restoration.
 import logging
 from typing import Any, Dict, Optional
 
+
 class RecursiveTrainingRecovery:
     """
     Provides recovery mechanisms for training errors and failures.
@@ -20,7 +21,9 @@ class RecursiveTrainingRecovery:
         self.rollback_enabled = self.config.get("rollback_enabled", True)
         self.last_recovery_status = None
 
-    def recover(self, error: Exception, context: Optional[Dict[str, Any]] = None) -> bool:
+    def recover(
+        self, error: Exception, context: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """
         Attempts to recover from a training error.
 
@@ -65,6 +68,4 @@ class RecursiveTrainingRecovery:
         Returns:
             Dictionary with last recovery status.
         """
-        return {
-            "last_recovery_status": self.last_recovery_status
-        }
+        return {"last_recovery_status": self.last_recovery_status}

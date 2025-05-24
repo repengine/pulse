@@ -3,14 +3,16 @@ import sys
 from collections import Counter
 import matplotlib.pyplot as plt
 
+
 def load_trace(filepath):
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             for line in f:
                 yield json.loads(line)
     except Exception as e:
         print(f"Error loading trace: {e}")
         return []
+
 
 def plot_trace(events, keys=None):
     overlays = keys or ["hope", "despair", "rage", "fatigue"]
@@ -25,6 +27,7 @@ def plot_trace(events, keys=None):
     plt.tight_layout()
     plt.show()
 
+
 def plot_variable(events, var):
     vals = [e.get("variables", {}).get(var, None) for e in events]
     plt.plot(vals)
@@ -34,6 +37,7 @@ def plot_variable(events, var):
     plt.tight_layout()
     plt.show()
 
+
 def plot_tags(events):
     tags = [e.get("symbolic_tag", "N/A") for e in events]
     plt.plot(tags)
@@ -42,6 +46,7 @@ def plot_tags(events):
     plt.ylabel("Tag")
     plt.tight_layout()
     plt.show()
+
 
 def export_summary(events, out_path):
     try:
@@ -57,9 +62,12 @@ def export_summary(events, out_path):
     except Exception as e:
         print(f"Export error: {e}")
 
+
 def main():
     if len(sys.argv) < 2 or "--help" in sys.argv:
-        print("Usage: python simulation_trace_viewer.py <trace.jsonl> [--summary] [--plot] [--plot-var var] [--plot-tags] [--export-summary out.txt]")
+        print(
+            "Usage: python simulation_trace_viewer.py <trace.jsonl> [--summary] [--plot] [--plot-var var] [--plot-tags] [--export-summary out.txt]"
+        )
         return
     filepath = sys.argv[1]
     summary_mode = "--summary" in sys.argv
@@ -95,6 +103,7 @@ def main():
     else:
         for i, event in enumerate(events):
             print(f"Event {i}: {event}")
+
 
 if __name__ == "__main__":
     main()

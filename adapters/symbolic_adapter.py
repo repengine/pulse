@@ -1,6 +1,7 @@
 from interfaces.symbolic_interface import SymbolicInterface
 from symbolic_system import symbolic_executor, symbolic_alignment_engine
 
+
 class SymbolicAdapter(SymbolicInterface):
     def apply_symbolic_upgrade(self, forecast, upgrade_map):
         return symbolic_executor.apply_symbolic_upgrade(forecast, upgrade_map)

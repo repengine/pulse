@@ -51,14 +51,18 @@ def decay_confidence_and_priority(
     forecast: Dict,
     decay_per_hour: float = 0.01,
     min_confidence: float = 0.1,
-    min_priority: float = 0.05
+    min_priority: float = 0.05,
 ) -> Dict:
     """
     Applies linear decay to confidence and priority score.
     """
     age = get_forecast_age(forecast)
-    forecast["confidence"] = round(max(min_confidence, forecast.get("confidence", 1.0) - decay_per_hour * age), 3)
-    forecast["priority_score"] = round(max(min_priority, forecast.get("priority_score", 0.5) - decay_per_hour * age), 3)
+    forecast["confidence"] = round(
+        max(min_confidence, forecast.get("confidence", 1.0) - decay_per_hour * age), 3
+    )
+    forecast["priority_score"] = round(
+        max(min_priority, forecast.get("priority_score", 0.5) - decay_per_hour * age), 3
+    )
     forecast["age_hours"] = age
 
     if age > 12:
@@ -71,7 +75,9 @@ def decay_confidence_and_priority(
     return forecast
 
 
-def prune_stale_forecasts(forecasts: List[Dict], max_age_hours: float = 24.0) -> List[Dict]:
+def prune_stale_forecasts(
+    forecasts: List[Dict], max_age_hours: float = 24.0
+) -> List[Dict]:
     """
     Filters out forecasts older than max_age_hours.
     """
@@ -80,10 +86,13 @@ def prune_stale_forecasts(forecasts: List[Dict], max_age_hours: float = 24.0) ->
 
 def simulate_age_decay_test():
     from forecast_output.pfpa_logger import PFPA_ARCHIVE
+
     logger.info("\n[DECAY TEST] Age-based trust decay preview:")
     for f in PFPA_ARCHIVE[-5:]:
         decay_confidence_and_priority(f)
-        logger.info(f"→ {f.get('trace_id')} | Age: {f['age_hours']}h | Conf: {f['confidence']} | Priority: {f.get('priority_score')} | {f.get('age_tag')}")
+        logger.info(
+            f"→ {f.get('trace_id')} | Age: {f['age_hours']}h | Conf: {f['confidence']} | Priority: {f.get('priority_score')} | {f.get('age_tag')}"
+        )
 
 
 if __name__ == "__main__":

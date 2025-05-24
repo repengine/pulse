@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from pydantic import ConfigDict
 from typing import Any, Dict, List, Union
 
+
 class ForecastSchema(BaseModel):
     """
     Schema definition for the forecast dictionary.
@@ -25,14 +26,21 @@ class ForecastSchema(BaseModel):
         rule_trace: Trace of rules used. Expected to be a list.
         trust: Trust score or value. Expected to be a float.
     """
+
     pulse_output: Any = Field(..., description="Output from the pulse system.")
     gpt_struct: Any = Field(..., description="Structure related to GPT processing.")
     gpt_output: str = Field(..., description="Raw output string from GPT.")
     pulse_domains: List[str] = Field(..., description="List of pulse domains involved.")
-    pulse_rules: List[Union[str, Dict[str, Any]]] = Field(..., description="List of pulse rules applied.") # Assuming rules can be strings or dicts
-    symbolic_tag: str = Field(..., description="Symbolic tag associated with the forecast.")
+    pulse_rules: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="List of pulse rules applied."
+    )  # Assuming rules can be strings or dicts
+    symbolic_tag: str = Field(
+        ..., description="Symbolic tag associated with the forecast."
+    )
     capital_outcome: Any = Field(..., description="Outcome related to capital.")
-    rule_trace: List[Any] = Field(..., description="Trace of rules used.") # More specific type if known
+    rule_trace: List[Any] = Field(
+        ..., description="Trace of rules used."
+    )  # More specific type if known
     trust: float = Field(..., description="Trust score or value.")
 
     model_config = ConfigDict(

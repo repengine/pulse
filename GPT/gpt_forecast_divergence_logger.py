@@ -19,12 +19,13 @@ import datetime
 
 DIVERGENCE_LOG_PATH = "gpt_forecast_divergence_log.jsonl"
 
+
 def log_forecast_divergence(
     pulse_output: Dict[str, Any],
     gpt_output: Dict[str, Any],
     divergence_type: str,
     metadata: Optional[Dict[str, Any]] = None,
-    log_path: str = DIVERGENCE_LOG_PATH
+    log_path: str = DIVERGENCE_LOG_PATH,
 ) -> None:
     """
     Logs a divergence event between Pulse and GPT outputs.
@@ -41,14 +42,14 @@ def log_forecast_divergence(
         "pulse_output": pulse_output,
         "gpt_output": gpt_output,
         "divergence_type": divergence_type,
-        "metadata": metadata or {}
+        "metadata": metadata or {},
     }
     with open(log_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
 
+
 def tag_divergence_type(
-    pulse_output: Dict[str, Any],
-    gpt_output: Dict[str, Any]
+    pulse_output: Dict[str, Any], gpt_output: Dict[str, Any]
 ) -> str:
     """
     Classifies the type of divergence between Pulse and GPT outputs.
@@ -62,6 +63,7 @@ def tag_divergence_type(
     if pulse_output.get("trust") != gpt_output.get("trust"):
         return "trust_divergence"
     return "strategic"
+
 
 def load_divergence_log(log_path: str = DIVERGENCE_LOG_PATH) -> List[Dict[str, Any]]:
     """
@@ -81,6 +83,7 @@ def load_divergence_log(log_path: str = DIVERGENCE_LOG_PATH) -> List[Dict[str, A
     except FileNotFoundError:
         pass
     return entries
+
 
 # Example usage (for testing)
 if __name__ == "__main__":

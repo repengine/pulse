@@ -6,6 +6,7 @@ Handles training/fine-tuning jobs and model registry interactions.
 
 from typing import Dict
 
+
 class ModelManager:
     def __init__(self, registry_uri: str) -> None:
         """
@@ -21,11 +22,7 @@ class ModelManager:
             model_info (dict): Metadata about the trained model (e.g., version, URI).
         """
         # TODO: implement training or fine-tuning logic
-        model_info = {
-            "model_uri": "",
-            "version": "",
-            "metrics": {}
-        }
+        model_info = {"model_uri": "", "version": "", "metrics": {}}
         return model_info
 
     def log_metrics(self, model_info: Dict, metrics: Dict) -> None:

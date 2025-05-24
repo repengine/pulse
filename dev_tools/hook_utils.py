@@ -18,11 +18,15 @@ Returned metadata: Dict[str, Dict[str, str]] with keys:
     - label: human-readable label
     - category: 'suite', 'batch', or 'tool'
 """
+
 import os
 import ast
 from typing import List, Dict, Any, Tuple
 
-def scan_for_hooks(search_paths: List[str]) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, str]]]:
+
+def scan_for_hooks(
+    search_paths: List[str],
+) -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, str]]]:
     """
     Scan directories for Python modules with CLI hook candidates.
     Args:
@@ -39,24 +43,45 @@ def scan_for_hooks(search_paths: List[str]) -> Tuple[List[Dict[str, Any]], Dict[
                 if fname.endswith(".py") and not fname.startswith("__"):
                     fpath = os.path.join(root, fname)
                     try:
-                        with open(fpath, 'r', encoding='utf-8') as f:
+                        with open(fpath, "r", encoding="utf-8") as f:
                             node = ast.parse(f.read(), filename=fpath)
                         # Detect main/run function or __hook__ tag
-                        has_main = any(isinstance(n, ast.FunctionDef) and n.name in ["main", "run"] for n in node.body)
-                        has_tag = any(isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "__hook__" for n in node.body)
+                        has_main = any(
+                            isinstance(n, ast.FunctionDef) and n.name in ["main", "run"]
+                            for n in node.body
+                        )
+                        has_tag = any(
+                            isinstance(n, ast.Assign)
+                            and getattr(n.targets[0], "id", "") == "__hook__"
+                            for n in node.body
+                        )
                         if has_main or has_tag:
-                            module_path = os.path.splitext(os.path.relpath(fpath, ".").replace(os.sep, "."))[0]
-                            hook_type = "test" if "test" in fname else "batch" if "batch" in fname else "tool"
-                            hookable_modules.append({
-                                "module": module_path,
-                                "path": fpath,
-                                "function": "main" if has_main else "run",
-                                "hook_type": hook_type
-                            })
+                            module_path = os.path.splitext(
+                                os.path.relpath(fpath, ".").replace(os.sep, ".")
+                            )[0]
+                            hook_type = (
+                                "test"
+                                if "test" in fname
+                                else "batch"
+                                if "batch" in fname
+                                else "tool"
+                            )
+                            hookable_modules.append(
+                                {
+                                    "module": module_path,
+                                    "path": fpath,
+                                    "function": "main" if has_main else "run",
+                                    "hook_type": hook_type,
+                                }
+                            )
                             key = fname.replace(".py", "")
                             metadata[key] = {
                                 "label": f"Auto-hooked CLI tool: {key}",
-                                "category": "suite" if "test" in fname else "batch" if "batch" in fname else "tool"
+                                "category": "suite"
+                                if "test" in fname
+                                else "batch"
+                                if "batch" in fname
+                                else "tool",
                             }
                     except Exception as e:
                         print(f"⚠️ Failed to parse {fname}: {e}")

@@ -16,7 +16,9 @@ import json
 from typing import List, Dict
 
 
-def track_variable_history(run_id: str, state_snapshots: List[Dict], output_dir: str = "history_logs") -> None:
+def track_variable_history(
+    run_id: str, state_snapshots: List[Dict], output_dir: str = "history_logs"
+) -> None:
     """
     Saves variable histories from a series of simulation states.
 
@@ -40,13 +42,12 @@ def track_variable_history(run_id: str, state_snapshots: List[Dict], output_dir:
                     continue
                 variables = snapshot.get("variables")
                 if not isinstance(variables, dict):
-                    print(f"⚠️ Warning: 'variables' missing or malformed in step {i}. Skipping.")
+                    print(
+                        f"⚠️ Warning: 'variables' missing or malformed in step {i}. Skipping."
+                    )
                     continue
                 try:
-                    record = {
-                        "step": i,
-                        "variables": variables
-                    }
+                    record = {"step": i, "variables": variables}
                     f.write(json.dumps(record) + "\n")
                 except TypeError as te:
                     print(f"⚠️ Serialization error at step {i}: {te}")

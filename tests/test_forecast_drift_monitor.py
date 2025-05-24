@@ -1,6 +1,7 @@
 import unittest
 from forecast_engine import forecast_drift_monitor
 
+
 class TestForecastDriftMonitor(unittest.TestCase):
     def test_score_drift(self):
         before = {"hope": {"avg_confidence": 0.7}, "despair": {"avg_confidence": 0.3}}
@@ -14,6 +15,7 @@ class TestForecastDriftMonitor(unittest.TestCase):
         # Only test import, not actual drift detection (river may not be installed)
         self.assertTrue(hasattr(forecast_drift_monitor, "ADWIN"))
         self.assertTrue(hasattr(forecast_drift_monitor, "KSWIN"))
+
 
 if __name__ == "__main__":
     unittest.main()

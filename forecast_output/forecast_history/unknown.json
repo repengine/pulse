@@ -5,10 +5,10 @@
   "top_drivers": [],
   "examples": [
     {
-      "value": 99.96807004064321,
+      "value": 99.97274176031351,
       "breakdown": {
         "simulation_based": 100.0,
-        "ai_adjustment": -0.1064331978559494
+        "ai_adjustment": -0.09086079895496368
       },
       "confidence_interval": null,
       "probability_distribution": null,

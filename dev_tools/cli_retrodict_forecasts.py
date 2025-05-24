@@ -10,10 +10,18 @@ import json
 from learning.learning import retrospective_analysis_batch
 
 parser = argparse.ArgumentParser(description="Retrodiction audit for forecast batches.")
-parser.add_argument("--forecasts", type=str, required=True, help="Path to forecasts (.jsonl)")
-parser.add_argument("--state", type=str, required=True, help="Path to current_state JSON")
-parser.add_argument("--output", type=str, default="retrodicted_forecasts.jsonl", help="Output file")
-parser.add_argument("--threshold", type=float, default=1.5, help="Retrodiction flag threshold")
+parser.add_argument(
+    "--forecasts", type=str, required=True, help="Path to forecasts (.jsonl)"
+)
+parser.add_argument(
+    "--state", type=str, required=True, help="Path to current_state JSON"
+)
+parser.add_argument(
+    "--output", type=str, default="retrodicted_forecasts.jsonl", help="Output file"
+)
+parser.add_argument(
+    "--threshold", type=float, default=1.5, help="Retrodiction flag threshold"
+)
 args = parser.parse_args()
 
 # Load input forecasts
@@ -30,7 +38,9 @@ with open(args.state, "r") as f:
     current_state = json.load(f)
 
 # Apply retrodiction
-scored = retrospective_analysis_batch(forecasts, current_state, threshold=args.threshold)
+scored = retrospective_analysis_batch(
+    forecasts, current_state, threshold=args.threshold
+)
 
 # Write to output
 with open(args.output, "w") as f:

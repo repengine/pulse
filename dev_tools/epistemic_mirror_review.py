@@ -8,6 +8,7 @@ Usage:
   python dev_tools/epistemic_mirror_review.py --summarize-divergence-log
   python dev_tools/epistemic_mirror_review.py --export-md <output.md>
 """
+
 import argparse
 import json
 from collections import Counter, defaultdict
@@ -15,13 +16,18 @@ from collections import Counter, defaultdict
 FOREIGN_ARCHIVE = "GPT/foreign_causal_archive.jsonl"
 DIVERGENCE_LOG = "GPT/gpt_forecast_divergence_log.jsonl"
 
+
 def summarize_foreign_fingerprints(path=FOREIGN_ARCHIVE):
     counts = Counter()
     try:
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 fp = json.loads(line)
-                key = fp.get("variable", "unknown") + ": " + fp.get("consequence", "unknown")
+                key = (
+                    fp.get("variable", "unknown")
+                    + ": "
+                    + fp.get("consequence", "unknown")
+                )
                 counts[key] += 1
     except FileNotFoundError:
         print(f"No foreign archive found at {path}")
@@ -29,6 +35,7 @@ def summarize_foreign_fingerprints(path=FOREIGN_ARCHIVE):
     print("\nForeign Causal Fingerprints (unmatched):")
     for k, v in counts.most_common():
         print(f"- {k}: {v}")
+
 
 def summarize_divergence_log(path=DIVERGENCE_LOG):
     counts = Counter()
@@ -44,6 +51,7 @@ def summarize_divergence_log(path=DIVERGENCE_LOG):
     print("\nDivergence Log Summary:")
     for k, v in counts.most_common():
         print(f"- {k}: {v}")
+
 
 def export_md_summary(output_md):
     lines = ["# Epistemic Mirror Review\n"]
@@ -74,6 +82,7 @@ def export_md_summary(output_md):
         f.write("\n".join(lines))
     print(f"✅ Exported epistemic mirror summary to {output_md}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Epistemic Mirror Review Utility")
     parser.add_argument("--summarize-foreign-fingerprints", action="store_true")
@@ -86,6 +95,7 @@ def main():
         summarize_divergence_log()
     if args.export_md:
         export_md_summary(args.export_md)
+
 
 if __name__ == "__main__":
     main()

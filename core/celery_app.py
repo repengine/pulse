@@ -1,26 +1,32 @@
 """
 Celery app and tasks for Pulse distributed ingestion and scoring
 """
+
 import os
 from celery import Celery
-from core.pulse_config import get_config
 from core.metrics import signal_ingest_counter, signal_score_histogram
 from iris.iris_scraper import IrisScraper
 import logging
-from datetime import datetime, timezone
 
 BROKER_URL = os.getenv("PULSE_CELERY_BROKER", "redis://localhost:6379/0")
 BACKEND_URL = os.getenv("PULSE_CELERY_BACKEND", "redis://localhost:6379/1")
 
 celery_app = Celery("pulse", broker=BROKER_URL, backend=BACKEND_URL)
-celery_app.conf.update(task_track_started=True, task_serializer="json", result_serializer="json", accept_content=["json"])
+celery_app.conf.update(
+    task_track_started=True,
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+)
 
 scraper = IrisScraper()
+
 
 @celery_app.task(bind=True, name="ingest_and_score_signal")
 def ingest_and_score_signal(self, signal_data):
     """Celery task: ingest, score, and enrich a signal."""
     import traceback
+
     trust_score = 0.0
     alignment_score = 0.0
     try:
@@ -29,13 +35,14 @@ def ingest_and_score_signal(self, signal_data):
             name=signal_data["name"],
             value=signal_data["value"],
             source=signal_data.get("source", "celery"),
-            timestamp=signal_data.get("timestamp")
+            timestamp=signal_data.get("timestamp"),
         )
         if result is not None:
             signal_ingest_counter.labels(source=result["source"]).inc()
             # If this is a forecast (has 'forecast' key), enrich trust metadata
             if "forecast" in result:
                 from trust_system.trust_engine import enrich_trust_metadata
+
                 try:
                     enriched = enrich_trust_metadata(result)
                     result.update(enriched)
@@ -58,23 +65,29 @@ def ingest_and_score_signal(self, signal_data):
         try:
             from core.feature_store import feature_store
             from forecast_engine.ai_forecaster import update as ai_update
+
             feature_store.clear_cache()
             feature_names = feature_store.list_features()
-            features_values = [feature_store.get(name).iloc[-1] for name in feature_names]
+            features_values = [
+                feature_store.get(name).iloc[-1] for name in feature_names
+            ]
             ai_update([{"features": features_values, "adjustment": trust_score}])
         except Exception as e:
             logging.getLogger("pulse.celery").error(f"Real-time update error: {e}")
         # Optionally: save to DB, log, or further process
         return result
     except Exception as e:
-        logging.getLogger("pulse.celery").error(f"Celery ingest_and_score_signal error: {e}\n{traceback.format_exc()}")
+        logging.getLogger("pulse.celery").error(
+            f"Celery ingest_and_score_signal error: {e}\n{traceback.format_exc()}"
+        )
         raise self.retry(exc=e, countdown=10, max_retries=3)
+
 
 # Example periodic task (for Celery beat)
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    from datetime import timedelta
     sender.add_periodic_task(60.0, health_check.s(), name="health_check_every_minute")
+
 
 @celery_app.task(name="health_check")
 def health_check():

@@ -13,9 +13,14 @@ All rule access and validation should use shared utilities from rule_matching_ut
 
 import json
 from typing import Optional
-from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints, validate_fingerprint_schema
+from simulation_engine.rules.rule_matching_utils import (
+    get_all_rule_fingerprints,
+    validate_fingerprint_schema,
+)
+import logging
 
 # Use centralized get_all_rule_fingerprints for unified rule access
+
 
 def suggest_fingerprint_from_delta(delta: dict, rule_id: Optional[str] = None) -> dict:
     """
@@ -25,8 +30,9 @@ def suggest_fingerprint_from_delta(delta: dict, rule_id: Optional[str] = None) -
         raise ValueError("Delta must be a non-empty dict")
     return {
         "rule_id": rule_id or "NEW_RULE",
-        "effects": {k: float(v) for k, v in delta.items()}
+        "effects": {k: float(v) for k, v in delta.items()},
     }
+
 
 def suggest_fingerprints(forecasts: list, min_conf: float = 0.7) -> list:
     """
@@ -43,8 +49,15 @@ def suggest_fingerprints(forecasts: list, min_conf: float = 0.7) -> list:
     for f in forecasts:
         conf = f.get("confidence", 0)
         if conf >= min_conf:
-            suggestions.append({"trace_id": f["trace_id"], "weight": conf, "effects": f.get("effects", {})})
+            suggestions.append(
+                {
+                    "trace_id": f["trace_id"],
+                    "weight": conf,
+                    "effects": f.get("effects", {}),
+                }
+            )
     return sorted(suggestions, key=lambda x: -x["weight"])
+
 
 def validate_fingerprints_file(path: str):
     try:
@@ -57,6 +70,7 @@ def validate_fingerprints_file(path: str):
             print("✅ All fingerprints valid.")
     except Exception as e:
         print(f"Validation error: {e}")
+
 
 def validate_new_rule(rule: dict, test_data: list) -> float:
     """
@@ -72,11 +86,12 @@ def validate_new_rule(rule: dict, test_data: list) -> float:
             correct += 1
     return correct / len(test_data)
 
-import logging
+
 
 # Configure logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def submit_rule_for_approval(rule, approver: Optional[str] = None):
     """Stub: Submit a new rule for approval. In production, this would route to a review queue or require multi-party signoff."""
@@ -84,17 +99,29 @@ def submit_rule_for_approval(rule, approver: Optional[str] = None):
     # Placeholder for approval workflow logic
     return True
 
+
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Rule Fingerprint Suggestion Review CLI")
+
+    parser = argparse.ArgumentParser(
+        description="Rule Fingerprint Suggestion Review CLI"
+    )
     parser.add_argument("--delta", nargs="+", help="Delta: key1=val1 key2=val2 ...")
     parser.add_argument("--rule-id", type=str, default=None)
     parser.add_argument("--validate", type=str, help="Validate fingerprints file")
-    parser.add_argument("--test-data", type=str, help="Path to test data (JSON list of deltas)")
+    parser.add_argument(
+        "--test-data", type=str, help="Path to test data (JSON list of deltas)"
+    )
     parser.add_argument("--input", type=str, required=True, help="Forecasts JSON file")
-    parser.add_argument("--min-conf", type=float, default=0.7, help="Minimum confidence")
-    parser.add_argument("--approve", action="store_true", help="Interactive approval workflow")
-    parser.add_argument("--output", type=str, default=None, help="Output file for approved suggestions")
+    parser.add_argument(
+        "--min-conf", type=float, default=0.7, help="Minimum confidence"
+    )
+    parser.add_argument(
+        "--approve", action="store_true", help="Interactive approval workflow"
+    )
+    parser.add_argument(
+        "--output", type=str, default=None, help="Output file for approved suggestions"
+    )
     args = parser.parse_args()
     if args.delta:
         try:
@@ -127,7 +154,9 @@ if __name__ == "__main__":
                     approved.append(s)
                 else:
                     s["approved"] = False
-            print(f"Approved {len([s for s in approved if s['approved']])} of {len(suggestions)} suggestions.")
+            print(
+                f"Approved {len([s for s in approved if s['approved']])} of {len(suggestions)} suggestions."
+            )
             if args.output:
                 with open(args.output, "w", encoding="utf-8") as f:
                     json.dump([s for s in approved if s["approved"]], f, indent=2)

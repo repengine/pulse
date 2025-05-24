@@ -40,7 +40,9 @@ class IrisScraper:
         self.archive = IrisArchive()
         os.makedirs(SIGNAL_LOG_DIR, exist_ok=True)
 
-    def ingest_signal(self, name: str, value: float, source: str, timestamp: Optional[datetime] = None) -> Optional[Dict[str, Any]]:
+    def ingest_signal(
+        self, name: str, value: float, source: str, timestamp: Optional[datetime] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Ingest a single signal, apply trust and symbolism.
         """
@@ -60,7 +62,7 @@ class IrisScraper:
             "symbolic_tag": symbolic_tag,
             "recency_score": round(recency_score, 3),
             "anomaly_flag": anomaly_flag,
-            "sti": sti
+            "sti": sti,
         }
 
         self.signal_log.append(signal_record)
@@ -77,13 +79,16 @@ class IrisScraper:
                 name = sig.get("name")
                 value = sig.get("value")
                 if name is None or value is None:
-                    logger.error("[IrisScraper] Signal missing required 'name' or 'value': %s", sig)
+                    logger.error(
+                        "[IrisScraper] Signal missing required 'name' or 'value': %s",
+                        sig,
+                    )
                     continue
                 self.ingest_signal(
                     name=name,
                     value=value,
                     source=sig.get("source", "plugin"),
-                    timestamp=sig.get("timestamp")
+                    timestamp=sig.get("timestamp"),
                 )
             except Exception as e:
                 logger.error("[IrisScraper] Failed to ingest plugin signal: %s", e)
@@ -107,6 +112,7 @@ class IrisScraper:
         """
         self.signal_log = []
 
+
 # Example CLI usage (for testing)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -120,5 +126,5 @@ if __name__ == "__main__":
         ]
 
     iris = IrisScraper()
-    iris.plugin_manager.autoload()   # <- new line
+    iris.plugin_manager.autoload()  # <- new line
     iris.batch_ingest_from_plugins()

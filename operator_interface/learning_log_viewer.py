@@ -9,10 +9,8 @@ Author: Pulse v0.31
 
 import json
 import os
-import sys
 from typing import List, Dict, Optional, Any
 from collections import defaultdict
-from datetime import datetime
 from core.path_registry import PATHS
 from core.bayesian_trust_tracker import bayesian_trust_tracker
 
@@ -40,12 +38,20 @@ def load_learning_events(limit: Optional[int] = None) -> List[Dict[str, Any]]:
                 try:
                     event = json.loads(line)
                     # Validate event structure
-                    if isinstance(event, dict) and "event_type" in event and "timestamp" in event:
+                    if (
+                        isinstance(event, dict)
+                        and "event_type" in event
+                        and "timestamp" in event
+                    ):
                         events.append(event)
                     else:
-                        print(f"[LearningLogViewer] Skipping malformed event at line {idx+1}")
+                        print(
+                            f"[LearningLogViewer] Skipping malformed event at line {idx + 1}"
+                        )
                 except json.JSONDecodeError as jde:
-                    print(f"[LearningLogViewer] JSON decode error at line {idx+1}: {jde}")
+                    print(
+                        f"[LearningLogViewer] JSON decode error at line {idx + 1}: {jde}"
+                    )
         if limit:
             return events[-limit:]
         return events
@@ -70,7 +76,9 @@ def summarize_learning_events(events: List[Dict[str, Any]]) -> Dict[str, int]:
     return dict(summary)
 
 
-def filter_events(events: List[Dict[str, Any]], event_type: str) -> List[Dict[str, Any]]:
+def filter_events(
+    events: List[Dict[str, Any]], event_type: str
+) -> List[Dict[str, Any]]:
     """
     Filters events by event_type.
 
@@ -109,12 +117,18 @@ def render_event_digest(events: List[Dict[str, Any]]) -> None:
 def display_variable_trust(variable_id):
     trust = bayesian_trust_tracker.get_trust(variable_id)
     conf_int = bayesian_trust_tracker.get_confidence_interval(variable_id)
-    print(f"Variable {variable_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})")
+    print(
+        f"Variable {variable_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})"
+    )
+
 
 def display_rule_trust(rule_id):
     trust = bayesian_trust_tracker.get_trust(rule_id)
     conf_int = bayesian_trust_tracker.get_confidence_interval(rule_id)
-    print(f"Rule {rule_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})")
+    print(
+        f"Rule {rule_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})"
+    )
+
 
 # Example usage in your dashboard rendering logic:
 # for var_id in variable_ids:
@@ -129,8 +143,11 @@ def main():
     Supports optional filtering by event type and limiting number of events.
     """
     import argparse
+
     parser = argparse.ArgumentParser(description="Pulse Learning Log Viewer")
-    parser.add_argument("--limit", type=int, default=20, help="Number of recent events to show")
+    parser.add_argument(
+        "--limit", type=int, default=20, help="Number of recent events to show"
+    )
     parser.add_argument("--filter", type=str, default=None, help="Filter by event_type")
     parser.add_argument("--test", action="store_true", help="Run a simple self-test")
     args = parser.parse_args()
@@ -138,9 +155,21 @@ def main():
     if args.test:
         # Simple test: create a fake event and print summary
         test_events = [
-            {"timestamp": "2024-06-01T12:00:00Z", "event_type": "test_event", "data": {"foo": "bar"}},
-            {"timestamp": "2024-06-01T12:01:00Z", "event_type": "test_event", "data": {"baz": 42}},
-            {"timestamp": "2024-06-01T12:02:00Z", "event_type": "other_event", "data": {}}
+            {
+                "timestamp": "2024-06-01T12:00:00Z",
+                "event_type": "test_event",
+                "data": {"foo": "bar"},
+            },
+            {
+                "timestamp": "2024-06-01T12:01:00Z",
+                "event_type": "test_event",
+                "data": {"baz": 42},
+            },
+            {
+                "timestamp": "2024-06-01T12:02:00Z",
+                "event_type": "other_event",
+                "data": {},
+            },
         ]
         print("Running self-test...")
         summary = summarize_learning_events(test_events)

@@ -10,24 +10,24 @@ Author: Pulse v0.4
 
 from typing import Dict, List, Optional, Any, Callable
 from memory.forecast_memory import ForecastMemory
-from utils.log_utils import get_logger
+import logging
 from core.path_registry import PATHS
-from pathlib import Path
 from simulation_engine.worldstate import WorldState
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 retrodiction_memory = ForecastMemory()
+
 
 def run_retrodiction_simulation(
     initial_state: WorldState,
     turns: int,
     retrodiction_loader: Optional[object] = None,
     logger_fn: Optional[Callable[[str], None]] = None,
-    injection_mode: str = "seed_then_free"
+    injection_mode: str = "seed_then_free",
 ) -> List[Dict[str, Any]]:
     """
     Runs retrodiction simulation using the unified simulate_forward function in retrodiction mode.
@@ -43,15 +43,17 @@ def run_retrodiction_simulation(
         List[Dict[str, Any]]: List of simulation results per turn with trust metadata.
     """
     from simulation_engine.simulator_core import simulate_forward
+
     results = simulate_forward(
         state=initial_state,
         turns=turns,
         retrodiction_mode=True,
         retrodiction_loader=retrodiction_loader,
         logger=logger_fn,
-        injection_mode=injection_mode
+        injection_mode=injection_mode,
     )
     return results
+
 
 def save_retrodiction_results(results: List[Dict[str, Any]]) -> None:
     """
@@ -60,6 +62,7 @@ def save_retrodiction_results(results: List[Dict[str, Any]]) -> None:
     Args:
         results (List[Dict[str, Any]]): Retrodiction simulation results.
     """
+
     def overlay_to_dict(overlay):
         if hasattr(overlay, "as_dict"):
             return overlay.as_dict()
@@ -68,7 +71,9 @@ def save_retrodiction_results(results: List[Dict[str, Any]]) -> None:
     if isinstance(results, list):
         for res in results:
             if not isinstance(res, dict):
-                logger.warning(f"Skipping non-dictionary result of type {type(res)} in save_retrodiction_results")
+                logger.warning(
+                    f"Skipping non-dictionary result of type {type(res)} in save_retrodiction_results"
+                )
                 continue
             if "overlays" in res:
                 res["overlays"] = overlay_to_dict(res["overlays"])
@@ -86,6 +91,7 @@ def save_retrodiction_results(results: List[Dict[str, Any]]) -> None:
                     fork["overlays"] = overlay_to_dict(fork["overlays"])
         retrodiction_memory.store(results)
 
+
 def save_forecast(forecast_obj: Dict) -> None:
     """
     Saves a forecast object to persistent memory, ensuring overlays are serializable.
@@ -93,6 +99,7 @@ def save_forecast(forecast_obj: Dict) -> None:
     Args:
         forecast_obj (Dict): Forecast dictionary to save.
     """
+
     def overlay_to_dict(overlay):
         if hasattr(overlay, "as_dict"):
             return overlay.as_dict()
@@ -106,12 +113,14 @@ def save_forecast(forecast_obj: Dict) -> None:
                 fork["overlays"] = overlay_to_dict(fork["overlays"])
     forecast_memory.store(forecast_obj)
 
+
 # === Local test ===
 def simulate_retrodiction_test():
     """
     Local test for retrodiction simulation using unified simulate_forward.
     """
     from forecast_output.pfpa_logger import pfpa_memory
+
     if not pfpa_memory.get_recent(1):
         logger.info("No forecasts in PFPA archive; skipping retrodiction.")
         return
@@ -130,11 +139,14 @@ def simulate_retrodiction_test():
         initial_state=initial_state,
         turns=turns,
         retrodiction_loader=retrodiction_loader,
-        logger_fn=logger.info
+        logger_fn=logger.info,
     )
     for r in results:
-        logger.info(f"[RETRO] Turn {r['turn']} | Trust: {r.get('trust_label', 'N/A')} | Confidence: {r.get('confidence', 'N/A')}")
+        logger.info(
+            f"[RETRO] Turn {r['turn']} | Trust: {r.get('trust_label', 'N/A')} | Confidence: {r.get('confidence', 'N/A')}"
+        )
     save_retrodiction_results(results)
+
 
 if __name__ == "__main__":
     simulate_retrodiction_test()

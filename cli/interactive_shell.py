@@ -39,43 +39,51 @@ from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_config import DEFAULT_DECAY_RATE
-from core.pulse_config import OVERLAY_NAMES
+
 from memory.pulse_memory_audit_report import audit_memory
 from memory.forecast_memory import ForecastMemory
 from trust_system.trust_engine import TrustEngine
 
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 logger = get_logger(__name__)
 
-INTERACTIVE_LOG_PATH = PATHS.get("INTERACTIVE_LOG_PATH", "logs/interactive_shell_log.jsonl")
+INTERACTIVE_LOG_PATH = PATHS.get(
+    "INTERACTIVE_LOG_PATH", "logs/interactive_shell_log.jsonl"
+)
 
 # Use overlays from config if available
-symbolic_overlays = {name: 0.5 for name in getattr(__import__('core.pulse_config'), 'OVERLAY_NAMES', ["hope", "despair", "rage", "fatigue", "trust"])}
+symbolic_overlays = {
+    name: 0.5
+    for name in getattr(
+        __import__("core.pulse_config"),
+        "OVERLAY_NAMES",
+        ["hope", "despair", "rage", "fatigue", "trust"],
+    )
+}
+
 
 # Ensure log dir exists
 def ensure_log_dir(path: str) -> None:
     """Ensure the directory for the log file exists."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
+
 # Structured logger
 def log_interaction(command: str, result: str) -> None:
     """Log a shell interaction to the JSONL log file."""
-    ensure_log_dir(INTERACTIVE_LOG_PATH)
+    ensure_log_dir(str(INTERACTIVE_LOG_PATH))
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "command": command,
         "result": result,
-        "metadata": {
-            "version": "v0.22.2",
-            "source": "pulse_interactive_shell.py"
-        }
+        "metadata": {"version": "v0.22.2", "source": "pulse_interactive_shell.py"},
     }
     try:
         with open(INTERACTIVE_LOG_PATH, "a") as f:
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
         print(f"[LOG ERROR] {e}")
+
 
 # Command handlers
 def cmd_help(args: List[str]) -> None:
@@ -88,11 +96,13 @@ def cmd_help(args: List[str]) -> None:
         print(f"  {name:<16} {doc.strip().splitlines()[0] if doc else ''}")
     log_interaction("help", "displayed")
 
+
 def cmd_show_overlays(args: List[str]) -> None:
     """Display current overlay values"""
     for k, v in symbolic_overlays.items():
         print(f"  {k:<8}: {v:.3f}")
     log_interaction("show-overlays", "ok")
+
 
 def cmd_list_overlays(args: List[str]) -> None:
     """List all available overlay names"""
@@ -100,6 +110,7 @@ def cmd_list_overlays(args: List[str]) -> None:
     for k in symbolic_overlays.keys():
         print(f"  {k}")
     log_interaction("list-overlays", "ok")
+
 
 def cmd_set_overlay(args: List[str]) -> None:
     """Set a symbolic overlay value"""
@@ -120,6 +131,7 @@ def cmd_set_overlay(args: List[str]) -> None:
         print("Invalid numeric value.")
         log_interaction("set-overlay", "error")
 
+
 def cmd_run_turns(args: List[str]) -> None:
     """Run N turns of simulation (stub)"""
     if len(args) != 1 or not args[0].isdigit():
@@ -127,6 +139,7 @@ def cmd_run_turns(args: List[str]) -> None:
         return
     print(f"[Stub] Running {args[0]} turns...")
     log_interaction("run-turns", f"{args[0]} turns run")
+
 
 def cmd_load_worldstate(args: List[str]) -> None:
     """Load a saved worldstate (stub)"""
@@ -136,10 +149,12 @@ def cmd_load_worldstate(args: List[str]) -> None:
     print(f"[Stub] Loaded worldstate from {args[0]}")
     log_interaction("load-worldstate", f"{args[0]}")
 
+
 def cmd_show_forecast(args: List[str]) -> None:
     """Trigger forecast generation (stub)"""
     print("[Stub] Forecast generated.")
     log_interaction("show-forecast", "run")
+
 
 def cmd_compare_drift(args: List[str]) -> None:
     """Compare drift between two forecast logs"""
@@ -149,12 +164,14 @@ def cmd_compare_drift(args: List[str]) -> None:
     print(f"[Stub] Compared {args[0]} vs {args[1]}")
     log_interaction("compare-drift", f"{args[0]} vs {args[1]}")
 
+
 def cmd_memory_audit(args: List[str]) -> None:
     """
     Run memory audit and print results.
     """
     memory = ForecastMemory()
     audit_memory(memory)
+
 
 def cmd_coherence_check(args: List[str]) -> None:
     """
@@ -169,6 +186,7 @@ def cmd_coherence_check(args: List[str]) -> None:
     else:
         print("✅ All forecasts are coherent.")
 
+
 def cmd_view_trace(args: List[str]) -> None:
     """
     View a simulation trace file.
@@ -178,11 +196,13 @@ def cmd_view_trace(args: List[str]) -> None:
         print("Usage: view-trace [trace.jsonl]")
         return
     from simulation_engine.utils.simulation_trace_viewer import load_trace
+
     try:
         for i, event in enumerate(load_trace(args[0])):
             print(f"Event {i}: {event}")
     except Exception as e:
         print(f"Trace load error: {e}")
+
 
 def cmd_show_log(args: List[str]) -> None:
     """Show recent interaction log entries"""
@@ -198,10 +218,12 @@ def cmd_show_log(args: List[str]) -> None:
         print(f"Log read error: {e}")
         log_interaction("show-log", "error")
 
+
 def cmd_exit(args: List[str]) -> None:
     """Exit the strategist shell"""
     log_interaction("exit", "shutdown")
     raise SystemExit("Goodbye.")
+
 
 # Command router
 COMMANDS: Dict[str, Callable[[List[str]], None]] = {
@@ -221,11 +243,12 @@ COMMANDS: Dict[str, Callable[[List[str]], None]] = {
     "show-log": cmd_show_log,
 }
 
+
 def run_shell() -> None:
     """Main interactive shell loop."""
     print("🔮 Pulse Strategist Shell v0.22.2")
     print("Type 'help' for commands. Use tab for completion. Use up/down for history.")
-    readline.parse_and_bind('tab: complete')
+    readline.parse_and_bind("tab: complete")  # type: ignore
     while True:
         try:
             raw = input("pulse> ").strip()
@@ -247,6 +270,7 @@ def run_shell() -> None:
         except Exception as e:
             logger.error(f"[ERROR] {e}")
             log_interaction("shell-error", str(e))
+
 
 if __name__ == "__main__":
     run_shell()

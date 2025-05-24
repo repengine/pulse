@@ -25,13 +25,18 @@ from typing import List, Dict, Tuple
 from datetime import datetime
 from collections import defaultdict
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_learning_log import log_learning_event  # 🧠 Enhancement 2
 
-CONTRADICTION_LOG_PATH = PATHS.get("CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl")
+CONTRADICTION_LOG_PATH = PATHS.get(
+    "CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl"
+)
+
 
 def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
+
 
 def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str, str]]:
     """
@@ -67,23 +72,49 @@ def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str
                     if asset in end2:
                         delta = end1[asset] - end2[asset]
                         if abs(delta) > 1000:  # Highly divergent outcome
-                            contradictions.append((id1, id2, f"Conflict on {asset} (${delta:.2f})"))
-                            contradiction_pairs.append((forecasts.index(f1), forecasts.index(f2), f"Conflict on {asset} (${delta:.2f})"))
+                            contradictions.append(
+                                (id1, id2, f"Conflict on {asset} (${delta:.2f})")
+                            )
+                            contradiction_pairs.append(
+                                (
+                                    forecasts.index(f1),
+                                    forecasts.index(f2),
+                                    f"Conflict on {asset} (${delta:.2f})",
+                                )
+                            )
 
                 # Symbolic contradictions
                 sym1 = f1.get("forecast", {}).get("symbolic_change", {})
                 sym2 = f2.get("forecast", {}).get("symbolic_change", {})
                 if sym1 and sym2:
                     hope_gap = abs(sym1.get("hope", 0.5) - sym2.get("hope", 0.5))
-                    despair_gap = abs(sym1.get("despair", 0.5) - sym2.get("despair", 0.5))
+                    despair_gap = abs(
+                        sym1.get("despair", 0.5) - sym2.get("despair", 0.5)
+                    )
                     if hope_gap > 0.6 and despair_gap > 0.6:
-                        contradictions.append((id1, id2, "Symbolic paradox: Hope vs Despair divergence"))
-                        contradiction_pairs.append((forecasts.index(f1), forecasts.index(f2), "Symbolic paradox: Hope vs Despair divergence"))
+                        contradictions.append(
+                            (id1, id2, "Symbolic paradox: Hope vs Despair divergence")
+                        )
+                        contradiction_pairs.append(
+                            (
+                                forecasts.index(f1),
+                                forecasts.index(f2),
+                                "Symbolic paradox: Hope vs Despair divergence",
+                            )
+                        )
 
                 # Divergence fork flag
                 if f1.get("parent_id") == f2.get("parent_id") and id1 != id2:
-                    contradictions.append((id1, id2, "Divergence fork from same parent"))
-                    contradiction_pairs.append((forecasts.index(f1), forecasts.index(f2), "Divergence fork from same parent"))
+                    contradictions.append(
+                        (id1, id2, "Divergence fork from same parent")
+                    )
+                    contradiction_pairs.append(
+                        (
+                            forecasts.index(f1),
+                            forecasts.index(f2),
+                            "Divergence fork from same parent",
+                        )
+                    )
 
     # 🧠 Escalate to Trust Engine: Mark involved forecasts as contradictory
     for i, j, reason in contradiction_pairs:
@@ -92,11 +123,14 @@ def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str
                 forecasts[idx]["confidence_status"] = "❌ Contradictory"
         # 🧠 Log to pulse_learning_log.py
         try:
-            log_learning_event("forecast_contradiction_detected", {
-                "trace_id_1": forecasts[i].get("trace_id", f"f_{i}"),
-                "trace_id_2": forecasts[j].get("trace_id", f"f_{j}"),
-                "reason": reason
-            })
+            log_learning_event(
+                "forecast_contradiction_detected",
+                {
+                    "trace_id_1": forecasts[i].get("trace_id", f"f_{i}"),
+                    "trace_id_2": forecasts[j].get("trace_id", f"f_{j}"),
+                    "reason": reason,
+                },
+            )
         except Exception as e:
             print(f"[ContradictionDetector] Learning log error: {e}")
 
@@ -104,26 +138,46 @@ def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str
     try:
         with open(CONTRADICTION_LOG_PATH, "a") as f:
             for c in contradictions:
-                f.write(json.dumps({
-                    "trace_id_1": c[0],
-                    "trace_id_2": c[1],
-                    "reason": c[2],
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "metadata": {
-                        "source": "forecast_contradiction_detector.py",
-                        "version": "v0.019.0"
-                    }
-                }) + "\n")
+                f.write(
+                    json.dumps(
+                        {
+                            "trace_id_1": c[0],
+                            "trace_id_2": c[1],
+                            "reason": c[2],
+                            "timestamp": datetime.utcnow().isoformat(),
+                            "metadata": {
+                                "source": "forecast_contradiction_detector.py",
+                                "version": "v0.019.0",
+                            },
+                        }
+                    )
+                    + "\n"
+                )
     except Exception as e:
         print(f"[ContradictionDetector] Log error: {e}")
 
     return contradictions
 
+
 # Example test
 if __name__ == "__main__":
     # Two forecasts with same origin and diverging symbolic + capital outputs
-    f1 = {"trace_id": "F001", "origin_turn": 5, "forecast": {"end_capital": {"nvda": 10000}, "symbolic_change": {"hope": 0.8, "despair": 0.1}}}
-    f2 = {"trace_id": "F002", "origin_turn": 5, "forecast": {"end_capital": {"nvda": 8700}, "symbolic_change": {"hope": 0.1, "despair": 0.9}}}
+    f1 = {
+        "trace_id": "F001",
+        "origin_turn": 5,
+        "forecast": {
+            "end_capital": {"nvda": 10000},
+            "symbolic_change": {"hope": 0.8, "despair": 0.1},
+        },
+    }
+    f2 = {
+        "trace_id": "F002",
+        "origin_turn": 5,
+        "forecast": {
+            "end_capital": {"nvda": 8700},
+            "symbolic_change": {"hope": 0.1, "despair": 0.9},
+        },
+    }
     contradictions = detect_forecast_contradictions([f1, f2])
     for c in contradictions:
         print(f"❗ Contradiction: {c}")

@@ -17,7 +17,9 @@ import matplotlib.pyplot as plt
 from typing import List, Tuple, Dict, Optional
 
 
-def load_variable_trace(file_path: str, var_names: List[str]) -> Dict[str, Tuple[List[int], List[float]]]:
+def load_variable_trace(
+    file_path: str, var_names: List[str]
+) -> Dict[str, Tuple[List[int], List[float]]]:
     """
     Loads variable values across steps from JSONL file.
 
@@ -52,7 +54,9 @@ def load_variable_trace(file_path: str, var_names: List[str]) -> Dict[str, Tuple
     return traces
 
 
-def plot_variables(traces: Dict[str, Tuple[List[int], List[float]]], export_path: Optional[str] = None):
+def plot_variables(
+    traces: Dict[str, Tuple[List[int], List[float]]], export_path: Optional[str] = None
+):
     """
     Plots one or more variables on a shared timeline.
 
@@ -120,10 +124,18 @@ def plot_alignment_scores(path: str, path_out: Optional[str] = None, **kwargs):
 def main():
     parser = argparse.ArgumentParser(description="Pulse Variable Grapher")
     parser.add_argument("--file", type=str, help="Path to variable trace file (.jsonl)")
-    parser.add_argument("--var", type=str, nargs="+", help="Variable(s) to plot (e.g. hope rage)")
-    parser.add_argument("--export", type=str, help="Optional: path to save plot image (e.g. graph.png)")
-    parser.add_argument("--alignment", type=str, help="Path to JSON or JSONL with alignment scores")
-    parser.add_argument("--save", type=str, help="Optional: path to save alignment plot image")
+    parser.add_argument(
+        "--var", type=str, nargs="+", help="Variable(s) to plot (e.g. hope rage)"
+    )
+    parser.add_argument(
+        "--export", type=str, help="Optional: path to save plot image (e.g. graph.png)"
+    )
+    parser.add_argument(
+        "--alignment", type=str, help="Path to JSON or JSONL with alignment scores"
+    )
+    parser.add_argument(
+        "--save", type=str, help="Optional: path to save alignment plot image"
+    )
     args = parser.parse_args()
 
     if args.alignment:

@@ -29,6 +29,7 @@ SUGGESTED_FILE = "data/candidate_rules.json"
 _registry = RuleRegistry()
 _registry.load_all_rules()
 
+
 def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
     """
     Load regrets from a JSONL file.
@@ -40,13 +41,20 @@ def load_regrets(path: str = REGRET_FILE) -> List[Dict]:
         regrets = []
     return regrets
 
+
 def load_rules(path: Optional[str] = None) -> Dict[str, Dict]:
     """
     Return a dict of all rule fingerprints keyed by rule_id.
     """
-    return {r.get("rule_id", r.get("id", str(i))): r for i, r in enumerate(get_all_rule_fingerprints())}
+    return {
+        r.get("rule_id", r.get("id", str(i))): r
+        for i, r in enumerate(get_all_rule_fingerprints())
+    }
 
-def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[Tuple[str, int]]:
+
+def extract_unmatched_arcs(
+    regrets: List[Dict], rules: Dict[str, Dict]
+) -> List[Tuple[str, int]]:
     """
     Find arcs in regrets not covered by any rule.
     """
@@ -58,6 +66,7 @@ def extract_unmatched_arcs(regrets: List[Dict], rules: Dict[str, Dict]) -> List[
             arc_freq[arc] += 1
     return sorted(arc_freq.items(), key=lambda x: -x[1])
 
+
 def generate_candidate_rules(unmatched_arcs: List[Tuple[str, int]]) -> List[Dict]:
     """
     Generate candidate rules from unmatched arcs.
@@ -68,10 +77,11 @@ def generate_candidate_rules(unmatched_arcs: List[Tuple[str, int]]) -> List[Dict
             "description": f"Generated rule from frequent regret arc: {arc}",
             "trigger": {"symbolic_trace": f"leading to {arc}"},
             "effect": {"arc_label": arc},
-            "metadata": {"generated": True}
+            "metadata": {"generated": True},
         }
         candidates.append(candidate)
     return candidates
+
 
 def export_candidate_rules(candidates: List[Dict], path: str = SUGGESTED_FILE) -> None:
     """
@@ -79,6 +89,7 @@ def export_candidate_rules(candidates: List[Dict], path: str = SUGGESTED_FILE) -
     """
     with open(path, "w") as f:
         json.dump(candidates, f, indent=2)
+
 
 def expand_rules_from_regret() -> Dict:
     regrets = load_regrets()
@@ -89,13 +100,17 @@ def expand_rules_from_regret() -> Dict:
     return {
         "unmatched_arcs": unmatched,
         "suggested_count": len(candidates),
-        "exported_to": SUGGESTED_FILE
+        "exported_to": SUGGESTED_FILE,
     }
+
 
 # CLI
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Pulse Rule Expander from Regret/Arc Patterns")
+
+    parser = argparse.ArgumentParser(
+        description="Pulse Rule Expander from Regret/Arc Patterns"
+    )
     parser.add_argument("--expand", action="store_true", help="Run expansion")
     args = parser.parse_args()
 

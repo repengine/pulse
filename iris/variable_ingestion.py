@@ -40,7 +40,12 @@ def _fred_series(series_id: str) -> float | None:
 
 def _yfinance_close(ticker: str) -> float | None:
     try:
-        data = yf.download(ticker, start=_30D_AGO.strftime("%Y-%m-%d"), end=_NOW.strftime("%Y-%m-%d"), progress=False)
+        data = yf.download(
+            ticker,
+            start=_30D_AGO.strftime("%Y-%m-%d"),
+            end=_NOW.strftime("%Y-%m-%d"),
+            progress=False,
+        )
         if data is None or "Close" not in data:
             return None
         return float(data["Close"].dropna().iloc[-1])
@@ -72,5 +77,3 @@ def ingest_live_variables() -> dict[str, float]:
     registry.bind_external_ingestion(lambda: out.copy())  # simple read-through
 
     return out
-
-

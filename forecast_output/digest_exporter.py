@@ -15,10 +15,11 @@ Author: Pulse AI Engine
 """
 
 import warnings
+
 warnings.warn(
     "foresight_architecture.digest_exporter is deprecated. Use forecast_output.digest_exporter instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 import json
@@ -27,7 +28,10 @@ from typing import Any, List
 
 logger = logging.getLogger("digest_exporter")
 
-def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_html: bool = False) -> None:
+
+def export_digest(
+    digest_str: str, path: str, fmt: str = "markdown", sanitize_html: bool = False
+) -> None:
     """
     Export digest string to file in the specified format.
     Supported formats: markdown, html, pdf (stub).
@@ -40,12 +44,18 @@ def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_ht
         elif fmt == "html":
             try:
                 import markdown2
+
                 html = markdown2.markdown(digest_str)
                 if sanitize_html:
                     try:
                         import bleach
+
                         # Use set() to avoid TypeError with + on lists/sets
-                        allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {"h1", "h2", "h3"}
+                        allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS) | {
+                            "h1",
+                            "h2",
+                            "h3",
+                        }
                         html = bleach.clean(html, tags=allowed_tags, strip=True)
                     except ImportError:
                         logger.warning("bleach not installed, HTML not sanitized.")
@@ -55,13 +65,16 @@ def export_digest(digest_str: str, path: str, fmt: str = "markdown", sanitize_ht
             except ImportError:
                 with open(str(path), "w", encoding="utf-8") as f:
                     f.write("<pre>\n" + digest_str + "\n</pre>")
-                logger.info(f"Digest HTML exported to {path} (preformatted, markdown2 not installed)")
+                logger.info(
+                    f"Digest HTML exported to {path} (preformatted, markdown2 not installed)"
+                )
         else:
             with open(str(path), "w", encoding="utf-8") as f:
                 f.write(digest_str)
             logger.info(f"Digest exported to {path}")
     except Exception as e:
         logger.error(f"Export error: {e}")
+
 
 def export_digest_json(forecast_batch: List[Any], path: str) -> None:
     """
@@ -73,6 +86,7 @@ def export_digest_json(forecast_batch: List[Any], path: str) -> None:
         logger.info(f"Digest JSON exported to {path}")
     except Exception as e:
         logger.error(f"Export error: {e}")
+
 
 def export_digest_pdf(digest_str: str, path: str) -> None:
     """
@@ -86,6 +100,7 @@ def export_digest_pdf(digest_str: str, path: str) -> None:
         logger.info(f"Digest PDF (stub) exported to {path}")
     except Exception as e:
         logger.error(f"PDF export error: {e}")
+
 
 # Example usage:
 # export_digest("# Digest\n...", "digest.md", fmt="markdown")

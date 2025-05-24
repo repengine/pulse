@@ -1,5 +1,5 @@
-import json
 from operator_interface.pulse_prompt_logger import prompt_hash
+
 
 def test_prompt_hash_consistency():
     prompt = "Test prompt"
@@ -8,6 +8,7 @@ def test_prompt_hash_consistency():
     h2 = prompt_hash(prompt, config)
     assert h1 == h2
     assert len(h1) == 12
+
 
 def test_prompt_hash_uniqueness():
     prompt1 = "Prompt 1"

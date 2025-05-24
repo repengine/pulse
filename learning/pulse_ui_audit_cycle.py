@@ -34,9 +34,21 @@ def load_forecast_batch(path):
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Recursive Audit CLI")
-    parser.add_argument("--prev", type=str, required=True, help="Path to previous forecast batch (.jsonl)")
-    parser.add_argument("--curr", type=str, required=True, help="Path to current forecast batch (.jsonl)")
-    parser.add_argument("--output", type=str, help="Optional: file path to save audit summary (.json)")
+    parser.add_argument(
+        "--prev",
+        type=str,
+        required=True,
+        help="Path to previous forecast batch (.jsonl)",
+    )
+    parser.add_argument(
+        "--curr",
+        type=str,
+        required=True,
+        help="Path to current forecast batch (.jsonl)",
+    )
+    parser.add_argument(
+        "--output", type=str, help="Optional: file path to save audit summary (.json)"
+    )
     args = parser.parse_args()
 
     try:

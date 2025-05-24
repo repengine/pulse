@@ -9,11 +9,11 @@ Includes retry/back-off logic for module imports and centralizes logging.
 - Centralizes logging via `_log()`
 - Keeps external interface unchanged
 """
+
 from __future__ import annotations
 
 import importlib
 import inspect
-import os
 import sys
 import time
 from types import ModuleType
@@ -33,6 +33,7 @@ class FunctionRouter:
     """
     Routes function calls based on configured verbs, handling module loading.
     """
+
     MAX_RETRIES: int = FUNCTION_ROUTER_MAX_RETRIES
     RETRY_SLEEP: float = FUNCTION_ROUTER_RETRY_SLEEP  # seconds
 
@@ -68,7 +69,7 @@ class FunctionRouter:
         Args:
             module_path: The dot-separated path to the module (e.g., "os.path").
             alias: An optional alias to use for the module in the internal modules dictionary.
-        
+
         Raises:
             PulseImportError: If the module cannot be imported after the maximum number of retries.
         """
@@ -81,10 +82,18 @@ class FunctionRouter:
                 return
             except Exception as exc:  # noqa: BLE001  # broad but logged
                 attempts += 1
-                self._log("⚠️  Import failed", f"{module_path} (attempt {attempts}) → {type(exc).__name__}: {exc}")
+                self._log(
+                    "⚠️  Import failed",
+                    f"{module_path} (attempt {attempts}) → {type(exc).__name__}: {exc}",
+                )
                 time.sleep(self.RETRY_SLEEP)
-        self._log("❌ Failed to load module", f"{module_path} after {self.MAX_RETRIES} attempts")
-        raise PulseImportError(f"Failed to import {module_path} after {self.MAX_RETRIES} attempts")
+        self._log(
+            "❌ Failed to load module",
+            f"{module_path} after {self.MAX_RETRIES} attempts",
+        )
+        raise PulseImportError(
+            f"Failed to import {module_path} after {self.MAX_RETRIES} attempts"
+        )
 
     def load_modules(self, modules: Dict[str, str]) -> None:
         """
@@ -139,8 +148,11 @@ class FunctionRouter:
         try:
             return func(**kwargs)
         except Exception as exc:
-            self._log("❌ Function execution failed", f"{module_path}.{func_name}() for verb '{verb}' → {type(exc).__name__}: {exc}")
-            raise # Re-raise the original exception
+            self._log(
+                "❌ Function execution failed",
+                f"{module_path}.{func_name}() for verb '{verb}' → {type(exc).__name__}: {exc}",
+            )
+            raise  # Re-raise the original exception
 
     def available_functions(self, module_key: str) -> List[str]:
         """
@@ -157,7 +169,9 @@ class FunctionRouter:
         """
         module = self._get_module(module_key)
         return [
-            n for n, obj in inspect.getmembers(module) if inspect.isfunction(obj) and not n.startswith("_")
+            n
+            for n, obj in inspect.getmembers(module)
+            if inspect.isfunction(obj) and not n.startswith("_")
         ]
 
     def list_loaded_modules(self) -> List[str]:

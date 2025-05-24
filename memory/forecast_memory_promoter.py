@@ -19,6 +19,7 @@ MEMORY_PATH = "memory/core_forecast_memory.jsonl"
 logger = logging.getLogger("forecast_memory_promoter")
 logging.basicConfig(level=logging.INFO)
 
+
 def select_promotable_forecasts(forecasts) -> List[Dict]:
     """
     Select forecasts with full trust alignment.
@@ -39,11 +40,11 @@ def select_promotable_forecasts(forecasts) -> List[Dict]:
     selected = []
     for fc in forecasts:
         if (
-            fc.get("certified") is True and
-            fc.get("license_status") == "✅ Approved" and
-            fc.get("trust_label") == "🟢 Trusted" and
-            not fc.get("symbolic_fragmented") and
-            fc.get("alignment_score", 0) >= 75
+            fc.get("certified") is True
+            and fc.get("license_status") == "✅ Approved"
+            and fc.get("trust_label") == "🟢 Trusted"
+            and not fc.get("symbolic_fragmented")
+            and fc.get("alignment_score", 0) >= 75
         ):
             if fc.get("fork_winner") or fc.get("confidence", 0) > 0.85:
                 selected.append(fc)
@@ -63,8 +64,24 @@ def export_promoted(forecasts: List[Dict], path: str = MEMORY_PATH):
 
 def _test_forecast_memory_promoter():
     dummy = [
-        {"certified": True, "license_status": "✅ Approved", "trust_label": "🟢 Trusted", "symbolic_fragmented": False, "alignment_score": 80, "fork_winner": True, "confidence": 0.9},
-        {"certified": False, "license_status": "✅ Approved", "trust_label": "🟢 Trusted", "symbolic_fragmented": False, "alignment_score": 80, "fork_winner": True, "confidence": 0.9},
+        {
+            "certified": True,
+            "license_status": "✅ Approved",
+            "trust_label": "🟢 Trusted",
+            "symbolic_fragmented": False,
+            "alignment_score": 80,
+            "fork_winner": True,
+            "confidence": 0.9,
+        },
+        {
+            "certified": False,
+            "license_status": "✅ Approved",
+            "trust_label": "🟢 Trusted",
+            "symbolic_fragmented": False,
+            "alignment_score": 80,
+            "fork_winner": True,
+            "confidence": 0.9,
+        },
     ]
     selected = select_promotable_forecasts(dummy)
     assert len(selected) == 1

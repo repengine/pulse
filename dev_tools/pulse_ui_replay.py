@@ -17,7 +17,9 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
-    print("❌ matplotlib is not installed. Please install it with 'pip install matplotlib' to enable plotting.")
+    print(
+        "❌ matplotlib is not installed. Please install it with 'pip install matplotlib' to enable plotting."
+    )
 
 from typing import List, Dict, Union, Optional
 
@@ -54,7 +56,12 @@ def extract_series(trace: List[Dict], mode: str, key: str) -> List[Union[float, 
     return values
 
 
-def plot_series(values: List[Union[float, None]], title: str, ylabel: str, export_path: Optional[str] = None):
+def plot_series(
+    values: List[Union[float, None]],
+    title: str,
+    ylabel: str,
+    export_path: Optional[str] = None,
+):
     """Plot a series of float values over simulation steps and optionally export to image."""
     if plt is None:
         print("❌ Plotting is unavailable because matplotlib is not installed.")
@@ -78,7 +85,14 @@ def plot_series(values: List[Union[float, None]], title: str, ylabel: str, expor
     except Exception as e:
         print(f"❌ Plotting failed: {e}")
 
-def replay_trace(path: str, mode: str, key: str, export_data: Optional[str] = None, export_plot: Optional[str] = None):
+
+def replay_trace(
+    path: str,
+    mode: str,
+    key: str,
+    export_data: Optional[str] = None,
+    export_plot: Optional[str] = None,
+):
     """Load trace and display or export selected variable/overlay as a graph or JSON series."""
     try:
         trace = load_trace(path)
@@ -100,7 +114,10 @@ def print_symbolic_tags(path: str, export_path: Optional[str] = None):
     """Print or export symbolic tag sequence from a trace."""
     try:
         trace = load_trace(path)
-        lines = [f"Step {i:02d}: {step.get('symbolic_tag', 'N/A')}" for i, step in enumerate(trace)]
+        lines = [
+            f"Step {i:02d}: {step.get('symbolic_tag', 'N/A')}"
+            for i, step in enumerate(trace)
+        ]
         if export_path:
             with open(export_path, "w") as f:
                 f.write("\n".join(lines))
@@ -116,26 +133,49 @@ def print_symbolic_tags(path: str, export_path: Optional[str] = None):
 def main():
     """CLI entrypoint for trace inspection."""
     parser = argparse.ArgumentParser(description="Pulse Trace Replay + Inspector")
-    parser.add_argument("--trace", type=str, required=True, help="Path to simulation trace (.jsonl)")
-    parser.add_argument("--mode", choices=["overlays", "variables"], help="Mode of inspection")
+    parser.add_argument(
+        "--trace", type=str, required=True, help="Path to simulation trace (.jsonl)"
+    )
+    parser.add_argument(
+        "--mode", choices=["overlays", "variables"], help="Mode of inspection"
+    )
     parser.add_argument("--key", type=str, help="Variable/overlay name to extract")
-    parser.add_argument("--tags", action="store_true", help="Print symbolic tag sequence")
-    parser.add_argument("--export-tags", type=str, help="Optional path to save symbolic tag list")
-    parser.add_argument("--export-data", type=str, help="Optional path to save extracted value series (JSON)")
-    parser.add_argument("--export-plot", type=str, help="Optional path to save plot image (PNG)")
+    parser.add_argument(
+        "--tags", action="store_true", help="Print symbolic tag sequence"
+    )
+    parser.add_argument(
+        "--export-tags", type=str, help="Optional path to save symbolic tag list"
+    )
+    parser.add_argument(
+        "--export-data",
+        type=str,
+        help="Optional path to save extracted value series (JSON)",
+    )
+    parser.add_argument(
+        "--export-plot", type=str, help="Optional path to save plot image (PNG)"
+    )
     args = parser.parse_args()
 
     if args.tags:
         print_symbolic_tags(args.trace, export_path=args.export_tags)
     elif args.mode and args.key:
-        replay_trace(args.trace, mode=args.mode, key=args.key,
-                     export_data=args.export_data, export_plot=args.export_plot)
+        replay_trace(
+            args.trace,
+            mode=args.mode,
+            key=args.key,
+            export_data=args.export_data,
+            export_plot=args.export_plot,
+        )
     else:
         print("🧠 Usage Examples:")
         print("  --trace file.jsonl --tags")
         print("  --trace file.jsonl --mode overlays --key hope")
-        print("  --trace file.jsonl --mode variables --key inflation_index --export-plot arc.png")
-        print("  --trace file.jsonl --mode overlays --key rage --export-data rage_series.json")
+        print(
+            "  --trace file.jsonl --mode variables --key inflation_index --export-plot arc.png"
+        )
+        print(
+            "  --trace file.jsonl --mode overlays --key rage --export-data rage_series.json"
+        )
 
 
 if __name__ == "__main__":

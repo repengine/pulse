@@ -51,10 +51,21 @@ def export_subset(forecasts: List[Dict], reason_filter: str, out_path: str) -> N
 
 def main():
     parser = argparse.ArgumentParser(description="Pulse Blocked Memory Recovery Tool")
-    parser.add_argument("--log", type=str, default="logs/blocked_memory_log.jsonl", help="Path to blocked memory log")
-    parser.add_argument("--summary", action="store_true", help="Show summary by license reason")
+    parser.add_argument(
+        "--log",
+        type=str,
+        default="logs/blocked_memory_log.jsonl",
+        help="Path to blocked memory log",
+    )
+    parser.add_argument(
+        "--summary", action="store_true", help="Show summary by license reason"
+    )
     parser.add_argument("--export", type=str, help="Path to export filtered forecasts")
-    parser.add_argument("--reason", type=str, help="Filter: only export forecasts with this license status")
+    parser.add_argument(
+        "--reason",
+        type=str,
+        help="Filter: only export forecasts with this license status",
+    )
 
     args = parser.parse_args()
     forecasts = load_blocked_forecasts(args.log)

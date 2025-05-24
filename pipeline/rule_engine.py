@@ -4,7 +4,8 @@ RuleEngine
 Generates, evaluates, and prunes dynamic rules using GPT and symbolic systems.
 """
 
-from typing import None
+# from typing import None # None is a built-in, no import needed. Type hints use 'None'.
+
 
 class RuleEngine:
     def __init__(self) -> None:

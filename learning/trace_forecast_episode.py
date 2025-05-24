@@ -9,9 +9,11 @@ import argparse
 import json
 from memory.forecast_episode_tracer import build_episode_chain, summarize_lineage_drift
 
+
 def load_jsonl(path):
     with open(path, "r") as f:
         return [json.loads(line.strip()) for line in f if line.strip()]
+
 
 def main():
     parser = argparse.ArgumentParser(description="Forecast Lineage Tracer")
@@ -25,11 +27,14 @@ def main():
 
     print(f"📜 Episode Chain ({len(chain)} versions):")
     for i, fc in enumerate(chain):
-        print(f" [{i}] {fc.get('trace_id')} — {fc.get('arc_label')} / {fc.get('symbolic_tag')}")
+        print(
+            f" [{i}] {fc.get('trace_id')} — {fc.get('arc_label')} / {fc.get('symbolic_tag')}"
+        )
 
     print("\n🧠 Symbolic Drift Summary:")
     for k, v in summary.items():
         print(f" - {k}: {v}")
+
 
 if __name__ == "__main__":
     main()

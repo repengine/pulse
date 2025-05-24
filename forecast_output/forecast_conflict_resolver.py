@@ -9,6 +9,7 @@ Usage:
 
 from typing import List, Dict
 
+
 def resolve_conflicts(forecasts: List[Dict]) -> List[Dict]:
     """
     Returns a list of non-conflicting forecasts, preferring higher confidence.

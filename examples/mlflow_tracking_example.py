@@ -3,7 +3,9 @@ mlflow_tracking_example.py
 
 Example script to log Pulse experiment runs, parameters, and metrics to MLflow.
 """
+
 import mlflow
+
 
 def log_experiment():
     mlflow.set_experiment("PulseMetaLearning")
@@ -13,6 +15,7 @@ def log_experiment():
         mlflow.log_metric("avg_fragility", 0.15)
         # Add more params/metrics as needed
         print("Logged experiment to MLflow.")
+
 
 if __name__ == "__main__":
     log_experiment()

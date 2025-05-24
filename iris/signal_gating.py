@@ -23,6 +23,7 @@ import yaml
 
 try:
     from memory.pulsegrow import PulseGrow
+
     pulse_grow = PulseGrow()
 except Exception:
     pulse_grow = None
@@ -30,31 +31,37 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 # Load gating rules from YAML config
-GATING_RULES_PATH = os.path.join(os.path.dirname(__file__), 'signal_gating_rules.yaml')
+GATING_RULES_PATH = os.path.join(os.path.dirname(__file__), "signal_gating_rules.yaml")
+
+
 def load_gating_rules():
     try:
-        with open(GATING_RULES_PATH, 'r', encoding='utf-8') as f:
+        with open(GATING_RULES_PATH, "r", encoding="utf-8") as f:
             rules = yaml.safe_load(f)
             # Convert 'null' key to None for fallback
-            if 'null' in rules:
-                rules[None] = rules.pop('null')
+            if "null" in rules:
+                rules[None] = rules.pop("null")
             return rules
     except Exception as e:
         logging.error(f"Failed to load gating rules: {e}")
         # Fallback to hardcoded defaults if config fails
         return {
-            "hope":     {"min_sti": 0.5, "max_anomalies": 2},
-            "despair":  {"min_sti": 0.6, "max_anomalies": 1},
-            "rage":     {"min_sti": 0.7, "max_anomalies": 1},
-            "fatigue":  {"min_sti": 0.4, "max_anomalies": 3},
-            None:        {"min_sti": 0.5, "max_anomalies": 2}
+            "hope": {"min_sti": 0.5, "max_anomalies": 2},
+            "despair": {"min_sti": 0.6, "max_anomalies": 1},
+            "rage": {"min_sti": 0.7, "max_anomalies": 1},
+            "fatigue": {"min_sti": 0.4, "max_anomalies": 3},
+            None: {"min_sti": 0.5, "max_anomalies": 2},
         }
+
 
 GATING_RULES = load_gating_rules()
 
 symbolic_anomaly_counter = {}
 
-def gate_signals(signals: List[Dict[str, Any]]) -> Tuple[List[Dict], List[Dict], List[Dict]]:
+
+def gate_signals(
+    signals: List[Dict[str, Any]],
+) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Process and gate a batch of signals.
     Returns (accepted, suppressed, escalated)
@@ -71,28 +78,54 @@ def gate_signals(signals: List[Dict[str, Any]]) -> Tuple[List[Dict], List[Dict],
 
         # Flood control tracker
         if anomaly:
-            symbolic_anomaly_counter[symbolic] = symbolic_anomaly_counter.get(symbolic, 0) + 1
+            symbolic_anomaly_counter[symbolic] = (
+                symbolic_anomaly_counter.get(symbolic, 0) + 1
+            )
 
         # Determine acceptance
-        too_anomalous = symbolic_anomaly_counter.get(symbolic, 0) > rules["max_anomalies"]
+        too_anomalous = (
+            symbolic_anomaly_counter.get(symbolic, 0) > rules["max_anomalies"]
+        )
         if sti >= rules["min_sti"] and not too_anomalous:
             accepted.append(sig)
-            logger.info("[Gate] Accepted signal: %s (STI %.2f, symbolic %s)", name, sti, symbolic)
+            logger.info(
+                "[Gate] Accepted signal: %s (STI %.2f, symbolic %s)",
+                name,
+                sti,
+                symbolic,
+            )
         elif sti >= 0.4:
             escalated.append(sig)
-            logger.warning("[Gate] Escalated signal: %s (STI %.2f, symbolic %s)", name, sti, symbolic)
+            logger.warning(
+                "[Gate] Escalated signal: %s (STI %.2f, symbolic %s)",
+                name,
+                sti,
+                symbolic,
+            )
             if pulse_grow:
                 try:
-                    safe_name = name if isinstance(name, str) and name else "unknown_signal"
-                    pulse_grow.register_variable(safe_name, {
-                        "symbolic": symbolic,
-                        "reason": "Escalated from signal_gating",
-                        "sti": sti
-                    })
+                    safe_name = (
+                        name if isinstance(name, str) and name else "unknown_signal"
+                    )
+                    pulse_grow.register_variable(
+                        safe_name,
+                        {
+                            "symbolic": symbolic,
+                            "reason": "Escalated from signal_gating",
+                            "sti": sti,
+                        },
+                    )
                 except Exception as e:
-                    logger.error("[Gate] PulseGrow escalation failed for %s: %s", name, e)
+                    logger.error(
+                        "[Gate] PulseGrow escalation failed for %s: %s", name, e
+                    )
         else:
             suppressed.append(sig)
-            logger.info("[Gate] Suppressed signal: %s (STI %.2f, symbolic %s)", name, sti, symbolic)
+            logger.info(
+                "[Gate] Suppressed signal: %s (STI %.2f, symbolic %s)",
+                name,
+                sti,
+                symbolic,
+            )
 
     return accepted, suppressed, escalated

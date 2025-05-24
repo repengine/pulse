@@ -11,19 +11,27 @@ Author: Pulse AI Engine
 import argparse
 import json
 from memory.forecast_episode_tracer import build_episode_chain
-from symbolic_system.symbolic_flip_classifier import analyze_flip_patterns, detect_loops_or_cycles
+from symbolic_system.symbolic_flip_classifier import (
+    analyze_flip_patterns,
+    detect_loops_or_cycles,
+)
+
 
 def load_forecasts(path):
     with open(path, "r") as f:
         return [json.loads(line.strip()) for line in f if line.strip()]
 
+
 def build_chains(forecasts):
     ids = [f.get("trace_id") for f in forecasts if "lineage" in f]
     return [build_episode_chain(forecasts, root_id=tid) for tid in ids]
 
+
 def main():
     parser = argparse.ArgumentParser(description="Symbolic Flip Analyzer")
-    parser.add_argument("--batch", required=True, help="Forecast archive with symbolic data")
+    parser.add_argument(
+        "--batch", required=True, help="Forecast archive with symbolic data"
+    )
     args = parser.parse_args()
 
     forecasts = load_forecasts(args.batch)
@@ -38,8 +46,9 @@ def main():
 
     if loops:
         print("\n♻️ Symbolic Loops Detected:")
-        for l in loops:
-            print(f" - {l}")
+        for loop_item in loops:
+            print(f" - {loop_item}")
+
 
 if __name__ == "__main__":
     main()

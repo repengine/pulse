@@ -17,10 +17,11 @@ Author: Pulse AI Engine
 
 import json
 import os
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 REGRET_LOG = "data/regret_chain.jsonl"
 FINGERPRINT_FILE = "data/rule_fingerprints.json"
+
 
 def load_regrets(path: str = REGRET_LOG) -> List[Dict]:
     """Load regret events from JSONL file."""
@@ -30,9 +31,10 @@ def load_regrets(path: str = REGRET_LOG) -> List[Dict]:
             for line in f:
                 try:
                     regrets.append(json.loads(line.strip()))
-                except:
+                except Exception:
                     continue
     return regrets
+
 
 def count_regret_patterns(regrets: List[Dict]) -> Dict:
     """Aggregate common regret patterns."""
@@ -43,10 +45,8 @@ def count_regret_patterns(regrets: List[Dict]) -> Dict:
         rule = r.get("rule_id", "Unknown")
         arc_count[arc] = arc_count.get(arc, 0) + 1
         rule_count[rule] = rule_count.get(rule, 0) + 1
-    return {
-        "arc_patterns": arc_count,
-        "rule_patterns": rule_count
-    }
+    return {"arc_patterns": arc_count, "rule_patterns": rule_count}
+
 
 def adjust_rule_trust_weights(rule_stats: Dict, threshold: int = 2) -> Dict:
     """
@@ -73,6 +73,7 @@ def adjust_rule_trust_weights(rule_stats: Dict, threshold: int = 2) -> Dict:
         json.dump(rules, f, indent=2)
     return adjusted
 
+
 def flag_repeat_forecasts(regrets: List[Dict], min_count: int = 2) -> List[str]:
     """Identify forecast trace_ids that appear repeatedly in regrets."""
     seen = {}
@@ -82,7 +83,10 @@ def flag_repeat_forecasts(regrets: List[Dict], min_count: int = 2) -> List[str]:
             seen[tid] = seen.get(tid, 0) + 1
     return [tid for tid, count in seen.items() if count >= min_count]
 
-def evolve_memory_from_regrets(regret_path: str = REGRET_LOG, rule_file: str = FINGERPRINT_FILE) -> Dict:
+
+def evolve_memory_from_regrets(
+    regret_path: str = REGRET_LOG, rule_file: str = FINGERPRINT_FILE
+) -> Dict:
     """Full trust evolution pass."""
     regrets = load_regrets(regret_path)
     stats = count_regret_patterns(regrets)
@@ -93,15 +97,21 @@ def evolve_memory_from_regrets(regret_path: str = REGRET_LOG, rule_file: str = F
         "total_regrets": len(regrets),
         "repeat_forecasts": repeat_forecasts,
         "adjusted_rules": rule_adjusts,
-        "symbolic_arc_summary": stats["arc_patterns"]
+        "symbolic_arc_summary": stats["arc_patterns"],
     }
+
 
 # CLI entry
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Pulse Forecast Memory Evolver")
-    parser.add_argument("--summary", action="store_true", help="Print regret pattern summary")
-    parser.add_argument("--evolve", action="store_true", help="Run full evolution pass from regrets")
+    parser.add_argument(
+        "--summary", action="store_true", help="Print regret pattern summary"
+    )
+    parser.add_argument(
+        "--evolve", action="store_true", help="Run full evolution pass from regrets"
+    )
 
     args = parser.parse_args()
     if args.evolve:

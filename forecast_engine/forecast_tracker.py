@@ -1,4 +1,4 @@
-""" 
+"""
 forecast_tracker.py
 
 Tracks, scores, and validates Pulse simulation forecasts.
@@ -19,15 +19,21 @@ from simulation_engine.worldstate import WorldState
 from utils.log_utils import get_logger
 from memory.forecast_memory import ForecastMemory
 from core.path_registry import PATHS
+
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
 forecast_memory = ForecastMemory(persist_dir=str(PATHS["FORECAST_HISTORY"]))
 
+
 class ForecastTracker:
     def __init__(self, log_dir=None):
-        self.log_dir = str(log_dir) if log_dir else str(PATHS["BATCH_FORECAST_SUMMARY"]).rsplit("/", 1)[0]
+        self.log_dir = (
+            str(log_dir)
+            if log_dir
+            else str(PATHS["BATCH_FORECAST_SUMMARY"]).rsplit("/", 1)[0]
+        )
         os.makedirs(str(self.log_dir), exist_ok=True)
 
     def _generate_filename(self, forecast_id: str) -> str:
@@ -35,7 +41,13 @@ class ForecastTracker:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return os.path.join(str(self.log_dir), f"{safe_id}_{timestamp}.json")
 
-    def record_forecast(self, forecast_id: str, state: WorldState, rule_log: list[dict], domain: Optional[str] = None):
+    def record_forecast(
+        self,
+        forecast_id: str,
+        state: WorldState,
+        rule_log: list[dict],
+        domain: Optional[str] = None,
+    ):
         """
         Scores, validates, and records a forecast if trusted.
 
@@ -49,7 +61,9 @@ class ForecastTracker:
         metadata = score_forecast(state, rule_log)
         metadata["rule_audit"] = rule_log  # <-- attach audit log
 
-        if not validate_forecast(metadata, required_keys=["confidence", "symbolic_driver"]):
+        if not validate_forecast(
+            metadata, required_keys=["confidence", "symbolic_driver"]
+        ):
             logger.warning(f"⛔ Forecast rejected (low trust): {forecast_id}")
             return None
 
@@ -60,9 +74,9 @@ class ForecastTracker:
             "timestamp": datetime.now().isoformat(),
             "state_snapshot": state.snapshot(),
             "metadata": metadata,
-            "domain": domain
+            "domain": domain,
         }
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(data, f, indent=2)
 
         save_forecast_to_memory(forecast_id, metadata=metadata, domain=domain)
@@ -72,10 +86,8 @@ class ForecastTracker:
     def load_forecast(self, filepath: str) -> dict:
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"Forecast file not found: {filepath}")
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             return json.load(f)
 
     def list_forecasts(self) -> list:
-        return sorted([
-            f for f in os.listdir(self.log_dir) if f.endswith(".json")
-        ])
+        return sorted([f for f in os.listdir(self.log_dir) if f.endswith(".json")])

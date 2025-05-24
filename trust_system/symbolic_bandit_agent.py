@@ -1,5 +1,6 @@
 import random
 
+
 class SymbolicBanditAgent:
     def __init__(self, actions):
         self.actions = actions

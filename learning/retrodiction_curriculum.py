@@ -19,6 +19,7 @@ from typing import List, Dict, Any
 # from trust_system.retrodiction_engine import evaluate_retrodiction_batch
 # from simulation_engine.utils.simulation_replayer import replay_simulation
 
+
 class RetrodictionCurriculumManager:
     def __init__(self, retrodiction_log_dir: str = "data/retrodiction_batches"):
         """
@@ -30,7 +31,9 @@ class RetrodictionCurriculumManager:
         self.retrodiction_log_dir = retrodiction_log_dir
         os.makedirs(self.retrodiction_log_dir, exist_ok=True)
 
-    def batch_retrodiction_run(self, worldstate_snapshots: List[Dict[str, Any]], batch_tag: str) -> str:
+    def batch_retrodiction_run(
+        self, worldstate_snapshots: List[Dict[str, Any]], batch_tag: str
+    ) -> str:
         """
         Run a batch of historical retrodictions.
 
@@ -47,7 +50,9 @@ class RetrodictionCurriculumManager:
             result = self.mock_run_historical_retrodiction(snapshot)
             batch_results.append(result)
 
-        output_path = os.path.join(self.retrodiction_log_dir, f"{batch_tag}_batch_results.json")
+        output_path = os.path.join(
+            self.retrodiction_log_dir, f"{batch_tag}_batch_results.json"
+        )
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(batch_results, f, indent=2)
 
@@ -64,7 +69,9 @@ class RetrodictionCurriculumManager:
             List[Dict]: List of divergence entries.
         """
         if not os.path.exists(batch_result_path):
-            print(f"[RetrodictionCurriculum] Batch result not found: {batch_result_path}")
+            print(
+                f"[RetrodictionCurriculum] Batch result not found: {batch_result_path}"
+            )
             return []
 
         with open(batch_result_path, "r", encoding="utf-8") as f:
@@ -92,7 +99,9 @@ class RetrodictionCurriculumManager:
         score = unique_types + 0.1 * total_count  # Example weighting
         return round(score, 2)
 
-    def prepare_pulsemind_feed(self, divergences: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def prepare_pulsemind_feed(
+        self, divergences: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Format divergence summary for PulseMind input.
 
@@ -109,7 +118,9 @@ class RetrodictionCurriculumManager:
         return summary
 
     ### --- Mock functions for testing ---
-    def mock_run_historical_retrodiction(self, worldstate: Dict[str, Any]) -> Dict[str, Any]:
+    def mock_run_historical_retrodiction(
+        self, worldstate: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Mock historical simulation runner (placeholder for real integration).
 
@@ -121,13 +132,17 @@ class RetrodictionCurriculumManager:
         """
         divergence_mock = [
             {"divergence_type": "symbolic_drift", "variable": "trust", "delta": 0.2},
-            {"divergence_type": "rule_trace_divergence", "rule": "growth_cycle_trigger"}
+            {
+                "divergence_type": "rule_trace_divergence",
+                "rule": "growth_cycle_trigger",
+            },
         ]
         return {
             "worldstate_id": worldstate.get("id", "unknown"),
             "final_state": worldstate,  # In real case, would be mutated
-            "divergence_log": divergence_mock
+            "divergence_log": divergence_mock,
         }
+
 
 # Example CLI usage (for testing)
 if __name__ == "__main__":
