@@ -2,7 +2,6 @@ import pytest
 import json
 import yaml
 from unittest.mock import patch
-import importlib
 
 # Import the actual module to test its functions and classes
 import core.pulse_config
