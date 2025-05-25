@@ -954,7 +954,7 @@ class ArimaImputationStrategy(GapFillStrategy):
 
                 # Predict the value for the gap date
                 # First, identify the position in the index
-                future_idx = len(temp_series)
+                # future_idx = len(temp_series) # This variable is not used
                 for i, idx in enumerate(sorted_series.index):
                     if idx >= date:
                         break

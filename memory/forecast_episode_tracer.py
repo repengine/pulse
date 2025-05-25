@@ -10,10 +10,10 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import List, Dict
+from typing import List, Dict, Any, Optional, cast
 
 
-def trace_forecast_lineage(forecast: Dict) -> List[str]:
+def trace_forecast_lineage(forecast: Dict[str, Any]) -> List[str]:
     """
     Return the list of trace IDs this forecast is derived from.
 
@@ -23,10 +23,11 @@ def trace_forecast_lineage(forecast: Dict) -> List[str]:
     Returns:
         List[str]: List of ancestor trace IDs
     """
-    return forecast.get("lineage", {}).get("ancestors", [])
+    lineage_data = forecast.get("lineage", {})
+    return cast(List[str], lineage_data.get("ancestors", []))
 
 
-def compare_forecast_versions(a: Dict, b: Dict) -> Dict:
+def compare_forecast_versions(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     """
     Compare symbolic metadata across two forecast versions.
 
@@ -50,29 +51,29 @@ def compare_forecast_versions(a: Dict, b: Dict) -> Dict:
     return diffs
 
 
-def build_episode_chain(forecasts: List[Dict], root_id: str) -> List[Dict]:
+def build_episode_chain(forecasts: List[Dict[str, Any]], root_id: str) -> List[Dict[str, Any]]:
     """
     Reconstruct an episode timeline starting from a given root forecast ID.
 
     Returns:
         List[Dict]: Forecasts ordered by ancestry (if possible)
     """
-    id_map = {f.get("trace_id"): f for f in forecasts}
-    chain = []
-    current_id = root_id
+    id_map: Dict[Optional[str], Dict[str, Any]] = {f.get("trace_id"): f for f in forecasts}
+    chain: List[Dict[str, Any]] = []
+    current_id: Optional[str] = root_id
 
     while current_id:
         fc = id_map.get(current_id)
         if not fc:
             break
         chain.append(fc)
-        lineage = fc.get("lineage", {}).get("children", [])
+        lineage: List[str] = fc.get("lineage", {}).get("children", [])
         current_id = lineage[0] if lineage else None
 
     return chain
 
 
-def summarize_lineage_drift(chain: List[Dict]) -> Dict:
+def summarize_lineage_drift(chain: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Analyze symbolic mutation across a forecast episode chain.
 

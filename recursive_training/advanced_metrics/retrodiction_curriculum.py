@@ -59,14 +59,14 @@ class EnhancedRetrodictionCurriculum:
         self.cost_controller = get_cost_controller()
 
         # Configuration for uncertainty-driven curriculum
-        config = config or {}  # Ensure config is a dictionary
-        self.uncertainty_threshold_multiplier = config.get(
+        self.config = config or {}  # Store config as an instance attribute
+        self.uncertainty_threshold_multiplier = self.config.get(
             "uncertainty_threshold_multiplier", 1.5
         )
-        self.performance_degradation_threshold = config.get(
+        self.performance_degradation_threshold = self.config.get(
             "performance_degradation_threshold", 0.1
         )  # 10% degradation
-        self.uncertainty_sampling_ratio = config.get(
+        self.uncertainty_sampling_ratio = self.config.get(
             "uncertainty_sampling_ratio", 0.3
         )  # Percentage of data to sample based on uncertainty
 

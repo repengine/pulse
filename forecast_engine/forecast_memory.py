@@ -18,10 +18,10 @@ Author: Pulse v0.10
 from typing import Dict, Any, Optional, List
 from core.pulse_config import MODULES_ENABLED
 from core.path_registry import PATHS
-
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from memory.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
+
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 if not MODULES_ENABLED.get("memory_guardian", True):
     raise RuntimeError("Forecast memory module is disabled in config.")

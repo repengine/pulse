@@ -25,9 +25,9 @@ from typing import List, Dict, Tuple
 from datetime import datetime
 from collections import defaultdict
 from core.path_registry import PATHS
+from core.pulse_learning_log import log_learning_event  # 🧠 Enhancement 2
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_learning_log import log_learning_event  # 🧠 Enhancement 2
 
 CONTRADICTION_LOG_PATH = PATHS.get(
     "CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl"
@@ -46,7 +46,7 @@ def detect_forecast_contradictions(forecasts: List[Dict]) -> List[Tuple[str, str
     Returns:
         List of (trace_id_1, trace_id_2, reason) tuples
     """
-    ensure_log_dir(CONTRADICTION_LOG_PATH)
+    ensure_log_dir(str(CONTRADICTION_LOG_PATH))
     contradictions = []
 
     # Track which forecasts are involved in contradictions for status escalation

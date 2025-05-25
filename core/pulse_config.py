@@ -55,12 +55,12 @@ def update_threshold(name, value):
 
 
 # Ensure the updated threshold is saved to the JSON file
-if (
-    "CONFIDENCE_THRESHOLD" not in _thresholds
-    or _thresholds["CONFIDENCE_THRESHOLD"] != 0.4
-):
-    _thresholds["CONFIDENCE_THRESHOLD"] = 0.4
-    save_thresholds(_thresholds)
+# if (
+#     "CONFIDENCE_THRESHOLD" not in _thresholds
+#     or _thresholds["CONFIDENCE_THRESHOLD"] != 0.4
+# ):
+#     _thresholds["CONFIDENCE_THRESHOLD"] = 0.4
+#     save_thresholds(_thresholds)
 
 # --- Module toggles (global boolean flags to enable/disable key systems) ---
 MODULES_ENABLED: Dict[str, bool] = {

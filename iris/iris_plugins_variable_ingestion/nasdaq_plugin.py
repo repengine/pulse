@@ -515,7 +515,7 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         return signal
 
-    except Exception as exc:  # noqa: broad-except — network/API errors are mapped to log + skip
+    except Exception as exc:  # noqa: E722 — network/API errors are mapped to log + skip
         logger.error("[nasdaq_plugin] %s fetch failed: %s", code, exc)
 
         # Create error tracking directory to record each step of error handling

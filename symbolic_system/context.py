@@ -11,9 +11,10 @@ and retrodiction training.
 
 import contextlib
 import logging
-from typing import Optional, ContextManager, Iterator, Generator, Any
+from typing import Optional, ContextManager, Generator, Any
 
 # Import configuration
+import core.pulse_config
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +28,6 @@ def symbolic_context(mode: str, enabled: Optional[bool] = None) -> Generator[Non
         mode: System mode ("simulation", "retrodiction", "analysis", "forecasting")
         enabled: Explicitly enable/disable symbolic processing, or None to use mode default
     """
-    # Directly access module variables to ensure we're using the latest values
-    import core.pulse_config
-
     # Store original values to restore later
     original_mode = core.pulse_config.CURRENT_SYSTEM_MODE
     original_setting = None
@@ -69,15 +67,15 @@ def is_symbolic_enabled(mode: Optional[str] = None) -> bool:
     Returns:
         bool: True if symbolic processing is enabled, False otherwise
     """
-    # Get fresh values directly from the module
-    import core.pulse_config
-
-    # First check global toggle
+    # If global symbolic system is disabled, always return False. This is the highest priority.
     if not core.pulse_config.ENABLE_SYMBOLIC_SYSTEM:
         return False
 
-    # Then check mode-specific setting
+    # Determine which mode to check
     check_mode = mode or core.pulse_config.CURRENT_SYSTEM_MODE
+
+    # Check if there's an explicit setting for the current mode.
+    # If the mode is not in the dictionary, it means it defaults to enabled (True).
     return core.pulse_config.SYMBOLIC_PROCESSING_MODES.get(check_mode, True)
 
 

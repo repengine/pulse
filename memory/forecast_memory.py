@@ -6,17 +6,18 @@ Supports symbolic tagging, replay, and integration with PFPA trust scoring.
 
 """
 
-from core.path_registry import PATHS
-
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-
 import os
 import json
 import re
-from typing import List, Dict, Optional
 from datetime import datetime
+from typing import List, Dict, Optional
+
+from core.path_registry import PATHS
 from core.pulse_learning_log import log_learning_event
 from utils.log_utils import get_logger
+
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
+
 
 logger = get_logger(__name__)
 

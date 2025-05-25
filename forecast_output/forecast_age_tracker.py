@@ -43,7 +43,7 @@ def get_forecast_age(forecast: Dict) -> float:
         now = datetime.datetime.utcnow()
         delta = now - then
         return round(delta.total_seconds() / 3600.0, 2)
-    except:
+    except Exception:
         return 0.0
 
 

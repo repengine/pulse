@@ -385,15 +385,6 @@ class ResidualGravityEngine:
         Union[float, np.ndarray]
             The gravity correction value or vector depending on state_dimensionality
         """
-        # Check if symbolic system is globally enabled
-        from symbolic_system.context import is_symbolic_enabled
-
-        if not is_symbolic_enabled():
-            # Return 0 if symbolic system is disabled
-            if self.state_dimensionality == 1:
-                return 0.0
-            else:
-                return np.zeros((self.state_dimensionality, 1))
 
         # Convert symbol dictionary to ordered array
         symbol_array = self._dict_to_ordered_array(symbol_vec)

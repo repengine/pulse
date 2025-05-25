@@ -8,6 +8,7 @@ Author: Pulse v0.2
 
 import datetime
 import os
+from typing import Optional
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
 
@@ -15,7 +16,6 @@ assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 
-from typing import Optional
 
 
 def save_digest_to_file(digest: str, tag: Optional[str] = None) -> None:

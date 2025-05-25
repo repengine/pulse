@@ -25,9 +25,10 @@ import json
 from typing import List, Dict, Union
 from datetime import datetime, timezone
 from core.path_registry import PATHS
+from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
+from typing import Optional
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
-from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
 
 CONFIDENCE_LOG_PATH = PATHS.get(
     "CONFIDENCE_LOG_PATH", "logs/forecast_confidence_filter_log.jsonl"
@@ -40,7 +41,6 @@ def ensure_log_dir(path: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 
-from typing import Optional
 
 
 def filter_by_confidence(

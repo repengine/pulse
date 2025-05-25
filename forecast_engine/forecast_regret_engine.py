@@ -6,7 +6,7 @@ Runs past simulations through a regret lens, analyzes missed/wrong forecasts, bu
 Author: Pulse AI Engine
 """
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 import logging
 import argparse
 import json
@@ -91,7 +91,6 @@ def analyze_misses(forecasts: List[Dict], actuals: Dict) -> List[Dict]:
     return misses
 
 
-from typing import Optional
 
 
 def feedback_loop(regrets: List[Dict], log_path: Optional[str] = None):

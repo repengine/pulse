@@ -32,10 +32,10 @@ from forecast_engine.forecast_scoring import score_forecast
 from forecast_engine.forecast_integrity_engine import validate_forecast
 from utils.log_utils import get_logger
 from core.path_registry import PATHS
-
-assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 from core.pulse_config import CONFIDENCE_THRESHOLD
 from learning.recursion_audit import generate_recursion_report
+
+assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
 logger = get_logger(__name__)
 

@@ -13,13 +13,13 @@ especially during training/retrodiction operations.
 import functools
 import time
 import logging
-from typing import Any, Tuple, Callable, ParamSpec, TypeVar, Dict, Optional, cast, TypeGuard
+from typing import Any, Tuple, Callable, ParamSpec, TypeVar, Dict, Optional, cast
+from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=object)
 
 # Import configuration
-from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
 
 logger = logging.getLogger(__name__)
 

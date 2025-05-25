@@ -21,6 +21,7 @@ from simulation_engine.worldstate import WorldState
 from typing import Optional
 from core.pulse_learning_log import log_learning_event
 from datetime import datetime, timezone
+import core.pulse_config # Import core.pulse_config
 
 
 def update_numeric_variable(
@@ -115,41 +116,21 @@ def adjust_overlay(state: WorldState, overlay: str, delta: float) -> Optional[fl
         >>> new_value = adjust_overlay(state, "trust", +0.1)
         >>> print(f"Trust increased to {new_value}")
     """
-    # Import directly inside function to get the freshest values
-    # Do not use is_symbolic_enabled() to ensure we get the actual current value
-    from core.pulse_config import (
-        ENABLE_SYMBOLIC_SYSTEM,
-        CURRENT_SYSTEM_MODE,
-        SYMBOLIC_PROCESSING_MODES,
-    )
+    from symbolic_system.context import is_symbolic_enabled
 
-    # Skip all processing if symbolic system is disabled globally - highest priority check
-    if not ENABLE_SYMBOLIC_SYSTEM:
+    # If symbolic processing is not enabled, return the current value without modification.
+    if not is_symbolic_enabled():
         return getattr(state.overlays, overlay, None)
 
-    # Skip if disabled for current mode
-    if (
-        CURRENT_SYSTEM_MODE in SYMBOLIC_PROCESSING_MODES
-        and not SYMBOLIC_PROCESSING_MODES.get(CURRENT_SYSTEM_MODE, True)
-    ):
-        return getattr(state.overlays, overlay, None)
-
-    # Only proceed with overlay adjustment if symbolic processing is enabled
     current_value = getattr(state.overlays, overlay, None)
     if current_value is not None:
         new_value = max(0.0, min(1.0, current_value + delta))
-
-        # Only update the value if symbolic processing is enabled
         setattr(state.overlays, overlay, new_value)
 
-        # Determine if we're in minimal processing mode
-        minimal_processing = (
-            CURRENT_SYSTEM_MODE == "retrodiction"
-            and SYMBOLIC_PROCESSING_MODES.get("retrodiction", False)
-        )
-
-        # Only log events if we're not in minimal processing mode
-        if not minimal_processing:
+        # Only log events if symbolic processing is NOT in a minimal processing mode (e.g., retrodiction with symbolic enabled)
+        # The test_minimal_processing_in_retrodiction expects no logging.
+        # This means we should NOT log if CURRENT_SYSTEM_MODE is "retrodiction" AND SYMBOLIC_PROCESSING_MODES["retrodiction"] is True.
+        if not (core.pulse_config.CURRENT_SYSTEM_MODE == "retrodiction" and core.pulse_config.SYMBOLIC_PROCESSING_MODES.get("retrodiction", False)):
             state.log_event(
                 f"Overlay '{overlay}' adjusted by {delta:.3f} to {new_value:.3f}"
             )
@@ -164,7 +145,6 @@ def adjust_overlay(state: WorldState, overlay: str, delta: float) -> Optional[fl
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
-
         return new_value
     return None
 

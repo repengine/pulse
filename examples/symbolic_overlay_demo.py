@@ -26,7 +26,7 @@ from symbolic_system.numeric_transforms import get_numeric_transformer
 from symbolic_system.optimization import get_symbolic_cache
 
 
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional
 
 def print_divider(title: str) -> None:
     """Print a section divider"""

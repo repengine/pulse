@@ -136,7 +136,7 @@ def detect_adwin_drift(series, delta=0.002):
     adwin = ADWIN(delta=delta)
     drift_points = []
     for i, val in enumerate(series):
-        in_drift, _ = adwin.update(val), adwin.drift_detected
+        _ = adwin.update(val) # in_drift is not used, only the side effect of update() is needed
         if adwin.drift_detected:
             drift_points.append(i)
     return drift_points

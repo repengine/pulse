@@ -10,7 +10,7 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from collections import Counter
 
 
@@ -25,7 +25,7 @@ OPPOSING_ARCS = {
 
 
 def detect_symbolic_opposition(
-    forecasts: List[Dict], key: str = "arc_label"
+    forecasts: List[Dict[str, Any]], key: str = "arc_label"
 ) -> List[Tuple[str, str]]:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
@@ -39,7 +39,7 @@ def detect_symbolic_opposition(
     return [(a, b) for a, b in OPPOSING_ARCS.items() if a in labels and b in labels]
 
 
-def score_batch_divergence(forecasts: List[Dict], key: str = "arc_label") -> float:
+def score_batch_divergence(forecasts: List[Dict[str, Any]], key: str = "arc_label") -> float:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
     """
@@ -61,15 +61,15 @@ def score_batch_divergence(forecasts: List[Dict], key: str = "arc_label") -> flo
 
 
 def group_conflicting_forecasts(
-    forecasts: List[Dict], key: str = "arc_label"
-) -> Dict[str, List[Dict]]:
+    forecasts: List[Dict[str, Any]], key: str = "arc_label"
+) -> Dict[str, List[Dict[str, Any]]]:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
     """
     Return {symbolic_label: [forecasts]} for oppositional arcs/tags.
     """
     active_conflicts = detect_symbolic_opposition(forecasts, key=key)
-    group = {label: [] for pair in active_conflicts for label in pair}
+    group: Dict[str, List[Dict[str, Any]]] = {label: [] for pair in active_conflicts for label in pair}
     for f in forecasts:
         label = f.get(key, "unknown")
         if label in group:
@@ -77,7 +77,7 @@ def group_conflicting_forecasts(
     return group
 
 
-def generate_divergence_report(forecasts: List[Dict], key: str = "arc_label") -> Dict:
+def generate_divergence_report(forecasts: List[Dict[str, Any]], key: str = "arc_label") -> Dict[str, Any]:
     """
     Return symbolic divergence summary.
 
@@ -95,7 +95,7 @@ def generate_divergence_report(forecasts: List[Dict], key: str = "arc_label") ->
     }
 
 
-def _test_forecast_divergence_detector():
+def _test_forecast_divergence_detector() -> None:
     dummy = [
         {"arc_label": "Hope Surge"},
         {"arc_label": "Collapse Risk"},

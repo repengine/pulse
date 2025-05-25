@@ -27,6 +27,7 @@ import os
 import json
 from collections import defaultdict
 import logging
+from datetime import datetime
 from forecast_output.digest_trace_hooks import summarize_trace_for_digest
 from forecast_output.pulse_forecast_lineage import get_prompt_hash
 
@@ -196,7 +197,6 @@ def render_fields(f: Dict[str, Any], fields: List[str]) -> List[str]:
     return lines
 
 
-from datetime import datetime
 
 
 def log_prompt(
