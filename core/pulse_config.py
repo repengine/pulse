@@ -100,7 +100,7 @@ USE_SYMBOLIC_OVERLAYS = True
 
 # --- Enhanced symbolic system configuration ---
 # Master switch for the entire symbolic system
-ENABLE_SYMBOLIC_SYSTEM = True
+ENABLE_SYMBOLIC_SYSTEM = False
 
 # Current system operation mode: "simulation", "retrodiction", "analysis", "forecasting"
 CURRENT_SYSTEM_MODE = "simulation"
