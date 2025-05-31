@@ -28,7 +28,9 @@ class LLMConfig:
                         "output_cost_per_1k": 0.03,
                     },
                     "gpt-4o": {
-                        "description": "Latest optimized GPT-4 model with multimodal capabilities",
+                        "description": (
+                            "Latest optimized GPT-4 model with multimodal capabilities"
+                        ),
                         "max_tokens": 128000,
                         "input_cost_per_1k": 0.01,
                         "output_cost_per_1k": 0.03,
@@ -45,7 +47,9 @@ class LLMConfig:
                 "description": "Mock models for testing (no API required)",
                 "models": {
                     "mock-model": {
-                        "description": "Simple mock model that returns placeholder responses",
+                        "description": (
+                            "Simple mock model that returns placeholder responses"
+                        ),
                         "max_tokens": 1000,
                         "input_cost_per_1k": 0,
                         "output_cost_per_1k": 0,

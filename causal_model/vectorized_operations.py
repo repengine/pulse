@@ -91,15 +91,18 @@ def batch_conditional_independence_test(
             X = data[[var1] + valid_cond_vars]
             Y = data[[var2] + valid_cond_vars]
 
-            # Simple approximate method: get residuals after removing conditioning variables
+            # Simple approximate method: get residuals after removing
+            # conditioning variables
             X_resid = X[var1] - X[valid_cond_vars].mean(axis=1)
             Y_resid = Y[var2] - Y[valid_cond_vars].mean(axis=1)
 
             # Test correlation of residuals using scipy.stats
             pearson_result = stats.pearsonr(X_resid, Y_resid)
 
-            # Handle type issues by using a very robust approach that works with all SciPy versions
-            # Convert the result to string representation and parse the p-value directly
+            # Handle type issues by using a very robust approach that works
+            # with all SciPy versions
+            # Convert the result to string representation and parse the p-value
+            # directly
             try:
                 # For direct tuple access in most versions
                 if isinstance(pearson_result, tuple) and len(pearson_result) >= 2:

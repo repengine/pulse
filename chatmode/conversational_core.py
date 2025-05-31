@@ -32,7 +32,10 @@ class Intent:
         self.entities = entities or {}
 
     def __repr__(self):
-        return f"Intent(name='{self.name}', confidence={self.confidence}, entities={self.entities})"
+        return (
+            f"Intent(name='{self.name}', confidence={self.confidence}, "
+            f"entities={self.entities})"
+        )
 
 
 class PatternMatcher:
