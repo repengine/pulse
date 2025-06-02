@@ -1,5 +1,36 @@
-data
+# ==============================================================================
+# SECURITY & CREDENTIALS
+# ==============================================================================
+credentials.json
+*.key
+*.pem
+*.p12
+.env
+.env.*
 
+# ==============================================================================
+# HIDDEN FILES & DIRECTORIES (ALL DOTFILES)
+# ==============================================================================
+# Exclude all hidden files and directories by default
+.*
+!.gitignore
+!.gitattributes
+
+# ==============================================================================
+# PROJECT DATA & CACHE DIRECTORIES
+# ==============================================================================
+data/
+**/data/
+.roo/
+**/.roo/
+.coding/
+**/.coding/
+.cursor/
+**/.cursor/
+
+# ==============================================================================
+# PYTHON STANDARD IGNORES
+# ==============================================================================
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -175,22 +206,32 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Project specific directories
+# ==============================================================================
+# PROJECT SPECIFIC DIRECTORIES
+# ==============================================================================
 mcp-servers/
 context7/
+**/context7/
 
-# Additional large directories
+# ==============================================================================
+# LARGE DATA & OUTPUT DIRECTORIES
+# ==============================================================================
 mlruns/
 logs/
+**/logs/
 forecasts/
 memory-bank/
 snapshots/
 visualization/output/
 **/forecast_history/
-**/logs/
+**/output/
+**/temp/
+**/tmp/
 pulse/logs/
 
-# Data files
+# ==============================================================================
+# DATA FILES
+# ==============================================================================
 *.csv
 *.parquet
 *.pickle
@@ -200,7 +241,9 @@ pulse/logs/
 *.db
 *.sqlite
 
-# Large media files
+# ==============================================================================
+# LARGE MEDIA FILES
+# ==============================================================================
 *.mp4
 *.mov
 *.avi
@@ -211,40 +254,19 @@ pulse/logs/
 *.gz
 *.7z
 
-# Large binary files
+# ==============================================================================
+# LARGE BINARY FILES
+# ==============================================================================
 *.bin
 *.dat
 *.npy
 *.npz
 
-# Jupyter notebook checkpoints
-.ipynb_checkpoints/
-
-# VS Code settings
-.vscode/
-
-# Output directories
-**/output/
-**/temp/
-**/tmp/
-
-**/data/
-data/
-/data/
-
+# ==============================================================================
+# SPECIFIC FILES & DIRECTORIES
+# ==============================================================================
 chatmode/vector_store/codebase.faiss
 /myapp/
 **/myapp/
-**/myapp
-
 /pulse/
-
-context7/
-**/context7/
-
-.roo/
-**/.roo/
-.coding/
-**/.coding/
-.cursor/
-**/.cursor/credentials.json
+.bak
