@@ -6,9 +6,8 @@ Pydantic models, error handling, and Celery task integration.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
-from datetime import datetime, timezone
 
 from api.fastapi_server import app, get_app_settings
 from pulse.core.app_settings import AppSettings
