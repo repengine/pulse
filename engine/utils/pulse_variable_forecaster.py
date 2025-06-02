@@ -45,8 +45,9 @@ def simulate_forward(
                 val = state.variables.get(variable, None)
             else:
                 raise TypeError(
-                    f"Expected state.variables to be a dict, got {type(state.variables)}"
-                )
+                    f"Expected state.variables to be a dict, got {
+                        type(
+                            state.variables)}")
             run.append(val)
         trajectories.append(run)
 

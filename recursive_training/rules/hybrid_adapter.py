@@ -181,8 +181,8 @@ class HybridRuleAdapter:
 
         self.condition_classes[condition_type] = condition_class
         self.logger.debug(
-            f"Registered condition class {condition_class.__name__} for type {condition_type}"
-        )
+            f"Registered condition class {
+                condition_class.__name__} for type {condition_type}")
 
     def register_action_class(self, action_type: str, action_class: Type[Any]) -> None:
         """
@@ -341,9 +341,11 @@ class HybridRuleAdapter:
                 ):
                     item_class = field_type.__args__[0]
                     constructor_args[field_name] = [
-                        self._dict_to_dataclass(item, item_class)
-                        if isinstance(item, dict)
-                        else item
+                        (
+                            self._dict_to_dataclass(item, item_class)
+                            if isinstance(item, dict)
+                            else item
+                        )
                         for item in field_value
                     ]
 

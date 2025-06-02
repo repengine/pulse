@@ -31,9 +31,9 @@ def test_github():
         print(
             "❌ GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
         )
-        assert False, (
-            "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
-        )
+        assert (
+            False
+        ), "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
 
     print("✓ GitHub plugin is ENABLED.")
 
@@ -53,15 +53,15 @@ def test_github():
             print(
                 "❌ No signals returned. This might be due to API limitations or no matching content."
             )
-            assert False, (
-                "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
-            )
+            assert (
+                False
+            ), "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
 
     except Exception as e:
         print(f"❌ Error testing GitHub plugin: {e}")
-        assert False, (
-            "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
-        )
+        assert (
+            False
+        ), "GitHub plugin is DISABLED. Make sure GITHUB_TOKEN environment variable is set."
 
 
 if __name__ == "__main__":

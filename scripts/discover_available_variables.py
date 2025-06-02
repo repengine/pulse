@@ -161,9 +161,12 @@ def discover_plugin_variables(plugin_name):
                 var_patterns = [
                     # Matches variable assignments like var_name = ...
                     r'["\']([\w_]+)["\']:\s*{',  # Dictionary key definitions
-                    r'["\']([\w_]+)["\'].*source',  # Strings that might be variable names near "source"
-                    r'variable_name["\']\s*:\s*["\']([^"\']+)["\']',  # variable_name: "name" pattern
-                    r'["\']([\w_]+_price|[\w_]+_rate|[\w_]+_index|[\w_]+_level)["\']',  # Common variable name patterns
+                    r'["\']([\w_]+)["\'].*source',
+                    # Strings that might be variable names near "source"
+                    # variable_name: "name" pattern
+                    r'variable_name["\']\s*:\s*["\']([^"\']+)["\']',
+                    # Common variable name patterns
+                    r'["\']([\w_]+_price|[\w_]+_rate|[\w_]+_index|[\w_]+_level)["\']',
                 ]
 
                 for pattern in var_patterns:

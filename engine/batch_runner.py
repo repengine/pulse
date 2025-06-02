@@ -11,6 +11,17 @@ Each batch triggers:
 Author: Pulse v0.24
 """
 
+from analytics.forecast_pipeline_runner import run_forecast_pipeline
+from forecast_output.forecast_generator import generate_forecast
+from engine.worldstate import (
+    WorldState,
+    SymbolicOverlays,
+)  # Ensure SymbolicOverlays is imported
+from engine.simulator_core import simulate_forward
+from symbolic_system.gravity.engines.residual_gravity_engine import GravityEngineConfig
+import config.gravity_config as grav_cfg
+from engine.pulse_config import SHADOW_MONITOR_CONFIG
+from engine.path_registry import PATHS
 import json
 import os
 import traceback
@@ -43,10 +54,6 @@ except ImportError:
 
     print("Warning: utils.log_utils module not found, using fallback logger.")
 
-from engine.path_registry import PATHS
-from engine.pulse_config import SHADOW_MONITOR_CONFIG
-import config.gravity_config as grav_cfg
-from symbolic_system.gravity.engines.residual_gravity_engine import GravityEngineConfig
 
 try:
     from diagnostics.shadow_model_monitor import ShadowModelMonitor
@@ -54,14 +61,6 @@ except ImportError:
     ShadowModelMonitor = None
     # Now log_info is guaranteed to be defined here
     log_info("Warning: ShadowModelMonitor could not be imported for batch_runner.")
-
-from engine.simulator_core import simulate_forward
-from engine.worldstate import (
-    WorldState,
-    SymbolicOverlays,
-)  # Ensure SymbolicOverlays is imported
-from forecast_output.forecast_generator import generate_forecast
-from analytics.forecast_pipeline_runner import run_forecast_pipeline
 
 
 DEFAULT_BATCH_OUTPUT = PATHS.get("BATCH_OUTPUT", "logs/batch_output.jsonl")
@@ -112,8 +111,7 @@ def run_batch_from_config(
             log_info("[BATCH] ShadowModelMonitor enabled and initialized.")
         except KeyError as e:
             log_info(
-                f"[BATCH] Error initializing ShadowModelMonitor from config: Missing key {e}. Monitor disabled."
-            )
+                f"[BATCH] Error initializing ShadowModelMonitor from config: Missing key {e}. Monitor disabled.")
             shadow_monitor = None
         except Exception as e:
             log_info(
@@ -246,57 +244,66 @@ if __name__ == "__main__":
         action="store_false",
         dest="gravity_enable_adaptive_lambda",
         default=None,
-        help=f"Disable adaptive lambda adjustment in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_ADAPTIVE_LAMBDA}).",
+        help=f"Disable adaptive lambda adjustment in the gravity engine (default: {
+            grav_cfg.DEFAULT_ENABLE_ADAPTIVE_LAMBDA}).",
     )
     parser.add_argument(
         "--gravity-disable-weight-pruning",
         action="store_false",
         dest="gravity_enable_weight_pruning",
         default=None,
-        help=f"Disable weight pruning in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_WEIGHT_PRUNING}).",
+        help=f"Disable weight pruning in the gravity engine (default: {
+            grav_cfg.DEFAULT_ENABLE_WEIGHT_PRUNING}).",
     )
     parser.add_argument(
         "--gravity-disable-shadow-model-trigger",
         action="store_false",
         dest="gravity_enable_shadow_model_trigger",
         default=None,
-        help=f"Disable shadow model trigger in the gravity engine (default: {grav_cfg.DEFAULT_ENABLE_SHADOW_MODEL_TRIGGER}).",
+        help=f"Disable shadow model trigger in the gravity engine (default: {
+            grav_cfg.DEFAULT_ENABLE_SHADOW_MODEL_TRIGGER}).",
     )
     parser.add_argument(
         "--gravity-lambda",
         type=float,
         default=None,
-        help=f"Set initial lambda value for gravity strength (default: {grav_cfg.DEFAULT_LAMBDA}).",
+        help=f"Set initial lambda value for gravity strength (default: {
+            grav_cfg.DEFAULT_LAMBDA}).",
     )
     parser.add_argument(
         "--gravity-learning-rate",
         type=float,
         default=None,
-        help=f"Set learning rate for gravity engine (default: {grav_cfg.DEFAULT_LEARNING_RATE}).",
+        help=f"Set learning rate for gravity engine (default: {
+            grav_cfg.DEFAULT_LEARNING_RATE}).",
     )
     parser.add_argument(
         "--gravity-ewma-span",
         type=float,
         default=None,
-        help=f"Set EWMA span for gravity engine (default: {grav_cfg.DEFAULT_EWMA_SPAN}).",
+        help=f"Set EWMA span for gravity engine (default: {
+            grav_cfg.DEFAULT_EWMA_SPAN}).",
     )
     parser.add_argument(
         "--gravity-adaptive-lambda-min",
         type=float,
         default=None,
-        help=f"Set minimum lambda for adaptive adjustment (default: {grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MIN}).",
+        help=f"Set minimum lambda for adaptive adjustment (default: {
+            grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MIN}).",
     )
     parser.add_argument(
         "--gravity-adaptive-lambda-max",
         type=float,
         default=None,
-        help=f"Set maximum lambda for adaptive adjustment (default: {grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MAX}).",
+        help=f"Set maximum lambda for adaptive adjustment (default: {
+            grav_cfg.DEFAULT_ADAPTIVE_LAMBDA_MAX}).",
     )
     parser.add_argument(
         "--gravity-shadow-variance-threshold",
         type=float,
         default=None,
-        help=f"Set variance threshold for shadow model trigger (default: {grav_cfg.DEFAULT_SHADOW_MODEL_VARIANCE_THRESHOLD}).",
+        help=f"Set variance threshold for shadow model trigger (default: {
+            grav_cfg.DEFAULT_SHADOW_MODEL_VARIANCE_THRESHOLD}).",
     )
 
     # TODO: Add CLI/config file support for batch execution.
@@ -314,7 +321,8 @@ if __name__ == "__main__":
     if args.gravity_off and not args.enable_residual_gravity:
         gravity_enabled = False
 
-    # Create a configuration object for the gravity engine if any gravity parameters are specified
+    # Create a configuration object for the gravity engine if any gravity
+    # parameters are specified
     gravity_config = None
     if any(
         getattr(args, param) is not None

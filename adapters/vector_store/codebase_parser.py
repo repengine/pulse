@@ -346,9 +346,9 @@ Content of section 2.
             print(f"Name: {doc['metadata']['name']}")
         if "heading" in doc["metadata"]:
             print(f"Heading: {doc['metadata']['heading']}")
-        print(
-            f"Lines: {doc['metadata'].get('start_line', 'N/A')}-{doc['metadata'].get('end_line', 'N/A')}"
-        )
+        print(f"Lines: {doc['metadata'].get('start_line',
+                                            'N/A')}-{doc['metadata'].get('end_line',
+                                                                         'N/A')}")
         print(f"Text Snippet:\n{doc['text'][:500]}...")  # Print first 500 characters
         print("-" * 20)
 

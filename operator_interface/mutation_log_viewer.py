@@ -37,8 +37,9 @@ def render_learning_summary(events: List[Dict]):
 
         if typ == "volatile_cluster_mutation":
             print(
-                f" 🔁 Cluster: {dat.get('cluster')} | Volatility: {dat.get('volatility_score')}"
-            )
+                f" 🔁 Cluster: {
+                    dat.get('cluster')} | Volatility: {
+                    dat.get('volatility_score')}")
             for v in dat.get("mutated_variables", []):
                 print(f"   - {v['name']} → trust_weight: {v['new_weight']}")
         else:

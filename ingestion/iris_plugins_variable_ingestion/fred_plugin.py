@@ -96,7 +96,8 @@ class FREDPlugin:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_unemployment_labor_force(self):
-        # TODO: Find and add FRED series IDs for unemployment and labor force participation
+        # TODO: Find and add FRED series IDs for unemployment and labor force
+        # participation
         series_ids = {
             "UNEMPLOYMENT_RATE": "UNRATE",  # Unemployment Rate
             "LABOR_FORCE_PARTICIPATION_RATE": "CIVPART",  # Labor Force Participation Rate
@@ -181,7 +182,8 @@ class FREDPlugin:
         # TODO: Find and add FRED series IDs for credit spreads and volatility indices
         series_ids = {
             "ICE_BOFA_Baa_SPREAD": "BAMLC0A4C",  # ICE BofA US Corporate BAA Option-Adjusted Spread
-            "ICE_BOFA_US_HIGH_YIELD_SPREAD": "BAMLH0A0HYM2",  # ICE BofA US High Yield Option-Adjusted Spread
+            # ICE BofA US High Yield Option-Adjusted Spread
+            "ICE_BOFA_US_HIGH_YIELD_SPREAD": "BAMLH0A0HYM2",
         }
         print("Ingesting Credit Spreads from FRED...")
         for name, series_id in series_ids.items():
@@ -207,8 +209,10 @@ class FREDPlugin:
     def ingest_housing_starts_permits(self):
         # TODO: Find and add FRED series IDs for housing starts and building permits
         series_ids = {
-            "HOUSING_STARTS_TOTAL": "HOUST",  # Housing Starts: Total: New Privately-Owned Housing Units Started
-            "BUILDING_PERMITS_TOTAL": "PERMIT",  # New Privately-Owned Housing Units Authorized by Building Permits: Total
+            # Housing Starts: Total: New Privately-Owned Housing Units Started
+            "HOUSING_STARTS_TOTAL": "HOUST",
+            # New Privately-Owned Housing Units Authorized by Building Permits: Total
+            "BUILDING_PERMITS_TOTAL": "PERMIT",
         }
         print("Ingesting Housing Starts & Building Permits from FRED...")
         for name, series_id in series_ids.items():

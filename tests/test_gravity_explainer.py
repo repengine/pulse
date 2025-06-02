@@ -199,7 +199,8 @@ def test_simulation_trace_contains_gravity_details():
     # handler.setFormatter(formatter)
     # if not test_logger.hasHandlers(): # Add handler only if no handlers are configured
     #     test_logger.addHandler(handler)
-    # test_logger.propagate = False # Optional: prevent logs from propagating to the root logger
+    # test_logger.propagate = False # Optional: prevent logs from propagating
+    # to the root logger
 
     # Set simulation ID
     try:
@@ -263,7 +264,8 @@ def test_simulation_trace_contains_gravity_details():
     try:
         # unittest.mock members (patch, PropertyMock, MagicMock) are imported globally.
         # GravityConfig is also imported globally with a MagicMock fallback.
-        # SymbolicGravityFabric needs to be imported here if not already global with fallback.
+        # SymbolicGravityFabric needs to be imported here if not already global
+        # with fallback.
         from symbolic_system.gravity.symbolic_gravity_fabric import (
             SymbolicGravityFabric,
         )
@@ -286,7 +288,8 @@ def test_simulation_trace_contains_gravity_details():
             patch("engine.simulator_core.run_rules") as _mock_run_rules,
             patch.object(ResidualGravityConfig, "load") as mock_load_config,
         ):  # Corrected attribute name
-            # Configure the mock_load_config to return a config where gravity is active for relevant vars
+            # Configure the mock_load_config to return a config where gravity is
+            # active for relevant vars
             mock_config_instance = MagicMock(spec=ResidualGravityConfig)
             mock_config_instance.gravity_enabled = True
             # Use a PropertyMock for gravity_variables if it's a property on the config instance
@@ -297,12 +300,14 @@ def test_simulation_trace_contains_gravity_details():
             mock_config_instance.variable_specific_engines = {}
             mock_config_instance.global_engine_settings = {}
             # Ensure 'active' property of the mock_config_instance itself if it were to be checked directly (it's not)
-            # type(mock_config_instance).active = PropertyMock(return_value=True) # This is for mocking a property on the mock itself
+            # type(mock_config_instance).active = PropertyMock(return_value=True) #
+            # This is for mocking a property on the mock itself
 
             mock_load_config.return_value = mock_config_instance
 
             # mock_run_rules will do nothing by default, preserving ws.variables as set by the test.
-            # The mocked config ensures fabric_instance.active is True and economic_growth is a gravity var.
+            # The mocked config ensures fabric_instance.active is True and
+            # economic_growth is a gravity var.
 
             # Configure the mock for SymbolicGravityFabric.bulk_apply_correction
             # This is what simulate_turn will receive as corrected_vars
@@ -319,7 +324,8 @@ def test_simulation_trace_contains_gravity_details():
                     # Only return economic_growth to isolate its processing
                     return {"economic_growth": 50.0}
                 elif call_count_closure[0] == 2:  # Second turn
-                    # Return a different value for the second turn if the test gets that far
+                    # Return a different value for the second turn if the test gets that
+                    # far
                     return {"economic_growth": 60.0}
                 # Fallback for any unexpected extra calls
                 return {"economic_growth": 70.0}
@@ -341,45 +347,44 @@ def test_simulation_trace_contains_gravity_details():
             )
 
             # Check that gravity_correction_details is in the output for all turns
-            assert output and len(output) == 2, (
-                "Simulation output should have results for 2 turns"
-            )
+            assert (
+                output and len(output) == 2
+            ), "Simulation output should have results for 2 turns"
 
             for turn_idx, turn_result in enumerate(output):
-                assert "gravity_correction_details" in turn_result, (
-                    f"gravity_correction_details should be in the simulation output for turn {turn_idx}"
-                )
+                assert (
+                    "gravity_correction_details" in turn_result
+                ), f"gravity_correction_details should be in the simulation output for turn {turn_idx}"
 
                 gravity_details = turn_result.get("gravity_correction_details", {})
 
                 # If gravity_details is populated (meaning some correction happened),
                 # then check for economic_growth. This makes the test more robust
                 # to scenarios where the mock setup might result in zero delta for
-                # economic_growth on a specific turn, while still verifying the mechanism.
+                # economic_growth on a specific turn, while still verifying the
+                # mechanism.
                 if gravity_details:
-                    assert "economic_growth" in gravity_details, (
-                        f"economic_growth should be in non-empty gravity_correction_details for turn {turn_idx}"
-                    )
+                    assert (
+                        "economic_growth" in gravity_details
+                    ), f"economic_growth should be in non-empty gravity_correction_details for turn {turn_idx}"
 
                     # Only proceed with var_details checks if economic_growth was found
                     if "economic_growth" in gravity_details:
                         var_details = gravity_details.get("economic_growth", {})
-                        assert "gravity_delta" in var_details, (
-                            f"gravity_delta should be in economic_growth details for turn {turn_idx}"
-                        )
-                        assert "causal_delta" in var_details, (
-                            f"causal_delta should be in economic_growth details for turn {turn_idx}"
-                        )
-                        assert "dominant_pillars" in var_details, (
-                            f"dominant_pillars should be in economic_growth details for turn {turn_idx}"
-                        )
+                        assert (
+                            "gravity_delta" in var_details
+                        ), f"gravity_delta should be in economic_growth details for turn {turn_idx}"
+                        assert (
+                            "causal_delta" in var_details
+                        ), f"causal_delta should be in economic_growth details for turn {turn_idx}"
+                        assert (
+                            "dominant_pillars" in var_details
+                        ), f"dominant_pillars should be in economic_growth details for turn {turn_idx}"
                         # Check that dominant_pillars has the mocked value
                         assert var_details["dominant_pillars"] == [
                             ("Hope", 0.7),
                             ("Fear", -0.2),
-                        ], (
-                            f"Dominant pillars for economic_growth did not match mock for turn {turn_idx}"
-                        )
+                        ], f"Dominant pillars for economic_growth did not match mock for turn {turn_idx}"
     except ImportError:
         # Skip test if symbolic gravity modules are not available
         pytest.skip("Symbolic gravity modules not available for testing")
@@ -396,21 +401,21 @@ def test_display_correction_explanation(sample_trace, capsys):
     output = captured.out
 
     # Check the output contains expected elements
-    assert "Gravity Correction Explanation for 'economic_growth'" in output, (
-        "Title should be in the explanation output"
-    )
+    assert (
+        "Gravity Correction Explanation for 'economic_growth'" in output
+    ), "Title should be in the explanation output"
     assert "Turn 1:" in output, "Turn information should be in the explanation output"
     assert "Causal Delta:" in output, "Causal delta should be in the explanation output"
-    assert "Gravity Delta:" in output, (
-        "Gravity delta should be in the explanation output"
-    )
+    assert (
+        "Gravity Delta:" in output
+    ), "Gravity delta should be in the explanation output"
     assert "Net Effect:" in output, "Net effect should be in the explanation output"
-    assert "Dominant Symbolic Pillars:" in output, (
-        "Dominant pillars section should be in the explanation output"
-    )
-    assert "Hope: weight=" in output, (
-        "Pillar weights should be in the explanation output"
-    )
+    assert (
+        "Dominant Symbolic Pillars:" in output
+    ), "Dominant pillars section should be in the explanation output"
+    assert (
+        "Hope: weight=" in output
+    ), "Pillar weights should be in the explanation output"
 
 
 # Test the plot_gravity_correction_details_html function
@@ -434,9 +439,9 @@ def test_plot_gravity_correction_details_html(sample_trace, tmp_path):
             assert (
                 "Gravity Correction Analysis for Variable: economic_growth" in content
             ), "Plot title should be in the HTML content"
-            assert "plotly" in content.lower(), (
-                "Plotly library should be referenced in the HTML content"
-            )
+            assert (
+                "plotly" in content.lower()
+            ), "Plotly library should be referenced in the HTML content"
     except ImportError:
         # Skip if plotting libraries not available
         pytest.skip("Plotting libraries not available for testing")
@@ -460,9 +465,9 @@ def test_export_gravity_explanation_json(sample_trace, tmp_path):
     with open(result_path, "r") as f:
         data = json.load(f)
         assert "variable" in data, "Variable name should be in the exported JSON"
-        assert data["variable"] == "economic_growth", (
-            "Variable name should match the requested variable"
-        )
+        assert (
+            data["variable"] == "economic_growth"
+        ), "Variable name should match the requested variable"
         assert "trace_data" in data, "Trace data should be in the exported JSON"
         assert len(data["trace_data"]) > 0, "Trace data should not be empty"
 
@@ -525,9 +530,9 @@ def test_cli_integration():
 
                     # Here we would need to call a function that parses args and processes,
                     # but in a unit test context, we just check the args were correct
-                    assert mock_display.called or True, (
-                        "CLI integration should work correctly"
-                    )
+                    assert (
+                        mock_display.called or True
+                    ), "CLI integration should work correctly"
                 except ImportError:
                     pytest.skip(
                         "simulator_core module not available for importing in test context"

@@ -1,3 +1,25 @@
 [flake8]
 max-line-length = 88
-exclude = tests/*
+exclude = 
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    *.egg-info,
+    build,
+    dist,
+    .venv,
+    .env,
+    node_modules,
+    venv,
+    env
+ignore = 
+    # Allow line breaks before binary operators (W503 vs W504)
+    W503,
+    # Allow line breaks after binary operators
+    W504
+per-file-ignores =
+    # Allow unused imports in __init__.py files
+    __init__.py:F401
+    # Allow longer lines in test files for readability
+    tests/*:E501

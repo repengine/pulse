@@ -18,7 +18,8 @@ class RuleEngine:
         """
         Propose new rules based on model performance and symbolic revisions.
         """
-        # TODO: implement rule generation logic using GPT and pulse_symbolic_revision_planner
+        # TODO: implement rule generation logic using GPT and
+        # pulse_symbolic_revision_planner
         pass
 
     def evaluate_rules(self) -> None:

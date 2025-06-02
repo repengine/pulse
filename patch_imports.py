@@ -58,8 +58,7 @@ def patch_imports_in_file(file_path: str, project_root: str) -> bool:
                         module_name, new_module
                     )
                     print(
-                        f"File {file_path}: Replacing '{module_name}' with '{new_module}'"
-                    )
+                        f"File {file_path}: Replacing '{module_name}' with '{new_module}'")
                     line_content = new_line_content
                     changed = True
         else:
@@ -74,8 +73,7 @@ def patch_imports_in_file(file_path: str, project_root: str) -> bool:
                         new_module = candidates[0]
                         new_line_content = line_content.replace(module_name, new_module)
                         print(
-                            f"File {file_path}: Replacing '{module_name}' with '{new_module}'"
-                        )
+                            f"File {file_path}: Replacing '{module_name}' with '{new_module}'")
                         line_content = new_line_content
                         changed = True
         new_lines.append(line_content)

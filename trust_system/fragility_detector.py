@@ -52,8 +52,10 @@ def compute_fragility(
 
     if debug:
         logger.info(
-            f"[FRAGILITY] Tension={tension:.3f} | Volatility={volatility:.3f} → Fragility={fragility:.3f}"
-        )
+            f"[FRAGILITY] Tension={
+                tension:.3f} | Volatility={
+                volatility:.3f} → Fragility={
+                fragility:.3f}")
 
     return fragility
 

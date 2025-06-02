@@ -9,6 +9,7 @@ Author: Pulse v0.10
 
 from engine.pulse_config import CONFIDENCE_THRESHOLD
 from engine.variable_accessor import get_variable, set_variable
+
 # from forecast_tags import ... # Uncomment and use if forecast_tags are needed
 
 from pipeline.rule_applier import load_proposed_rule_changes, apply_rule_changes

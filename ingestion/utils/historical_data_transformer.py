@@ -228,16 +228,17 @@ def load_raw_historical_data(variable_name: str) -> Optional[Dict[str, Any]]:
 
     source_name = variable_info.get("source", "unknown")
 
-    # Construct the path to the processed data directory based on ingestion_persistence structure
+    # Construct the path to the processed data directory based on
+    # ingestion_persistence structure
     data_dir = Path(f"data/historical_timeline/{source_name}/{variable_name}_processed")
 
     if not data_dir.exists():
         logger.error(
-            f"Processed data directory not found for variable {variable_name} at {data_dir}"
-        )
+            f"Processed data directory not found for variable {variable_name} at {data_dir}")
         return None
 
-    # Find the latest processed data file (assuming JSON format as per ingestion_persistence)
+    # Find the latest processed data file (assuming JSON format as per
+    # ingestion_persistence)
     processed_files = list(data_dir.glob("*.json"))
 
     if not processed_files:
@@ -339,9 +340,8 @@ def transform_historical_data(
             if processed_count % save_interval == 0:
                 # Save the current batch to a file
                 incremental_file = (
-                    incremental_path
-                    / f"{variable_name}_incremental_{transformation_timestamp}_{processed_count}.json"
-                )
+                    incremental_path /
+                    f"{variable_name}_incremental_{transformation_timestamp}_{processed_count}.json")
                 with open(incremental_file, "w") as f:
                     json.dump(
                         {
@@ -358,8 +358,7 @@ def transform_historical_data(
                         indent=2,
                     )
                 logger.info(
-                    f"Incremental transformation save: {processed_count} records processed for {variable_name}"
-                )
+                    f"Incremental transformation save: {processed_count} records processed for {variable_name}")
 
         except Exception as e:
             logger.warning(f"Could not transform entry for {variable_name}: {e}")
@@ -469,8 +468,8 @@ def store_transformed_data(
         )
 
         logger.info(
-            f"Successfully stored {len(transformed_data)} records for {variable_name} with dataset ID {dataset_id}"
-        )
+            f"Successfully stored {
+                len(transformed_data)} records for {variable_name} with dataset ID {dataset_id}")
 
         return TransformationResult(
             variable_name=variable_name,
@@ -858,16 +857,19 @@ def main():
 
             if result.status == "success":
                 logger.info(
-                    f"Successfully transformed and stored {result.item_count} records for {args.variable}"
-                )
+                    f"Successfully transformed and stored {
+                        result.item_count} records for {
+                        args.variable}")
                 logger.info(f"Dataset ID: {result.data_store_id}")
                 logger.info(
-                    f"Date range: {result.start_date.date() if result.start_date else 'N/A'} to {result.end_date.date() if result.end_date else 'N/A'}"
-                )
+                    f"Date range: {
+                        result.start_date.date() if result.start_date else 'N/A'} to {
+                        result.end_date.date() if result.end_date else 'N/A'}")
             else:
                 logger.error(
-                    f"Failed to transform and store data for {args.variable}: {result.error}"
-                )
+                    f"Failed to transform and store data for {
+                        args.variable}: {
+                        result.error}")
                 return 1
 
         elif args.priority:
@@ -925,12 +927,17 @@ def main():
                 logger.info(f"Record count: {verification['record_count']}")
                 if "start_date" in verification:
                     logger.info(
-                        f"Date range: {verification['start_date']} to {verification['end_date']} ({verification['date_range_days']} days)"
-                    )
+                        f"Date range: {
+                            verification['start_date']} to {
+                            verification['end_date']} ({
+                            verification['date_range_days']} days)")
             else:
                 logger.error(
-                    f"Verification failed for {args.verify}: {verification.get('error', '')}"
-                )
+                    f"Verification failed for {
+                        args.verify}: {
+                        verification.get(
+                            'error',
+                            '')}")
                 if verification.get("error_count", 0) > 0:
                     logger.error(
                         f"Found {verification['error_count']} data type errors"

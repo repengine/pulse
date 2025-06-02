@@ -19,8 +19,7 @@ from ingestion.iris_plugins_variable_ingestion import (
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generate historical WorldState snapshots using the historical ingestion plugin."
-    )
+        description="Generate historical WorldState snapshots using the historical ingestion plugin.")
     parser.add_argument(
         "--output-dir",
         default="snapshots",  # Default to snapshots directory

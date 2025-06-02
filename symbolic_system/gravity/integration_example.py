@@ -112,11 +112,19 @@ def example_with_simulation() -> None:
 
     print("Simulation completed with Symbolic Gravity")
     print(
-        f"SPX Improvement: {report['fabric_stats']['variable_improvements'].get('SPX', {}).get('percentage_improvement', 0):.2f}%"
-    )
+        f"SPX Improvement: {
+            report['fabric_stats']['variable_improvements'].get(
+                'SPX',
+                {}).get(
+                'percentage_improvement',
+                0):.2f}%")
     print(
-        f"VIX Improvement: {report['fabric_stats']['variable_improvements'].get('VIX', {}).get('percentage_improvement', 0):.2f}%"
-    )
+        f"VIX Improvement: {
+            report['fabric_stats']['variable_improvements'].get(
+                'VIX',
+                {}).get(
+                'percentage_improvement',
+                0):.2f}%")
 
 
 def example_standalone_usage() -> None:

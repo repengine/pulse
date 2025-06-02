@@ -46,17 +46,21 @@ def test_fred_api(api_key):
                 content = {"series_id": "GDP", "success": True}
         except Exception:  # Catching general exception, consider more specific if known
             content = {
-                "text": response.text[:100] + "..."
-                if len(response.text) > 100
-                else response.text
+                "text": (
+                    response.text[:100] + "..."
+                    if len(response.text) > 100
+                    else response.text
+                )
             }
 
         return {
             "success": response.status_code == 200,
             "status_code": response.status_code,
-            "message": "Success"
-            if response.status_code == 200
-            else f"Failed with status {response.status_code}",
+            "message": (
+                "Success"
+                if response.status_code == 200
+                else f"Failed with status {response.status_code}"
+            ),
             "content": content,
         }
     except Exception as e:
@@ -83,17 +87,21 @@ def test_finnhub_api(api_key):
                 content = response.json()
         except Exception:  # Catching general exception, consider more specific if known
             content = {
-                "text": response.text[:100] + "..."
-                if len(response.text) > 100
-                else response.text
+                "text": (
+                    response.text[:100] + "..."
+                    if len(response.text) > 100
+                    else response.text
+                )
             }
 
         return {
             "success": response.status_code == 200,
             "status_code": response.status_code,
-            "message": "Success"
-            if response.status_code == 200
-            else f"Failed with status {response.status_code}",
+            "message": (
+                "Success"
+                if response.status_code == 200
+                else f"Failed with status {response.status_code}"
+            ),
             "content": content,
         }
     except Exception as e:
@@ -113,20 +121,16 @@ def test_nasdaq_api(api_key):
     last_content = {}
 
     # Define the endpoints to try
-    endpoints = [
-        {
-            "name": "WIKI AAPL",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/WIKI/AAPL/data.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "Alternative endpoint - ECB Exchange Rates",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/ECB/EURUSD.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "List databases - requires premium",
-            "url": f"https://data.nasdaq.com/api/v3/databases?api_key={api_key}",
-        },
-    ]
+    endpoints = [{"name": "WIKI AAPL",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/WIKI/AAPL/data.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "Alternative endpoint - ECB Exchange Rates",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/ECB/EURUSD.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "List databases - requires premium",
+                  "url": f"https://data.nasdaq.com/api/v3/databases?api_key={api_key}",
+                  },
+                 ]
 
     # Try each endpoint
     for endpoint in endpoints:
@@ -188,7 +192,8 @@ def test_nasdaq_api(api_key):
                     else response.text
                 )
                 last_status_code = response.status_code
-                last_error_msg = f"Failed with status {response.status_code} - Could not parse response"
+                last_error_msg = f"Failed with status {
+                    response.status_code} - Could not parse response"
                 last_content = {"text": text_preview}
 
         except Exception as request_error:

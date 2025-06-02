@@ -91,8 +91,12 @@ def simulate_age_decay_test():
     for f in PFPA_ARCHIVE[-5:]:
         decay_confidence_and_priority(f)
         logger.info(
-            f"→ {f.get('trace_id')} | Age: {f['age_hours']}h | Conf: {f['confidence']} | Priority: {f.get('priority_score')} | {f.get('age_tag')}"
-        )
+            f"→ {
+                f.get('trace_id')} | Age: {
+                f['age_hours']}h | Conf: {
+                f['confidence']} | Priority: {
+                    f.get('priority_score')} | {
+                        f.get('age_tag')}")
 
 
 if __name__ == "__main__":

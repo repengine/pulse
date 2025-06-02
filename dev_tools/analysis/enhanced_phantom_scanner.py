@@ -237,7 +237,8 @@ class EnhancedPhantomScanner:
         for category, funcs in categories.items():
             print(f"{category}: {len(funcs)} functions")
 
-        # Print detailed report for project-specific phantom functions (highest priority)
+        # Print detailed report for project-specific phantom functions (highest
+        # priority)
         print("\n=== Project-Specific Phantom Functions (Highest Priority) ===")
         for func in sorted(categories["project_specific"]):
             contexts = true_phantoms[func][:max_contexts]

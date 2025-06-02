@@ -43,7 +43,7 @@ class BayesianAdapter:
 
     """
     Adapter for Pulse's Bayesian trust system.
-    
+
     Features:
     - Translate metrics to trust scores
     - Update Pulse's trust system based on performance metrics

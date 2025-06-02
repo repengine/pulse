@@ -41,8 +41,7 @@ else:
     except ImportError as e:
         logger_fallback = logging.getLogger(__name__)
         logger_fallback.error(
-            f"Runtime: Failed to import WorldState or run_turn. Actual error: {e}. Using dummy classes."
-        )
+            f"Runtime: Failed to import WorldState or run_turn. Actual error: {e}. Using dummy classes.")
 
         # Re-raise the error to make it visible during testing if imports are truly broken
         # raise # Commented out for now to allow script to complete with dummies if needed for other parts
@@ -218,7 +217,8 @@ class ReplayerConfig:
     )  # Cast to str
     verbose: bool = True
     show_symbolic: bool = True  # For diagnostic mode: show overlay diffs
-    # decay_rate: float = 0.01 # Example: For retrodiction reruns, if turn_engine uses it
+    # decay_rate: float = 0.01 # Example: For retrodiction reruns, if
+    # turn_engine uses it
 
     def __post_init__(self):
         if not os.path.exists(self.log_path):
@@ -279,7 +279,8 @@ class SimulationReplayer:
         variable_diffs = {}
         overlay_diffs = {}
 
-        # Corrected: Access variables via state.variables.data (or state.variables.as_dict())
+        # Corrected: Access variables via state.variables.data (or
+        # state.variables.as_dict())
         old_vars = old_state.variables.as_dict() if old_state.variables else {}
         new_vars = new_state.variables.as_dict() if new_state.variables else {}
 
@@ -364,8 +365,10 @@ class SimulationReplayer:
 
             if self.config.verbose:
                 logger.info(
-                    f"\n--- Turn {current_state.turn} (File: {filename}, Timestamp: {datetime.fromtimestamp(current_state.timestamp).isoformat() if current_state.timestamp else 'N/A'}) ---"
-                )
+                    f"\n--- Turn {
+                        current_state.turn} (File: {filename}, Timestamp: {
+                        datetime.fromtimestamp(
+                            current_state.timestamp).isoformat() if current_state.timestamp else 'N/A'}) ---")
 
             if self.config.mode == "audit":
                 # Display basic info or selected variables
@@ -398,7 +401,8 @@ class SimulationReplayer:
                 # state_for_rerun = previous_state.clone() # Use a clone of the *previous* state to predict the current
                 # # Apply any necessary inputs or conditions for the rerun if they are not in WorldState
                 # # For example: run_turn(state_for_rerun, inputs_for_this_turn)
-                # predicted_next_state = run_turn(state_for_rerun) # Assuming run_turn modifies state_for_rerun
+                # predicted_next_state = run_turn(state_for_rerun) # Assuming run_turn
+                # modifies state_for_rerun
 
                 # # Now compare `predicted_next_state` (which is `state_for_rerun` after modification) with `current_state`
                 # variable_diffs, overlay_diffs = self._diff_states(predicted_next_state, current_state)
@@ -527,8 +531,8 @@ if __name__ == "__main__":
     # retro_player.replay_simulation(replay_session_id="retro_test_001")
 
     logger.info(
-        f"\nReplay logs should be in: {audit_config.log_path} (and similar for diagnostic)"
-    )
+        f"\nReplay logs should be in: {
+            audit_config.log_path} (and similar for diagnostic)")
 
     # Clean up dummy files (optional)
     # import shutil

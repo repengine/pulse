@@ -104,9 +104,9 @@ class HighFrequencyIngestion:
 
                     # Store each metric as a separate data point
                     for metric, value in processed_data_point.items():
-                        if (
-                            metric != "timestamp"
-                        ):  # timestamp is part of the data point, not a value to store separately
+                        # timestamp is part of the data point, not a value to store
+                        # separately
+                        if (metric != "timestamp"):
                             variable_name = f"{var_name}_{metric}"
                             self.data_store.store_data_point(
                                 variable_name=variable_name,
@@ -117,8 +117,7 @@ class HighFrequencyIngestion:
 
                 except (ValueError, KeyError) as e:
                     print(
-                        f"Error processing data point for {symbol} at {timestamp_str}: {e}"
-                    )
+                        f"Error processing data point for {symbol} at {timestamp_str}: {e}")
                     # Optionally save error details
 
             print(f"Processed and stored {processed_count} data points for {symbol}")

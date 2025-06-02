@@ -5,6 +5,16 @@ This script benchmarks the end-to-end retrodiction training process, breaking do
 performance metrics by key components (data loading, causal discovery, trust updates, etc.)
 """
 
+from causal_model.optimized_discovery import get_optimized_causal_discovery
+from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
+from recursive_training.advanced_metrics.retrodiction_curriculum import (
+    EnhancedRetrodictionCurriculum,
+)
+from recursive_training.data.data_store import RecursiveDataStore
+from recursive_training.parallel_trainer import (
+    ParallelTrainingCoordinator,
+    TrainingBatch,
+)
 import cProfile
 import pstats
 import io
@@ -16,16 +26,18 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from recursive_training.parallel_trainer import (
-    ParallelTrainingCoordinator,
-    TrainingBatch,
-)
-from recursive_training.data.data_store import RecursiveDataStore
-from recursive_training.advanced_metrics.retrodiction_curriculum import (
-    EnhancedRetrodictionCurriculum,
-)
-from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
-from causal_model.optimized_discovery import get_optimized_causal_discovery
+import sys  # Ensure sys is imported
+
+# Add project root to sys.path to allow for top-level imports
+# This script is in: scripts/benchmarking/benchmark_retrodiction.py
+# Project root is two levels up from the script's directory.
+SCRIPT_ABS_PATH = os.path.abspath(__file__)
+SCRIPTS_BENCHMARKING_DIR = os.path.dirname(SCRIPT_ABS_PATH)
+SCRIPTS_DIR = os.path.dirname(SCRIPTS_BENCHMARKING_DIR)
+PROJECT_ROOT = os.path.dirname(SCRIPTS_DIR)
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)  # Insert at the beginning to prioritize
 
 # Configure logging
 logging.basicConfig(
@@ -351,7 +363,8 @@ class RetrodictionBenchmark:
             # Time the core operations
             logger.info("Benchmarking batch processing")
 
-            # Mock the process_batch method to avoid actual data fetching which might fail
+            # Mock the process_batch method to avoid actual data fetching which might
+            # fail
             with patch.object(
                 coordinator,
                 "_process_batch",
@@ -433,13 +446,24 @@ class RetrodictionBenchmark:
         return {
             "execution_time": end_time - start_time,
             "variables": self.variables,
-            "date_range": f"{self.start_date.isoformat()} to {self.end_date.isoformat()}",
+            "date_range": f"{
+                self.start_date.isoformat()} to {
+                self.end_date.isoformat()}",
             "batch_size_days": self.batch_size_days,
             "max_workers": self.max_workers or "auto",
             "results_summary": {
-                "batches": results.get("batches", {}),
-                "performance": results.get("performance", {}),
-                "variables": {"total": results.get("variables", {}).get("total", 0)},
+                "batches": results.get(
+                    "batches",
+                    {}),
+                "performance": results.get(
+                    "performance",
+                    {}),
+                "variables": {
+                    "total": results.get(
+                        "variables",
+                        {}).get(
+                        "total",
+                        0)},
             },
             "function_stats": function_stats,
             "profile_summary_text": s.getvalue(),
@@ -453,13 +477,13 @@ class RetrodictionBenchmark:
 
         # Run individual component benchmarks
         self.metrics["components"]["data_loading"] = self.benchmark_data_loading()
-        self.metrics["components"]["causal_discovery"] = (
-            self.benchmark_causal_discovery()
-        )
+        self.metrics["components"][
+            "causal_discovery"
+        ] = self.benchmark_causal_discovery()
         self.metrics["components"]["trust_updates"] = self.benchmark_trust_updates()
-        self.metrics["components"]["curriculum_selection"] = (
-            self.benchmark_curriculum_selection()
-        )
+        self.metrics["components"][
+            "curriculum_selection"
+        ] = self.benchmark_curriculum_selection()
 
         # Run full end-to-end benchmark
         self.metrics["overall"] = self.benchmark_full_training()

@@ -60,8 +60,11 @@ def run_forecast_validation(log_dir=FORECAST_DIR):
         result = validate_forecast(os.path.join(log_dir, file))
         if not result.get("valid"):
             logger.warning(
-                f"Invalid forecast: {result.get('file')} | Error: {result.get('error', 'Unknown')}"
-            )
+                f"Invalid forecast: {
+                    result.get('file')} | Error: {
+                    result.get(
+                        'error',
+                        'Unknown')}")
         results.append(result)
 
     summary = {
@@ -76,8 +79,9 @@ def run_forecast_validation(log_dir=FORECAST_DIR):
         json.dump(summary, f, indent=2)
 
     print(
-        f"✅ Forecast audit complete: {summary['valid_forecasts']} valid / {summary['total_checked']} total"
-    )
+        f"✅ Forecast audit complete: {
+            summary['valid_forecasts']} valid / {
+            summary['total_checked']} total")
     print(f"📝 Summary written to {SUMMARY_FILE}")
 
 

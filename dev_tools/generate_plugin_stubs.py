@@ -14,7 +14,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
-STUBS = json.loads(r"""
+STUBS = json.loads(
+    r"""
 [
   ["gdelt_plugin",         "GDELT v2 REST",            "geopolitics"],
   ["acled_plugin",         "ACLED API",                "geopolitics"],
@@ -46,12 +47,14 @@ STUBS = json.loads(r"""
   ["data_portal_plugin",   "Data.gov / EU Open Data",  "general"],
   ["wolfram_plugin",       "Wolfram Alpha API",        "general"]
 ]
-""")
+"""
+)
 
 BASE_DIR = pathlib.Path("iris_plugins_variable_ingestion")
 BASE_DIR.mkdir(exist_ok=True, parents=True)
 
-TEMPLATE = textwrap.dedent("""\
+TEMPLATE = textwrap.dedent(
+    """\
     \"\"\"{desc} — {domain} plugin stub.
 
     Set `enabled=True` when ready and fill in `fetch_signals`.
@@ -71,7 +74,8 @@ TEMPLATE = textwrap.dedent("""\
         def additional_method(self) -> None:
 
             pass
-""")
+"""
+)
 
 for stub, desc, domain in STUBS:
     path = BASE_DIR / f"{stub}.py"

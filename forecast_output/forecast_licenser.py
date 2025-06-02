@@ -52,18 +52,24 @@ def license_forecast(
     if conf >= confidence_threshold and frag < fragility_threshold:
         forecast["license_status"] = "✅ Licensed"
         logger.info(
-            f"Forecast {forecast.get('trace_id', '-')}: Licensed (conf={conf}, frag={frag})"
-        )
+            f"Forecast {
+                forecast.get(
+                    'trace_id',
+                    '-')}: Licensed (conf={conf}, frag={frag})")
     elif conf >= 0.4:
         forecast["license_status"] = "⚠️ Unlicensed (low trust)"
         logger.warning(
-            f"Forecast {forecast.get('trace_id', '-')}: Unlicensed (low trust) (conf={conf}, frag={frag})"
-        )
+            f"Forecast {
+                forecast.get(
+                    'trace_id',
+                    '-')}: Unlicensed (low trust) (conf={conf}, frag={frag})")
     else:
         forecast["license_status"] = "❌ Suppressed (very low trust)"
         logger.error(
-            f"Forecast {forecast.get('trace_id', '-')}: Suppressed (very low trust) (conf={conf}, frag={frag})"
-        )
+            f"Forecast {
+                forecast.get(
+                    'trace_id',
+                    '-')}: Suppressed (very low trust) (conf={conf}, frag={frag})")
 
     return forecast
 

@@ -70,8 +70,9 @@ def rank_forecasts(forecasts: List[Dict], weights=None, debug=False) -> List[Dic
             f["priority_score"] = round(max(0.05, f["priority_score"] - age * 0.01), 3)
         if debug:
             print(
-                f"[PRIORITY] {f.get('trace_id')} → F:{fragility} N:{novelty} C:{capital} = {score:.3f}"
-            )
+                f"[PRIORITY] {
+                    f.get('trace_id')} → F:{fragility} N:{novelty} C:{capital} = {
+                    score:.3f}")
 
         ranked.append(f)
 
@@ -90,8 +91,10 @@ def simulate_priority_test():
     print("\n🧠 Top Prioritized Forecasts:")
     for f in top[:5]:
         print(
-            f"  → {f.get('trace_id')} | Priority: {f['priority_score']} | Conf: {f.get('confidence')}"
-        )
+            f"  → {
+                f.get('trace_id')} | Priority: {
+                f['priority_score']} | Conf: {
+                f.get('confidence')}")
 
 
 if __name__ == "__main__":

@@ -105,7 +105,8 @@ class TestAsyncMetricsCollector(unittest.TestCase):
         # Wait for processing and retries
         time.sleep(1.0)
 
-        # Verify store_metric was called the expected number of times (initial + 2 retries)
+        # Verify store_metric was called the expected number of times (initial + 2
+        # retries)
         self.assertEqual(self.mock_metrics_store.store_metric.call_count, 3)
 
         # Check stats

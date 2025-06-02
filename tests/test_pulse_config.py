@@ -60,7 +60,8 @@ def temp_config_dir(tmp_path: Path) -> Iterator[Path]:
     with open(config2_path, "w") as f:
         yaml.dump(config2_data, f)
 
-    # Patch the global config_loader instance and configure it to use the temporary directory
+    # Patch the global config_loader instance and configure it to use the
+    # temporary directory
     with patch("engine.pulse_config.config_loader") as mock_config_loader:
         # Create a real ConfigLoader instance with the temporary directory
         real_loader = engine.pulse_config.ConfigLoader(config_dir=str(config_dir))

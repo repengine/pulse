@@ -203,7 +203,8 @@ def test_check_trigger_above_threshold_multiple_variables():
 
     # vA: SumSq(C)=1^2+1^2=2, SumSq(G)=2^2+2^2=8. VE = 8/(2+8) = 0.8 > 0.6 (Trigger)
     # vB: SumSq(C)=2^2+2^2=8, SumSq(G)=1^2+1^2=2. VE = 2/(8+2) = 0.2 < 0.6 (No trigger)
-    # vC: SumSq(C)=1^2+1^2=2, SumSq(G)=1^2+3^2=10. VE = 10/(2+10) = 10/12 approx 0.83 > 0.6 (Trigger)
+    # vC: SumSq(C)=1^2+1^2=2, SumSq(G)=1^2+3^2=10. VE = 10/(2+10) = 10/12
+    # approx 0.83 > 0.6 (Trigger)
 
     triggered, problematic_vars = monitor.check_trigger()
     assert triggered
@@ -226,7 +227,8 @@ def test_check_trigger_rolling_window_effect():
     triggered, _ = monitor.check_trigger()
     assert not triggered  # Window not full
 
-    # Step 1: C=1, G=1 -> VE = 0.5. Window is now full (steps 0, 1). Total C SumSq=2, G SumSq=2. VE = 2/(2+2) = 0.5.
+    # Step 1: C=1, G=1 -> VE = 0.5. Window is now full (steps 0, 1). Total C
+    # SumSq=2, G SumSq=2. VE = 2/(2+2) = 0.5.
     monitor.record_step({"var1": 1.0}, {"var1": 1.0}, 1)
     triggered, _ = monitor.check_trigger()
     assert not triggered  # VE is exactly 0.5, not > 0.5

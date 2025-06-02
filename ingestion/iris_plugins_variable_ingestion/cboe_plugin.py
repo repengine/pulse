@@ -1,8 +1,10 @@
 # import pandas as pd # Uncomment if pandas is needed for data processing
-# from ingestion.iris_utils.ingestion_persistence import save_data_point_incremental # Uncomment if saving data
+# from ingestion.iris_utils.ingestion_persistence import
+# save_data_point_incremental # Uncomment if saving data
 
 # Placeholder plugin for CBOE data (e.g., VIX).
-# Access to CBOE data, especially real-time or historical, may require specific API access or a subscription.
+# Access to CBOE data, especially real-time or historical, may require
+# specific API access or a subscription.
 
 
 class CBOEPlugin:
@@ -31,7 +33,8 @@ class CBOEPlugin:
             return None
 
         # TODO: Implement actual data fetching logic if API access is available.
-        # This would involve using the 'requests' library to interact with the CBOE data source.
+        # This would involve using the 'requests' library to interact with the
+        # CBOE data source.
         print("Fetching CBOE VIX data (placeholder - requires access/subscription)...")
         # Example of how requests might be used (uncomment and adapt if access is available):
         # try:
@@ -54,8 +57,8 @@ class CBOEPlugin:
         observations = self.fetch_vix_data()
         if observations:
             print(
-                f"Processing {len(observations)} observations from CBOE (placeholder)..."
-            )
+                f"Processing {
+                    len(observations)} observations from CBOE (placeholder)...")
             for obs in observations:
                 # TODO: Adapt this based on the actual CBOE data structure
                 # Assuming a structure with 'DATE' and 'VALUE'
@@ -72,7 +75,8 @@ class CBOEPlugin:
                         # Placeholder timestamp and value conversion
                         value = float(value)
 
-                        # save_data_point_incremental(data_point, "economic_indicators") # Uncomment to save
+                        # save_data_point_incremental(data_point, "economic_indicators")
+                        # # Uncomment to save
                     except (ValueError, TypeError) as e:
                         print(f"Could not process observation {obs}: {e}. Skipping.")
                         continue

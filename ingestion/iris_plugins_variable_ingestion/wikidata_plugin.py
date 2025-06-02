@@ -128,7 +128,7 @@ _QUERY_TEMPLATES = {
           OPTIONAL { ?company wdt:P1128 ?employeeCount. }
           OPTIONAL { ?company wdt:P2139 ?revenueUSD. }
           OPTIONAL { ?company wdt:P2295 ?netIncomeUSD. }
-          OPTIONAL { ?company wdt:P17 ?countryEntity. 
+          OPTIONAL { ?company wdt:P17 ?countryEntity.
                     ?countryEntity rdfs:label ?country.
                     FILTER(LANG(?country) = "en") }
           OPTIONAL { ?company wdt:P452 ?industry.
@@ -347,8 +347,8 @@ class WikidataPlugin(IrisPluginManager):
         # If all attempts failed, return None
         if not query_results:
             logger.error(
-                f"[wikidata_plugin] Failed to fetch data for entity {entity_id} after {self.MAX_RETRIES + 1} attempts"
-            )
+                f"[wikidata_plugin] Failed to fetch data for entity {entity_id} after {
+                    self.MAX_RETRIES + 1} attempts")
             return None
 
         # Process the results
@@ -391,8 +391,7 @@ class WikidataPlugin(IrisPluginManager):
             return processed_results
         except Exception as e:
             logger.error(
-                f"[wikidata_plugin] Error processing query results for entity {entity_id}: {e}"
-            )
+                f"[wikidata_plugin] Error processing query results for entity {entity_id}: {e}")
             return None
 
     def _process_query_results(
@@ -417,7 +416,8 @@ class WikidataPlugin(IrisPluginManager):
         """
         signals = []
 
-        # Process the first result (SPARQL queries typically return just one row for our queries)
+        # Process the first result (SPARQL queries typically return just one row
+        # for our queries)
         if results:
             result = results[0]  # Take the first result
             safe_entity_name = re.sub(r"[^a-zA-Z0-9]", "_", entity_name.lower())
@@ -607,9 +607,11 @@ class WikidataPlugin(IrisPluginManager):
                 if "unemploymentRate" in result:
                     signal = {
                         "name": f"wikidata_{domain}_{safe_entity_name}_unemployment_rate",
-                        "value": float(result["unemploymentRate"]),
+                        "value": float(
+                            result["unemploymentRate"]),
                         "source": "wikidata",
-                        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+                        "timestamp": dt.datetime.now(
+                            dt.timezone.utc).isoformat(),
                         "metadata": {
                             "entity_id": entity_id,
                             "entity_name": entity_name,

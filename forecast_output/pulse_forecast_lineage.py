@@ -71,8 +71,11 @@ def detect_drift(forecasts: List[Dict], drift_key: str = "symbolic_tag") -> List
         curr = forecasts[i]
         if prev.get(drift_key) != curr.get(drift_key):
             drifts.append(
-                f"Drift: {prev.get('trace_id')} → {curr.get('trace_id')} [{drift_key}: {prev.get(drift_key)} → {curr.get(drift_key)}]"
-            )
+                f"Drift: {
+                    prev.get('trace_id')} → {
+                    curr.get('trace_id')} [{drift_key}: {
+                    prev.get(drift_key)} → {
+                    curr.get(drift_key)}]")
     logger.info(
         f"Drift detection: {len(drifts)} drift events found for key '{drift_key}'."
     )

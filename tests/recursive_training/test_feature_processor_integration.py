@@ -98,7 +98,8 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
 
         # Check that the result contains expected integrated features
         self.assertIsNotNone(result)
-        # Verify the structure of the result should include items with integrated features
+        # Verify the structure of the result should include items with integrated
+        # features
         self.assertIn("items", result)
 
         # In the integrated result, items should have the advanced features integrated
@@ -106,7 +107,8 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
             # Check the first item has expected data
             if len(result["items"]) > 0:
                 # The test can't know exactly what integration does without running the actual
-                # integrate_with_pipeline function, but we can verify the mock was used correctly
+                # integrate_with_pipeline function, but we can verify the mock was used
+                # correctly
                 pass
 
     @patch(
@@ -156,7 +158,8 @@ class TestFeatureProcessorIntegration(unittest.TestCase):
             self.data_items, config["advanced_features"]
         )
 
-        # Verify that the result contains standard features and advanced features as a separate section
+        # Verify that the result contains standard features and advanced features
+        # as a separate section
         self.assertIn("items", result)
         self.assertIn("advanced", result)
         self.assertIn("time_frequency", result["advanced"])

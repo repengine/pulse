@@ -550,25 +550,29 @@ class MetricsStore:
         )  # This will also update and save the summary
 
         # Check against thresholds
-        # Note: store_metric already updates the summary, so total_cost here will be current
+        # Note: store_metric already updates the summary, so total_cost here will
+        # be current
         total_cost = self.metrics_summary["cost_tracking"]["total_cost"]
         status = "ok"
 
         if total_cost >= self.cost_thresholds["shutdown_threshold"]:
             status = "shutdown"
             self.logger.critical(
-                f"Cost threshold exceeded: ${total_cost:.2f} >= ${self.cost_thresholds['shutdown_threshold']:.2f}"
-            )
+                f"Cost threshold exceeded: ${
+                    total_cost:.2f} >= ${
+                    self.cost_thresholds['shutdown_threshold']:.2f}")
         elif total_cost >= self.cost_thresholds["critical_threshold"]:
             status = "critical"
             self.logger.error(
-                f"Cost threshold warning: ${total_cost:.2f} >= ${self.cost_thresholds['critical_threshold']:.2f}"
-            )
+                f"Cost threshold warning: ${
+                    total_cost:.2f} >= ${
+                    self.cost_thresholds['critical_threshold']:.2f}")
         elif total_cost >= self.cost_thresholds["warning_threshold"]:
             status = "warning"
             self.logger.warning(
-                f"Cost threshold warning: ${total_cost:.2f} >= ${self.cost_thresholds['warning_threshold']:.2f}"
-            )
+                f"Cost threshold warning: ${
+                    total_cost:.2f} >= ${
+                    self.cost_thresholds['warning_threshold']:.2f}")
 
         return {
             "total_cost": total_cost,

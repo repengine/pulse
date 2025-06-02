@@ -143,8 +143,14 @@ def simulate_retrodiction_test():
     )
     for r in results:
         logger.info(
-            f"[RETRO] Turn {r['turn']} | Trust: {r.get('trust_label', 'N/A')} | Confidence: {r.get('confidence', 'N/A')}"
-        )
+            f"[RETRO] Turn {
+                r['turn']} | Trust: {
+                r.get(
+                    'trust_label',
+                    'N/A')} | Confidence: {
+                    r.get(
+                        'confidence',
+                        'N/A')}")
     save_retrodiction_results(results)
 
 

@@ -155,8 +155,9 @@ def fetch_fred_data(
         )
 
     logger.info(
-        f"Fetching FRED data for series {series_id} from {start_date.date()} to {end_date.date()}"
-    )
+        f"Fetching FRED data for series {series_id} from {
+            start_date.date()} to {
+            end_date.date()}")
     data = _FRED.get_series(series_id, start_date, end_date)
 
     if data is None or data.empty:
@@ -171,8 +172,9 @@ def fetch_yahoo_finance_data(
 ) -> pd.DataFrame:
     """Fetch data from Yahoo Finance with retries and backoff."""
     logger.info(
-        f"Fetching Yahoo Finance data for ticker {ticker} from {start_date.date()} to {end_date.date()}"
-    )
+        f"Fetching Yahoo Finance data for ticker {ticker} from {
+            start_date.date()} to {
+            end_date.date()}")
 
     # yfinance download end date is exclusive, so add a day
     data = yf.download(
@@ -337,8 +339,8 @@ def retrieve_historical_data(
         # Special handling for Yahoo Finance data (which is what we need for spx_close)
         if source_type == "YahooFinance":
             logger.info(
-                f"Processing Yahoo Finance data with {len(data)} rows for {variable_name}"
-            )
+                f"Processing Yahoo Finance data with {
+                    len(data)} rows for {variable_name}")
 
             # Convert the Series to a list of tuples for safer iteration
             data_items = [(idx, val) for idx, val in zip(data.index, data.values)]
@@ -422,8 +424,9 @@ def retrieve_historical_data(
 
         logger.info(f"Successfully retrieved and stored data for {variable_name}")
         logger.info(
-            f"Data points: {stats.data_point_count}, Completeness: {stats.completeness_pct:.2f}%"
-        )
+            f"Data points: {
+                stats.data_point_count}, Completeness: {
+                stats.completeness_pct:.2f}%")
 
         if stats.gaps:
             logger.warning(f"Found {len(stats.gaps)} gaps in data for {variable_name}")
@@ -518,7 +521,8 @@ def analyze_data(
     # Identify anomalies (values that deviate significantly from the mean)
     anomalies = []
     if not data.empty and len(data) > 1:
-        # Calculate mean and std as scalar values - proper way to handle Series conversion
+        # Calculate mean and std as scalar values - proper way to handle Series
+        # conversion
         mean_val = float(data.iloc[0]) if len(data) == 1 else float(data.mean())
         std_val = 0.0 if len(data) == 1 else float(data.std())
 
@@ -539,24 +543,26 @@ def analyze_data(
     # Create and return statistics
     return RetrievalStats(
         variable_name=variable_name,
-        source=str(data.name)
-        if hasattr(data, "name") and data.name is not None
-        else "unknown",
+        source=(
+            str(data.name)
+            if hasattr(data, "name") and data.name is not None
+            else "unknown"
+        ),
         start_date=start_date,
         end_date=end_date,
         data_point_count=actual_points,
         min_value=float(data.min()) if not data.empty else 0,
         max_value=float(data.max()) if not data.empty else 0,
-        mean_value=float(data.iloc[0])
-        if not data.empty and len(data) == 1
-        else float(data.mean())
-        if not data.empty
-        else 0,
-        median_value=float(data.iloc[0])
-        if not data.empty and len(data) == 1
-        else float(data.median())
-        if not data.empty
-        else 0,
+        mean_value=(
+            float(data.iloc[0])
+            if not data.empty and len(data) == 1
+            else float(data.mean()) if not data.empty else 0
+        ),
+        median_value=(
+            float(data.iloc[0])
+            if not data.empty and len(data) == 1
+            else float(data.median()) if not data.empty else 0
+        ),
         completeness_pct=completeness,
         gaps=gaps,
         anomalies=anomalies,
@@ -806,14 +812,14 @@ def main():
 
         if "overall_metrics" in report:
             logger.info(
-                f"Average completeness: {report['overall_metrics']['average_completeness']:.2f}%"
-            )
+                f"Average completeness: {
+                    report['overall_metrics']['average_completeness']:.2f}%")
             logger.info(
-                f"Variables with gaps: {report['overall_metrics']['variables_with_gaps']}"
-            )
+                f"Variables with gaps: {
+                    report['overall_metrics']['variables_with_gaps']}")
             logger.info(
-                f"Variables with anomalies: {report['overall_metrics']['variables_with_anomalies']}"
-            )
+                f"Variables with anomalies: {
+                    report['overall_metrics']['variables_with_anomalies']}")
 
         return 0
 

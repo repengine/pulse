@@ -156,8 +156,12 @@ def main():
     print("\nRecommended variables (top by avg_confidence):")
     for var in recommended:
         print(
-            f"- {var['variable']} (count={var['count']}, avg_conf={var['avg_confidence']}, fragility={var['avg_fragility']}, certified={var['certified_ratio']})"
-        )
+            f"- {
+                var['variable']} (count={
+                var['count']}, avg_conf={
+                var['avg_confidence']}, fragility={
+                    var['avg_fragility']}, certified={
+                        var['certified_ratio']})")
     print("\nDrift-prone variables:", drift_prone)
 
     if args.output:

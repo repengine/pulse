@@ -121,15 +121,15 @@ def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> f
                 start_val = float(capital_start.get(asset, 0))
             except (ValueError, TypeError):
                 logger.warning(
-                    f"Invalid start_capital value for asset '{asset}': {capital_start.get(asset)}. Using 0.0"
-                )
+                    f"Invalid start_capital value for asset '{asset}': {
+                        capital_start.get(asset)}. Using 0.0")
                 start_val = 0.0
             try:
                 end_val = float(capital_end.get(asset, 0))
             except (ValueError, TypeError):
                 logger.warning(
-                    f"Invalid end_capital value for asset '{asset}': {capital_end.get(asset)}. Using 0.0"
-                )
+                    f"Invalid end_capital value for asset '{asset}': {
+                        capital_end.get(asset)}. Using 0.0")
                 end_val = 0.0
             delta_values.append(abs(end_val - start_val))
         risk_volatility = min(sum(delta_values) / 2000.0, 1.0)
@@ -168,15 +168,15 @@ def compute_risk_score(forecast: Dict, memory: Optional[List[Dict]] = None) -> f
                             curr_val = float(current_change.get(k, 0))
                         except (ValueError, TypeError):
                             logger.warning(
-                                f"Invalid symbolic_change value for key '{k}': {current_change.get(k)}. Using 0.0"
-                            )
+                                f"Invalid symbolic_change value for key '{k}': {
+                                    current_change.get(k)}. Using 0.0")
                             curr_val = 0.0
                         try:
                             past_val = float(past_change.get(k, 0))
                         except (ValueError, TypeError):
                             logger.warning(
-                                f"Invalid past symbolic_change value for key '{k}': {past_change.get(k)}. Using 0.0"
-                            )
+                                f"Invalid past symbolic_change value for key '{k}': {
+                                    past_change.get(k)}. Using 0.0")
                             past_val = 0.0
                         diff += abs(curr_val - past_val)
                     similarity = 1.0 - min(diff / len(common_keys), 1.0)
@@ -380,15 +380,15 @@ class TrustEngine:
                     start_val = float(capital_start.get(asset, 0))
                 except (ValueError, TypeError):
                     logger.warning(
-                        f"Invalid start_capital value for asset '{asset}': {capital_start.get(asset)}. Using 0.0"
-                    )
+                        f"Invalid start_capital value for asset '{asset}': {
+                            capital_start.get(asset)}. Using 0.0")
                     start_val = 0.0
                 try:
                     end_val = float(capital_end.get(asset, 0))
                 except (ValueError, TypeError):
                     logger.warning(
-                        f"Invalid end_capital value for asset '{asset}': {capital_end.get(asset)}. Using 0.0"
-                    )
+                        f"Invalid end_capital value for asset '{asset}': {
+                            capital_end.get(asset)}. Using 0.0")
                     end_val = 0.0
                 delta_sum += abs(end_val - start_val)
             movement_score = min(delta_sum / 1000.0, 1.0) if delta_sum else 0.0
@@ -401,8 +401,7 @@ class TrustEngine:
         ):
             # If high fragility score is due to empty symbolic data, use moderate value
             logger.info(
-                f"High fragility ({symbolic_penalty}) with empty symbolic data, adjusting penalty"
-            )
+                f"High fragility ({symbolic_penalty}) with empty symbolic data, adjusting penalty")
             symbolic_penalty = 0.5  # Use moderate fragility score for empty data
 
         # Baseline confidence: average of capital movement and inverse fragility
@@ -416,14 +415,14 @@ class TrustEngine:
         # Ensure baseline confidence has a reasonable minimum for early system
         if baseline_confidence < 0.3:
             logger.info(
-                f"Very low baseline confidence ({baseline_confidence}), setting minimum threshold"
-            )
+                f"Very low baseline confidence ({baseline_confidence}), setting minimum threshold")
             baseline_confidence = 0.3  # Set minimum threshold for early development
 
         risk_score = compute_risk_score(forecast, memory)
         forecast["risk_score"] = risk_score
 
-        # Improved historical consistency calculation with better handling for early system
+        # Improved historical consistency calculation with better handling for
+        # early system
         curr_change = fcast.get("symbolic_change", {})
 
         if not memory:
@@ -453,15 +452,15 @@ class TrustEngine:
                                 curr_val = float(curr_change.get(k, 0))
                             except (ValueError, TypeError):
                                 logger.warning(
-                                    f"Invalid symbolic_change value for key '{k}': {curr_change.get(k)}. Using 0.0"
-                                )
+                                    f"Invalid symbolic_change value for key '{k}': {
+                                        curr_change.get(k)}. Using 0.0")
                                 curr_val = 0.0
                             try:
                                 past_val = float(past_change.get(k, 0))
                             except (ValueError, TypeError):
                                 logger.warning(
-                                    f"Invalid past symbolic_change value for key '{k}': {past_change.get(k)}. Using 0.0"
-                                )
+                                    f"Invalid past symbolic_change value for key '{k}': {
+                                        past_change.get(k)}. Using 0.0")
                                 past_val = 0.0
                             diff += abs(curr_val - past_val)
                         sim = 1.0 - min(diff / len(common), 1.0)
@@ -502,8 +501,10 @@ class TrustEngine:
             min(max(final_confidence, CONFIDENCE_THRESHOLD), 1.0), 3
         )
         logger.info(
-            f"[TrustEngine] Scores for trace_id {forecast.get('trace_id', 'unknown')}: baseline={baseline_confidence}, risk={risk_score}, historical={historical_consistency}, novelty={novelty_score}, final_confidence={final_confidence}"
-        )
+            f"[TrustEngine] Scores for trace_id {
+                forecast.get(
+                    'trace_id',
+                    'unknown')}: baseline={baseline_confidence}, risk={risk_score}, historical={historical_consistency}, novelty={novelty_score}, final_confidence={final_confidence}")
         return final_confidence
 
     # ---- Symbolic Conflict / Mirror ----
@@ -851,8 +852,10 @@ class TrustEngine:
 
             except Exception as e:
                 logger.warning(
-                    f"Trust pipeline error on forecast {f.get('trace_id', 'unknown')}: {e}"
-                )
+                    f"Trust pipeline error on forecast {
+                        f.get(
+                            'trace_id',
+                            'unknown')}: {e}")
                 # Ensure defaults are set even if processing fails
                 if "confidence" not in f or f["confidence"] is None:
                     f["confidence"] = 0.0
@@ -901,7 +904,8 @@ def _enrich_retrodiction(forecast, current_state):
     """
     if current_state:
         try:
-            # Assuming retrodiction_score is already set in forecast by batch retrodiction
+            # Assuming retrodiction_score is already set in forecast by batch
+            # retrodiction
             if (
                 "retrodiction_score" not in forecast
                 or forecast["retrodiction_score"] is None

@@ -102,7 +102,8 @@ class Evaluator:
 
                         # TODO: Implement more sophisticated feedback generation and storage
                         # e.g., log to a file, store in a database, trigger alerts
-                        # TODO: Integrate proposed_rule_changes into a management mechanism
+                        # TODO: Integrate proposed_rule_changes into a management
+                        # mechanism
 
                     except ValidationError as e:
                         print(f"Validation error for forecast episode {index}: {e}")
@@ -110,8 +111,7 @@ class Evaluator:
                         print(f"Error processing forecast episode {index}: {e}")
                 else:
                     print(
-                        f"Skipping forecast episode {index} due to missing or invalid pulse_output or gpt_struct"
-                    )
+                        f"Skipping forecast episode {index} due to missing or invalid pulse_output or gpt_struct")
 
             if num_forecasts > 0:
                 metrics["total_symbolic_convergence_loss"] = total_loss / num_forecasts
@@ -162,7 +162,8 @@ class Evaluator:
         # print(f"  Pulse State: {pulse_forecast.state}")
         # print(f"  GPT State: {gpt_forecast.state}")
         # print(f"  Pulse Rationale: {getattr(pulse_forecast, 'rationale', 'N/A')}") # Use getattr for safety
-        # print(f"  GPT Rationale: {getattr(gpt_forecast, 'rationale', 'N/A')}") # Use getattr for safety
+        # print(f"  GPT Rationale: {getattr(gpt_forecast, 'rationale', 'N/A')}") #
+        # Use getattr for safety
 
         # Analyze Action Divergence
         if (
@@ -186,7 +187,8 @@ class Evaluator:
                         "type": "add_rule",
                         "reason": "GPT forecast includes actions missing in Pulse forecast.",
                         "details": f"Missing actions: {missing_in_pulse}. Consider adding rules that lead to these actions.",
-                        "suggested_rule_basis": f"Analyze GPT rationale and state leading to actions: {missing_in_pulse}",  # Suggest basis for new rule
+                        # Suggest basis for new rule
+                        "suggested_rule_basis": f"Analyze GPT rationale and state leading to actions: {missing_in_pulse}",
                     }
                 )
             if extra_in_pulse:
@@ -195,12 +197,14 @@ class Evaluator:
                         "type": "prune_rule",
                         "reason": "Pulse forecast includes actions not present in GPT forecast.",
                         "details": f"Extra actions: {extra_in_pulse}. Consider pruning or modifying rules that lead to these actions.",
-                        "suggested_rule_basis": f"Analyze Pulse rules leading to actions: {extra_in_pulse}",  # Suggest basis for pruning/modification
+                        # Suggest basis for pruning/modification
+                        "suggested_rule_basis": f"Analyze Pulse rules leading to actions: {extra_in_pulse}",
                     }
                 )
 
         # Analyze State Divergence
-        # A simple state comparison; a real implementation would need deeper state structure analysis
+        # A simple state comparison; a real implementation would need deeper state
+        # structure analysis
         if (
             loss_components.get("state_divergence", 0) > 0
         ):  # Check if there is any state divergence
@@ -252,8 +256,7 @@ class Evaluator:
                     "reason": "Very high total divergence in this episode.",
                     "details": "Identify rules active in this episode for potential pruning or modification.",
                     "suggested_rule_basis": "Analyze rules active in this forecast episode.",
-                }
-            )
+                })
 
         # TODO: Implement more sophisticated rule generation/pruning logic
         # This might involve:

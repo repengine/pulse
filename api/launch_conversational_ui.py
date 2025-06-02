@@ -66,8 +66,9 @@ def main():
 
     # Log model configuration
     logger.info(
-        f"Starting conversational UI with model type: {args.model_type}, model name: {args.model_name}"
-    )
+        f"Starting conversational UI with model type: {
+            args.model_type}, model name: {
+            args.model_name}")
 
     # Initialize and run the GUI
     app = ConversationalGUI()

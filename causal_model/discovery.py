@@ -108,8 +108,7 @@ class CausalDiscovery:
                 return self.optimized_discovery.vectorized_fci_algorithm(alpha)
             except (NotImplementedError, AttributeError) as e:
                 logger.warning(
-                    f"Optimized FCI not fully implemented: {e}, falling back to standard"
-                )
+                    f"Optimized FCI not fully implemented: {e}, falling back to standard")
 
         # Fall back to standard implementation
         logger.info(f"Running standard FCI algorithm with alpha={alpha}")

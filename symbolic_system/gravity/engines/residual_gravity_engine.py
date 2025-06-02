@@ -496,17 +496,17 @@ class ResidualGravityEngine:
                     # Shape of grad: (state_dimensionality, 1)
                     grad = (
                         s_k * residual_array
-                        - self.reg * self.impact_matrix_B[:, i : i + 1]
+                        - self.reg * self.impact_matrix_B[:, i: i + 1]
                     )
 
                     # Update momentum for the entire column
-                    self._v_matrix[:, i : i + 1] = (
-                        self.β * self._v_matrix[:, i : i + 1] + (1 - self.β) * grad
+                    self._v_matrix[:, i: i + 1] = (
+                        self.β * self._v_matrix[:, i: i + 1] + (1 - self.β) * grad
                     )
 
                     # Update impact matrix column
-                    self.impact_matrix_B[:, i : i + 1] += (
-                        self.η * self._v_matrix[:, i : i + 1]
+                    self.impact_matrix_B[:, i: i + 1] += (
+                        self.η * self._v_matrix[:, i: i + 1]
                     )
 
         # Update statistics
@@ -579,7 +579,8 @@ class ResidualGravityEngine:
         # Check if symbolic system is globally enabled
         from symbolic_system.context import is_symbolic_enabled
 
-        # Return original simulation vector without correction if symbolic system is disabled
+        # Return original simulation vector without correction if symbolic system
+        # is disabled
         if not is_symbolic_enabled():
             # Return zero correction and original value
             if self.state_dimensionality == 1:
@@ -881,11 +882,14 @@ class ResidualGravityEngine:
                     review_needed_flag = True
                     # Log critical message
                     self.logger.critical(
-                        f"Shadow model trigger activated: Gravity model explaining {variance_explained:.2f} "
-                        + f"of variance (threshold: {self.config.shadow_model_variance_threshold}). "
-                        + f"Causal variance: {var_causal_res:.6f}, Gravity variance: {var_gravity_res:.6f}. "
-                        + "Review recommended."
-                    )
+                        f"Shadow model trigger activated: Gravity model explaining {
+                            variance_explained:.2f} " +
+                        f"of variance (threshold: {
+                            self.config.shadow_model_variance_threshold}). " +
+                        f"Causal variance: {
+                            var_causal_res:.6f}, Gravity variance: {
+                            var_gravity_res:.6f}. " +
+                        "Review recommended.")
 
                     # Update stats
                     self._stats["shadow_model_trigger"] = {
@@ -952,7 +956,8 @@ class ResidualGravityEngine:
             self._update_weights_dict_from_matrix()
             return dict(self.weights)
         else:
-            # For multidimensional state, return the average impact across dimensions for each pillar
+            # For multidimensional state, return the average impact across dimensions
+            # for each pillar
             return {
                 pillar_name: float(np.mean(self.impact_matrix_B[:, i]))
                 for i, pillar_name in enumerate(self.pillar_names)
@@ -1027,7 +1032,8 @@ class ResidualGravityEngine:
             self._update_weights_dict_from_matrix()
             return {k: w for k, w in self.weights.items() if abs(w) >= threshold}
         else:
-            # For multidimensional state, return average impact across dimensions for each pillar
+            # For multidimensional state, return average impact across dimensions for
+            # each pillar
             return {
                 pillar_name: float(np.mean(self.impact_matrix_B[:, i]))
                 for i, pillar_name in enumerate(self.pillar_names)
@@ -1186,15 +1192,15 @@ class ResidualGravityEngine:
         elif health["circuit_breaker_trips"] > grav_cfg.WARNING_CIRCUIT_BREAKER_TRIPS:
             health["status"] = "warning"
             health["warnings"].append(
-                f"Circuit breaker triggered {health['circuit_breaker_trips']} times, corrections may be unstable"
-            )
+                f"Circuit breaker triggered {
+                    health['circuit_breaker_trips']} times, corrections may be unstable")
 
         # 4. High fragility
         elif health["fragility"] > grav_cfg.WARNING_FRAGILITY_THRESHOLD:
             health["status"] = "warning"
             health["warnings"].append(
-                f"High fragility score ({health['fragility']:.2f}), corrections applied conservatively"
-            )
+                f"High fragility score ({
+                    health['fragility']:.2f}), corrections applied conservatively")
 
         # 5. Stagnant weights (not learning)
         elif (
@@ -1215,8 +1221,8 @@ class ResidualGravityEngine:
         ):
             health["status"] = "caution"
             health["warnings"].append(
-                f"Low correction efficiency ({health['correction_efficiency']:.2f}), corrections heavily limited"
-            )
+                f"Low correction efficiency ({
+                    health['correction_efficiency']:.2f}), corrections heavily limited")
 
         # Add recommendations based on health status
         if health["status"] != "healthy":
@@ -1362,7 +1368,8 @@ class ResidualGravityEngine:
             impact_matrix_B=impact_matrix,
         )
 
-        # If impact matrix was not provided but weights were, convert weights to impact matrix
+        # If impact matrix was not provided but weights were, convert weights to
+        # impact matrix
         if impact_matrix is None and "weights" in data:
             # For backward compatibility with old format
             if engine.state_dimensionality == 1:

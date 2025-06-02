@@ -672,9 +672,11 @@ class SymbolicPillarSystem:
                     {
                         "time_offset": time_offset,
                         "weight": weight,
-                        "data": str(data_point)
-                        if hasattr(data_point, "__str__")
-                        else "Data point",
+                        "data": (
+                            str(data_point)
+                            if hasattr(data_point, "__str__")
+                            else "Data point"
+                        ),
                     }
                 )
 

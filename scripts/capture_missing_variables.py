@@ -8,6 +8,16 @@ This script retrieves at least 5 years of historical data and applies
 data cleaning and imputation strategies.
 """
 
+from ingestion.iris_utils.ingestion_persistence import (
+    ensure_data_directory,
+    save_request_metadata,
+    save_api_response,
+    save_processed_data,
+    save_data_point_incremental,
+)
+from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import (
+    AlphaVantagePlugin,
+)
 import os
 import sys
 import logging
@@ -16,16 +26,6 @@ import pandas as pd
 # Add project root to path to enable imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import (
-    AlphaVantagePlugin,
-)
-from ingestion.iris_utils.ingestion_persistence import (
-    ensure_data_directory,
-    save_request_metadata,
-    save_api_response,
-    save_processed_data,
-    save_data_point_incremental,
-)
 
 # Set up logging
 logging.basicConfig(
@@ -188,8 +188,8 @@ def fetch_and_store_variable(plugin, variable_name, interval="quarterly"):
         )
 
         logger.info(
-            f"Successfully processed and stored {len(processed_df)} data points for {variable_name}"
-        )
+            f"Successfully processed and stored {
+                len(processed_df)} data points for {variable_name}")
         return True
 
     except Exception as e:

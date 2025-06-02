@@ -41,7 +41,8 @@ class WorldBankPlugin(IrisPluginManager):
     RETRY_WAIT = 2.0  # seconds between retries
     MAX_RETRIES = 3
 
-    # Selected indicators to track (based on relevance to forecasting and update frequency)
+    # Selected indicators to track (based on relevance to forecasting and
+    # update frequency)
     INDICATORS = {
         # Economic indicators
         "NY.GDP.MKTP.CD": "gdp",  # GDP (current US$)
@@ -53,10 +54,13 @@ class WorldBankPlugin(IrisPluginManager):
         # Development indicators
         "SP.POP.TOTL": "population",  # Population, total
         "SP.DYN.LE00.IN": "life_expectancy",  # Life expectancy at birth, total (years)
-        "SE.XPD.TOTL.GD.ZS": "education",  # Government expenditure on education (% of GDP)
+        # Government expenditure on education (% of GDP)
+        "SE.XPD.TOTL.GD.ZS": "education",
         "SH.XPD.CHEX.GD.ZS": "healthcare",  # Current health expenditure (% of GDP)
-        "EG.USE.ELEC.KH.PC": "electricity",  # Electric power consumption (kWh per capita)
-        "IT.NET.USER.ZS": "internet",  # Individuals using the Internet (% of population)
+        # Electric power consumption (kWh per capita)
+        "EG.USE.ELEC.KH.PC": "electricity",
+        # Individuals using the Internet (% of population)
+        "IT.NET.USER.ZS": "internet",
     }
 
     # Countries to track by region
@@ -242,8 +246,7 @@ class WorldBankPlugin(IrisPluginManager):
             or len(response_data) < 2
         ):
             logger.error(
-                f"Invalid response format from World Bank API for indicator {indicator_code}"
-            )
+                f"Invalid response format from World Bank API for indicator {indicator_code}")
             return None
 
         # Extract data

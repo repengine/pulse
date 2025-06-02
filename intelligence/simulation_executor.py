@@ -82,8 +82,7 @@ class SimulationExecutor:
                     self.llm_provider = "none"
             except Exception as e:
                 print(
-                    f"[Executor] Error initializing GPTCaller: {e}. GPT calls will be skipped."
-                )
+                    f"[Executor] Error initializing GPTCaller: {e}. GPT calls will be skipped.")
                 self.llm_provider = "none"
         elif self.llm_provider == "gemini":
             if GEMINI_API_KEY:
@@ -92,8 +91,7 @@ class SimulationExecutor:
                     genai.configure(api_key=GEMINI_API_KEY)
                     self.gemini_client = genai.GenerativeModel(GEMINI_DEFAULT_MODEL)
                     print(
-                        f"[Executor] Gemini client initialized with model: {GEMINI_DEFAULT_MODEL}"
-                    )
+                        f"[Executor] Gemini client initialized with model: {GEMINI_DEFAULT_MODEL}")
                 except ImportError:  # Should not happen now, but good practice
                     print(
                         "[Executor] 'google-generativeai' library seems unavailable despite installation. Gemini calls will be skipped."
@@ -103,13 +101,11 @@ class SimulationExecutor:
                     AttributeError
                 ) as ae:  # Catch if configure/GenerativeModel don't exist
                     print(
-                        f"[Executor] Error initializing Gemini client (likely library version issue): {ae}. Gemini calls will be skipped."
-                    )
+                        f"[Executor] Error initializing Gemini client (likely library version issue): {ae}. Gemini calls will be skipped.")
                     self.llm_provider = "none"
                 except Exception as e:
                     print(
-                        f"[Executor] Error initializing Gemini client: {e}. Gemini calls will be skipped."
-                    )
+                        f"[Executor] Error initializing Gemini client: {e}. Gemini calls will be skipped.")
                     self.llm_provider = "none"
             else:
                 print(
@@ -118,8 +114,8 @@ class SimulationExecutor:
                 self.llm_provider = "none"
         else:  # Handles LLM_PROVIDER being neither 'gpt' nor 'gemini' or invalid
             print(
-                f"[Executor] LLM_PROVIDER set to '{self.llm_provider}'. No LLM calls will be made."
-            )
+                f"[Executor] LLM_PROVIDER set to '{
+                    self.llm_provider}'. No LLM calls will be made.")
             self.llm_provider = "none"
 
     # Correctly indented method within the class
@@ -179,8 +175,7 @@ class SimulationExecutor:
                         )
                         if safety_ratings:
                             raise ValueError(
-                                f"Gemini response blocked or empty. Reason: {block_reason}. Ratings: {safety_ratings}"
-                            )
+                                f"Gemini response blocked or empty. Reason: {block_reason}. Ratings: {safety_ratings}")
                         else:
                             raise ValueError(
                                 "Gemini response missing 'text' attribute and no clear block reason."
@@ -215,7 +210,8 @@ class SimulationExecutor:
                     print(f"[Executor] Gemini response format error: {ae}")
                     raise ValueError(f"Unexpected Gemini response format: {ae}") from ae
                 except Exception as gemini_err:
-                    # Propagate other errors (like API errors, ValueErrors from blocking)
+                    # Propagate other errors (like API errors, ValueErrors from
+                    # blocking)
                     raise gemini_err
 
             caller_func = gemini_caller_wrapper
@@ -246,15 +242,15 @@ class SimulationExecutor:
                 if result.get("output") is not None or result.get("struct") is not None:
                     success = True
                 else:
-                    # Treat empty/None results as potential transient issues if not an explicit error
+                    # Treat empty/None results as potential transient issues if not an
+                    # explicit error
                     raise ValueError(f"{provider_name} returned empty result.")
 
             except Exception as exc:
                 last_exception = exc
                 attempt += 1
                 print(
-                    f"[Executor] {provider_name} call attempt {attempt}/{retries} failed: {exc}"
-                )
+                    f"[Executor] {provider_name} call attempt {attempt}/{retries} failed: {exc}")
                 if attempt < retries:
                     # Exponential backoff
                     time.sleep(sleep_time * (2 ** (attempt - 1)))
@@ -262,8 +258,7 @@ class SimulationExecutor:
                     err_msg = f"{provider_name} call failed after {retries} attempts: {last_exception}"
                     result["error"] = err_msg
                     print(
-                        f"[Executor] {provider_name} call failed permanently: {last_exception}"
-                    )
+                        f"[Executor] {provider_name} call failed permanently: {last_exception}")
 
         return result
 
@@ -324,8 +319,8 @@ class SimulationExecutor:
                         forecast["error"] = "Non-dict forecast"
                         forecast["original_type"] = str(type(generated))
                         print(
-                            f"[Executor] Warning: Forecast generator returned {type(generated)}."
-                        )
+                            f"[Executor] Warning: Forecast generator returned {
+                                type(generated)}.")
                 except Exception as e:
                     forecast["error"] = str(e)
                     print(f"[Executor] Error calling generate_forecast: {e}")
@@ -344,7 +339,8 @@ class SimulationExecutor:
                     )
                     prompt: str = ""
                     try:
-                        # Construct the prompt (remains the same for now, adapt if needed for Gemini)
+                        # Construct the prompt (remains the same for now, adapt if
+                        # needed for Gemini)
                         prompt_template = """You are an AI assisting in analyzing a simulation of a complex system.
     Below is the current state of the simulation. The simulation is governed by a set of rules and operates on variables defined in a registry.
 
@@ -400,8 +396,7 @@ class SimulationExecutor:
                             read_mc_samples.append(json.loads(line))
                         except json.JSONDecodeError as json_err:
                             print(
-                                f"[Executor] Warning: Skipping invalid JSON line in temp file: {json_err}"
-                            )
+                                f"[Executor] Warning: Skipping invalid JSON line in temp file: {json_err}")
 
             # Compress or return raw samples
             try:

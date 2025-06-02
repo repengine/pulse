@@ -16,7 +16,9 @@ import sys
 sys.path.append(os.getcwd())
 
 # Import the registry and plugins
-# from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin # Import again to access STOCK_SYMBOLS # Commented out due to missing module
+# from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin
+# import AlphaVantagePlugin # Import again to access STOCK_SYMBOLS #
+# Commented out due to missing module
 
 # def test_manual_opec_plugin():
 #     """Test the manual OPEC plugin for orb_price."""

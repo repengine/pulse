@@ -244,8 +244,7 @@ def monitor_job(
             break
 
         print(
-            f"\nRefreshing in {poll_interval} seconds... (Press Ctrl+C to stop monitoring)"
-        )
+            f"\nRefreshing in {poll_interval} seconds... (Press Ctrl+C to stop monitoring)")
         try:
             time.sleep(poll_interval)
         except KeyboardInterrupt:

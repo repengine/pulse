@@ -91,8 +91,9 @@ class RecursiveTrainingMetrics:
         """
         if len(true_values) != len(predicted_values):
             self.logger.error(
-                f"Length mismatch: true values ({len(true_values)}) != predicted values ({len(predicted_values)})"
-            )
+                f"Length mismatch: true values ({
+                    len(true_values)}) != predicted values ({
+                    len(predicted_values)})")
             return False
 
         if len(true_values) == 0:
@@ -306,7 +307,8 @@ class RecursiveTrainingMetrics:
                 )
             elif average == "samples":
                 # Note: 'samples' average might not be applicable for all scenarios or pd.Series inputs directly
-                # depending on sklearn version and data structure. Test mocks should cover this.
+                # depending on sklearn version and data structure. Test mocks should
+                # cover this.
                 return self._safe_calculation(
                     lambda x, y: sk_metrics.f1_score(
                         x, y, average="samples", zero_division=0
@@ -619,8 +621,9 @@ class RecursiveTrainingMetrics:
                     1 + self.alert_threshold
                 ):
                     self.logger.warning(
-                        f"Metric {key} degraded: {metrics[key]:.4f} vs baseline {self.baseline_metrics[key]:.4f}"
-                    )
+                        f"Metric {key} degraded: {
+                            metrics[key]:.4f} vs baseline {
+                            self.baseline_metrics[key]:.4f}")
 
         # Check for accuracy or f1 regression
         for key in ["accuracy", "f1_score"]:
@@ -630,8 +633,9 @@ class RecursiveTrainingMetrics:
                     1 - self.alert_threshold
                 ):
                     self.logger.warning(
-                        f"Metric {key} degraded: {metrics[key]:.4f} vs baseline {self.baseline_metrics[key]:.4f}"
-                    )
+                        f"Metric {key} degraded: {
+                            metrics[key]:.4f} vs baseline {
+                            self.baseline_metrics[key]:.4f}")
 
     def set_baseline(self, metrics: Dict[str, Any]) -> None:
         """
@@ -822,12 +826,14 @@ class RecursiveTrainingMetrics:
                     rule_specific_history  # Initialize with the original history
                 )
 
-                # Ensure iteration keys are integers for correct sorting if they are not already
+                # Ensure iteration keys are integers for correct sorting if they are not
+                # already
                 try:
                     # Attempt to convert keys to int if they are strings, common in JSON-loaded data
                     # If keys are already int, this will mostly be a pass-through
                     # If keys are mixed or non-convertible, it might raise an error,
-                    # which indicates a different problem with how rule_performance is populated.
+                    # which indicates a different problem with how rule_performance is
+                    # populated.
                     int_keyed_history = {
                         int(k): v for k, v in rule_specific_history.items()
                     }
@@ -835,16 +841,15 @@ class RecursiveTrainingMetrics:
                     history_to_use = int_keyed_history  # Update if conversion and sorting are successful
                 except ValueError:
                     self.logger.error(
-                        f"Non-integer iteration keys found in rule_performance for '{rule_identifier}'. Cannot sort iterations."
-                    )
-                    # Fallback to treating keys as they are, hoping they are sortable or test setup handles it
+                        f"Non-integer iteration keys found in rule_performance for '{rule_identifier}'. Cannot sort iterations.")
+                    # Fallback to treating keys as they are, hoping they are sortable or
+                    # test setup handles it
                     sorted_iterations = sorted(rule_specific_history.keys())
                     # history_to_use remains rule_specific_history
 
                 if not sorted_iterations:
                     self.logger.warning(
-                        f"Rule type '{rule_identifier}' has no iteration data in rule_performance."
-                    )
+                        f"Rule type '{rule_identifier}' has no iteration data in rule_performance.")
                     metrics["error"] = (
                         f"No iteration data for rule type '{rule_identifier}'."
                     )
@@ -886,7 +891,8 @@ class RecursiveTrainingMetrics:
                             latest_metrics_dict.keys()
                         )
                         for metric_key in common_metric_keys:
-                            # Ensure values are numeric and first_metric is not zero for division
+                            # Ensure values are numeric and first_metric is not zero for
+                            # division
                             if (
                                 isinstance(
                                     first_metrics_dict.get(metric_key), (int, float)
@@ -1057,8 +1063,7 @@ class RecursiveTrainingMetrics:
                 rule_performance[rule_type] = evaluated_data
             else:
                 self.logger.warning(
-                    f"Evaluation for rule type '{rule_type}' returned no data or an error for summary, and will not be included."
-                )
+                    f"Evaluation for rule type '{rule_type}' returned no data or an error for summary, and will not be included.")
         return {
             "total_iterations": len(self.iteration_history),
             "latest_iteration": latest_iteration["iteration"],

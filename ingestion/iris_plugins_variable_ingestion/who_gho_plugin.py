@@ -106,7 +106,7 @@ class WhoGhoPlugin(IrisPluginManager):
         ) * indicators_per_day
         indicator_items = list(self.INDICATORS.items())
         today_indicators = dict(
-            indicator_items[start_idx : start_idx + indicators_per_day]
+            indicator_items[start_idx: start_idx + indicators_per_day]
         )
 
         # Fetch information about selected indicators first
@@ -246,7 +246,6 @@ class WhoGhoPlugin(IrisPluginManager):
 
             except (ValueError, TypeError) as e:
                 logger.error(
-                    f"Error processing WHO data for {indicator_code}/{country_code}: {e}"
-                )
+                    f"Error processing WHO data for {indicator_code}/{country_code}: {e}")
 
         return signals

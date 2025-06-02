@@ -12,6 +12,12 @@ import logging
 import argparse
 from datetime import datetime
 import boto3
+import memory_profiler  # Added for memory profiling
+
+# Add the project root to the Python path to allow importing recursive_training
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # Configure logging
 logging.basicConfig(
@@ -224,6 +230,7 @@ def configure_aws_batch_environment():
     return env_config
 
 
+@memory_profiler.profile  # Added for memory profiling
 def main():
     """Main entry point for the retrodiction training runner."""
     args = parse_args()
@@ -275,6 +282,7 @@ def main():
             dask_scheduler_port=args.dask_dashboard_port,
             dask_dashboard_port=args.dask_dashboard_port,
             dask_threads_per_worker=args.dask_threads_per_worker,
+            batch_limit=3,  # Temporarily limit batches for debugging
         )
 
         logger.info("Training completed successfully")

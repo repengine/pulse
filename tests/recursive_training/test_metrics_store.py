@@ -124,12 +124,13 @@ class TestMetricsStore:
             # Second call should not initialize again but return the same instance
             instance2 = MetricsStore.get_instance()
             mock_init.assert_not_called()
-            assert instance1 is instance2, (
-                "get_instance should return the same instance"
-            )
+            assert (
+                instance1 is instance2
+            ), "get_instance should return the same instance"
 
             # get_metrics_store should call get_instance
-            # Reset _instance again to test get_metrics_store properly if it also initializes
+            # Reset _instance again to test get_metrics_store properly if it also
+            # initializes
             MetricsStore._instance = None
             mock_init.reset_mock()  # Reset mock for get_metrics_store call
 
@@ -147,7 +148,8 @@ class TestMetricsStore:
             ):
                 store_from_getter = get_metrics_store()
                 mock_get_instance_method.assert_called_once()
-                mock_init_for_get_metrics_store.assert_called_once()  # __init__ should be called by get_instance via get_metrics_store
+                # __init__ should be called by get_instance via get_metrics_store
+                mock_init_for_get_metrics_store.assert_called_once()
 
                 # Verify it's the same instance logic
                 mock_init_for_get_metrics_store.reset_mock()
@@ -342,16 +344,20 @@ class TestMetricsStore:
             return {
                 "id": metric_id,
                 "timestamp": f"2025-04-{30 if 'metric3' in metric_id or 'metric4' in metric_id or 'metric5' in metric_id else 29}",
-                "metric_type": "training_iteration"
-                if "metric1" in metric_id
-                or "metric2" in metric_id
-                or "metric3" in metric_id
-                else "validation",
-                "model": "model_a"
-                if "metric1" in metric_id
-                or "metric3" in metric_id
-                or "metric4" in metric_id
-                else "model_b",
+                "metric_type": (
+                    "training_iteration"
+                    if "metric1" in metric_id
+                    or "metric2" in metric_id
+                    or "metric3" in metric_id
+                    else "validation"
+                ),
+                "model": (
+                    "model_a"
+                    if "metric1" in metric_id
+                    or "metric3" in metric_id
+                    or "metric4" in metric_id
+                    else "model_b"
+                ),
             }
 
         metrics_store.get_metric = MagicMock(side_effect=mock_get_metric)
@@ -387,15 +393,15 @@ class TestMetricsStore:
         # Mock store_metric and simulate its effect on cost_tracking in metrics_summary
         def mock_store_metric_side_effect(metric_data):
             if metric_data.get("metric_type") == "cost":
-                metrics_store.metrics_summary["cost_tracking"]["total_cost"] += (
-                    metric_data.get("cost", 0.0)
-                )
-                metrics_store.metrics_summary["cost_tracking"]["api_calls"] += (
-                    metric_data.get("api_calls", 0)
-                )
-                metrics_store.metrics_summary["cost_tracking"]["token_usage"] += (
-                    metric_data.get("token_usage", 0)
-                )
+                metrics_store.metrics_summary["cost_tracking"][
+                    "total_cost"
+                ] += metric_data.get("cost", 0.0)
+                metrics_store.metrics_summary["cost_tracking"][
+                    "api_calls"
+                ] += metric_data.get("api_calls", 0)
+                metrics_store.metrics_summary["cost_tracking"][
+                    "token_usage"
+                ] += metric_data.get("token_usage", 0)
             return "cost_metric_id"
 
         # Initial state (ensure it's clean before the call)
@@ -426,7 +432,8 @@ class TestMetricsStore:
             assert result["status"] == "ok"
 
             # Test warning threshold
-            # Reset mock and relevant summary parts for the next call within the same test
+            # Reset mock and relevant summary parts for the next call within the same
+            # test
             mocked_store_metric_method.reset_mock()
             metrics_store.metrics_summary["cost_tracking"]["total_cost"] = 0.0
             metrics_store.metrics_summary["cost_tracking"]["api_calls"] = 0
@@ -435,7 +442,8 @@ class TestMetricsStore:
 
             result = metrics_store.track_cost(cost=2.5)
             assert result["status"] == "warning"
-            mocked_store_metric_method.assert_called_once()  # Check it was called again for this scenario
+            # Check it was called again for this scenario
+            mocked_store_metric_method.assert_called_once()
             assert (
                 metrics_store.metrics_summary["cost_tracking"]["total_cost"] == 2.5
             )  # Check side effect for this call

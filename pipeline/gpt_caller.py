@@ -59,10 +59,11 @@ class GPTCaller:
                     json_start = raw_output.find("{")
                     json_end = raw_output.rfind("}")
                     if json_start != -1 and json_end != -1 and json_end > json_start:
-                        json_string = raw_output[json_start : json_end + 1]
+                        json_string = raw_output[json_start: json_end + 1]
                         gpt_struct = json.loads(json_string)
                     else:
-                        # If no JSON block found, try parsing the whole output if it's just JSON
+                        # If no JSON block found, try parsing the whole output if it's
+                        # just JSON
                         gpt_struct = json.loads(raw_output)
                 except json.JSONDecodeError:
                     # If JSON parsing fails, gpt_struct remains an empty dict

@@ -321,7 +321,8 @@ def plot_gravity_correction_details_html(
     fig.update_yaxes(title_text="Weight Contribution", row=2, col=1)
 
     # Add callback for bar click (this will be a JS function in the HTML)
-    # This creates pop-up information about source data points when a pillar bar is clicked
+    # This creates pop-up information about source data points when a pillar
+    # bar is clicked
     fig.update_layout(clickmode="event+select")
 
     # Generate the HTML content
@@ -339,13 +340,13 @@ def plot_gravity_correction_details_html(
                 if (data.points[0].data.type === 'bar') {
                     var pillarName = data.points[0].x;
                     var weight = data.points[0].y.toFixed(4);
-                    
+
                     // Get source data points (this would need to be added as a custom data attribute)
                     // For now, just show a placeholder message
                     var message = "Pillar: " + pillarName + "\\nWeight: " + weight;
                     message += "\\n\\nSource data points for this pillar are not available in this view.";
                     message += "\\nUse the CLI explanation for more detailed information.";
-                    
+
                     alert(message);
                 }
             });

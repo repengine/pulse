@@ -10,7 +10,8 @@ class TestAIForecaster(unittest.TestCase):
         # The 'ai_forecaster.predict' function uses a module-level '_model'.
         # We need to patch this '_model'.
         # This mock_model will simulate an instance of LSTMForecaster.
-        # When _model(tensor) is called in predict(), this mock's return_value will be used.
+        # When _model(tensor) is called in predict(), this mock's return_value
+        # will be used.
 
         mock_lstm_model_instance = MagicMock()
         # Configure the mock model to return a tensor that results in 0.0 after .item()
@@ -47,10 +48,9 @@ class TestAIForecaster(unittest.TestCase):
             self.assertIsInstance(result, dict)
             self.assertIn("adjustment", result)
             self.assertEqual(
-                result["adjustment"],
-                0.0,
-                msg=f"Adjustment was {result.get('adjustment')}, error: {result.get('error')}",
-            )
+                result["adjustment"], 0.0, msg=f"Adjustment was {
+                    result.get('adjustment')}, error: {
+                    result.get('error')}", )
             self.assertNotIn(
                 "error",
                 result,

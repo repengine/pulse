@@ -31,7 +31,8 @@ if parent_dir not in sys.path:
 
 
 # Define the directories to scan for codebase artifacts
-# Including relevant directories based on the task scope but avoiding problematic directories
+# Including relevant directories based on the task scope but avoiding
+# problematic directories
 CODEBASE_DIRECTORIES = [
     # Skip scanning the root directory directly to avoid .venv and similar directories
     # Instead, list specific directories to include
@@ -209,22 +210,23 @@ def load_vector_store(model_name="all-MiniLM-L6-v2"):
         # Ensure the loaded index has the correct dimension
         if index.d != embedding_dimension:
             logger.error(
-                f"Error loading index: Dimension mismatch. Expected {embedding_dimension}, got {index.d}"
-            )
+                f"Error loading index: Dimension mismatch. Expected {embedding_dimension}, got {
+                    index.d}")
             return None
 
         logger.info(f"Loading metadata from {METADATA_PATH}")
         with open(METADATA_PATH, "rb") as f:
             metadata = pickle.load(f)
 
-        # Create a new CodebaseVectorStore instance and assign the loaded index and metadata
+        # Create a new CodebaseVectorStore instance and assign the loaded index
+        # and metadata
         loaded_vector_store = CodebaseVectorStore(model_name=model_name)
         loaded_vector_store.index = index
         loaded_vector_store.document_metadata = metadata
 
         logger.info(
-            f"Vector store loaded successfully. Total vectors: {loaded_vector_store.index.ntotal}"
-        )
+            f"Vector store loaded successfully. Total vectors: {
+                loaded_vector_store.index.ntotal}")
         return loaded_vector_store
 
     except Exception as e:
@@ -304,8 +306,10 @@ def main():
             logger.info("Vector store build completed successfully!")
         else:
             logger.error(
-                f"Vector store build failed: {build_stats.get('reason', 'Unknown error')}"
-            )
+                f"Vector store build failed: {
+                    build_stats.get(
+                        'reason',
+                        'Unknown error')}")
 
     elif args.action == "test":
         test_vector_store(query=args.query, k=args.results)

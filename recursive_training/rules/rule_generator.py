@@ -121,8 +121,8 @@ class RecursiveRuleGenerator:
         }
 
         self.logger.info(
-            f"RecursiveRuleGenerator initialized with {self.max_workers} worker processes"
-        )
+            f"RecursiveRuleGenerator initialized with {
+                self.max_workers} worker processes")
 
     def _initialize_gpt_system(self):
         """Initialize the GPT system for rule generation."""
@@ -170,8 +170,9 @@ class RecursiveRuleGenerator:
 
         # Log the start of rule generation
         self.logger.info(
-            f"Starting rule generation (ID: {self.current_run_id}, Type: {rule_type}, Method: {method.value})"
-        )
+            f"Starting rule generation (ID: {
+                self.current_run_id}, Type: {rule_type}, Method: {
+                method.value})")
 
         # Check cost budget
         if not self.cost_controller.can_make_api_call(check_cost=True):
@@ -192,7 +193,8 @@ class RecursiveRuleGenerator:
             feedback = None
             quality = 0.0
 
-            # Simply log initialization, don't call methods directly yet to avoid test issues
+            # Simply log initialization, don't call methods directly yet to avoid test
+            # issues
             self.logger.debug(f"Initializing for method: {method.value}")
 
             for iteration in range(max_iterations):
@@ -205,8 +207,8 @@ class RecursiveRuleGenerator:
                 current_cost = sum(iteration_costs)
                 if current_cost >= cost_limit:
                     self.logger.warning(
-                        f"Cost limit reached after {iteration} iterations (${current_cost:.2f})"
-                    )
+                        f"Cost limit reached after {iteration} iterations (${
+                            current_cost:.2f})")
                     break
 
                 # Step 1: Generate or refine rule using appropriate method
@@ -269,7 +271,8 @@ class RecursiveRuleGenerator:
                     )
 
                 # Step 4: Decide whether to continue iterations
-                # Calculate improvement differently for first iteration vs. subsequent ones
+                # Calculate improvement differently for first iteration vs. subsequent
+                # ones
                 if iteration == 0:
                     improvement = (
                         quality  # First iteration, so improvement is just the quality
@@ -304,8 +307,11 @@ class RecursiveRuleGenerator:
                 # Log iteration results
                 iteration_time = time.time() - iteration_start
                 self.logger.debug(
-                    f"Iteration {iteration + 1} completed in {iteration_time:.2f}s with quality {quality:.2f}"
-                )
+                    f"Iteration {
+                        iteration +
+                        1} completed in {
+                        iteration_time:.2f}s with quality {
+                        quality:.2f}")
 
             # Use the best rule found
             result = best_rule or current_rule
@@ -358,8 +364,9 @@ class RecursiveRuleGenerator:
             )
 
             self.logger.info(
-                f"Rule generation completed successfully (ID: {self.current_run_id}, Quality: {best_quality:.2f})"
-            )
+                f"Rule generation completed successfully (ID: {
+                    self.current_run_id}, Quality: {
+                    best_quality:.2f})")
             return result
 
         except Exception as e:
@@ -638,8 +645,9 @@ class RecursiveRuleGenerator:
 
         # Log the start of batch rule generation
         self.logger.info(
-            f"Starting batch rule generation (ID: {self.current_run_id}, Batch size: {len(contexts)})"
-        )
+            f"Starting batch rule generation (ID: {
+                self.current_run_id}, Batch size: {
+                len(contexts)})")
 
         # Check cost budget
         if not self.cost_controller.can_make_api_call(check_cost=True):
@@ -683,8 +691,8 @@ class RecursiveRuleGenerator:
                     # Check if we've exceeded the overall cost limit
                     if total_cost >= cost_limit:
                         self.logger.warning(
-                            f"Cost limit reached during batch processing (${total_cost:.2f})"
-                        )
+                            f"Cost limit reached during batch processing (${
+                                total_cost:.2f})")
                         break
 
                 except Exception as e:
@@ -730,8 +738,10 @@ class RecursiveRuleGenerator:
         )
 
         self.logger.info(
-            f"Batch rule generation completed (ID: {self.current_run_id}, Rules: {len(rules)}, Cost: ${total_cost:.2f})"
-        )
+            f"Batch rule generation completed (ID: {
+                self.current_run_id}, Rules: {
+                len(rules)}, Cost: ${
+                total_cost:.2f})")
         return rules
 
     def _generate_rule_task(

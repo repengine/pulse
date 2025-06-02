@@ -56,8 +56,8 @@ def detect_symbolic_drift(
     for overlay, change in deltas.items():
         if abs(change) > delta_threshold:
             current_state.log_event(
-                f"[DRIFT] Overlay '{overlay}' shifted by {change:.3f} in one turn (THRESH = {delta_threshold})"
-            )
+                f"[DRIFT] Overlay '{overlay}' shifted by {
+                    change:.3f} in one turn (THRESH = {delta_threshold})")
 
     # Check symbolic tension spike
     prev_tension = symbolic_tension_score(prev_overlay)
@@ -66,7 +66,8 @@ def detect_symbolic_drift(
 
     if tension_delta > tension_threshold:
         current_state.log_event(
-            f"[DRIFT] Symbolic tension increased by {tension_delta:.3f} → {curr_tension:.3f}"
-        )
+            f"[DRIFT] Symbolic tension increased by {
+                tension_delta:.3f} → {
+                curr_tension:.3f}")
 
     return deltas

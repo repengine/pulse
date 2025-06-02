@@ -49,8 +49,8 @@ class CounterfactualEngine:
         self._ordered_variables = self._compute_variable_ordering()
 
         logger.info(
-            f"CounterfactualEngine initialized with {self.max_workers} workers and cache size {max_cache_size}"
-        )
+            f"CounterfactualEngine initialized with {
+                self.max_workers} workers and cache size {max_cache_size}")
 
     def _compute_variable_ordering(self) -> List[str]:
         """
@@ -76,7 +76,8 @@ class CounterfactualEngine:
         Returns:
             A string hash key
         """
-        # Combine evidence and interventions into a sorted JSON string for consistent hashing
+        # Combine evidence and interventions into a sorted JSON string for
+        # consistent hashing
         key_dict = {
             "evidence": dict(sorted(evidence.items())),
             "interventions": dict(sorted(interventions.items())),
@@ -118,7 +119,8 @@ class CounterfactualEngine:
         cf_results = evidence.copy()
         cf_results.update(interventions)
 
-        # We'll iterate through variables in our computed order to simulate proper inference
+        # We'll iterate through variables in our computed order to simulate proper
+        # inference
         for var in self._ordered_variables:
             # Skip intervention variables (their values are fixed)
             if var in interventions:
@@ -189,10 +191,11 @@ class CounterfactualEngine:
         # Process uncached queries in parallel
         start_time = time.time()
         logger.info(
-            f"Processing {len(uncached_queries)} uncached counterfactual queries in parallel"
-        )
+            f"Processing {
+                len(uncached_queries)} uncached counterfactual queries in parallel")
 
-        # Use ThreadPoolExecutor for parallelization (ProcessPoolExecutor is harder to use with shared objects)
+        # Use ThreadPoolExecutor for parallelization (ProcessPoolExecutor is
+        # harder to use with shared objects)
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all uncached queries
             futures = []

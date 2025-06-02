@@ -21,6 +21,7 @@ logger = logging.getLogger("OpenAI-Test")
 # Add the parent directory to the path so we can import the modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+
 def test_mock_model():
     """Test the mock model (which doesn't require an API key)"""
     logger.info("Testing Mock LLM Model:")

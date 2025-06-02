@@ -1,8 +1,10 @@
 # import pandas as pd # Uncomment if pandas is needed for data processing
-# from ingestion.iris_utils.ingestion_persistence import save_data_point_incremental # Uncomment if saving data
+# from ingestion.iris_utils.ingestion_persistence import
+# save_data_point_incremental # Uncomment if saving data
 
 # Placeholder plugin for Institute for Supply Management (ISM) data.
-# Access to ISM Manufacturing PMI and Services PMI data typically requires a subscription or specific access.
+# Access to ISM Manufacturing PMI and Services PMI data typically requires
+# a subscription or specific access.
 
 
 class ISMPlugin:
@@ -77,7 +79,8 @@ class ISMPlugin:
                         # data_point assignment removed as it's unused
                         # The 'timestamp' variable was also removed as it was only used in data_point.
                         # If data_point were to be used, 'timestamp_str' could be used directly.
-                        # save_data_point_incremental(data_point, "economic_indicators") # Uncomment to save
+                        # save_data_point_incremental(data_point, "economic_indicators")
+                        # # Uncomment to save
                     except (ValueError, TypeError) as e:
                         print(f"Could not process observation {obs}: {e}. Skipping.")
                         continue

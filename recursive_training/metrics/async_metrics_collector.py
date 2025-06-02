@@ -106,8 +106,8 @@ class AsyncMetricsCollector:
                 while not self.metrics_queue.empty():
                     if time.time() - wait_start > timeout:
                         self.logger.warning(
-                            f"Timeout waiting for metrics queue to empty. {self.metrics_queue.qsize()} items remaining."
-                        )
+                            f"Timeout waiting for metrics queue to empty. {
+                                self.metrics_queue.qsize()} items remaining.")
                         break
                     time.sleep(0.1)
 
@@ -227,8 +227,9 @@ class AsyncMetricsCollector:
                         time.sleep(self.retry_delay)
                     else:
                         self.logger.error(
-                            f"Failed to process metric {metric.get('id')} after {self.max_retries} retries: {e}"
-                        )
+                            f"Failed to process metric {
+                                metric.get('id')} after {
+                                self.max_retries} retries: {e}")
                         self.stats["metrics_failed"] += 1
 
                         # Notify error callbacks

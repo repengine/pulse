@@ -1,5 +1,6 @@
 import json
 import os
+
 # Assuming the active rule set is in a JSON file, adjust import if needed
 # import your_rule_module
 
@@ -37,14 +38,17 @@ def apply_rule_changes(proposed_changes, active_rules):
         print("No proposed changes to apply.")
         return active_rules  # Return original rules if no changes
 
-    # Assuming proposed_changes is a dict with keys 'modifications', 'generations', 'prunings'
+    # Assuming proposed_changes is a dict with keys 'modifications',
+    # 'generations', 'prunings'
     modifications = proposed_changes.get("modifications", [])
     generations = proposed_changes.get("generations", [])
     prunings = proposed_changes.get("prunings", [])
 
     print(
-        f"Applying {len(modifications)} modifications, {len(generations)} generations, {len(prunings)} prunings."
-    )
+        f"Applying {
+            len(modifications)} modifications, {
+            len(generations)} generations, {
+                len(prunings)} prunings.")
 
     # --- Rule Application Logic Goes Here ---
     # This is a placeholder. The actual logic will depend on the structure
@@ -120,8 +124,8 @@ def apply_rule_changes(proposed_changes, active_rules):
             rule.get("id") == new_rule["id"] for rule in updated_rules
         ):
             print(
-                f"Warning: Rule with ID {new_rule.get('id')} already exists. Skipping generation."
-            )
+                f"Warning: Rule with ID {
+                    new_rule.get('id')} already exists. Skipping generation.")
             continue
         updated_rules.append(new_rule)
         print(f"  - Generated rule: {new_rule.get('id', 'Unnamed Rule')}")

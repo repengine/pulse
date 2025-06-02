@@ -202,7 +202,8 @@ class PatternMatcher:
         # Entity pattern extractors
         self.entity_extractors = {
             "symbol": r"([A-Z]{1,6})",  # Stock ticker pattern
-            "date_range": r"(\d{1,2}/\d{1,2}/\d{2,4})\s+to\s+(\d{1,2}/\d{1,2}/\d{2,4})",  # Date range pattern
+            # Date range pattern
+            "date_range": r"(\d{1,2}/\d{1,2}/\d{2,4})\s+to\s+(\d{1,2}/\d{1,2}/\d{2,4})",
             "parameters": self._extract_parameters,  # Function to extract key-value parameters
         }
 
@@ -301,7 +302,8 @@ class PatternMatcher:
 
                     # Context-based confidence adjustment
                     if conversation_context:
-                        # If this intent relates to previously mentioned entities, boost confidence
+                        # If this intent relates to previously mentioned entities, boost
+                        # confidence
                         if any(
                             entity in conversation_context.get("mentioned_entities", {})
                             for entity in entities.keys()
@@ -458,7 +460,7 @@ class ConversationSummary:
         # Truncate by number of turns
         if len(self.history) > self.max_turns:
             # Keep the most recent turns
-            self.history = self.history[-self.max_turns :]
+            self.history = self.history[-self.max_turns:]
 
     def get_formatted_history(self, include_metadata: bool = False) -> str:
         """
@@ -597,9 +599,11 @@ RESPONSE:
                 name="get_data",
                 function=pulse_module_adapters.get_data,
                 description="Get financial data for a symbol, of a certain type, within a date range",
-                required_params=["symbol", "data_type", "date_range"],
-            )
-        )
+                required_params=[
+                    "symbol",
+                    "data_type",
+                    "date_range"],
+            ))
 
         # Get Forecast tool
         self.tool_registry.register_tool(
@@ -854,7 +858,8 @@ RESPONSE:
         except Exception as e:
             error_message = f"Error generating response: {str(e)}"
             logger.error(error_message)
-            generated_response = f"I apologize, but I encountered an error while processing your request: {str(e)}"
+            generated_response = f"I apologize, but I encountered an error while processing your request: {
+                str(e)}"
 
         # 8. Update conversation summary
         self.conversation_summary.add_turn(

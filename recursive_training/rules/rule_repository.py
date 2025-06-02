@@ -167,7 +167,8 @@ class RuleRepository:
         backup_dir = os.path.join(self.backups_path, f"backup_{timestamp}")
 
         try:
-            # Create backup directory with exist_ok=True to handle parallel test execution
+            # Create backup directory with exist_ok=True to handle parallel test
+            # execution
             os.makedirs(backup_dir, exist_ok=True)
 
             # Copy active rules
@@ -333,9 +334,9 @@ class RuleRepository:
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
                 "version": 1,
-                "status": RuleStatus.ACTIVE.value
-                if activate
-                else RuleStatus.DRAFT.value,
+                "status": (
+                    RuleStatus.ACTIVE.value if activate else RuleStatus.DRAFT.value
+                ),
             }
         )
 
@@ -419,9 +420,11 @@ class RuleRepository:
             {
                 "updated_at": datetime.now().isoformat(),
                 "version": new_version,
-                "previous_version": current_version
-                if create_new_version
-                else rule["metadata"].get("previous_version"),
+                "previous_version": (
+                    current_version
+                    if create_new_version
+                    else rule["metadata"].get("previous_version")
+                ),
                 "status": rule["metadata"].get("status", rule_info["status"]),
             }
         )
@@ -447,9 +450,11 @@ class RuleRepository:
 
         # Save rule file
         rule_path = os.path.join(
-            self.active_rules_path
-            if rule_info["status"] != RuleStatus.ARCHIVED.value
-            else self.archive_path,
+            (
+                self.active_rules_path
+                if rule_info["status"] != RuleStatus.ARCHIVED.value
+                else self.archive_path
+            ),
             f"{rule_id}_v{new_version}.json",
         )
 
@@ -690,7 +695,8 @@ class RuleRepository:
         Returns:
             List of matching rules
         """
-        # This is a basic implementation - in a real system, this would be more sophisticated
+        # This is a basic implementation - in a real system, this would be more
+        # sophisticated
         all_rules = []
 
         # Load all rules that may match

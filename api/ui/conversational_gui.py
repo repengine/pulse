@@ -751,9 +751,9 @@ class ConversationalGUI(tk.Tk):
             parameters = {
                 "symbol": self.data_symbol.get(),
                 "data_type": self.data_type.get(),
-                "date_range": self.date_range.get().split(",")
-                if self.date_range.get()
-                else None,
+                "date_range": (
+                    self.date_range.get().split(",") if self.date_range.get() else None
+                ),
             }
 
         elif command == "Get Forecast" and hasattr(self, "forecast_symbol"):
@@ -891,7 +891,8 @@ class ConversationalGUI(tk.Tk):
 
             # Optionally display retrieved snippets
             if retrieved_snippets:
-                # Format snippets for display - handle both string and dictionary formats
+                # Format snippets for display - handle both string and dictionary
+                # formats
                 snippet_lines = []
                 for s in retrieved_snippets:
                     if isinstance(s, dict):
@@ -1122,7 +1123,13 @@ class ConversationalGUI(tk.Tk):
             )
             self.learning_status.insert(
                 tk.END,
-                f"  Period: {data.get('time_period', {}).get('start')} to {data.get('time_period', {}).get('end')}\n",
+                f"  Period: {
+                    data.get(
+                        'time_period',
+                        {}).get('start')} to {
+                    data.get(
+                        'time_period',
+                        {}).get('end')}\n",
             )
             self.learning_status.insert(
                 tk.END, f"  Batches: {data.get('batches', {}).get('total', 0)}\n"
@@ -1151,9 +1158,10 @@ class ConversationalGUI(tk.Tk):
                         tk.END, f"  Status: {cycle.get('status', 'unknown')}\n"
                     )
                     self.learning_status.insert(
-                        tk.END,
-                        f"  Progress: {cycle.get('progress', {}).get('percentage', '0%')}\n",
-                    )
+                        tk.END, f"  Progress: {
+                            cycle.get(
+                                'progress', {}).get(
+                                'percentage', '0%')}\n", )
                     self.learning_status.insert(
                         tk.END, f"  Start time: {cycle.get('start_time')}\n"
                     )

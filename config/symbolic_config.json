@@ -43,6 +43,26 @@
         "despair->fatigue": 0.01,
         "rage->trust": -0.03
       }
+    },
+    "bear_market": {
+      "overlay_thresholds": {
+        "dominance": 0.8,
+        "activation": 0.25
+      },
+      "interaction_strengths": {
+        "hope->trust": 0.005,
+        "despair->fatigue": 0.05,
+        "fatigue->hope": -0.03
+      },
+      "variable_mappings": {
+        "volatility_index": {
+          "high_impact": [
+            "fear",
+            "despair"
+          ],
+          "threshold": 25.0
+        }
+      }
     }
   }
 }

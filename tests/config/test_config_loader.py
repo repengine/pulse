@@ -146,7 +146,8 @@ class TestConfigLoader:
         assert config.get("non_existent_key") is None
 
     def test_nested_keys(self, temp_config_files: Dict[str, Path], monkeypatch) -> None:
-        # Ensure DATABASE_HOST is not set by previous tests if this test expects 'localhost'
+        # Ensure DATABASE_HOST is not set by previous tests if this test expects
+        # 'localhost'
         monkeypatch.delenv("DATABASE_HOST", raising=False)
 
         config = Config(

@@ -66,6 +66,7 @@ except ImportError:
 # Import ShadowModelMonitor and config
 try:
     from diagnostics.shadow_model_monitor import ShadowModelMonitor  # Added
+
     # SHADOW_MONITOR_CONFIG will be read by the calling script (e.g., batch_runner)
     # and an instance of ShadowModelMonitor will be passed in.
 except ImportError:
@@ -165,13 +166,13 @@ def _get_dict_from_vars(variables_accessor: Any) -> Dict[str, float]:
                 processed_dict[str(k)] = float(v)
             except (ValueError, TypeError) as e:
                 logger_module.warning(
-                    f"Could not convert key '{k}' or value '{v}' to str/float in _get_dict_from_vars: {e}"
-                )
+                    f"Could not convert key '{k}' or value '{v}' to str/float in _get_dict_from_vars: {e}")
         return processed_dict
 
     logger_module.debug(
-        f"Variables accessor type {type(variables_accessor)} not directly convertible to Dict[str, float]. Evaluated to raw_dict type {type(raw_dict)}. Returning empty for safety."
-    )
+        f"Variables accessor type {
+            type(variables_accessor)} not directly convertible to Dict[str, float]. Evaluated to raw_dict type {
+            type(raw_dict)}. Returning empty for safety.")
     return {}
 
 
@@ -227,7 +228,9 @@ def simulate_turn(
 
     # Store initial overlay state for comparison
     try:
-        pre_overlay = _copy_overlay(getattr(state, "overlays", {}))
+        raw_overlays_pre = getattr(state, "overlays", {})
+        dict_for_pre_overlay = _get_dict_from_vars(raw_overlays_pre)
+        pre_overlay = _copy_overlay(dict_for_pre_overlay)
     except Exception as e:
         error_msg = f"[SIM] Failed to copy initial overlays: {e}"
         if logger:
@@ -291,7 +294,9 @@ def simulate_turn(
             # Use type ignore for dynamic attribute access
             # sim_vars_dict = sim_vars.as_dict() if hasattr(sim_vars, "as_dict") else (sim_vars if isinstance(sim_vars, dict) else _get_dict_from_vars(sim_vars))
             # Simplified access:
-            if hasattr(sim_vars, "as_dict") and callable(sim_vars.as_dict):  # type: ignore
+            if hasattr(
+                    sim_vars, "as_dict") and callable(
+                    sim_vars.as_dict):  # type: ignore
                 sim_vars_dict = _get_dict_from_vars(
                     sim_vars
                 )  # Use our helper to ensure Dict[str, float]
@@ -307,7 +312,9 @@ def simulate_turn(
             # Use type ignore for dynamic attribute access
             # symbolic_vec_dict = symbolic_vec.as_dict() if hasattr(symbolic_vec, "as_dict") else (symbolic_vec if isinstance(symbolic_vec, dict) else {})
             # Simplified access:
-            if hasattr(symbolic_vec, "as_dict") and callable(symbolic_vec.as_dict):  # type: ignore
+            if hasattr(
+                    symbolic_vec, "as_dict") and callable(
+                    symbolic_vec.as_dict):  # type: ignore
                 symbolic_vec_dict = _get_dict_from_vars(
                     symbolic_vec
                 )  # Use helper, assuming overlays are also numeric
@@ -315,17 +322,19 @@ def simulate_turn(
                 symbolic_vec_dict = _get_dict_from_vars(symbolic_vec)  # Use helper
             else:
                 # Overlays might be structured differently, if not dict or as_dict, might need specific handling
-                # For now, assume it can be processed by _get_dict_from_vars or defaults to empty
+                # For now, assume it can be processed by _get_dict_from_vars or defaults
+                # to empty
                 symbolic_vec_dict = _get_dict_from_vars(symbolic_vec)  # type: ignore
                 if (
                     not symbolic_vec_dict and symbolic_vec
                 ):  # If helper failed but symbolic_vec exists
                     logger_module.warning(
-                        f"Could not convert symbolic_vec of type {type(symbolic_vec)} to dict for shadow monitor."
-                    )
+                        f"Could not convert symbolic_vec of type {
+                            type(symbolic_vec)} to dict for shadow monitor.")
 
             # Capture causal deltas (changes due to rules before gravity is applied)
-            # This needs to be done for all variables, not just critical ones from shadow monitor
+            # This needs to be done for all variables, not just critical ones from
+            # shadow monitor
             vars_before_gravity = sim_vars_dict.copy()
             causal_deltas = {}
 
@@ -360,13 +369,13 @@ def simulate_turn(
                     }
                 except Exception as e:
                     logger_module.error(
-                        f"Shadow Monitor: Error capturing vars_before_gravity_critical or calculating causal_deltas_monitor: {e}"
-                    )
+                        f"Shadow Monitor: Error capturing vars_before_gravity_critical or calculating causal_deltas_monitor: {e}")
 
             # Get or create the gravity fabric with specified config if provided
             if not hasattr(state, "_gravity_fabric"):
                 if gravity_config is not None:
-                    state._gravity_fabric = create_default_fabric(config=gravity_config)  # type: ignore
+                    state._gravity_fabric = create_default_fabric(
+                        config=gravity_config)  # type: ignore
                 else:
                     state._gravity_fabric = create_default_fabric()  # type: ignore
                 if logger:
@@ -396,15 +405,18 @@ def simulate_turn(
                 # Calculate gravity deltas for all variables
                 gravity_deltas = {}
                 for var_name, corrected_val in corrected_vars.items():
-                    # Calculate gravity delta as corrected value minus value before gravity
+                    # Calculate gravity delta as corrected value minus value before
+                    # gravity
                     gravity_delta = corrected_val - vars_before_gravity.get(
                         var_name, 0.0
                     )
                     gravity_deltas[var_name] = gravity_delta
 
-                    # Get dominant pillars for this variable (if significant correction applied)
+                    # Get dominant pillars for this variable (if significant correction
+                    # applied)
                     if abs(gravity_delta) > 1e-6:  # Only record significant corrections
-                        # Get the top contributing pillars and their weights from the gravity fabric
+                        # Get the top contributing pillars and their weights from the
+                        # gravity fabric
                         gravity_engine = getattr(
                             state._gravity_fabric, "gravity_engine", None
                         )  # type: ignore
@@ -429,7 +441,8 @@ def simulate_turn(
                                     if pillar_system:
                                         pillar = pillar_system.get_pillar(pillar_name)
                                         if pillar and hasattr(pillar, "data_points"):
-                                            # Get source data points (limited to most recent/relevant)
+                                            # Get source data points (limited to most
+                                            # recent/relevant)
                                             for i, (
                                                 data_point,
                                                 point_weight,
@@ -474,10 +487,10 @@ def simulate_turn(
                             except Exception as e:
                                 if logger:
                                     logger(
-                                        f"[SIM] Error getting gravity contributor details: {e}"
-                                    )
+                                        f"[SIM] Error getting gravity contributor details: {e}")
 
-                        # Add details for this variable to the gravity correction details
+                        # Add details for this variable to the gravity correction
+                        # details
                         gravity_correction_details[var_name] = {
                             "gravity_delta": gravity_delta,
                             "causal_delta": causal_deltas.get(var_name, 0.0),
@@ -504,7 +517,8 @@ def simulate_turn(
                 ):  # Added block
                     try:
                         # state.variables should now reflect corrected_vars
-                        # Alternatively, use corrected_vars directly if certain it contains all critical ones post-gravity
+                        # Alternatively, use corrected_vars directly if certain it
+                        # contains all critical ones post-gravity
                         vars_after_gravity_dict = _get_dict_from_vars(
                             state.variables
                         )  # Re-fetch to be sure
@@ -540,8 +554,7 @@ def simulate_turn(
                             )
                     except Exception as e:
                         logger_module.error(
-                            f"Shadow Monitor: Error during record_step or check_trigger: {e}"
-                        )
+                            f"Shadow Monitor: Error during record_step or check_trigger: {e}")
 
                 # Store pre-simulation values for next turn
                 setattr(state, "_pre_simulation_vars", vars_before_gravity.copy())
@@ -569,7 +582,9 @@ def simulate_turn(
 
     # Get current overlay state
     try:
-        overlays_now = _copy_overlay(getattr(state, "overlays", {}))
+        raw_overlays_now = getattr(state, "overlays", {})
+        dict_for_overlays_now = _get_dict_from_vars(raw_overlays_now)
+        overlays_now = _copy_overlay(dict_for_overlays_now)
     except Exception as e:
         error_msg = f"[SIM] Failed to copy final overlays: {e}"
         if logger:
@@ -667,7 +682,8 @@ def simulate_turn(
         # If it was None before and is still None, that's fine.
         # But if it became None, and there was no backup, we might want to remove the key
         # or ensure it's an empty dict if the expectation is for the key to sometimes be absent.
-        # For now, if _gcd_backup is None, we assume it's okay for the key to be absent or None.
+        # For now, if _gcd_backup is None, we assume it's okay for the key to be
+        # absent or None.
         pass
 
     # Warn if trust_label or confidence missing
@@ -679,8 +695,9 @@ def simulate_turn(
     if logger:  # Ensure logger is available
         if "gravity_correction_details" in output:
             logger(
-                f"[DEBUG_GCD] Key 'gravity_correction_details' IS IN output. Value: {type(output['gravity_correction_details'])}"
-            )
+                f"[DEBUG_GCD] Key 'gravity_correction_details' IS IN output. Value: {
+                    type(
+                        output['gravity_correction_details'])}")
             if (
                 isinstance(output["gravity_correction_details"], dict)
                 and not output["gravity_correction_details"]
@@ -772,7 +789,8 @@ def simulate_forward(
                             state, var, val - getattr(state.capital, var, 0.0)
                         )
                     else:  # This is a general variable (either existing or new)
-                        # Apply gravity logic first if applicable and if the variable existed.
+                        # Apply gravity logic first if applicable and if the variable
+                        # existed.
                         if (
                             gravity_enabled
                             and hasattr(state, "_gravity_fabric")
@@ -802,17 +820,16 @@ def simulate_forward(
                                             gravity_fabric_instance, "gravity_engine"
                                         ):
                                             gravity_fabric_instance.gravity_engine.update_weights(
-                                                residual, sym_vec
-                                            )
+                                                residual, sym_vec)
                                             if logger:
                                                 logger(
-                                                    f"[SIM] Updated gravity weights (residual={residual:.4f}) for var '{var}'"
-                                                )
+                                                    f"[SIM] Updated gravity weights (residual={
+                                                        residual:.4f}) for var '{var}'")
                                     except Exception as e:
                                         if logger:
                                             logger(
-                                                f"[SIM] Gravity weight update error for var '{var}': {str(e)}"
-                                            )
+                                                f"[SIM] Gravity weight update error for var '{var}': {
+                                                    str(e)}")
 
                         # Then, update the variable with ground truth.
                         # update_numeric_variable expects the *change* in value.
@@ -841,7 +858,8 @@ def simulate_forward(
             and hasattr(retrodiction_loader, "get_snapshot_by_turn")
         ):
             # Use type ignore for dynamic method access
-            ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(i)  # type: ignore
+            ground_truth_snapshot = retrodiction_loader.get_snapshot_by_turn(
+                i)  # type: ignore
             if ground_truth_snapshot:
                 # Compare overlays and variables to ground truth
                 simulated_overlays = getattr(state, "overlays", {})
@@ -876,7 +894,8 @@ def simulate_forward(
                     logger(
                         f"[RETRO] Compared simulated state to ground truth for turn {i}"
                     )
-                # 4 BayesianTrustTracker Hook: batch update after retrodiction comparison
+                # 4 BayesianTrustTracker Hook: batch update after retrodiction
+                # comparison
                 from analytics.bayesian_trust_tracker import bayesian_trust_tracker
 
                 if ground_truth_snapshot and "comparison" in locals():
@@ -968,7 +987,9 @@ def validate_variable_trace(
         try:
             current_overlays = dict(state.overlays)  # type: ignore
         except (TypeError, ValueError) as e:
-            msg = f"Overlays type {type(state.overlays)} not convertible to dict for trace validation: {e}"
+            msg = f"Overlays type {
+                type(
+                    state.overlays)} not convertible to dict for trace validation: {e}"
             if logger:
                 logger(msg)
             raise ValueError(msg) from e
@@ -1010,7 +1031,9 @@ def validate_variable_trace(
 
         error = [abs(a - b) for a, b in zip(known_trace, reconstructed_chronological)]
         match = [e <= atol for e in error]
-        if match:  # Avoid division by zero if known_trace was empty, though handled by outer if
+        if (
+            match
+        ):  # Avoid division by zero if known_trace was empty, though handled by outer if
             match_percent = 100 * sum(match) / len(match)
 
     result = {
@@ -1067,16 +1090,12 @@ def simulate_backward(
 
     # Create a deepcopy of the state's overlays to avoid modifying the original state object
     # if we were to perform actual inverse operations on it.
-    # For a placeholder, this isn't strictly necessary but good practice if it were to evolve.
+    # For a placeholder, this isn't strictly necessary but good practice if it
+    # were to evolve.
     temp_overlays: Dict[str, float]
-    if hasattr(state.overlays, "as_dict") and callable(
-        getattr(state.overlays, "as_dict")
-    ):
-        temp_overlays = copy.deepcopy(state.overlays.as_dict())
-    elif isinstance(state.overlays, dict):
-        temp_overlays = copy.deepcopy(state.overlays)
-    else:
-        temp_overlays = {}  # Fallback for unknown overlay types
+    raw_overlays_backward = getattr(state, "overlays", {})
+    dict_for_temp_overlays = _get_dict_from_vars(raw_overlays_backward)
+    temp_overlays = copy.deepcopy(dict_for_temp_overlays)
 
     for step_num in range(steps):
         # In a real implementation, inverse_decay and reverse_rule_engine would modify temp_overlays
@@ -1183,8 +1202,7 @@ def simulate_counterfactual(
             except (ValueError, TypeError) as e:
                 if logger:
                     logger(
-                        f"[COUNTERFACTUAL] Error setting overlay '{key}' to {value}: {e}"
-                    )
+                        f"[COUNTERFACTUAL] Error setting overlay '{key}' to {value}: {e}")
         # Then attempt to set in variables.data
         elif hasattr(fork_run_state.variables, "data") and isinstance(
             fork_run_state.variables.data, dict
@@ -1196,13 +1214,11 @@ def simulate_counterfactual(
             except (ValueError, TypeError) as e:
                 if logger:
                     logger(
-                        f"[COUNTERFACTUAL] Error setting variable '{key}' to {value}: {e}"
-                    )
+                        f"[COUNTERFACTUAL] Error setting variable '{key}' to {value}: {e}")
         else:
             if logger:
                 logger(
-                    f"[COUNTERFACTUAL] Warning: Could not find where to set fork_var '{key}' in WorldState."
-                )
+                    f"[COUNTERFACTUAL] Warning: Could not find where to set fork_var '{key}' in WorldState.")
 
     fork_trace = simulate_forward(
         fork_run_state,
@@ -1227,7 +1243,8 @@ def simulate_counterfactual(
         if hasattr(fork_turn_overlays, "as_dict"):
             fork_turn_overlays = fork_turn_overlays.as_dict()
 
-        # Ensure all keys are present in both for consistent delta calculation, defaulting to 0.0
+        # Ensure all keys are present in both for consistent delta calculation,
+        # defaulting to 0.0
         all_overlay_keys = set(base_turn_overlays.keys()) | set(
             fork_turn_overlays.keys()
         )
@@ -1360,7 +1377,8 @@ def reverse_rule_engine(
 
     # Compute delta: overlays - previous overlays (approximate, since we don't have prior)
     # Here, we assume overlays is the "current" and try to explain it as a result of rules.
-    # In practice, deltas should be passed in, but we use overlays as the delta for this step.
+    # In practice, deltas should be passed in, but we use overlays as the
+    # delta for this step.
     delta = overlays.copy()
 
     fingerprints = get_fingerprints()
@@ -1440,11 +1458,15 @@ def _backward_self_test():
     result = simulate_backward(ws, steps=3, use_symbolism=True)
     for entry in result["trace"]:
         print(
-            f"Step {entry['step']}: overlays={entry['overlays']} tag={entry['symbolic_tag']}"
-        )
+            f"Step {
+                entry['step']}: overlays={
+                entry['overlays']} tag={
+                entry['symbolic_tag']}")
     print(
-        f"Arc label: {result['arc_label']} | Volatility: {result['volatility_score']} | Certainty: {result['arc_certainty']}"
-    )
+        f"Arc label: {
+            result['arc_label']} | Volatility: {
+            result['volatility_score']} | Certainty: {
+                result['arc_certainty']}")
     print("Backward self-test complete.")
 
 
@@ -1482,7 +1504,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--gravity",
-        choices=["on", "off", "adaptive"],
+        choices=[
+            "on",
+            "off",
+            "adaptive"],
         default="adaptive",
         help="Control Symbolic Gravity: 'on' to enable, 'off' to disable, 'adaptive' for dynamic adjustment",
     )
@@ -1511,12 +1536,16 @@ if __name__ == "__main__":
         result = simulate_backward(ws, steps=args.backward, use_symbolism=True)
         for entry in result["trace"]:
             print(
-                f"Step {entry['step']}: overlays={entry['overlays']} tag={entry['symbolic_tag']}"
-            )
+                f"Step {
+                    entry['step']}: overlays={
+                    entry['overlays']} tag={
+                    entry['symbolic_tag']}")
         if args.arc:
             print(
-                f"Arc label: {result['arc_label']} | Volatility: {result['volatility_score']} | Certainty: {result['arc_certainty']}"
-            )
+                f"Arc label: {
+                    result['arc_label']} | Volatility: {
+                    result['volatility_score']} | Certainty: {
+                    result['arc_certainty']}")
         if args.save_backtrace:
             log_to_file(result, args.save_backtrace)
             print(f"Backtrace saved to {args.save_backtrace}")
@@ -1574,8 +1603,12 @@ if __name__ == "__main__":
             if any(k.startswith("gravity_") for k in r.keys()):
                 gravity_info = f" | Gravity: {r.get('gravity_magnitude', 0.0):.3f}"
             print(
-                f"Turn {r['turn']} | Δ: {r['deltas']} | Tag: {r.get('symbolic_tag', '—')}{gravity_info}"
-            )
+                f"Turn {
+                    r['turn']} | Δ: {
+                    r['deltas']} | Tag: {
+                    r.get(
+                        'symbolic_tag',
+                        '—')}{gravity_info}")
 
         # Handle gravity explanation if requested
         if args.explain_gravity:
@@ -1585,8 +1618,8 @@ if __name__ == "__main__":
                 )
 
                 print(
-                    f"\nGenerating gravity explanation for variable '{args.explain_gravity}'"
-                )
+                    f"\nGenerating gravity explanation for variable '{
+                        args.explain_gravity}'")
                 result_path = display_gravity_correction_details(
                     trace_data=output,
                     variable_name=args.explain_gravity,

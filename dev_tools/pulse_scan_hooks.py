@@ -54,9 +54,7 @@ def scan_for_hooks():
                                 category = (
                                     "suite"
                                     if "test" in fname
-                                    else "batch"
-                                    if "batch" in fname
-                                    else "tool"
+                                    else "batch" if "batch" in fname else "tool"
                                 )
                                 metadata[key] = {
                                     "label": f"Auto-hooked CLI tool: {key}",

@@ -141,8 +141,8 @@ class OpenaqPlugin(IrisPluginManager):
         # If all attempts failed, return empty list
         if not response_data:
             logger.error(
-                f"[openaq_plugin] Failed to fetch data for {city} after {self.MAX_RETRIES + 1} attempts"
-            )
+                f"[openaq_plugin] Failed to fetch data for {city} after {
+                    self.MAX_RETRIES + 1} attempts")
             return signals
 
         # Process the response data
@@ -170,18 +170,25 @@ class OpenaqPlugin(IrisPluginManager):
                     if parameter and value is not None:
                         # Create signal
                         signal = {
-                            "name": f"air_quality_{city.lower().replace(' ', '_')}_{parameter}",
+                            "name": f"air_quality_{
+                                city.lower().replace(
+                                    ' ',
+                                    '_')}_{parameter}",
                             "value": float(value),
                             "source": "openaq",
-                            "timestamp": last_updated
-                            or dt.datetime.now(dt.timezone.utc).isoformat(),
+                            "timestamp": last_updated or dt.datetime.now(
+                                dt.timezone.utc).isoformat(),
                             "metadata": {
                                 "city": city,
                                 "station": station_name,
                                 "parameter": parameter,
                                 "unit": unit,
-                                "coordinates": station.get("coordinates", {}),
-                                "country": station.get("country", ""),
+                                "coordinates": station.get(
+                                    "coordinates",
+                                    {}),
+                                "country": station.get(
+                                    "country",
+                                    ""),
                             },
                         }
 

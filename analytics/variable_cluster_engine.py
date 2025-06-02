@@ -130,9 +130,9 @@ def test_variable_cluster_engine():
     if clusters:
         first_cluster = next(iter(clusters.values()))
         score = score_cluster_volatility(first_cluster)
-        assert isinstance(score, float), (
-            "score_cluster_volatility should return a float"
-        )
+        assert isinstance(
+            score, float
+        ), "score_cluster_volatility should return a float"
     summary = summarize_clusters()
     assert isinstance(summary, list), "summarize_clusters should return a list"
     logger.info("All basic tests passed.")

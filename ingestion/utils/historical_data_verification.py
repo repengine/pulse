@@ -365,7 +365,8 @@ def load_multi_source_data(variable_name: str) -> Dict[str, pd.Series]:
     catalog = load_variable_catalog()
     source_data = {}
 
-    # Find all variable entries for this variable name (potentially from different sources)
+    # Find all variable entries for this variable name (potentially from
+    # different sources)
     variable_entries = [
         var
         for var in catalog["variables"]
@@ -471,8 +472,7 @@ def detect_gaps(
                     logger.info("Detected monthly frequency")
                 else:
                     logger.info(
-                        f"Couldn't determine standard frequency from interval {interval_seconds} seconds, using daily"
-                    )
+                        f"Couldn't determine standard frequency from interval {interval_seconds} seconds, using daily")
             else:
                 logger.warning("No intervals detected, using daily frequency")
         except Exception as e:
@@ -504,9 +504,9 @@ def detect_gaps(
             # End of a gap, start a new one
             if len(current_gap_dates) >= min_gap_size:
                 gap = TimeSeriesGap(
-                    variable_name=str(series.name)
-                    if series.name is not None
-                    else "unknown",
+                    variable_name=(
+                        str(series.name) if series.name is not None else "unknown"
+                    ),
                     start_time=current_gap_dates[0],
                     end_time=current_gap_dates[-1],
                     gap_duration=current_gap_dates[-1] - current_gap_dates[0],
@@ -586,12 +586,14 @@ def detect_anomalies(
 
             anomalies.append(
                 Anomaly(
-                    variable_name=str(series.name)
-                    if series.name is not None
-                    else "unknown",
-                    timestamp=pd.Timestamp(timestamp).to_pydatetime()
-                    if not isinstance(timestamp, dt.datetime)
-                    else timestamp,
+                    variable_name=(
+                        str(series.name) if series.name is not None else "unknown"
+                    ),
+                    timestamp=(
+                        pd.Timestamp(timestamp).to_pydatetime()
+                        if not isinstance(timestamp, dt.datetime)
+                        else timestamp
+                    ),
                     value=value,
                     expected_value=None,
                     deviation=deviation,
@@ -629,9 +631,9 @@ def detect_anomalies(
 
                 anomalies.append(
                     Anomaly(
-                        variable_name=str(series.name)
-                        if series.name is not None
-                        else "unknown",
+                        variable_name=(
+                            str(series.name) if series.name is not None else "unknown"
+                        ),
                         timestamp=pd.Timestamp(timestamp).to_pydatetime(),
                         value=value,
                         expected_value=mean_val,
@@ -668,9 +670,9 @@ def detect_anomalies(
 
                 anomalies.append(
                     Anomaly(
-                        variable_name=str(series.name)
-                        if series.name is not None
-                        else "unknown",
+                        variable_name=(
+                            str(series.name) if series.name is not None else "unknown"
+                        ),
                         timestamp=pd.Timestamp(timestamp).to_pydatetime(),
                         value=value,
                         expected_value=(q1 + q3) / 2,  # Median as expected value
@@ -713,12 +715,16 @@ def detect_anomalies(
 
                     anomalies.append(
                         Anomaly(
-                            variable_name=str(series.name)
-                            if series.name is not None
-                            else "unknown",
-                            timestamp=pd.Timestamp(timestamp).to_pydatetime()
-                            if not isinstance(timestamp, dt.datetime)
-                            else timestamp,
+                            variable_name=(
+                                str(series.name)
+                                if series.name is not None
+                                else "unknown"
+                            ),
+                            timestamp=(
+                                pd.Timestamp(timestamp).to_pydatetime()
+                                if not isinstance(timestamp, dt.datetime)
+                                else timestamp
+                            ),
                             value=value,
                             expected_value=None,
                             deviation=0.0,  # Isolation Forest doesn't provide this
@@ -768,12 +774,14 @@ def detect_anomalies(
 
                 anomalies.append(
                     Anomaly(
-                        variable_name=str(series.name)
-                        if series.name is not None
-                        else "unknown",
-                        timestamp=pd.Timestamp(timestamp).to_pydatetime()
-                        if not isinstance(timestamp, dt.datetime)
-                        else timestamp,
+                        variable_name=(
+                            str(series.name) if series.name is not None else "unknown"
+                        ),
+                        timestamp=(
+                            pd.Timestamp(timestamp).to_pydatetime()
+                            if not isinstance(timestamp, dt.datetime)
+                            else timestamp
+                        ),
                         value=value,
                         expected_value=rolling_mean[idx],
                         deviation=deviation,
@@ -825,7 +833,7 @@ def detect_trend_breaks(
     slopes = []
 
     for i in range(len(series) - window_size + 1):
-        window = series.iloc[i : i + window_size].values
+        window = series.iloc[i: i + window_size].values
 
         # Skip if there are NaN values
         # Convert to numpy array for np.isnan
@@ -866,12 +874,14 @@ def detect_trend_breaks(
 
             trend_breaks.append(
                 TrendBreak(
-                    variable_name=str(series.name)
-                    if series.name is not None
-                    else "unknown",
-                    timestamp=pd.Timestamp(series.index[break_idx]).to_pydatetime()
-                    if break_idx < len(series.index)
-                    else dt.datetime.now(),
+                    variable_name=(
+                        str(series.name) if series.name is not None else "unknown"
+                    ),
+                    timestamp=(
+                        pd.Timestamp(series.index[break_idx]).to_pydatetime()
+                        if break_idx < len(series.index)
+                        else dt.datetime.now()
+                    ),
                     before_trend=float(before_trend),
                     after_trend=float(after_trend),
                     change_magnitude=float(change_magnitude),
@@ -1280,13 +1290,16 @@ def perform_quality_check(
 
         if quality_score.completeness < 0.9:
             recommendations.append(
-                f"Data has significant gaps ({(1 - quality_score.completeness) * 100:.1f}% missing). Consider using interpolation methods to fill gaps."
-            )
+                f"Data has significant gaps ({
+                    (
+                        1 -
+                        quality_score.completeness) *
+                    100:.1f}% missing). Consider using interpolation methods to fill gaps.")
 
         if quality_score.anomaly_free < 0.95:
             recommendations.append(
-                f"Data contains {len(anomalies)} potential anomalies. Review and consider whether they are valid data points or errors."
-            )
+                f"Data contains {
+                    len(anomalies)} potential anomalies. Review and consider whether they are valid data points or errors.")
 
         if quality_score.consistency < 0.9:
             recommendations.append(
@@ -1300,8 +1313,8 @@ def perform_quality_check(
 
         if quality_score.trend_stability < 0.7:
             recommendations.append(
-                f"Data shows {len(trend_breaks)} significant trend breaks. These might indicate structural changes or data quality issues."
-            )
+                f"Data shows {
+                    len(trend_breaks)} significant trend breaks. These might indicate structural changes or data quality issues.")
 
         if quality_score.overall_score < 0.7:
             recommendations.append(
@@ -1464,11 +1477,17 @@ def cross_validate_sources(variable_name: str) -> CrossValidationResult:
 
         # Generate recommendation
         if best_source[1] > 0.9:
-            recommendation = f"Source '{best_source[0]}' shows high correlation with other sources (avg: {best_source[1]:.2f}). It is recommended as the primary source for this variable."
+            recommendation = f"Source '{
+                best_source[0]}' shows high correlation with other sources (avg: {
+                best_source[1]:.2f}). It is recommended as the primary source for this variable."
         elif best_source[1] > 0.7:
-            recommendation = f"Source '{best_source[0]}' shows good correlation with other sources (avg: {best_source[1]:.2f}). Consider using this source but validate with other sources when possible."
+            recommendation = f"Source '{
+                best_source[0]}' shows good correlation with other sources (avg: {
+                best_source[1]:.2f}). Consider using this source but validate with other sources when possible."
         else:
-            recommendation = f"All sources show low correlation with each other (best: {best_source[0]}, avg: {best_source[1]:.2f}). Data should be used with caution and additional validation is recommended."
+            recommendation = f"All sources show low correlation with each other (best: {
+                best_source[0]}, avg: {
+                best_source[1]:.2f}). Data should be used with caution and additional validation is recommended."
 
         return CrossValidationResult(
             variable_name=variable_name,
@@ -1582,11 +1601,11 @@ def analyze_gaps(
                 "weekday_gaps": weekday_gaps,
                 "weekend_gaps": weekend_gaps,
                 "month_end_gaps": month_end_gaps,
-                "possible_pattern": "weekend"
-                if weekend_gaps > weekday_gaps * 2
-                else "month_end"
-                if month_end_gaps > len(gaps) * 0.4
-                else "random",
+                "possible_pattern": (
+                    "weekend"
+                    if weekend_gaps > weekday_gaps * 2
+                    else "month_end" if month_end_gaps > len(gaps) * 0.4 else "random"
+                ),
             }
 
             # Generate recommendations based on gap analysis
@@ -1608,7 +1627,8 @@ def analyze_gaps(
             elif gap_patterns["possible_pattern"] == "month_end":
                 recommendation += "Gaps appear to be concentrated at month ends. This may indicate reporting delays."
             else:
-                recommendation += f"Gaps appear to be randomly distributed. Consider interpolation methods to fill gaps (average length: {avg_gap_length:.1f} days)."
+                recommendation += f"Gaps appear to be randomly distributed. Consider interpolation methods to fill gaps (average length: {
+                    avg_gap_length:.1f} days)."
         else:
             avg_gap_length = 0
             max_gap_length = 0
@@ -1655,7 +1675,8 @@ def analyze_gaps(
 
         return {
             "variable_name": variable_name,
-            "error": f"Invalid frequency parameter: {str(e)}",
+            "error": f"Invalid frequency parameter: {
+                str(e)}",
             "recommendation": "Try a different frequency value (D, B, W, M) or adjust the data.",
         }
     except Exception as e:
@@ -1663,7 +1684,8 @@ def analyze_gaps(
 
         return {
             "variable_name": variable_name,
-            "error": f"Error during gap analysis: {str(e)}",
+            "error": f"Error during gap analysis: {
+                str(e)}",
             "recommendation": "Review the error and ensure the data is in the expected format.",
         }
 
@@ -1748,23 +1770,19 @@ def generate_quality_report(
 
         if variables_with_gaps > 0:
             recommendations.append(
-                f"{variables_with_gaps} variables have gaps. Consider using imputation methods to fill these gaps."
-            )
+                f"{variables_with_gaps} variables have gaps. Consider using imputation methods to fill these gaps.")
 
         if variables_with_anomalies > 0:
             recommendations.append(
-                f"{variables_with_anomalies} variables have potential anomalies. Review and address these for improved data quality."
-            )
+                f"{variables_with_anomalies} variables have potential anomalies. Review and address these for improved data quality.")
 
         if variables_with_trend_breaks > 0:
             recommendations.append(
-                f"{variables_with_trend_breaks} variables have significant trend breaks. This might indicate structural changes or data issues."
-            )
+                f"{variables_with_trend_breaks} variables have significant trend breaks. This might indicate structural changes or data issues.")
 
         if poor_quality > 0:
             recommendations.append(
-                f"{poor_quality} variables have poor quality scores (<0.7). Prioritize these for data quality improvement."
-            )
+                f"{poor_quality} variables have poor quality scores (<0.7). Prioritize these for data quality improvement.")
 
         # Create the final report
         report = {
@@ -1853,7 +1871,8 @@ def visualize_data_quality(
             )
             output_path.mkdir(parents=True, exist_ok=True)
 
-        # Perform quality check (this includes detecting anomalies, gaps, and trend breaks)
+        # Perform quality check (this includes detecting anomalies, gaps, and
+        # trend breaks)
         quality_result = perform_quality_check(variable_name)
 
         # Track generated visualizations
@@ -2026,13 +2045,9 @@ def visualize_data_quality(
 
             # Add overall score
             plt.figtext(
-                0.5,
-                0.02,
-                f"Overall Quality Score: {quality_result.quality_score.overall_score:.2f}",
-                ha="center",
-                fontsize=12,
-                bbox={"facecolor": "white", "alpha": 0.8, "pad": 5},
-            )
+                0.5, 0.02, f"Overall Quality Score: {
+                    quality_result.quality_score.overall_score:.2f}", ha="center", fontsize=12, bbox={
+                    "facecolor": "white", "alpha": 0.8, "pad": 5}, )
 
             # Save the plot
             radar_path = output_path / f"{variable_name}_quality_radar.{save_format}"

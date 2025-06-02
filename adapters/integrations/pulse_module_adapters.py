@@ -103,7 +103,8 @@ def run_simulation(parameters=None, **kwargs):
         # Add overall metrics
         if sim_results:
             formatted_results["metrics"] = {
-                "execution_time": f"{len(sim_results) * 0.2:.1f}s",  # Estimated execution time
+                # Estimated execution time
+                "execution_time": f"{len(sim_results) * 0.2:.1f}s",
                 "total_turns": len(sim_results),
                 "final_symbolic_tag": sim_results[-1].get("symbolic_tag", "Unknown"),
                 "trust_confidence": sim_results[-1].get("confidence", 0.0),
@@ -157,7 +158,8 @@ def get_data(symbol=None, data_type=None, date_range=None, **kwargs):
         if isinstance(date_range, tuple) and len(date_range) == 2:
             start_date, end_date = date_range
         elif isinstance(date_range, str):
-            # Parse common date range formats like "last 30 days", "2023-01-01 to 2023-02-01"
+            # Parse common date range formats like "last 30 days", "2023-01-01 to
+            # 2023-02-01"
             if "last" in date_range.lower() and "day" in date_range.lower():
                 # Parse "last X days"
                 match = re.search(r"last\s+(\d+)\s+days", date_range.lower())
@@ -236,8 +238,7 @@ def get_data(symbol=None, data_type=None, date_range=None, **kwargs):
                         }
             except Exception as e:
                 logger.warning(
-                    f"Historical data retrieval failed: {e}. Falling back to finance plugins."
-                )
+                    f"Historical data retrieval failed: {e}. Falling back to finance plugins.")
 
             # Try the finance plugins as a fallback
             try:
@@ -371,18 +372,21 @@ def get_forecast(symbol=None, horizon=None, **kwargs):
 
             def delta_func(i):
                 return timedelta(hours=i)
+
         elif horizon == "1w":
             num_points = 7  # Daily for 1 week
             interval = "daily"
 
             def delta_func(i):
                 return timedelta(days=i)
+
         elif horizon == "1m":
             num_points = 30  # Daily for 1 month
             interval = "daily"
 
             def delta_func(i):
                 return timedelta(days=i)
+
         else:
             num_points = 7  # Default
             interval = "daily"
@@ -617,7 +621,8 @@ def query_memory(query=None, limit=None, **kwargs):
                 },
             }
 
-        # Simple keyword matching (in a real implementation, we would use more sophisticated retrieval)
+        # Simple keyword matching (in a real implementation, we would use more
+        # sophisticated retrieval)
         matched_traces = []
         query_terms = query.lower().split()
 
@@ -749,16 +754,13 @@ def query_symbolic_system(query=None, **kwargs):
 
             # Add additional related patterns
             if tag_result["symbolic_tag"] == "Hope Rising":
-                results.append(
-                    {
-                        "pattern_id": "pat_002",
-                        "name": "Hope-Stability Pattern",
-                        "description": "A balanced state with moderate hope and low despair",
-                        "confidence": 0.85,
-                        "instances": 42,
-                        "related_to": pattern_result["pattern_id"],
-                    }
-                )
+                results.append({"pattern_id": "pat_002",
+                                "name": "Hope-Stability Pattern",
+                                "description": "A balanced state with moderate hope and low despair",
+                                "confidence": 0.85,
+                                "instances": 42,
+                                "related_to": pattern_result["pattern_id"],
+                                })
             elif tag_result["symbolic_tag"] == "Collapse Risk":
                 results.append(
                     {
@@ -768,8 +770,7 @@ def query_symbolic_system(query=None, **kwargs):
                         "confidence": 0.77,
                         "instances": 28,
                         "related_to": pattern_result["pattern_id"],
-                    }
-                )
+                    })
 
         # For rule queries
         elif "rule" in query_lower:
@@ -793,9 +794,9 @@ def query_symbolic_system(query=None, **kwargs):
                 "action": action,
                 "confidence": 0.9,
                 "last_triggered": datetime.now().isoformat(),
-                "affected_overlays": ["hope", "despair"]
-                if "hope" in action
-                else ["rage", "fatigue"],
+                "affected_overlays": (
+                    ["hope", "despair"] if "hope" in action else ["rage", "fatigue"]
+                ),
             }
 
             results.append(rule_result)
@@ -815,16 +816,13 @@ def query_symbolic_system(query=None, **kwargs):
             results.append(symbol_result)
 
             # Add additional related symbol
-            results.append(
-                {
-                    "symbol_id": "sym_107",
-                    "name": "Sector Rotation Dynamic",
-                    "current_state": "accelerating",
-                    "previous_state": "stable",
-                    "confidence": 0.77,
-                    "description": "Represents the flow of capital between market sectors",
-                }
-            )
+            results.append({"symbol_id": "sym_107",
+                            "name": "Sector Rotation Dynamic",
+                            "current_state": "accelerating",
+                            "previous_state": "stable",
+                            "confidence": 0.77,
+                            "description": "Represents the flow of capital between market sectors",
+                            })
 
         return {
             "query": query,
@@ -918,32 +916,49 @@ def explain_forecast(symbol=None, forecast_id=None, **kwargs):
             {
                 "name": "Technical Trend Analysis",
                 "contribution": 0.35,
-                "description": f"Recent price movement shows a {trend_strength} {trend_direction} pattern with {'increasing' if trend > 0 else 'decreasing'} momentum",
-                "confidence": round(confidence * 0.9, 2),
+                "description": f"Recent price movement shows a {trend_strength} {trend_direction} pattern with {
+                    'increasing' if trend > 0 else 'decreasing'} momentum",
+                "confidence": round(
+                    confidence * 0.9,
+                    2),
             },
             {
                 "name": "Market Sentiment",
                 "contribution": 0.25,
-                "description": f"Overall {'positive' if trend > 0 else 'negative'} market sentiment with {'strong' if abs(trend) > 3 else 'moderate'} institutional signals",
-                "confidence": round(confidence * 0.85, 2),
+                "description": f"Overall {
+                        'positive' if trend > 0 else 'negative'} market sentiment with {
+                            'strong' if abs(trend) > 3 else 'moderate'} institutional signals",
+                "confidence": round(
+                    confidence * 0.85,
+                    2),
             },
             {
                 "name": "Sector Performance",
                 "contribution": 0.20,
-                "description": f"The sector containing {target_symbol} has {'outperformed' if trend > 2 else 'underperformed' if trend < -2 else 'matched'} the broader market by {abs(trend):.1f}%",
-                "confidence": round(confidence * 0.95, 2),
+                "description": f"The sector containing {target_symbol} has {
+                    'outperformed' if trend > 2 else 'underperformed' if trend < -2 else 'matched'} the broader market by {
+                    abs(trend):.1f}%",
+                "confidence": round(
+                    confidence * 0.95,
+                    2),
             },
             {
                 "name": "Volatility Indicators",
                 "contribution": 0.15,
-                "description": f"Expected volatility is {'high' if abs(trend) > 5 else 'moderate' if abs(trend) > 2 else 'low'}, indicating {'unstable' if abs(trend) > 5 else 'fairly stable'} price movement",
-                "confidence": round(confidence * 0.8, 2),
+                "description": f"Expected volatility is {
+                    'high' if abs(trend) > 5 else 'moderate' if abs(trend) > 2 else 'low'}, indicating {
+                    'unstable' if abs(trend) > 5 else 'fairly stable'} price movement",
+                "confidence": round(
+                    confidence * 0.8,
+                    2),
             },
             {
                 "name": "External Factors",
                 "contribution": 0.05,
                 "description": "Macroeconomic factors provide a moderately supportive environment",
-                "confidence": round(confidence * 0.7, 2),
+                "confidence": round(
+                    confidence * 0.7,
+                    2),
             },
         ]
 
@@ -1060,7 +1075,8 @@ def start_recursive_learning(
         )
 
         # Store the coordinator in a global registry for later access
-        # Note: In a production system, you'd want a more robust way to track running processes
+        # Note: In a production system, you'd want a more robust way to track
+        # running processes
         from recursive_training.integration import process_registry
 
         process_registry.register_process(cycle_id, coordinator)
@@ -1238,9 +1254,11 @@ def get_recursive_learning_status(cycle_id=None, **kwargs):
                             "total_batches": total,
                             "percentage": f"{progress * 100:.1f}%",
                         },
-                        "start_time": coordinator.training_start_time.isoformat()
-                        if coordinator.training_start_time
-                        else None,
+                        "start_time": (
+                            coordinator.training_start_time.isoformat()
+                            if coordinator.training_start_time
+                            else None
+                        ),
                     }
                 )
 

@@ -2,7 +2,8 @@ import logging
 from typing import Optional, List, Dict, Any
 from forecast_output.forecast_licenser import filter_licensed_forecasts
 
-# from forecast_output.forecast_compressor import compress_forecasts  # Removed unused import
+# from forecast_output.forecast_compressor import compress_forecasts  #
+# Removed unused import
 from forecast_output.strategos_tile_formatter import format_strategos_tile
 from forecast_output.strategos_digest_builder import build_digest
 from analytics.forecast_memory import ForecastMemory
@@ -27,7 +28,8 @@ from symbolic_system.symbolic_transition_graph import (
     visualize_symbolic_graph,
 )
 
-# from symbolic_system.pulse_symbolic_revision_planner import plan_revisions_for_fragmented_arcs  # Removed unused import
+# from symbolic_system.pulse_symbolic_revision_planner import
+# plan_revisions_for_fragmented_arcs  # Removed unused import
 import matplotlib.pyplot as plt
 import os
 import json
@@ -371,8 +373,22 @@ def generate_strategos_digest(
         sections.append("|----------|-----|-----|-----------|------------|")
         for fc in digest["strategic_top_forecasts"]:
             sections.append(
-                f"| {fc.get('trace_id', '')} | {fc.get('arc', '')} | {fc.get('tag', '')} | {fc.get('alignment', '')} | {fc.get('confidence', '')} |"
-            )
+                f"| {
+                    fc.get(
+                        'trace_id',
+                        '')} | {
+                    fc.get(
+                        'arc',
+                        '')} | {
+                    fc.get(
+                        'tag',
+                        '')} | {
+                    fc.get(
+                        'alignment',
+                        '')} | {
+                    fc.get(
+                        'confidence',
+                        '')} |")
         sections.append("")
 
     # --- Trust Enforcement Report ---

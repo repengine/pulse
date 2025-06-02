@@ -12,9 +12,9 @@ def test_triage_report_exists_and_is_not_empty() -> None:
     report_path = os.path.join(project_root, "triage_report.json")
 
     assert os.path.exists(report_path), f"triage_report.json not found at {report_path}"
-    assert os.path.getsize(report_path) > 0, (
-        f"triage_report.json at {report_path} is empty"
-    )
+    assert (
+        os.path.getsize(report_path) > 0
+    ), f"triage_report.json at {report_path} is empty"
 
     try:
         with open(report_path, "r", encoding="utf-8") as f:

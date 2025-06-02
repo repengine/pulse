@@ -7,6 +7,7 @@ This test suite verifies:
 4. Processing of structured knowledge data into signals
 """
 
+from ingestion.iris_plugins_variable_ingestion.wikidata_plugin import WikidataPlugin
 import unittest
 import os
 import sys
@@ -14,8 +15,6 @@ from unittest.mock import patch
 
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from ingestion.iris_plugins_variable_ingestion.wikidata_plugin import WikidataPlugin
 
 
 class MockResponse:

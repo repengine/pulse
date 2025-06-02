@@ -7,6 +7,7 @@ This test suite verifies:
 4. Output signal format correctness
 """
 
+from ingestion.iris_plugins_variable_ingestion.openfda_plugin import OpenfdaPlugin
 import unittest
 import os
 import sys
@@ -14,8 +15,6 @@ from unittest.mock import patch
 
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from ingestion.iris_plugins_variable_ingestion.openfda_plugin import OpenfdaPlugin
 
 
 class MockResponse:
@@ -276,7 +275,8 @@ class TestOpenFdaPlugin(unittest.TestCase):
         results = self.mock_recalls_data.get("results", [])
         signals = self.plugin._process_regular_data("drug_recalls", results, "recent")
 
-        # Check that we got at least 4 signals (3 classification counts + voluntary percentage)
+        # Check that we got at least 4 signals (3 classification counts +
+        # voluntary percentage)
         self.assertGreaterEqual(len(signals), 4)
 
         # Find classification signals

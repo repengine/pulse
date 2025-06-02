@@ -113,7 +113,8 @@ def validate_keywords_against_definitions(
 
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Call):
-                        # Handle simple calls (func(...)) and attribute calls (module.func(...))
+                        # Handle simple calls (func(...)) and attribute calls
+                        # (module.func(...))
                         if isinstance(node.func, ast.Name):
                             func_name = node.func.id
                         elif isinstance(node.func, ast.Attribute):

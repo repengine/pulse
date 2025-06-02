@@ -34,9 +34,9 @@ class TestCausalBenchmarks:
             # First call should have gravity_enabled=True
             assert mock_simulate.call_count > 0, "simulate_forward was not called"
             args, kwargs = mock_simulate.call_args
-            assert kwargs.get("gravity_enabled") is True, (
-                "Gravity should be enabled by default"
-            )
+            assert (
+                kwargs.get("gravity_enabled") is True
+            ), "Gravity should be enabled by default"
 
             mock_simulate.reset_mock()
 
@@ -49,9 +49,9 @@ class TestCausalBenchmarks:
             # Second call should have gravity_enabled=False
             assert mock_simulate.call_count > 0, "simulate_forward was not called"
             args, kwargs = mock_simulate.call_args
-            assert kwargs.get("gravity_enabled") is False, (
-                "Gravity should be disabled when flag is passed"
-            )
+            assert (
+                kwargs.get("gravity_enabled") is False
+            ), "Gravity should be disabled when flag is passed"
 
     def test_conditional_gravity_application(self):
         """Test that gravity correction is conditionally applied based on the flag."""
@@ -104,9 +104,9 @@ class TestCausalBenchmarks:
 
             # Test loading from non-existent file (should use defaults)
             scenarios = load_scenarios_from_file("non_existent_file.json")
-            assert len(scenarios) > 0, (
-                "Should return default scenarios for non-existent file"
-            )
+            assert (
+                len(scenarios) > 0
+            ), "Should return default scenarios for non-existent file"
         finally:
             # Clean up
             os.unlink(tmp_path)
@@ -129,9 +129,9 @@ class TestCausalBenchmarks:
 
             # Check that batch_runner was called with gravity_enabled=False
             args, kwargs = mock_run_batch.call_args
-            assert kwargs.get("gravity_enabled") is False, (
-                "Gravity should be disabled for causal benchmarks"
-            )
+            assert (
+                kwargs.get("gravity_enabled") is False
+            ), "Gravity should be disabled for causal benchmarks"
 
             # Check result structure
             assert "scenario" in result

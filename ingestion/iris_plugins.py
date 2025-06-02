@@ -75,7 +75,8 @@ class IrisPluginManager:
 
         self.register_plugin(finance_plugins)
         self.register_plugin(vi_plugin)
-        # register every _plugin function and every enabled IrisIngestionPlugin in the variable_ingestion folder
+        # register every _plugin function and every enabled IrisIngestionPlugin in
+        # the variable_ingestion folder
 
         var_dir = os.path.join(
             os.path.dirname(__file__), "iris_plugins_variable_ingestion"

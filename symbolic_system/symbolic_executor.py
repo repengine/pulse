@@ -42,9 +42,9 @@ def apply_symbolic_upgrade(forecast: Dict, upgrade_map: Dict) -> Dict:
 
     if arc in upgrade_map.get("replace_or_retrain", []):
         revised["arc_label"] = "Narrative Convergence"
-        revised.setdefault("symbolic_mutation", {})["arc"] = (
-            f"{arc} → Narrative Convergence"
-        )
+        revised.setdefault("symbolic_mutation", {})[
+            "arc"
+        ] = f"{arc} → Narrative Convergence"
 
     revised["mutation_type"] = "symbolic_upgrade"
     return revised

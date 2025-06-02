@@ -153,8 +153,9 @@ class ContextProvider:
             if total_chars + len(formatted_snippet) > max_chars:
                 # If we're about to exceed, add a truncation note
                 formatted_snippets.append(
-                    f"\n[Additional {len(snippets) - i} snippets omitted due to length limits]"
-                )
+                    f"\n[Additional {
+                        len(snippets) -
+                        i} snippets omitted due to length limits]")
                 break
 
             # Add snippet and update character count

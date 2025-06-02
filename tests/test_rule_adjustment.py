@@ -5,6 +5,7 @@ Tests for the trust system rule adjustment functionality, specifically the persi
 of weight changes to rule/arc registry and tag registry.
 """
 
+from trust_system.rule_adjustment import adjust_rules_from_learning
 import unittest
 import os
 import sys
@@ -12,8 +13,6 @@ from unittest.mock import patch
 
 # Add parent directory to path to allow imports from trust_system
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from trust_system.rule_adjustment import adjust_rules_from_learning
 
 
 class TestRuleAdjustment(unittest.TestCase):

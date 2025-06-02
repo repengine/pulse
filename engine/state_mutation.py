@@ -118,7 +118,8 @@ def adjust_overlay(state: WorldState, overlay: str, delta: float) -> Optional[fl
     """
     from symbolic_system.context import is_symbolic_enabled
 
-    # If symbolic processing is not enabled, return the current value without modification.
+    # If symbolic processing is not enabled, return the current value without
+    # modification.
     if not is_symbolic_enabled():
         return getattr(state.overlays, overlay, None)
 
@@ -129,7 +130,8 @@ def adjust_overlay(state: WorldState, overlay: str, delta: float) -> Optional[fl
 
         # Only log events if symbolic processing is NOT in a minimal processing mode (e.g., retrodiction with symbolic enabled)
         # The test_minimal_processing_in_retrodiction expects no logging.
-        # This means we should NOT log if CURRENT_SYSTEM_MODE is "retrodiction" AND SYMBOLIC_PROCESSING_MODES["retrodiction"] is True.
+        # This means we should NOT log if CURRENT_SYSTEM_MODE is "retrodiction"
+        # AND SYMBOLIC_PROCESSING_MODES["retrodiction"] is True.
         if not (
             engine.pulse_config.CURRENT_SYSTEM_MODE == "retrodiction"
             and engine.pulse_config.SYMBOLIC_PROCESSING_MODES.get("retrodiction", False)

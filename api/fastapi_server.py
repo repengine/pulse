@@ -15,7 +15,7 @@ Example:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
@@ -168,7 +168,7 @@ async def get_status(settings=Depends(get_settings)) -> Dict[str, Any]:
             "status": "operational",
             "service": "pulse-api",
             "version": settings.app_version,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "debug_mode": settings.debug,
             "components": {
                 "database": "connected",
@@ -206,7 +206,7 @@ async def get_latest_forecasts(settings=Depends(get_settings)) -> ForecastRespon
                 "value": 0.75,
                 "confidence": 0.85,
                 "horizon": "1d",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             {
                 "id": "forecast_002",
@@ -216,12 +216,12 @@ async def get_latest_forecasts(settings=Depends(get_settings)) -> ForecastRespon
                 "value": 0.62,
                 "confidence": 0.78,
                 "horizon": "1d",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         ]
 
         return ForecastResponse(
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             forecasts=simulated_forecasts,
             metadata={
                 "model_version": "v2.1",
@@ -369,20 +369,20 @@ async def get_learning_audit(settings=Depends(get_settings)) -> LearningAuditRes
             {
                 "component": "model_trainer",
                 "status": "active",
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "metrics": {"accuracy_improvement": 0.05, "samples_processed": 1000},
             },
             {
                 "component": "feature_selector",
                 "status": "active",
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "metrics": {"features_added": 3, "features_removed": 1},
             },
         ]
 
         summary = {
             "total_events": len(simulated_audit),
-            "last_update": datetime.utcnow().isoformat(),
+            "last_update": datetime.now(timezone.utc).isoformat(),
             "status": "optimal",
         }
 

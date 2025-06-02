@@ -38,26 +38,29 @@ def mock_celery_app():
 def client(mock_settings, mock_celery_app):
     """Create test client with dependency overrides and Celery mocking."""
     app.dependency_overrides[get_app_settings] = lambda: mock_settings
-    
+
     # Configure mock celery_app.send_task to return proper task ID
     mock_result = Mock()
     mock_result.id = "test-task-id"
     mock_celery_app.send_task.return_value = mock_result
-    
+
     # Mock all Celery imports and tasks
-    with patch('api.fastapi_server.celery_app', mock_celery_app), \
-         patch('api.fastapi_server.autopilot_engage_task') as mock_engage, \
-         patch('api.fastapi_server.autopilot_disengage_task') as mock_disengage, \
-         patch('api.fastapi_server.retrodiction_run_task') as mock_retro:
-        
+    with patch("api.fastapi_server.celery_app", mock_celery_app), patch(
+        "api.fastapi_server.autopilot_engage_task"
+    ) as mock_engage, patch(
+        "api.fastapi_server.autopilot_disengage_task"
+    ) as mock_disengage, patch(
+        "api.fastapi_server.retrodiction_run_task"
+    ) as mock_retro:
+
         # Configure mock tasks with proper return values (for direct calls)
         mock_engage.delay.return_value = mock_result
         mock_disengage.delay.return_value = mock_result
         mock_retro.delay.return_value = mock_result
-        
+
         with TestClient(app) as test_client:
             yield test_client
-    
+
     app.dependency_overrides.clear()
 
 
@@ -67,7 +70,7 @@ class TestStatusEndpoint:
     def test_status_success(self, client):
         """Test successful status endpoint response."""
         response = client.get("/api/status")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "operational"
@@ -82,11 +85,11 @@ class TestStatusEndpoint:
         """Test that status response has correct structure."""
         response = client.get("/api/status")
         data = response.json()
-        
+
         required_fields = ["status", "service", "timestamp", "version", "components"]
         for field in required_fields:
             assert field in data
-        
+
         required_components = ["database", "celery", "redis"]
         for component in required_components:
             assert component in data["components"]
@@ -98,7 +101,7 @@ class TestForecastsEndpoint:
     def test_forecasts_success(self, client):
         """Test successful forecasts endpoint response."""
         response = client.get("/api/forecasts/latest/all")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "forecasts" in data
@@ -112,7 +115,14 @@ class TestForecastsEndpoint:
 
         # Check first forecast structure
         forecast = data["forecasts"][0]
-        required_fields = ["id", "symbol", "prediction", "confidence", "timestamp", "horizon"]
+        required_fields = [
+            "id",
+            "symbol",
+            "prediction",
+            "confidence",
+            "timestamp",
+            "horizon",
+        ]
         for field in required_fields:
             assert field in forecast
 
@@ -126,7 +136,7 @@ class TestForecastsEndpoint:
         """Test that forecast data has correct types."""
         response = client.get("/api/forecasts/latest/all")
         data = response.json()
-        
+
         forecast = data["forecasts"][0]
         assert isinstance(forecast["confidence"], (int, float))
         assert isinstance(forecast["prediction"], (int, float))
@@ -140,7 +150,7 @@ class TestAutopilotEndpoints:
         """Test successful autopilot engagement."""
         payload = {
             "action": "start_trading",
-            "parameters": {"risk_level": "medium", "max_position": 1000}
+            "parameters": {"risk_level": "medium", "max_position": 1000},
         }
 
         response = client.post("/api/autopilot/engage", json=payload)
@@ -154,10 +164,7 @@ class TestAutopilotEndpoints:
 
     def test_autopilot_engage_validation_error(self, client):
         """Test autopilot engagement with invalid payload."""
-        payload = {
-            "action": "",  # Invalid empty action
-            "parameters": {}
-        }
+        payload = {"action": "", "parameters": {}}  # Invalid empty action
 
         response = client.post("/api/autopilot/engage", json=payload)
         assert response.status_code == 422
@@ -179,7 +186,7 @@ class TestRetrodictionEndpoints:
         """Test successful retrodiction run."""
         payload = {
             "target_date": "2024-01-15",
-            "parameters": {"lookback_days": 30, "confidence_threshold": 0.8}
+            "parameters": {"lookback_days": 30, "confidence_threshold": 0.8},
         }
 
         response = client.post("/api/retrodiction/run", json=payload)
@@ -191,10 +198,7 @@ class TestRetrodictionEndpoints:
 
     def test_retrodiction_run_validation_error(self, client):
         """Test retrodiction run with invalid date format."""
-        payload = {
-            "target_date": "invalid-date",
-            "parameters": {}
-        }
+        payload = {"target_date": "invalid-date", "parameters": {}}
 
         response = client.post("/api/retrodiction/run", json=payload)
         assert response.status_code == 422
@@ -206,7 +210,7 @@ class TestLearningAuditEndpoint:
     def test_learning_audit_success(self, client):
         """Test successful learning audit endpoint response."""
         response = client.get("/api/learning/audit")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "audit_results" in data
@@ -288,10 +292,9 @@ class TestPydanticModels:
     def test_autopilot_engage_request_valid(self):
         """Test valid AutopilotEngageRequest model."""
         from api.fastapi_server import AutopilotEngageRequest
-        
+
         request = AutopilotEngageRequest(
-            action="start_trading",
-            parameters={"risk_level": "medium"}
+            action="start_trading", parameters={"risk_level": "medium"}
         )
         assert request.action == "start_trading"
         assert request.parameters is not None
@@ -304,17 +307,15 @@ class TestPydanticModels:
 
         with pytest.raises(ValidationError):
             AutopilotEngageRequest(
-                action="",  # Empty action should fail validation
-                parameters={}
+                action="", parameters={}  # Empty action should fail validation
             )
 
     def test_retrodiction_run_request_valid(self):
         """Test valid RetrodictionRunRequest model."""
         from api.fastapi_server import RetrodictionRunRequest
-        
+
         request = RetrodictionRunRequest(
-            target_date="2024-01-15",
-            parameters={"lookback_days": 30}
+            target_date="2024-01-15", parameters={"lookback_days": 30}
         )
         assert request.target_date == "2024-01-15"
         assert request.parameters is not None
@@ -338,12 +339,12 @@ class TestErrorHandling:
         """Test error handling when Celery task fails to start."""
         # This test needs to override the mock behavior set in the client fixture
         # We'll patch the celery_app.send_task method to raise an exception
-        with patch('api.fastapi_server.celery_app') as mock_celery:
+        with patch("api.fastapi_server.celery_app") as mock_celery:
             mock_celery.send_task.side_effect = Exception("Celery connection error")
 
             payload = {
                 "action": "start_trading",
-                "parameters": {"risk_level": "medium"}
+                "parameters": {"risk_level": "medium"},
             }
 
             response = client.post("/api/autopilot/engage", json=payload)

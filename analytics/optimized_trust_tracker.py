@@ -32,7 +32,8 @@ class OptimizedBayesianTrustTracker:
             float
         )  # Track last update time
 
-        # Use numpy arrays for timestamps instead of lists of tuples for better memory efficiency
+        # Use numpy arrays for timestamps instead of lists of tuples for better
+        # memory efficiency
         self.timestamps: Dict[str, Dict[str, np.ndarray]] = defaultdict(
             lambda: {
                 "times": np.array([], dtype=np.float64),

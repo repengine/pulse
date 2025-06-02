@@ -198,9 +198,7 @@ class TestOptimizedDataStore:
                         expected_extension = (
                             ".parquet"
                             if expected_format == "parquet"
-                            else ".h5"
-                            if expected_format == "hdf5"
-                            else ".pkl"
+                            else ".h5" if expected_format == "hdf5" else ".pkl"
                         )
 
                         assert path.name.endswith(expected_extension)

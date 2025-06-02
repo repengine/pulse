@@ -191,7 +191,7 @@ class RegimeDetector:
             # Add to buffer and trim if needed
             self.event_buffer.append(event)
             if len(self.event_buffer) > self.max_buffer_size:
-                self.event_buffer = self.event_buffer[-self.max_buffer_size :]
+                self.event_buffer = self.event_buffer[-self.max_buffer_size:]
 
             # Run detection methods
             self._check_for_regime_change()
@@ -207,7 +207,7 @@ class RegimeDetector:
             # Add all events to buffer
             self.event_buffer.extend(events)
             if len(self.event_buffer) > self.max_buffer_size:
-                self.event_buffer = self.event_buffer[-self.max_buffer_size :]
+                self.event_buffer = self.event_buffer[-self.max_buffer_size:]
 
             # Run detection methods
             self._check_for_regime_change()
@@ -246,8 +246,9 @@ class RegimeDetector:
                     supporting_evidence[regime] = evidence
                     market_indicators[regime] = indicators
                     logger.debug(
-                        f"Method {method_name} detected {regime.value} with confidence {confidence:.2f}"
-                    )
+                        f"Method {method_name} detected {
+                            regime.value} with confidence {
+                            confidence:.2f}")
             except Exception as e:
                 logger.error(f"Error in detection method {method_name}: {e}")
 
@@ -297,7 +298,8 @@ class RegimeDetector:
             indicators: Market indicators supporting the detection
         """
         # Create a regime change event
-        change_id = f"regime_change_{len(self.change_history) + 1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        change_id = f"regime_change_{len(self.change_history) +
+                                     1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         regime_change = RegimeChangeEvent(
             regime_change_id=change_id,
             timestamp=datetime.now(),
@@ -311,8 +313,10 @@ class RegimeDetector:
 
         # Update current regime
         logger.info(
-            f"Regime change detected: {self.current_regime.value} -> {new_regime.value} with confidence {confidence:.2f}"
-        )
+            f"Regime change detected: {
+                self.current_regime.value} -> {
+                new_regime.value} with confidence {
+                confidence:.2f}")
         self.current_regime = new_regime
 
         # Add to history

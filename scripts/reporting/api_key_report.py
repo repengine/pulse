@@ -40,12 +40,16 @@ def test_fred_api(api_key):
         return {
             "success": response.status_code == 200,
             "status_code": response.status_code,
-            "message": "Success"
-            if response.status_code == 200
-            else f"Failed with status {response.status_code}",
-            "details": "API connection successful"
-            if response.status_code == 200
-            else "See response for details",
+            "message": (
+                "Success"
+                if response.status_code == 200
+                else f"Failed with status {response.status_code}"
+            ),
+            "details": (
+                "API connection successful"
+                if response.status_code == 200
+                else "See response for details"
+            ),
         }
     except Exception as e:
         return {
@@ -64,12 +68,16 @@ def test_finnhub_api(api_key):
         return {
             "success": response.status_code == 200,
             "status_code": response.status_code,
-            "message": "Success"
-            if response.status_code == 200
-            else f"Failed with status {response.status_code}",
-            "details": "API connection successful"
-            if response.status_code == 200
-            else "See response for details",
+            "message": (
+                "Success"
+                if response.status_code == 200
+                else f"Failed with status {response.status_code}"
+            ),
+            "details": (
+                "API connection successful"
+                if response.status_code == 200
+                else "See response for details"
+            ),
         }
     except Exception as e:
         return {
@@ -83,28 +91,22 @@ def test_finnhub_api(api_key):
 def test_nasdaq_api(api_key):
     """Test a basic NASDAQ Data Link API call with free tier endpoints"""
     # Try free tier endpoint patterns that are more likely to work
-    endpoints = [
-        {
-            "name": "LBMA Gold Dataset",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/LBMA/GOLD.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "FRED GDP Dataset",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/FRED/GDP.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "ODA Aluminum Price",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/ODA/PALUM_USD.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "OPEC Reference Basket",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/OPEC/ORB.json?api_key={api_key}&limit=1",
-        },
-        {
-            "name": "World Bank Population",
-            "url": f"https://data.nasdaq.com/api/v3/datasets/WORLDBANK/WLD_SP_POP_TOTL.json?api_key={api_key}&limit=1",
-        },
-    ]
+    endpoints = [{"name": "LBMA Gold Dataset",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/LBMA/GOLD.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "FRED GDP Dataset",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/FRED/GDP.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "ODA Aluminum Price",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/ODA/PALUM_USD.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "OPEC Reference Basket",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/OPEC/ORB.json?api_key={api_key}&limit=1",
+                  },
+                 {"name": "World Bank Population",
+                  "url": f"https://data.nasdaq.com/api/v3/datasets/WORLDBANK/WLD_SP_POP_TOTL.json?api_key={api_key}&limit=1",
+                  },
+                 ]
 
     for endpoint in endpoints:
         try:
@@ -121,7 +123,8 @@ def test_nasdaq_api(api_key):
                 return {
                     "success": False,
                     "status_code": 410,
-                    "message": f"Endpoint no longer available (410 Gone): {endpoint['name']}",
+                    "message": f"Endpoint no longer available (410 Gone): {
+                        endpoint['name']}",
                     "details": "This suggests the API endpoints have changed or been deprecated. Check NASDAQ Data Link documentation for updated endpoints.",
                 }
         except Exception:

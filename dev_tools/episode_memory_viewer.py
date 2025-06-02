@@ -11,13 +11,13 @@ CLI utility to explore symbolic memory:
 Author: Pulse AI Engine
 """
 
+from trust_system.forecast_episode_logger import summarize_episodes, plot_episode_arcs
+import json
+import argparse
 import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import argparse
-import json
-from trust_system.forecast_episode_logger import summarize_episodes, plot_episode_arcs
 
 
 def save_summary(summary, path):
@@ -68,4 +68,5 @@ def main():
 if __name__ == "__main__":
     main()
     # Example/test usage:
-    # python dev_tools/episode_memory_viewer.py --log logs/forecast_episodes.jsonl --summary
+    # python dev_tools/episode_memory_viewer.py --log
+    # logs/forecast_episodes.jsonl --summary

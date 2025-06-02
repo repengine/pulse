@@ -55,9 +55,9 @@ class IntelligenceCore:
         self.observer: Observer = observer
         self.sandbox: UpgradeSandboxManager = sandbox
         self.last_worldstate: Optional[WorldState] = None
-        self.loaded_modules: List[
-            str
-        ] = []  # This attribute is no longer directly managed here, consider removing if unused.
+        # This attribute is no longer directly managed here, consider removing if
+        # unused.
+        self.loaded_modules: List[str] = ([])
 
     # ------------------------------------------------------------------
     def load_standard_modules(self) -> None:
@@ -137,7 +137,8 @@ class IntelligenceCore:
             if self.last_worldstate
             else 2023
         )
-        # run_chunked_forecast returns Tuple[Optional[WorldState], Union[List[Dict[str, Any]], Any]]
+        # run_chunked_forecast returns Tuple[Optional[WorldState],
+        # Union[List[Dict[str, Any]], Any]]
         ws_obj, _ = self.executor.run_chunked_forecast(
             start_year=start_year,
             total_turns=turns,

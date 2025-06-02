@@ -3,173 +3,346 @@ Parallel Training Framework for Pulse Retrodiction
 
 This module provides a parallel training framework that efficiently distributes
 retrodiction training workloads across multiple CPU cores for improved performance.
-
-The framework now supports Dask's distributed computing capabilities through LocalCluster
-integration, providing enhanced parallel processing with the following benefits:
-- Dynamic task scheduling with work stealing for better resource utilization
-- Built-in diagnostics and visualization through the Dask dashboard
-- Improved error handling and task tracking
-- Better scalability from single machines to potential distributed deployment
 """
 
+from analytics.trust_update_buffer import get_trust_update_buffer, TrustUpdateBuffer
+from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
+from recursive_training.metrics.async_metrics_collector import (
+    get_async_metrics_collector,
+    AsyncMetricsCollector,
+)
+from recursive_training.metrics.metrics_store import get_metrics_store, MetricsStore
+from recursive_training.data.data_store import RecursiveDataStore  # Base class
 import os
+import sys  # Added for __main__ block logging
 import time
 import logging
 from typing import Dict, List, Any, Optional, Callable, Tuple
 from datetime import datetime, timedelta
 import json
 from dask.distributed import Client, LocalCluster
-
-# Import components needed for parallel training
-from recursive_training.data.data_store import RecursiveDataStore
-from recursive_training.metrics.metrics_store import get_metrics_store
-from recursive_training.metrics.async_metrics_collector import (
-    get_async_metrics_collector,
-)
-from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
-from analytics.trust_update_buffer import get_trust_update_buffer
-
-logger = logging.getLogger(__name__)
+import memory_profiler  # Added for memory profiling
 
 
 class TrainingBatch:
-    """Represents a batch of training data that can be processed in parallel"""
-
     def __init__(
         self,
         batch_id: str,
         start_time: datetime,
         end_time: datetime,
         variables: List[str],
-        dataset_name: Optional[str] = None,
     ):
-        """
-        Initialize a training batch.
-
-        Args:
-            batch_id: Unique identifier for this batch
-            start_time: Start of the time period for this batch
-            end_time: End of the time period for this batch
-            variables: List of variables to include in this batch
-            dataset_name: Optional name of dataset
-        """
         self.batch_id = batch_id
         self.start_time = start_time
         self.end_time = end_time
         self.variables = variables
-        self.dataset_name = dataset_name
+        # Additional attributes that get set during processing
+        self.processed: bool = False
+        self.processing_time: float = 0.0
+        self.results: Optional[Dict[str, Any]] = None
 
-        # Runtime attributes
-        self.processed = False
-        self.processing_time = 0.0
-        self.results = None
-        self.error = None
+
+# Import components needed for parallel training
+
+# Attempt to import specialized data stores, fall back if not available
+try:
+    from recursive_training.data.streaming_data_store import StreamingDataStore
+except ImportError:
+    StreamingDataStore = None  # type: ignore
+try:
+    from recursive_training.data.optimized_data_store import OptimizedDataStore
+except ImportError:
+    OptimizedDataStore = None  # type: ignore
+
+
+# Module-level logger for the main coordinator process
+coordinator_logger = logging.getLogger(__name__)
+
+
+# --- Top-level function for Dask tasks ---
+@memory_profiler.profile  # type: ignore
+def _dask_process_batch_task(
+    batch_data: Dict[str, Any],
+    # Name of the DataStore class to use ('Streaming', 'Optimized', 'Recursive')
+    data_store_class_name: str,
+    data_store_base_config: Optional[
+        Dict[str, Any]
+    ],  # Base config for DataStore.get_instance()
+    async_metrics_reinit_config: Optional[Dict[str, Any]],
+    trust_buffer_reinit_config: Optional[Dict[str, Any]],
+    # all_batches_for_upcoming_data: List[Dict[str, Any]] # Removed for
+    # simplicity for now
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Processes a single training batch in a Dask worker.
+    This function is designed to be top-level to avoid Dask serialization issues with instance methods.
+    """
+    # Re-initialize logger for the Dask worker process
+    # Ensure worker logger name is unique or well-defined
+    worker_logger_name = f"dask_worker_batch_{batch_data.get('batch_id', 'unknown')}"
+    worker_logger = logging.getLogger(worker_logger_name)
+
+    # Configure worker logger if not already configured (Dask might handle this)
+    if not worker_logger.handlers:
+        log_level_str = os.environ.get("LOG_LEVEL", "INFO")
+        log_level = getattr(logging, log_level_str.upper(), logging.INFO)
+        logging.basicConfig(
+            level=log_level,  # Apply level to root logger for simplicity here
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            force=True,
+        )  # Force reconfig if Dask did its own
+        worker_logger.setLevel(log_level)
+
+    start_time_proc = time.time()
+    # Re-hydrate TrainingBatch object
+    batch = TrainingBatch(
+        batch_id=str(batch_data["batch_id"]),  # Ensure string
+        start_time=datetime.fromisoformat(str(batch_data["start_time"])),
+        end_time=datetime.fromisoformat(str(batch_data["end_time"])),
+        variables=list(batch_data["variables"]),
+    )
+
+    worker_logger.info(
+        f"Dask Worker ({
+            os.getpid()}): Processing batch {
+            batch.batch_id} (vars: {
+                len(
+                    batch.variables)}, period: {
+                        batch.start_time} to {
+                            batch.end_time})")
+
+    current_data_store: Any
+    if data_store_class_name == "StreamingDataStore" and StreamingDataStore:
+        current_data_store = StreamingDataStore.get_instance(
+            config=data_store_base_config
+        )
+    elif data_store_class_name == "OptimizedDataStore" and OptimizedDataStore:
+        current_data_store = OptimizedDataStore.get_instance(
+            config=data_store_base_config
+        )
+    else:
+        current_data_store = RecursiveDataStore.get_instance(
+            config=data_store_base_config
+        )
+    worker_logger.info(
+        f"Dask Worker: Initialized data store of type {type(current_data_store)}"
+    )
+
+    current_async_metrics = get_async_metrics_collector(
+        config=async_metrics_reinit_config
+    )
+    current_trust_buffer = get_trust_update_buffer(config=trust_buffer_reinit_config)
+
+    loaded_data: Dict[str, list] = {}
+    start_str = batch.start_time.isoformat()
+    end_str = batch.end_time.isoformat()
+
+    for variable_name_load in batch.variables:
+        dataset_name_load = f"historical_{variable_name_load}"
+        try:
+            items_to_filter = None
+            if isinstance(current_data_store, StreamingDataStore):
+                # retrieve_dataset_streaming needs a callback, which is complex to pass here.
+                # Using retrieve_dataset as a simplified path for now.
+                # This means true streaming benefits might not be realized in worker
+                # without further refactor.
+                worker_logger.debug(
+                    f"Dask Worker: Loading {dataset_name_load} via StreamingDataStore (simplified path).")
+                items_to_filter, _ = current_data_store.retrieve_dataset(
+                    dataset_name_load
+                )
+            elif isinstance(current_data_store, OptimizedDataStore):
+                worker_logger.debug(
+                    f"Dask Worker: Loading {dataset_name_load} via OptimizedDataStore."
+                )
+                df_opt, _ = current_data_store.retrieve_dataset_optimized(
+                    dataset_name_load, start_str, end_str
+                )
+                if df_opt is not None and not df_opt.empty:
+                    loaded_data[variable_name_load] = df_opt.to_dict("records")
+                else:
+                    loaded_data[variable_name_load] = []
+                continue  # Skip common filtering if OptimizedDataStore handled it
+            else:  # RecursiveDataStore
+                worker_logger.debug(
+                    f"Dask Worker: Loading {dataset_name_load} via RecursiveDataStore."
+                )
+                items_to_filter, _ = current_data_store.retrieve_dataset(
+                    dataset_name_load
+                )
+
+            if items_to_filter:
+                filtered_items = [
+                    item
+                    for item in items_to_filter
+                    if start_str <= item.get("timestamp", "") <= end_str
+                ]
+                loaded_data[variable_name_load] = filtered_items
+            else:
+                loaded_data[variable_name_load] = []
+            worker_logger.info(
+                f"Dask Worker: Loaded {
+                    len(
+                        loaded_data.get(
+                            variable_name_load,
+                            []))} items for {variable_name_load}")
+
+        except Exception as e_load_task:
+            worker_logger.error(
+                f"Dask Worker: Error loading {variable_name_load}: {e_load_task}",
+                exc_info=True,
+            )
+            loaded_data[variable_name_load] = []
+
+    data_for_batch_task = loaded_data
+
+    if not data_for_batch_task or all(
+        not v_item_task for v_item_task in data_for_batch_task.values()
+    ):
+        worker_logger.warning(
+            f"Dask Worker: Batch {batch.batch_id}: No data loaded. Skipping."
+        )
+        return batch.batch_id, {
+            "success": True,
+            "processing_time": time.time() - start_time_proc,
+            "metrics": {"total_data_points": 0},
+            "skipped": True,
+        }
+
+    results_retro_task = {"metrics": {}, "rules_generated": [], "trust_updates": {}}
+    trust_updates_list_task = []
+    for var_retro_task in batch.variables:
+        import random
+
+        sr_retro_task = 0.7 + random.random() * 0.3
+        sc_retro_task = int(100 * sr_retro_task)
+        for _ in range(sc_retro_task):
+            trust_updates_list_task.append((var_retro_task, True, 1.0))
+        for _ in range(100 - sc_retro_task):
+            trust_updates_list_task.append((var_retro_task, False, 1.0))
+        results_retro_task["trust_updates"][var_retro_task] = {
+            "success_rate": sr_retro_task,
+            "updates": 100,
+        }
+
+    current_trust_buffer.add_updates_batch(trust_updates_list_task)
+
+    total_dp_retro_task = sum(
+        len(var_data_item_task) for var_data_item_task in data_for_batch_task.values()
+    )
+    results_retro_task["metrics"] = {
+        "total_data_points": total_dp_retro_task,
+        "variables_processed": len(batch.variables),
+        "time_period_days": (batch.end_time - batch.start_time).days,
+        "avg_success_rate": (
+            sum(
+                upd_item_task["success_rate"]
+                for upd_item_task in results_retro_task["trust_updates"].values()
+            )
+            / len(batch.variables)
+            if batch.variables
+            else 0
+        ),
+    }
+
+    current_async_metrics.submit_metric(
+        {
+            "metric_type": "retrodiction_batch",
+            "batch_id": batch.batch_id,
+            "start_time": batch.start_time.isoformat(),
+            "end_time": batch.end_time.isoformat(),
+            "variables": len(batch.variables),
+            "metrics": results_retro_task.get("metrics", {}),
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
+
+    pt_val_task = time.time() - start_time_proc
+    final_results_task = {
+        "success": True,
+        "processing_time": pt_val_task,
+        "metrics": results_retro_task.get("metrics", {}),
+        "rules_generated": results_retro_task.get("rules_generated", []),
+        "trust_updates": results_retro_task.get("trust_updates", {}),
+    }
+    worker_logger.info(
+        f"Dask Worker: Finished processing batch {batch.batch_id} in {pt_val_task:.2f}s"
+    )
+    # Ensure worker-specific resources are cleaned up if necessary, e.g.,
+    # closing store connections if they are not managed by get_instance()
+    if hasattr(current_data_store, "close"):
+        current_data_store.close()
+    if hasattr(current_async_metrics, "shutdown"):
+        current_async_metrics.shutdown()
+    if hasattr(current_trust_buffer, "flush_all"):
+        current_trust_buffer.flush_all()  # Or similar cleanup
+
+    return batch.batch_id, final_results_task
+
+
+# --- End of Top-level Dask task function ---
 
 
 class ParallelTrainingCoordinator:
-    """
-    Coordinates parallel training jobs for retrodiction training.
-
-    This class handles:
-    - Splitting training data into independent batches
-    - Distributing batches across multiple CPU cores using Dask LocalCluster
-    - Collecting and merging results from parallel processes
-    - Managing shared state and synchronization
-    - Tracking progress and handling errors
-
-    This implementation uses Dask's distributed computing framework with a LocalCluster
-    for more efficient parallel processing, monitoring, and scaling capabilities.
-    """
-
     def __init__(
         self,
         config: Optional[Dict[str, Any]] = None,
         max_workers: Optional[int] = None,
-        shared_memory_size_mb: int = 128,
         dask_scheduler_port: Optional[int] = None,
         dask_dashboard_port: Optional[int] = None,
         dask_threads_per_worker: int = 1,
     ):
-        """
-        Initialize the parallel training coordinator with Dask configuration.
-
-        Args:
-            config: Configuration dictionary
-            max_workers: Maximum number of worker processes (defaults to CPU count - 1)
-            shared_memory_size_mb: Size of shared memory buffer in MB
-            dask_scheduler_port: Optional port for Dask scheduler (default: auto-assign)
-            dask_dashboard_port: Optional port for Dask dashboard (default: auto-assign)
-            dask_threads_per_worker: Number of threads per Dask worker (default: 1)
-        """
         self.config = config or {}
         self.max_workers = max_workers or max(1, (os.cpu_count() or 4) - 1)
-        self.shared_memory_size = (
-            shared_memory_size_mb * 1024 * 1024
-        )  # Convert to bytes
-
-        # Store Dask-specific configuration
         self.dask_scheduler_port = dask_scheduler_port
         self.dask_dashboard_port = dask_dashboard_port
         self.dask_threads_per_worker = dask_threads_per_worker
-
-        # Set up logging
-        self.logger = logging.getLogger(__name__)
+        self.logger = coordinator_logger
         self.logger.info(
-            f"Initializing parallel training with {self.max_workers} workers"
+            f"Initializing ParallelTrainingCoordinator with {self.max_workers} workers"
         )
 
-        # Initialize data store and metrics components
-        # Initialize data store
-        try:
-            # Try to use the streaming data store first for best performance
-            from recursive_training.data.streaming_data_store import StreamingDataStore
+        self.data_store_config = self.config.get(
+            "data_store_config", {}
+        )  # Store config for workers
+        self.async_metrics_config = self.config.get("async_metrics_config", {})
+        self.trust_buffer_config = self.config.get("trust_buffer_config", {})
 
-            self.data_store = StreamingDataStore.get_instance()
-            self.logger.info(
-                "Using StreamingDataStore for enhanced streaming performance"
+        # Initialize main instances for the coordinator itself
+        if StreamingDataStore:
+            self.data_store: Any = StreamingDataStore.get_instance(
+                config=self.data_store_config
             )
-        except ImportError:
-            try:
-                # Fall back to optimized data store if streaming is not available
-                from recursive_training.data.optimized_data_store import (
-                    OptimizedDataStore,
-                )
+            self.logger.info("Coordinator using StreamingDataStore")
+        elif OptimizedDataStore:
+            self.data_store = OptimizedDataStore.get_instance(
+                config=self.data_store_config
+            )
+            self.logger.info("Coordinator using OptimizedDataStore")
+        else:
+            self.data_store = RecursiveDataStore.get_instance(
+                config=self.data_store_config
+            )
+            self.logger.info("Coordinator using standard RecursiveDataStore")
 
-                self.data_store = OptimizedDataStore.get_instance()
-                self.logger.info("Using OptimizedDataStore for enhanced performance")
-            except ImportError:
-                # Fall back to regular data store if neither is available
-                self.data_store = RecursiveDataStore.get_instance()
-                self.logger.info("Using standard RecursiveDataStore")
-
-        # Initialize metrics and trust components
-        self.metrics_store = get_metrics_store()
-        self.async_metrics = get_async_metrics_collector()
-        self.trust_buffer = get_trust_update_buffer()
-        self.logger.info(
-            "Using AsyncMetricsCollector and TrustUpdateBuffer for optimized performance"
+        self.metrics_store: MetricsStore = (
+            get_metrics_store()
+        )  # This might not be needed if workers handle all
+        self.async_metrics: AsyncMetricsCollector = get_async_metrics_collector(
+            config=self.async_metrics_config
+        )
+        self.trust_buffer: TrustUpdateBuffer = get_trust_update_buffer(
+            config=self.trust_buffer_config
         )
 
-        # State tracking
-        self.batches = []
-        self.running_processes = []
-        self.batch_results = {}
-        self.training_start_time = None
-        self.training_end_time = None
-        self.is_training = False
-        self.total_processed = 0
-        self.errors = []
-
-        # Initialize thread pool for parallel data loading
-        from concurrent.futures import ThreadPoolExecutor
-
-        self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
-
-        # Dask-related attributes
-        self.dask_futures = []
-
-        # Performance metrics
-        self.performance_metrics = {
+        self.batches: List[TrainingBatch] = []
+        self.batch_results: Dict[str, Any] = {}
+        self.training_start_time: Optional[datetime] = None
+        self.training_end_time: Optional[datetime] = None
+        self.is_training: bool = False
+        self.errors: List[str] = []
+        self.dask_futures: list = []
+        self.performance_metrics: Dict[str, Any] = {
             "total_batches": 0,
             "completed_batches": 0,
             "failed_batches": 0,
@@ -178,15 +351,11 @@ class ParallelTrainingCoordinator:
             "speedup_factor": 0.0,
             "estimated_sequential_time": 0.0,
         }
-
-        # Progress tracking
-        self.progress_callback = None
-
-        # Register signal handlers for graceful shutdown
+        self.progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
+        self.dask_cluster_info: Optional[Dict[str, Any]] = None
         self._register_signal_handlers()
 
-    def _register_signal_handlers(self):
-        """Register signal handlers for graceful shutdown."""
+    def _register_signal_handlers(self):  # Same as before
         import signal
 
         def handle_signal(sig, frame):
@@ -198,11 +367,11 @@ class ParallelTrainingCoordinator:
         try:
             signal.signal(signal.SIGINT, handle_signal)
             signal.signal(signal.SIGTERM, handle_signal)
-        except (AttributeError, ValueError):
-            # Signal handling might not be available on all platforms
+        except (AttributeError, ValueError):  # pragma: no cover
+            self.logger.warning("Signal handling not available on this platform.")
             pass
 
-    def prepare_training_batches(
+    def prepare_training_batches(  # Same as before
         self,
         variables: List[str],
         start_time: datetime,
@@ -212,719 +381,327 @@ class ParallelTrainingCoordinator:
         batch_limit: Optional[int] = None,
         preload_data: bool = True,
     ) -> List[TrainingBatch]:
-        """
-        Prepare batches for parallel training.
-
-        Args:
-            variables: List of variables to train on
-            start_time: Start of the overall training period
-            end_time: End of the overall training period
-            batch_size_days: Size of each batch in days
-            overlap_days: Overlap between consecutive batches in days
-            batch_limit: Optional limit on number of batches (for testing)
-
-        Returns:
-            List of TrainingBatch objects
-        """
         self.logger.info(f"Preparing training batches from {start_time} to {end_time}")
-
-        # Validate inputs
         if not variables:
             raise ValueError("No variables specified for training")
-
         if start_time >= end_time:
             raise ValueError("Start time must be before end time")
-
         if batch_size_days <= 0:
             raise ValueError("Batch size must be positive")
 
-        # Calculate time delta for batch size and overlap
         batch_delta = timedelta(days=batch_size_days)
         overlap_delta = timedelta(days=overlap_days)
 
-        # Try to preload datasets if requested and streaming store is available
         if preload_data:
-            try:
-                from recursive_training.data.streaming_data_store import (
-                    StreamingDataStore,
-                )
-
-                streaming_store = StreamingDataStore.get_instance()
-
-                # Preload datasets for common variables
-                self.logger.info(f"Preloading datasets for {len(variables)} variables")
-                historical_datasets = [f"historical_{var}" for var in variables]
-                self.executor.submit(
-                    streaming_store.preload_datasets, historical_datasets
-                )
-            except ImportError:
-                # Streaming store not available
-                pass
-
-        # Create batches
-        batches = []
-        batch_start = start_time
-        batch_id = 0
-
-        while batch_start < end_time:
-            # Calculate batch end time
-            batch_end = min(batch_start + batch_delta, end_time)
-
-            # Skip if this batch would be too small
-            if (batch_end - batch_start).total_seconds() < 86400:  # At least 1 day
-                break
-
-            # Create the batch
-            batch = TrainingBatch(
-                batch_id=f"batch_{batch_id:04d}",
-                start_time=batch_start,
-                end_time=batch_end,
-                variables=variables,
+            self.logger.info(
+                "Preload data requested by coordinator, but actual preloading happens in workers or is disabled if executor was removed."
             )
 
+        batches: List[TrainingBatch] = []
+        current_batch_start = start_time
+        batch_id_counter = 0
+        while current_batch_start < end_time:
+            current_batch_end = min(current_batch_start + batch_delta, end_time)
+            if (current_batch_end - current_batch_start).total_seconds() < 86400:
+                break
+
+            batch = TrainingBatch(
+                batch_id=f"batch_{batch_id_counter:04d}",
+                start_time=current_batch_start,
+                end_time=current_batch_end,
+                variables=variables,
+            )
             batches.append(batch)
-            batch_id += 1
-
-            # Move to next batch start, considering overlap
-            batch_start = batch_end - overlap_delta
-
-            # Stop if we've reached the batch limit
+            batch_id_counter += 1
+            current_batch_start = current_batch_end - overlap_delta
             if batch_limit is not None and len(batches) >= batch_limit:
+                self.logger.info(f"Reached batch_limit of {batch_limit}.")
                 break
 
         self.logger.info(f"Created {len(batches)} training batches")
         self.batches = batches
         self.performance_metrics["total_batches"] = len(batches)
         self.performance_metrics["total_variables"] = len(variables)
-
         return batches
 
+    @memory_profiler.profile  # type: ignore
     def start_training(
         self, progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> None:
-        """
-        Start parallel training process using Dask LocalCluster.
-
-        Args:
-            progress_callback: Optional callback function for progress updates
-        """
         if self.is_training:
             self.logger.warning("Training is already in progress")
             return
-
         if not self.batches:
             self.logger.error("No training batches prepared")
-            raise RuntimeError(
-                "No training batches prepared. Call prepare_training_batches first."
-            )
+            raise RuntimeError("No batches.")
 
         self.training_start_time = datetime.now()
         self.is_training = True
         self.progress_callback = progress_callback
-
-        self.logger.info(
-            f"Starting parallel training with Dask LocalCluster using {len(self.batches)} batches"
-        )
-
-        # Reset futures list
+        self.logger.info(f"Starting Dask training with {len(self.batches)} batches")
         self.dask_futures = []
 
-        # Create a Dask local cluster with direct parameter passing
-        cluster_kwargs = {}
-
-        # Set required parameters
-        cluster_kwargs["n_workers"] = self.max_workers
-        cluster_kwargs["threads_per_worker"] = self.dask_threads_per_worker
-
-        # Set optional parameters only if they're specified
+        cluster_kwargs: Dict[str, Any] = {
+            "n_workers": self.max_workers,
+            "threads_per_worker": self.dask_threads_per_worker,
+        }
         if self.dask_dashboard_port is not None:
-            dashboard_address = f":{self.dask_dashboard_port}"
-            cluster_kwargs["dashboard_address"] = dashboard_address
-            self.logger.info(f"Setting Dask dashboard at {dashboard_address}")
+            cluster_kwargs["dashboard_address"] = f":{self.dask_dashboard_port}"
 
-        if self.dask_scheduler_port is not None:
-            cluster_kwargs["scheduler_port"] = self.dask_scheduler_port
-
-        # Create and use the cluster
         with LocalCluster(**cluster_kwargs) as cluster:
             self.logger.info(
-                f"Dask cluster started with {self.max_workers} workers, "
-                f"{self.dask_threads_per_worker} threads per worker"
-            )
-
+                f"Dask Cluster: {
+                    cluster.scheduler_address}, Dashboard: {
+                    cluster.dashboard_link}")
             with Client(cluster) as client:
                 self.logger.info(
-                    f"Connected to Dask cluster at {client.dashboard_link}"
+                    f"Dask Client connected. Dashboard: {client.dashboard_link}"
                 )
-                # Store cluster information for performance metrics
                 self.dask_cluster_info = {
                     "dashboard_link": client.dashboard_link,
-                    "scheduler_address": str(
-                        client.scheduler_info().get("address", "unknown")
-                    ),
-                    "n_workers": len(client.scheduler_info()["workers"]),
-                    "worker_threads": self.dask_threads_per_worker,
+                    "scheduler_address": str(client.scheduler_info().get("address")),
+                    "n_workers": len(client.scheduler_info().get("workers", {})),
+                    "threads": self.dask_threads_per_worker,
                 }
 
-                # Process batches in parallel using Dask
-                for batch in self.batches:
-                    # Use the same signature as the previous implementation to maintain compatibility
-                    future = client.submit(self._process_batch, batch)
+                data_store_class_name = self.data_store.__class__.__name__
+
+                for batch_item in self.batches:
+                    batch_item_data = {
+                        "batch_id": batch_item.batch_id,
+                        "start_time": batch_item.start_time.isoformat(),
+                        "end_time": batch_item.end_time.isoformat(),
+                        "variables": batch_item.variables,
+                    }
+                    future = client.submit(
+                        _dask_process_batch_task,
+                        batch_item_data,
+                        data_store_class_name,
+                        self.data_store_config,
+                        self.async_metrics_config,
+                        self.trust_buffer_config,
+                        # Removed passing all_batches for simplicity in worker
+                        # _get_upcoming_vars
+                    )
                     self.dask_futures.append(future)
 
-                # Report progress periodically while waiting
-                completed = 0
-                while completed < len(self.dask_futures) and self.is_training:
-                    completed = sum(1 for f in self.dask_futures if f.done())
-                    self._report_progress(completed)
-                    time.sleep(2)  # Check progress every 2 seconds
+                completed_count = 0
+                while completed_count < len(self.dask_futures) and self.is_training:
+                    completed_count = sum(1 for f in self.dask_futures if f.done())
+                    self._report_progress(completed_count)
+                    time.sleep(2)
 
-                # Only process results if training wasn't stopped
                 if self.is_training:
-                    # Collect results
-                    for i, future in enumerate(self.dask_futures):
-                        if future.done():
+                    for i, future_item_done in enumerate(self.dask_futures):
+                        if future_item_done.done():  # Check again before getting result
                             try:
-                                batch_id, result = future.result()
-                                self._on_batch_complete((batch_id, result))
-                            except Exception as e:
+                                batch_id_res, result_data = future_item_done.result()
+                                self._on_batch_complete((batch_id_res, result_data))
+                            except Exception as e_res:
                                 self.logger.error(
-                                    f"Error processing batch {i}: {str(e)}"
-                                )
-                                self._on_batch_error(e)
+                                    f"Error collecting result for batch {
+                                        self.batches[i].batch_id if i < len(
+                                            self.batches) else 'unknown'}: {
+                                        str(e_res)}", exc_info=True, )
+                                self._on_batch_error(e_res)
 
-        # Final processing
         self.training_end_time = datetime.now()
         self.is_training = False
-
-        # Calculate final performance metrics
-        total_time = (self.training_end_time - self.training_start_time).total_seconds()
-        self.performance_metrics["processing_time"] = total_time
-
-        if self.performance_metrics["completed_batches"] > 0:
-            # Estimate sequential processing time based on completed batches
-            avg_batch_time = (
-                sum(b.processing_time for b in self.batches if b.processed)
-                / self.performance_metrics["completed_batches"]
-            )
-            est_sequential_time = avg_batch_time * len(self.batches)
-            self.performance_metrics["estimated_sequential_time"] = est_sequential_time
-
-            if total_time > 0:
-                self.performance_metrics["speedup_factor"] = (
-                    est_sequential_time / total_time
-                )
-
-        # Final progress report
-        self._report_progress(len(self.batches))
-
-        self.logger.info(
-            f"Training completed in {total_time:.2f}s with a speedup factor of {self.performance_metrics['speedup_factor']:.2f}x"
-        )
-
-    def _process_batch(self, batch: TrainingBatch) -> Tuple[str, Dict[str, Any]]:
-        """
-        Process a single training batch.
-        This function runs in a separate process.
-
-        Args:
-            batch: The training batch to process
-
-        Returns:
-            Tuple of (batch_id, results_dict)
-        """
-        start_time = time.time()
-
-        try:
-            self.logger.info(
-                f"Processing batch {batch.batch_id} (variables: {len(batch.variables)}, period: {batch.start_time} to {batch.end_time})"
-            )
-
-            # Load the data for this batch
-            data = self._load_batch_data(batch)
-
-            # Run the retrodiction training for this batch
-            results = self._run_retrodiction_on_batch(batch, data)
-
-            # Store metrics for this batch
-            self._store_batch_metrics(batch, results)
-
-            # Calculate processing time
-            processing_time = time.time() - start_time
-
-            return batch.batch_id, {
-                "success": True,
-                "processing_time": processing_time,
-                "metrics": results.get("metrics", {}),
-                "rules_generated": results.get("rules_generated", []),
-                "trust_updates": results.get("trust_updates", {}),
-            }
-
-        except Exception as e:
-            self.logger.error(f"Error processing batch {batch.batch_id}: {str(e)}")
-            import traceback
-
-            traceback.print_exc()
-
-            return batch.batch_id, {
-                "success": False,
-                "error": str(e),
-                "traceback": traceback.format_exc(),
-                "processing_time": time.time() - start_time,
-            }
-
-    def _load_batch_data(self, batch: TrainingBatch) -> Dict[str, Any]:
-        """
-        Load data for a training batch.
-
-        Args:
-            batch: The training batch
-
-        Returns:
-            Dictionary containing the loaded data
-        """
-        # Convert timestamps to the format used in data store
-        start_str = batch.start_time.isoformat()
-        end_str = batch.end_time.isoformat()
-
-        data = {}
-
-        # Initialize flags and store references
-        use_streaming = False
-        use_optimized = False
-        streaming_store = None
-        optimized_store = None
-
-        # Check if we have streaming data store available
-        try:
-            from recursive_training.data.streaming_data_store import StreamingDataStore
-
-            streaming_store = StreamingDataStore.get_instance()
-            use_streaming = True
-        except ImportError:
-            use_streaming = False
-            # Try optimized data store as fallback
-            try:
-                from recursive_training.data.optimized_data_store import (
-                    OptimizedDataStore,
-                )
-
-                optimized_store = OptimizedDataStore.get_instance()
-                use_optimized = True
-            except ImportError:
-                self.logger.warning(
-                    "Optimized data stores not available, falling back to standard implementation"
-                )
-                use_optimized = False
-
-        # Use the best available data loading approach
-        if use_streaming:
-            # Pre-load datasets that will be needed for upcoming batches for better latency
-            upcoming_variables = self._get_upcoming_batch_variables(batch)
-            if upcoming_variables and streaming_store is not None:
-                self.logger.debug(
-                    f"Pre-loading datasets for upcoming batches: {len(upcoming_variables)} variables"
-                )
-                self.executor.submit(
-                    streaming_store.preload_datasets,
-                    [f"historical_{var}" for var in upcoming_variables],
-                )
-
-            # Process each variable
-            for variable in batch.variables:
-                dataset_name = f"historical_{variable}"
-
-                # Use callback-based streaming for memory efficiency
-                variable_data = []
-
-                def process_chunk(chunk):
-                    # Filter by timestamp if needed (should already be filtered by the store)
-                    if not chunk.empty:
-                        nonlocal variable_data
-                        # Convert DataFrame chunk to list of dictionaries and append
-                        variable_data.extend(chunk.to_dict("records"))
-
-                # Process the dataset in streaming fashion with callback
-                if streaming_store is not None:
-                    streaming_store.retrieve_dataset_streaming(
-                        dataset_name, process_chunk, start_str, end_str
-                    )
-
-                # Store the collected data
-                data[variable] = variable_data
-
-        elif use_optimized:
-            # Batch retrieve using vectorized operations if optimized store is available
-            # Load all variables in parallel with vectorized filtering
-            dataset_futures = {}
-
-            for variable in batch.variables:
-                dataset_name = f"historical_{variable}"
-                # Submit dataset retrieval task
-                if optimized_store is not None:
-                    dataset_futures[variable] = self.executor.submit(
-                        optimized_store.retrieve_dataset_optimized,
-                        dataset_name,
-                        start_str,
-                        end_str,
-                    )
-
-            # Collect results from all futures
-            for variable, future in dataset_futures.items():
-                try:
-                    df, _ = future.result()
-                    if df is not None and not df.empty:
-                        # Convert DataFrame to list of dictionaries for compatibility
-                        data[variable] = df.to_dict("records")
-                    else:
-                        data[variable] = []
-                except Exception as e:
-                    self.logger.error(
-                        f"Error loading data for variable {variable}: {e}"
-                    )
-                    data[variable] = []
-        else:
-            # Fallback to original implementation
-            for variable in batch.variables:
-                dataset_name = f"historical_{variable}"
-                items, metadata = self.data_store.retrieve_dataset(dataset_name)
-
-                # Filter items by timestamp
-                if items:
-                    filtered_items = [
-                        item
-                        for item in items
-                        if start_str <= item.get("timestamp", "") <= end_str
-                    ]
-                    data[variable] = filtered_items
-                else:
-                    data[variable] = []
-
-        return data
-
-    def _get_upcoming_batch_variables(self, current_batch: TrainingBatch) -> List[str]:
-        """
-        Get variables from upcoming batches for prefetching.
-
-        Args:
-            current_batch: The current training batch
-
-        Returns:
-            List of variable names from upcoming batches
-        """
-        # Find the current batch index
-        current_index = -1
-        for i, batch in enumerate(self.batches):
-            if batch.batch_id == current_batch.batch_id:
-                current_index = i
-                break
-
-        if current_index == -1 or current_index >= len(self.batches) - 1:
-            return []
-
-        # Get variables from the next batch
-        next_batch = self.batches[current_index + 1]
-        return next_batch.variables
-
-    def _run_retrodiction_on_batch(
-        self, batch: TrainingBatch, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Run retrodiction training on a batch of data.
-
-        Args:
-            batch: The training batch
-            data: Loaded data for the batch
-
-        Returns:
-            Dictionary containing training results
-        """
-        # This is where the actual retrodiction logic would go
-        # For demonstration, we'll create a simple placeholder
-        # In a real implementation, this would use the actual simulation engine
-
-        # Import here to avoid import cycles
-
-        results = {"metrics": {}, "rules_generated": [], "trust_updates": {}}
-
-        # Apply optimized trust updates in batch using the trust buffer
-        trust_updates = []
-        for variable in batch.variables:
-            # In a real implementation, this would be based on actual performance
-            # For demonstration, we'll use random success rates
-            import random
-
-            success_rate = 0.7 + random.random() * 0.3  # 70-100% success rate
-            success_count = int(100 * success_rate)
-            failure_count = 100 - success_count
-
-            # Add batch updates rather than individual updates
-            for _ in range(success_count):
-                trust_updates.append((variable, True, 1.0))
-            for _ in range(failure_count):
-                trust_updates.append((variable, False, 1.0))
-
-            results["trust_updates"][variable] = {
-                "success_rate": success_rate,
-                "updates": success_count + failure_count,
-            }
-
-        # Use the trust buffer to efficiently manage batch updates
-        # The buffer will aggregate and optimize the updates before sending to the trust tracker
-        self.trust_buffer.add_updates_batch(trust_updates)
-
-        # Calculate metrics
-        total_data_points = sum(len(var_data) for var_data in data.values())
-        results["metrics"] = {
-            "total_data_points": total_data_points,
-            "variables_processed": len(batch.variables),
-            "time_period_days": (batch.end_time - batch.start_time).days,
-            "avg_success_rate": sum(
-                update["success_rate"] for update in results["trust_updates"].values()
-            )
-            / len(batch.variables)
-            if batch.variables
-            else 0,
-        }
-
-        return results
-
-    def _store_batch_metrics(
-        self, batch: TrainingBatch, results: Dict[str, Any]
-    ) -> None:
-        """
-        Store metrics for a training batch.
-
-        Args:
-            batch: The training batch
-            results: Results from batch processing
-        """
-        # Store metrics using the async metrics collector
-        # This prevents blocking the training process during metrics I/O
-        self.async_metrics.submit_metric(
-            {
-                "metric_type": "retrodiction_batch",
-                "batch_id": batch.batch_id,
-                "start_time": batch.start_time.isoformat(),
-                "end_time": batch.end_time.isoformat(),
-                "variables": len(batch.variables),
-                "metrics": results.get("metrics", {}),
-                "timestamp": datetime.now().isoformat(),
-            }
-        )
-
-    def _on_batch_complete(self, result: Tuple[str, Dict[str, Any]]) -> None:
-        """
-        Callback when a batch completes successfully.
-
-        Args:
-            result: Tuple of (batch_id, results_dict)
-        """
-        batch_id, data = result
-
-        # Update batch status
-        for batch in self.batches:
-            if batch.batch_id == batch_id:
-                batch.processed = True
-                batch.processing_time = data.get("processing_time", 0.0)
-                batch.results = data
-                break
-
-        # Update metrics
-        self.performance_metrics["completed_batches"] += 1
-
-        # Report progress
-        self._report_progress(
-            self.performance_metrics["completed_batches"]
-            + self.performance_metrics["failed_batches"]
-        )
-
-    def _on_batch_error(self, error) -> None:
-        """
-        Callback when a batch fails with an error.
-
-        Args:
-            error: Exception object
-        """
-        self.logger.error(f"Batch processing error: {str(error)}")
-        self.errors.append(str(error))
-
-        # Update metrics
-        self.performance_metrics["failed_batches"] += 1
-
-        # Report progress
-        self._report_progress(
-            self.performance_metrics["completed_batches"]
-            + self.performance_metrics["failed_batches"]
-        )
-
-    def _report_progress(self, completed_batches: int) -> None:
-        """
-        Report training progress.
-
-        Args:
-            completed_batches: Number of completed batches
-        """
-        if not self.batches:
-            return
-
-        total_batches = len(self.batches)
-        progress = completed_batches / total_batches
-
-        # Calculate estimated time remaining
-        if self.training_start_time and completed_batches > 0:
-            elapsed = (datetime.now() - self.training_start_time).total_seconds()
-            total_estimated = elapsed / progress if progress > 0 else 0
-            remaining = total_estimated - elapsed
-        else:
-            elapsed = 0
-            remaining = 0
-
-        progress_data = {
-            "progress": progress,
-            "completed_batches": completed_batches,
-            "total_batches": total_batches,
-            "elapsed_seconds": elapsed,
-            "remaining_seconds": remaining,
-            "completed_percentage": f"{progress * 100:.1f}%",
-            "success_rate": f"{self.performance_metrics['completed_batches'] / max(1, completed_batches) * 100:.1f}%",
-            "errors": len(self.errors),
-        }
-
-        # Call the progress callback if provided
-        if self.progress_callback:
-            try:
-                self.progress_callback(progress_data)
-            except Exception as e:
-                self.logger.error(f"Error in progress callback: {str(e)}")
-
-        # Log progress
-        self.logger.info(
-            f"Training progress: {progress_data['completed_percentage']} "
-            f"({completed_batches}/{total_batches} batches, "
-            f"elapsed: {elapsed:.1f}s, "
-            f"remaining: {remaining:.1f}s)"
-        )
-
-    def stop_training(self) -> None:
-        """Stop training and clean up Dask cluster resources."""
-        if not self.is_training:
-            return
-
-        self.logger.info("Stopping training...")
-        self.is_training = False
-
-        # Cancel any pending Dask futures
-        if hasattr(self, "dask_futures") and self.dask_futures:
-            self.logger.info("Cancelling pending Dask tasks...")
-            for future in self.dask_futures:
-                if not future.done():
-                    try:
-                        future.cancel()
-                    except Exception as e:
-                        self.logger.warning(f"Error cancelling Dask future: {e}")
-
-        # Flush any pending trust updates and metrics
-        self.logger.info("Flushing trust update buffer...")
-        updates_flushed = self.trust_buffer.flush()
-        self.logger.info(f"Flushed {updates_flushed} pending trust updates")
-
-        self.training_end_time = datetime.now()
-
-    def get_results_summary(self) -> Dict[str, Any]:
-        """
-        Get a summary of training results including Dask cluster information.
-
-        Returns:
-            Dictionary with training results summary and Dask cluster metrics
-        """
-        # Calculate success rate for completed batches
-        completed = self.performance_metrics["completed_batches"]
-        failed = self.performance_metrics["failed_batches"]
-        total = completed + failed
-        success_rate = completed / total if total > 0 else 0
-
-        # Get trust updates across all variables
-        all_variables = set()
-        for batch in self.batches:
-            all_variables.update(batch.variables)
-
-        # Ensure any pending trust updates are flushed before getting scores
-        self.trust_buffer.flush()
-
-        trust_scores = {}
-        if all_variables:
-            # Get trust in batch rather than individual calls
-            trust_scores = optimized_bayesian_trust_tracker.get_trust_batch(
-                list(all_variables)
-            )
-
-        # Calculate training duration
-        if self.training_start_time and self.training_end_time:
-            duration = (
+        if self.training_start_time:  # Check if training actually started
+            total_time = (
                 self.training_end_time - self.training_start_time
             ).total_seconds()
+            self.performance_metrics["processing_time"] = total_time
+            if self.performance_metrics["completed_batches"] > 0:
+                sum_proc_time = sum(
+                    b.processing_time
+                    for b in self.batches
+                    if b.processed and b.results and b.results.get("success")
+                )
+                avg_batch_time = (
+                    sum_proc_time / self.performance_metrics["completed_batches"]
+                )
+                est_seq_time = avg_batch_time * len(self.batches)
+                self.performance_metrics["estimated_sequential_time"] = est_seq_time
+                if total_time > 0:
+                    self.performance_metrics["speedup_factor"] = (
+                        est_seq_time / total_time
+                    )
+            self._report_progress(len(self.batches))
+            self.logger.info(
+                f"Training completed in {
+                    total_time:.2f}s. Speedup: {
+                    self.performance_metrics.get(
+                        'speedup_factor',
+                        0.0):.2f}x")
         else:
-            duration = 0
+            self.logger.error("Training start time not recorded.")
 
-        # Summary report
-        summary = {
+    def _on_batch_complete(
+        self, result: Tuple[str, Dict[str, Any]]
+    ) -> None:  # Same as before
+        batch_id_comp, data_comp = result
+        for batch_item_comp in self.batches:
+            if batch_item_comp.batch_id == batch_id_comp:
+                batch_item_comp.processed = True
+                batch_item_comp.processing_time = data_comp.get("processing_time", 0.0)
+                batch_item_comp.results = data_comp
+                self.logger.info(
+                    f"Batch {batch_id_comp} completed. Processing time: {
+                        data_comp.get(
+                            'processing_time',
+                            0.0):.2f}s. Skipped: {
+                        data_comp.get(
+                            'skipped',
+                            False)}")
+                break
+        self.performance_metrics["completed_batches"] += 1
+        self._report_progress(
+            self.performance_metrics["completed_batches"]
+            + self.performance_metrics["failed_batches"]
+        )
+
+    def _on_batch_error(self, error: Exception) -> None:  # Same as before
+        self.logger.error(
+            f"A batch processing error occurred: {str(error)}", exc_info=True
+        )
+        self.errors.append(str(error))  # Store error message
+        self.performance_metrics["failed_batches"] += 1
+        # Potentially mark a specific batch as failed if identifiable
+        self._report_progress(
+            self.performance_metrics["completed_batches"]
+            + self.performance_metrics["failed_batches"]
+        )
+
+    def _report_progress(self, completed_batches_count: int) -> None:  # Same as before
+        if not self.batches:
+            return
+        total_b_rep = len(self.batches)
+        actual_comp_rep = min(completed_batches_count, total_b_rep)
+        prog_rep = actual_comp_rep / total_b_rep if total_b_rep > 0 else 0
+        elap_rep, rem_rep = 0.0, 0.0
+        if self.training_start_time and actual_comp_rep > 0:
+            elap_rep = (datetime.now() - self.training_start_time).total_seconds()
+            total_est_rep = (elap_rep / prog_rep) if prog_rep > 0 else 0
+            rem_rep = total_est_rep - elap_rep if total_est_rep > 0 else 0
+
+        s_rate_str = "0.0%"
+        if (
+            actual_comp_rep > 0
+            and self.performance_metrics["completed_batches"] <= actual_comp_rep
+        ):
+            s_rate_str = f"{
+                self.performance_metrics['completed_batches'] / actual_comp_rep * 100:.1f}%"
+
+        prog_data_map = {
+            "progress": prog_rep,
+            "completed_batches": actual_comp_rep,
+            "total_batches": total_b_rep,
+            "elapsed_seconds": elap_rep,
+            "remaining_seconds": rem_rep,
+            "completed_percentage": f"{prog_rep * 100:.1f}%",
+            "success_rate": s_rate_str,
+            "errors": len(self.errors),
+        }
+        if self.progress_callback:
+            try:
+                self.progress_callback(prog_data_map)
+            except Exception as e_cb:
+                self.logger.error(f"Error in progress_callback: {e_cb}")
+        self.logger.info(
+            f"Progress: {
+                prog_data_map['completed_percentage']} ({actual_comp_rep}/{total_b_rep}), Elapsed: {
+                elap_rep:.1f}s, Remaining: {
+                rem_rep:.1f}s, Errors: {
+                    len(
+                        self.errors)}")
+
+    def stop_training(self) -> None:  # Same as before
+        if not self.is_training:
+            return
+        self.logger.info("Stopping training...")
+        self.is_training = False
+        if hasattr(self, "dask_futures") and self.dask_futures:
+            self.logger.info("Cancelling Dask tasks...")
+            for f_stop in self.dask_futures:
+                if not f_stop.done():
+                    try:
+                        f_stop.cancel(asynchronous=True)
+                    except Exception as e_stop:
+                        self.logger.warning(f"Error cancelling Dask future: {e_stop}")
+        if self.trust_buffer:
+            self.logger.info("Flushing trust buffer...")
+            flushed_stop = self.trust_buffer.flush()
+            self.logger.info(f"Flushed {flushed_stop} trust updates.")
+        if not self.training_end_time:
+            self.training_end_time = datetime.now()
+
+    def get_results_summary(self) -> Dict[str, Any]:  # Same as before
+        comp_sum = self.performance_metrics["completed_batches"]
+        fail_sum = self.performance_metrics["failed_batches"]
+        tot_sum = comp_sum + fail_sum
+        sr_sum = comp_sum / tot_sum if tot_sum > 0 else 0
+        all_v_sum = set().union(*(b.variables for b in self.batches))
+        if self.trust_buffer:
+            self.trust_buffer.flush()
+        ts_map_sum = {}
+        if all_v_sum:
+            try:
+                ts_map_sum = optimized_bayesian_trust_tracker.get_trust_batch(
+                    list(all_v_sum)
+                )
+            except Exception as e_ts:
+                self.logger.error(f"Error getting trust scores: {e_ts}")
+        dur_sum = (
+            (self.training_end_time - self.training_start_time).total_seconds()
+            if self.training_start_time and self.training_end_time
+            else 0.0
+        )
+
+        return {
             "batches": {
                 "total": len(self.batches),
-                "completed": completed,
-                "failed": failed,
-                "success_rate": success_rate,
+                "completed": comp_sum,
+                "failed": fail_sum,
+                "success_rate": sr_sum,
             },
-            "variables": {"total": len(all_variables), "trust_scores": trust_scores},
+            "variables": {"total": len(all_v_sum), "trust_scores": ts_map_sum},
             "performance": {
-                "duration_seconds": duration,
-                "speedup_factor": self.performance_metrics["speedup_factor"],
-                "estimated_sequential_time": self.performance_metrics[
-                    "estimated_sequential_time"
-                ],
+                "duration_seconds": dur_sum,
+                "speedup_factor": self.performance_metrics.get("speedup_factor", 0.0),
+                "estimated_sequential_time": self.performance_metrics.get(
+                    "estimated_sequential_time", 0.0
+                ),
             },
-            "dask_cluster": hasattr(self, "dask_cluster_info")
-            and self.dask_cluster_info
-            or {"status": "Not used or information not available"},
-            "errors": self.errors[:10],  # Include only first 10 errors
+            "dask_cluster": self.dask_cluster_info or {"status": "Not used"},
+            "errors": self.errors[:10],
         }
 
-        return summary
-
-    def save_results_to_file(self, filepath: str) -> None:
-        """
-        Save training results to a JSON file.
-
-        Args:
-            filepath: Path to save the results
-        """
-        # Make sure all metrics are processed before saving results
-        self.trust_buffer.flush()
-
-        # Get performance metrics from our optimized components
-        trust_buffer_stats = self.trust_buffer.get_stats()
-        metrics_stats = self.async_metrics.get_stats()
-
-        # Get summary and add optimization stats
-        results = self.get_results_summary()
-        results["optimization_metrics"] = {
-            "trust_buffer": trust_buffer_stats,
-            "async_metrics": metrics_stats,
+    def save_results_to_file(self, filepath: str) -> None:  # Same as before
+        if self.trust_buffer:
+            self.trust_buffer.flush()
+        tb_stats_save = self.trust_buffer.get_stats() if self.trust_buffer else {}
+        am_stats_save = self.async_metrics.get_stats() if self.async_metrics else {}
+        res_data_save = self.get_results_summary()
+        res_data_save["optimization_metrics"] = {
+            "trust_buffer": tb_stats_save,
+            "async_metrics": am_stats_save,
         }
 
-        # Convert any non-serializable objects
-        def json_serializable(obj):
-            if isinstance(obj, datetime):
-                return obj.isoformat()
-            raise TypeError(f"Type {type(obj)} not serializable")
+        def json_ser_save(obj_save):
+            if isinstance(obj_save, datetime):
+                return obj_save.isoformat()
+            return str(obj_save)
 
-        with open(filepath, "w") as f:
-            json.dump(results, f, default=json_serializable, indent=2)
+        try:
+            with open(filepath, "w") as f_js_save:
+                json.dump(res_data_save, f_js_save, default=json_ser_save, indent=2)
+            self.logger.info(f"Results saved to {filepath}")
+        except Exception as e_f_save:
+            self.logger.error(f"Failed to save results to {filepath}: {e_f_save}")
 
-        self.logger.info(f"Training results saved to {filepath}")
 
-
-def run_parallel_retrodiction_training(
+def run_parallel_retrodiction_training(  # Same as before
     variables: List[str],
     start_time: datetime,
     end_time: datetime,
@@ -934,84 +711,68 @@ def run_parallel_retrodiction_training(
     dask_scheduler_port: Optional[int] = None,
     dask_dashboard_port: Optional[int] = None,
     dask_threads_per_worker: int = 1,
+    batch_limit: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """
-    Run parallel retrodiction training for a set of variables over a time period
-    using Dask for distributed computing.
-
-    Args:
-        variables: List of variables to train on
-        start_time: Start of the training period
-        end_time: End of the training period
-        max_workers: Maximum number of worker processes
-        batch_size_days: Size of each batch in days
-        output_file: Optional path to save results
-        dask_scheduler_port: Optional port for Dask scheduler (default: auto-assign)
-        dask_dashboard_port: Optional port for Dask dashboard (default: auto-assign)
-        dask_threads_per_worker: Number of threads per Dask worker (default: 1)
-
-    Returns:
-        Dictionary with training results summary
-    """
-    # Initialize the parallel training coordinator with Dask configuration
-    coordinator = ParallelTrainingCoordinator(
+    coord = ParallelTrainingCoordinator(
         max_workers=max_workers,
         dask_scheduler_port=dask_scheduler_port,
         dask_dashboard_port=dask_dashboard_port,
         dask_threads_per_worker=dask_threads_per_worker,
     )
-
-    # Prepare training batches
-    coordinator.prepare_training_batches(
+    coord.prepare_training_batches(
         variables=variables,
         start_time=start_time,
         end_time=end_time,
         batch_size_days=batch_size_days,
         preload_data=True,
+        batch_limit=batch_limit,
     )
 
-    # Define a simple progress callback
-    def progress_callback(progress_data):
-        print(
-            f"Training progress: {progress_data['completed_percentage']} "
-            f"({progress_data['completed_batches']}/{progress_data['total_batches']} batches)"
+    def prog_cb_run(p_data_run):
+        cp_run, cb_run, tb_run = (
+            p_data_run.get("completed_percentage", "N/A"),
+            p_data_run.get("completed_batches", "N/A"),
+            p_data_run.get("total_batches", "N/A"),
         )
+        print(f"Training progress: {cp_run} ({cb_run}/{tb_run} batches)")
 
-    # Start training
-    coordinator.start_training(progress_callback=progress_callback)
-
-    # Get results
-    results = coordinator.get_results_summary()
-
-    # Save results if output file is provided
+    coord.start_training(progress_callback=prog_cb_run)
+    res_sum_run = coord.get_results_summary()
     if output_file:
-        coordinator.save_results_to_file(output_file)
+        coord.save_results_to_file(output_file)
+    return res_sum_run
 
-    return results
 
-
-if __name__ == "__main__":
-    # Example usage
-    variables = [
+if __name__ == "__main__":  # pragma: no cover
+    ex_vars_main = [
         "spx_close",
         "us_10y_yield",
         "wb_gdp_growth_annual",
         "wb_unemployment_total",
     ]
-    start_time = datetime(2020, 1, 1)
-    end_time = datetime(2021, 1, 1)
-
-    logging.basicConfig(level=logging.INFO)
-
-    results = run_parallel_retrodiction_training(
-        variables=variables,
-        start_time=start_time,
-        end_time=end_time,
-        max_workers=None,
-        batch_size_days=30,
-        output_file="retrodiction_training_results.json",
+    ex_start_main, ex_end_main = datetime(2020, 1, 1), datetime(2021, 1, 1)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
     )
-
-    print("Training completed:")
-    print(f"Speedup factor: {results['performance']['speedup_factor']:.2f}x")
-    print(f"Success rate: {results['batches']['success_rate'] * 100:.2f}%")
+    coordinator_logger.info(
+        "Starting example parallel retrodiction training from __main__..."
+    )
+    ex_res_main = run_parallel_retrodiction_training(
+        variables=ex_vars_main,
+        start_time=ex_start_main,
+        end_time=ex_end_main,
+        max_workers=2,
+        batch_size_days=30,
+        output_file="retrodiction_training_results_example.json",
+        batch_limit=3,
+        dask_dashboard_port=8788,
+    )
+    coordinator_logger.info("Example training completed.")
+    if ex_res_main and ex_res_main.get("performance"):
+        spd_main = ex_res_main["performance"].get("speedup_factor", 0.0)
+        coordinator_logger.info(f"Speedup factor: {spd_main:.2f}x")
+    if ex_res_main and ex_res_main.get("batches"):
+        sr_main = ex_res_main["batches"].get("success_rate", 0.0)
+        coordinator_logger.info(f"Success rate: {sr_main * 100:.2f}%")

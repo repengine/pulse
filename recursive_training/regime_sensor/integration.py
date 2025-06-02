@@ -106,7 +106,8 @@ class RetrodictionSystemIntegrator:
         """
         logger.info(f"Processing retrodiction snapshot: {snapshot}")
 
-        # If this snapshot was triggered by a regime change, create counterfactual scenarios
+        # If this snapshot was triggered by a regime change, create counterfactual
+        # scenarios
         if snapshot.cause == TriggerCause.REGIME_CHANGE and snapshot.regime_change:
             regime_change = snapshot.regime_change
 
@@ -207,9 +208,7 @@ class RetrodictionSystemIntegrator:
         moderate_scenario = self.counterfactual_simulator.create_scenario(
             name="Moderate Inflation",
             description="Scenario with inflation rising to 4%",
-            interventions={
-                "inflation": 0.04  # 4%
-            },
+            interventions={"inflation": 0.04},  # 4%
             evidence=evidence,
             target_variables=["interest_rate", "gdp_growth", "unemployment"],
             metadata={
@@ -223,9 +222,7 @@ class RetrodictionSystemIntegrator:
         high_scenario = self.counterfactual_simulator.create_scenario(
             name="High Inflation",
             description="Scenario with inflation rising to 7%",
-            interventions={
-                "inflation": 0.07  # 7%
-            },
+            interventions={"inflation": 0.07},  # 7%
             evidence=evidence,
             target_variables=["interest_rate", "gdp_growth", "unemployment"],
             metadata={
@@ -254,9 +251,7 @@ class RetrodictionSystemIntegrator:
         mild_scenario = self.counterfactual_simulator.create_scenario(
             name="Mild Recession",
             description="Scenario with GDP growth declining to -0.5%",
-            interventions={
-                "gdp_growth": -0.005  # -0.5%
-            },
+            interventions={"gdp_growth": -0.005},  # -0.5%
             evidence=evidence,
             target_variables=["interest_rate", "inflation", "unemployment"],
             metadata={
@@ -270,9 +265,7 @@ class RetrodictionSystemIntegrator:
         severe_scenario = self.counterfactual_simulator.create_scenario(
             name="Severe Recession",
             description="Scenario with GDP growth declining to -3%",
-            interventions={
-                "gdp_growth": -0.03  # -3%
-            },
+            interventions={"gdp_growth": -0.03},  # -3%
             evidence=evidence,
             target_variables=["interest_rate", "inflation", "unemployment"],
             metadata={

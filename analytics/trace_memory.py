@@ -87,16 +87,16 @@ class TraceMemory:
 
         summary = {
             "count": len(records),
-            "avg_conf": round(
-                sum(r.get("confidence", 0) for r in records) / len(records), 4
-            )
-            if records
-            else 0.0,
-            "avg_fragility": round(
-                sum(r.get("fragility", 0) for r in records) / len(records), 4
-            )
-            if records
-            else 0.0,
+            "avg_conf": (
+                round(sum(r.get("confidence", 0) for r in records) / len(records), 4)
+                if records
+                else 0.0
+            ),
+            "avg_fragility": (
+                round(sum(r.get("fragility", 0) for r in records) / len(records), 4)
+                if records
+                else 0.0
+            ),
             "certified": sum(1 for r in records if r.get("certified")),
         }
         if len(records) > 10000:

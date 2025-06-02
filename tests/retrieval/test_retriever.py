@@ -79,8 +79,9 @@ def main():
         elif args.priority:
             # Retrieve data for all variables with the specified priority
             logger.info(
-                f"Testing retrieval of priority {args.priority} variables for {args.years} year(s)..."
-            )
+                f"Testing retrieval of priority {
+                    args.priority} variables for {
+                    args.years} year(s)...")
             results = retrieve_priority_variables(
                 priority=args.priority, years=args.years, rate_limit_delay=0.5
             )
@@ -95,8 +96,8 @@ def main():
 
         if "overall_metrics" in report:
             logger.info(
-                f"Average completeness: {report['overall_metrics']['average_completeness']:.2f}%"
-            )
+                f"Average completeness: {
+                    report['overall_metrics']['average_completeness']:.2f}%")
 
         logger.info(f"Verification report saved to {report_path}")
 

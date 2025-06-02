@@ -122,8 +122,8 @@ class RecursiveRuleEvaluator:
         }
 
         self.logger.info(
-            f"RecursiveRuleEvaluator initialized with {self.max_workers} worker processes"
-        )
+            f"RecursiveRuleEvaluator initialized with {
+                self.max_workers} worker processes")
 
     def _init_test_datasets(self):
         """Initialize test datasets for rule evaluation."""
@@ -168,8 +168,9 @@ class RecursiveRuleEvaluator:
 
         # Log the start of evaluation
         self.logger.info(
-            f"Starting rule evaluation (ID: {self.current_eval_id}, Scope: {scope.value})"
-        )
+            f"Starting rule evaluation (ID: {
+                self.current_eval_id}, Scope: {
+                scope.value})")
 
         # Check cost budget
         if not self.cost_controller.can_make_api_call(check_cost=True):
@@ -244,8 +245,8 @@ class RecursiveRuleEvaluator:
                 # Check if cost limit would be exceeded
                 if total_cost >= cost_limit:
                     self.logger.warning(
-                        f"Cost limit reached before coverage evaluation: ${total_cost:.2f}"
-                    )
+                        f"Cost limit reached before coverage evaluation: ${
+                            total_cost:.2f}")
                 else:
                     coverage_result = self._evaluate_coverage(rule, context)
                     evaluation_result["details"]["coverage"] = coverage_result
@@ -261,8 +262,8 @@ class RecursiveRuleEvaluator:
                 # Check if cost limit would be exceeded
                 if total_cost >= cost_limit:
                     self.logger.warning(
-                        f"Cost limit reached before performance evaluation: ${total_cost:.2f}"
-                    )
+                        f"Cost limit reached before performance evaluation: ${
+                            total_cost:.2f}")
                 else:
                     performance_result = self._evaluate_performance(rule)
                     evaluation_result["details"]["performance"] = performance_result
@@ -741,8 +742,10 @@ class RecursiveRuleEvaluator:
 
         # Log the start of batch evaluation
         self.logger.info(
-            f"Starting batch rule evaluation (ID: {self.current_eval_id}, Batch size: {len(rules)}, Scope: {scope.value})"
-        )
+            f"Starting batch rule evaluation (ID: {
+                self.current_eval_id}, Batch size: {
+                len(rules)}, Scope: {
+                scope.value})")
 
         # Check cost budget
         if not self.cost_controller.can_make_api_call(check_cost=True):
@@ -811,8 +814,8 @@ class RecursiveRuleEvaluator:
                         # Check if we've exceeded the overall cost limit
                         if total_cost >= cost_limit:
                             self.logger.warning(
-                                f"Cost limit reached during batch processing (${total_cost:.2f})"
-                            )
+                                f"Cost limit reached during batch processing (${
+                                    total_cost:.2f})")
                             break
 
                     except Exception as e:
@@ -888,8 +891,10 @@ class RecursiveRuleEvaluator:
         )
 
         self.logger.info(
-            f"Batch rule evaluation completed (ID: {self.current_eval_id}, Evaluations: {len(rules)}, Cost: ${total_cost:.2f})"
-        )
+            f"Batch rule evaluation completed (ID: {
+                self.current_eval_id}, Evaluations: {
+                len(rules)}, Cost: ${
+                total_cost:.2f})")
         return combined_results
 
     def _evaluate_rule_task(

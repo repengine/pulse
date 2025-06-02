@@ -211,7 +211,8 @@ def load_historical_snapshot(
             "metadata", {}
         )  # Extract metadata if provided
 
-        # Create the WorldState instance explicitly passing args with refined type checks
+        # Create the WorldState instance explicitly passing args with refined type
+        # checks
         from engine.worldstate import (
             Variables,
             SymbolicOverlays,
@@ -262,8 +263,7 @@ def load_historical_snapshot(
         # evolved since the snapshot was taken.
         if missing := registry.flag_missing_variables(state.variables.as_dict()):
             state.log_event(
-                f"[WS-LOADER-HISTORICAL] Missing registered variables in snapshot: {missing}"
-            )
+                f"[WS-LOADER-HISTORICAL] Missing registered variables in snapshot: {missing}")
 
     except Exception as exc:
         print(

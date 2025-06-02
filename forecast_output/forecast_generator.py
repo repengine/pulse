@@ -40,17 +40,19 @@ def generate_forecast(
     # Input validation
     if not isinstance(input_features, dict):
         logger.error(
-            f"Invalid input_features type: {type(input_features)}. Expected dict. Using empty dict."
-        )
+            f"Invalid input_features type: {
+                type(input_features)}. Expected dict. Using empty dict.")
         input_features = {}
 
     logger.info(
         "[Forecast Pipeline] Entering generate_forecast: type(input_features)=%s, keys=%s, sample=%s",
         type(input_features),
         list(input_features.keys())[:5] if input_features else [],
-        {k: input_features[k] for k in list(input_features.keys())[:3]}
-        if input_features
-        else {},
+        (
+            {k: input_features[k] for k in list(input_features.keys())[:3]}
+            if input_features
+            else {}
+        ),
     )
 
     # Generate base simulation forecast
@@ -59,8 +61,8 @@ def generate_forecast(
         # Validate simulation forecast structure
         if not isinstance(simulation_forecast, dict):
             logger.error(
-                f"Invalid simulation_forecast type: {type(simulation_forecast)}. Expected dict. Using default."
-            )
+                f"Invalid simulation_forecast type: {
+                    type(simulation_forecast)}. Expected dict. Using default.")
             simulation_forecast = {"value": 0.0}
         if "value" not in simulation_forecast:
             logger.warning(
@@ -72,8 +74,8 @@ def generate_forecast(
             simulation_forecast["value"] = float(simulation_forecast["value"])
         except (ValueError, TypeError):
             logger.warning(
-                f"Invalid simulation_forecast value: {simulation_forecast.get('value')}. Using default: 0.0"
-            )
+                f"Invalid simulation_forecast value: {
+                    simulation_forecast.get('value')}. Using default: 0.0")
             simulation_forecast["value"] = 0.0
     except Exception as e:
         logger.exception(f"Error generating simulation forecast: {e}")
@@ -81,7 +83,8 @@ def generate_forecast(
 
     if getattr(pulse_config, "AI_FORECAST_ENABLED", True):
         try:
-            # Filter input_features to only include numeric values (flatten nested dicts)
+            # Filter input_features to only include numeric values (flatten nested
+            # dicts)
             numeric_features = {}
             for key, value in input_features.items():
                 try:
@@ -100,20 +103,17 @@ def generate_forecast(
                                         numeric_value
                                     )
                                     logger.info(
-                                        f"Converted non-numeric value for {key}_{nested_key}: {nested_value} to {numeric_value}"
-                                    )
+                                        f"Converted non-numeric value for {key}_{nested_key}: {nested_value} to {numeric_value}")
                                 except (ValueError, TypeError):
                                     logger.warning(
-                                        f"Skipping non-numeric value for {key}_{nested_key}: {nested_value}"
-                                    )
+                                        f"Skipping non-numeric value for {key}_{nested_key}: {nested_value}")
                     elif value is not None:
                         # Attempt to convert string or other values to float if possible
                         try:
                             numeric_value = float(value)
                             numeric_features[key] = numeric_value
                             logger.info(
-                                f"Converted non-numeric value for {key}: {value} to {numeric_value}"
-                            )
+                                f"Converted non-numeric value for {key}: {value} to {numeric_value}")
                         except (ValueError, TypeError):
                             logger.warning(
                                 f"Skipping non-numeric value for {key}: {value}"
@@ -122,8 +122,9 @@ def generate_forecast(
                     logger.warning(f"Error processing feature {key}: {e}")
 
             logger.info(
-                f"Filtered numeric features: {len(numeric_features)} of {len(input_features)} total features"
-            )
+                f"Filtered numeric features: {
+                    len(numeric_features)} of {
+                    len(input_features)} total features")
 
             # Generate AI forecast
             ai_forecast = ai_forecaster.predict(numeric_features)
@@ -131,8 +132,8 @@ def generate_forecast(
             # Validate AI forecast
             if not isinstance(ai_forecast, dict):
                 logger.error(
-                    f"Invalid ai_forecast type: {type(ai_forecast)}. Expected dict. Using default."
-                )
+                    f"Invalid ai_forecast type: {
+                        type(ai_forecast)}. Expected dict. Using default.")
                 ai_forecast = {"adjustment": 0.0}
             if "adjustment" not in ai_forecast:
                 logger.warning(
@@ -145,19 +146,23 @@ def generate_forecast(
                 ai_forecast["adjustment"] = float(ai_forecast["adjustment"])
             except (ValueError, TypeError):
                 logger.warning(
-                    f"Invalid ai_forecast adjustment: {ai_forecast.get('adjustment')}. Using default: 0.0"
-                )
+                    f"Invalid ai_forecast adjustment: {
+                        ai_forecast.get('adjustment')}. Using default: 0.0")
                 ai_forecast["adjustment"] = 0.0
 
             logger.info(
                 "[Forecast Pipeline] After ai_forecaster.predict(): type(ai_forecast)=%s, keys=%s, sample=%s",
                 type(ai_forecast),
-                list(ai_forecast.keys())[:5]
-                if hasattr(ai_forecast, "keys")
-                else str(ai_forecast)[:50],
-                {k: ai_forecast[k] for k in list(ai_forecast.keys())[:3]}
-                if hasattr(ai_forecast, "keys")
-                else str(ai_forecast)[:100],
+                (
+                    list(ai_forecast.keys())[:5]
+                    if hasattr(ai_forecast, "keys")
+                    else str(ai_forecast)[:50]
+                ),
+                (
+                    {k: ai_forecast[k] for k in list(ai_forecast.keys())[:3]}
+                    if hasattr(ai_forecast, "keys")
+                    else str(ai_forecast)[:100]
+                ),
             )
 
             # Ensemble forecasts
@@ -231,8 +236,7 @@ def generate_forecast(
             # Check if the field exists and is numeric, otherwise add/default
             forecast[field] = 0.5  # Default midpoint value
             logger.info(
-                f"Added/Corrected missing or non-numeric field '{field}' with default value 0.5"
-            )
+                f"Added/Corrected missing or non-numeric field '{field}' with default value 0.5")
 
     return forecast
 

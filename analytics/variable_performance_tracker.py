@@ -68,7 +68,7 @@ class VariablePerformanceTracker:
             )
 
         with open(LOG_PATH, "a", encoding="utf-8") as f:
-            for r in self.records[-len(state) :]:
+            for r in self.records[-len(state):]:
                 f.write(json.dumps(r) + "\n")
 
     def score_variable_effectiveness(self) -> Dict[str, Dict]:

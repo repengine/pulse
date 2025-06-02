@@ -11,9 +11,9 @@ from recursive_training.data.streaming_data_store import StreamingDataStore
 from recursive_training.data.s3_data_store import S3DataStore, BOTO3_AVAILABLE
 
 __all__ = [
-    'RecursiveDataStore',
-    'OptimizedDataStore',
-    'StreamingDataStore',
-    'S3DataStore',
-    'BOTO3_AVAILABLE'
+    "RecursiveDataStore",
+    "OptimizedDataStore",
+    "StreamingDataStore",
+    "S3DataStore",
+    "BOTO3_AVAILABLE",
 ]

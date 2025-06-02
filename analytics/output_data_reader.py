@@ -166,8 +166,7 @@ def load_market_data() -> pd.DataFrame:
                     dfs.append(df)
                 except Exception as e:
                     print(
-                        f"[OutputDataReader] Error reading market data file {fname}: {e}"
-                    )
+                        f"[OutputDataReader] Error reading market data file {fname}: {e}")
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()
@@ -189,8 +188,7 @@ def load_social_data() -> pd.DataFrame:
                     dfs.append(df)
                 except Exception as e:
                     print(
-                        f"[OutputDataReader] Error reading social data file {fname}: {e}"
-                    )
+                        f"[OutputDataReader] Error reading social data file {fname}: {e}")
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()
@@ -212,8 +210,7 @@ def load_ecological_data() -> pd.DataFrame:
                     dfs.append(df)
                 except Exception as e:
                     print(
-                        f"[OutputDataReader] Error reading ecological data file {fname}: {e}"
-                    )
+                        f"[OutputDataReader] Error reading ecological data file {fname}: {e}")
     if dfs:
         return pd.concat(dfs, ignore_index=True)
     return pd.DataFrame()

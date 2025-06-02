@@ -31,7 +31,8 @@ except ImportError:
 
 # TRANSFORMERS_AVAILABLE is set to False by default and remains so if torch/transformers are not imported.
 # If they were needed by PEFT, PEFT_AVAILABLE would be False.
-# No need to explicitly import torch/transformers if they are not directly used elsewhere.
+# No need to explicitly import torch/transformers if they are not directly
+# used elsewhere.
 
 
 class DomainAdapter:

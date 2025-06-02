@@ -72,13 +72,11 @@ def reconsider_variable(
     """
     if dry_run:
         logger.info(
-            f"[MemoryGuardian] Would reconsider variable: {variable_name} under regime: {regime}"
-        )
+            f"[MemoryGuardian] Would reconsider variable: {variable_name} under regime: {regime}")
     else:
         # Stub: Replace with actual reconsideration logic
         logger.info(
-            f"[MemoryGuardian] Reconsidered variable: {variable_name} under regime: {regime}"
-        )
+            f"[MemoryGuardian] Reconsidered variable: {variable_name} under regime: {regime}")
 
 
 def prune_incoherent_forecasts(memory_batch, verbose=True):
@@ -120,8 +118,8 @@ def prune_memory_advanced(
                 if float(f.get("confidence", 0)) < min_confidence
             ]
             logger.info(
-                f"[MemoryGuardian] Would prune {len(to_prune)} forecasts below confidence {min_confidence}."
-            )
+                f"[MemoryGuardian] Would prune {
+                    len(to_prune)} forecasts below confidence {min_confidence}.")
         else:
             memory._memory = [
                 f

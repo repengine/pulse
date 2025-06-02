@@ -63,9 +63,10 @@ class OpenMeteoPlugin(IrisPluginManager):
         # Get current date
         now = dt.datetime.now()
 
-        # We'll rotate through cities - get 2 cities per day based on the day of the month
+        # We'll rotate through cities - get 2 cities per day based on the day of
+        # the month
         start_idx = (now.day % 4) * 2
-        today_cities = dict(list(self.CITIES.items())[start_idx : start_idx + 2])
+        today_cities = dict(list(self.CITIES.items())[start_idx: start_idx + 2])
 
         # Fetch current weather for selected cities
         for city_name, (lat, lon, timezone) in today_cities.items():

@@ -1,3 +1,4 @@
+from pipeline.gpt_caller import GPTCaller
 import unittest
 import os
 import openai  # Import openai
@@ -8,8 +9,6 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from pipeline.gpt_caller import GPTCaller
-
 
 class TestGPTCaller(unittest.TestCase):
     @patch("pipeline.gpt_caller.openai.chat.completions.create")
@@ -18,9 +17,7 @@ class TestGPTCaller(unittest.TestCase):
         # Mock the OpenAI API response
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].message.content = (
+        mock_response.choices[0].message.content = (
             'This is a raw text response with some JSON: ```json\n{"key": "value"}\n```'
         )
         mock_create.return_value = mock_response
@@ -50,9 +47,9 @@ class TestGPTCaller(unittest.TestCase):
         # Mock the OpenAI API response
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].text = 'Raw text response with JSON: {"another_key": 123}'
+        mock_response.choices[0].text = (
+            'Raw text response with JSON: {"another_key": 123}'
+        )
         mock_create.return_value = mock_response
 
         # Instantiate GPTCaller with a completion model
@@ -94,9 +91,7 @@ class TestGPTCaller(unittest.TestCase):
         """Tests generate method when the response contains invalid JSON."""
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].message.content = (
+        mock_response.choices[0].message.content = (
             "This response has invalid JSON: {'key': 'value'"  # Missing closing brace
         )
         mock_create.return_value = mock_response

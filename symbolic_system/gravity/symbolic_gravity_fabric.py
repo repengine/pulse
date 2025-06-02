@@ -80,17 +80,17 @@ class SymbolicGravityFabric:
                 regularization_strength=config.regularization if config else None,
                 learning_rate=config.learning_rate if config else None,
                 momentum_factor=config.momentum if config else None,
-                circuit_breaker_threshold=config.circuit_breaker_threshold
-                if config
-                else None,
+                circuit_breaker_threshold=(
+                    config.circuit_breaker_threshold if config else None
+                ),
                 max_correction=config.max_correction if config else None,
-                enable_adaptive_lambda=config.enable_adaptive_lambda
-                if config
-                else None,
+                enable_adaptive_lambda=(
+                    config.enable_adaptive_lambda if config else None
+                ),
                 enable_weight_pruning=config.enable_weight_pruning if config else None,
-                weight_pruning_threshold=config.weight_pruning_threshold
-                if config
-                else None,
+                weight_pruning_threshold=(
+                    config.weight_pruning_threshold if config else None
+                ),
                 fragility_threshold=config.fragility_threshold if config else None,
             )
             # Use default values for dt and state_dimensionality

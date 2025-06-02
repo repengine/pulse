@@ -279,8 +279,7 @@ def run_learning_audit():
             {
                 "status": "error",
                 "error": "Both previous_batch_id and current_batch_id are required in JSON body",
-            }
-        )
+            })
 
     # Simulate an audit report
     report = {

@@ -192,8 +192,8 @@ class OpenfdaPlugin(IrisPluginManager):
         # If all attempts failed, return empty list
         if not response_data:
             logger.error(
-                f"[openfda_plugin] Failed to fetch data for {endpoint_name} after {self.MAX_RETRIES + 1} attempts"
-            )
+                f"[openfda_plugin] Failed to fetch data for {endpoint_name} after {
+                    self.MAX_RETRIES + 1} attempts")
             return signals
 
         # Process the response data based on endpoint type
@@ -215,8 +215,8 @@ class OpenfdaPlugin(IrisPluginManager):
                     )
 
                 logger.info(
-                    f"[openfda_plugin] Successfully processed {len(signals)} signals for {endpoint_name}"
-                )
+                    f"[openfda_plugin] Successfully processed {
+                        len(signals)} signals for {endpoint_name}")
             else:
                 logger.warning(f"[openfda_plugin] No results found for {endpoint_name}")
 
@@ -407,9 +407,9 @@ class OpenfdaPlugin(IrisPluginManager):
             if results:
                 serious_signal = {
                     "name": f"fda_{endpoint_name}_{time_window}_serious_pct",
-                    "value": float(serious_count) / len(results) * 100
-                    if results
-                    else 0,
+                    "value": (
+                        float(serious_count) / len(results) * 100 if results else 0
+                    ),
                     "source": "openfda",
                     "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
                     "metadata": {
@@ -490,9 +490,9 @@ class OpenfdaPlugin(IrisPluginManager):
             if results:
                 voluntary_signal = {
                     "name": f"fda_{endpoint_name}_{time_window}_voluntary_pct",
-                    "value": float(voluntary_count) / len(results) * 100
-                    if results
-                    else 0,
+                    "value": (
+                        float(voluntary_count) / len(results) * 100 if results else 0
+                    ),
                     "source": "openfda",
                     "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
                     "metadata": {

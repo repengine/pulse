@@ -6,6 +6,14 @@ and retrodiction training. This ensures that symbolic processing can be
 disabled during performance-critical training operations.
 """
 
+import engine.pulse_config
+from symbolic_system.overlays import apply_overlay_interactions
+from symbolic_system.context import (
+    symbolic_context,
+    is_symbolic_enabled,
+    enter_retrodiction_mode,
+)
+from engine.worldstate import WorldState
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
@@ -16,15 +24,6 @@ import importlib
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from engine.worldstate import WorldState
-from symbolic_system.context import (
-    symbolic_context,
-    is_symbolic_enabled,
-    enter_retrodiction_mode,
-)
-from symbolic_system.overlays import apply_overlay_interactions
-import engine.pulse_config
-
 
 class TestSymbolicIsolation(unittest.TestCase):
     """Tests to verify proper isolation of the symbolic system"""
@@ -32,7 +31,8 @@ class TestSymbolicIsolation(unittest.TestCase):
     def test_symbolic_disabled_globally(self):
         """Test that all symbolic operations are skipped when disabled globally"""
         with mock.patch("engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", False):
-            # Reload modules that depend on engine.pulse_config to pick up the patched value
+            # Reload modules that depend on engine.pulse_config to pick up the patched
+            # value
             import symbolic_system.context
             import engine.state_mutation
 
@@ -73,18 +73,20 @@ class TestSymbolicIsolation(unittest.TestCase):
 
     def test_context_manager(self):
         """Test that the context manager properly sets and restores modes"""
-        original_mode = engine.pulse_config.CURRENT_SYSTEM_MODE  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
+        original_mode = (
+            engine.pulse_config.CURRENT_SYSTEM_MODE
+        )  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
 
         # Change mode within context
         with symbolic_context("retrodiction"):
-            self.assertEqual(
-                engine.pulse_config.CURRENT_SYSTEM_MODE, "retrodiction"
-            )  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
+            # This line is not part of the patch, but needs to be updated if
+            # pulse_config is not directly imported.
+            self.assertEqual(engine.pulse_config.CURRENT_SYSTEM_MODE, "retrodiction")
 
         # Mode should be restored
-        self.assertEqual(
-            engine.pulse_config.CURRENT_SYSTEM_MODE, original_mode
-        )  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
+        # This line is not part of the patch, but needs to be updated if
+        # pulse_config is not directly imported.
+        self.assertEqual(engine.pulse_config.CURRENT_SYSTEM_MODE, original_mode)
 
     def test_explicit_override(self):
         """Test explicitly enabling symbolic processing in retrodiction mode"""
@@ -98,7 +100,8 @@ class TestSymbolicIsolation(unittest.TestCase):
             with mock.patch.dict(
                 "engine.pulse_config.SYMBOLIC_PROCESSING_MODES", {"retrodiction": False}
             ):
-                # Reload modules that depend on engine.pulse_config to pick up the patched value
+                # Reload modules that depend on engine.pulse_config to pick up the
+                # patched value
                 import symbolic_system.context
                 import engine.state_mutation
 
@@ -130,7 +133,8 @@ class TestSymbolicIsolation(unittest.TestCase):
             with mock.patch.dict(
                 "engine.pulse_config.SYMBOLIC_PROCESSING_MODES", {"retrodiction": True}
             ):
-                # Reload modules that depend on engine.pulse_config to pick up the patched value
+                # Reload modules that depend on engine.pulse_config to pick up the
+                # patched value
                 import symbolic_system.context
                 import engine.state_mutation
 

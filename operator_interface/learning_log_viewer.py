@@ -46,12 +46,12 @@ def load_learning_events(limit: Optional[int] = None) -> List[Dict[str, Any]]:
                         events.append(event)
                     else:
                         print(
-                            f"[LearningLogViewer] Skipping malformed event at line {idx + 1}"
-                        )
+                            f"[LearningLogViewer] Skipping malformed event at line {
+                                idx + 1}")
                 except json.JSONDecodeError as jde:
                     print(
-                        f"[LearningLogViewer] JSON decode error at line {idx + 1}: {jde}"
-                    )
+                        f"[LearningLogViewer] JSON decode error at line {
+                            idx + 1}: {jde}")
         if limit:
             return events[-limit:]
         return events
@@ -118,16 +118,20 @@ def display_variable_trust(variable_id):
     trust = bayesian_trust_tracker.get_trust(variable_id)
     conf_int = bayesian_trust_tracker.get_confidence_interval(variable_id)
     print(
-        f"Variable {variable_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})"
-    )
+        f"Variable {variable_id}: Trust={
+            trust:.3f}, 95% CI=({
+            conf_int[0]:.3f}, {
+                conf_int[1]:.3f})")
 
 
 def display_rule_trust(rule_id):
     trust = bayesian_trust_tracker.get_trust(rule_id)
     conf_int = bayesian_trust_tracker.get_confidence_interval(rule_id)
     print(
-        f"Rule {rule_id}: Trust={trust:.3f}, 95% CI=({conf_int[0]:.3f}, {conf_int[1]:.3f})"
-    )
+        f"Rule {rule_id}: Trust={
+            trust:.3f}, 95% CI=({
+            conf_int[0]:.3f}, {
+                conf_int[1]:.3f})")
 
 
 # Example usage in your dashboard rendering logic:

@@ -51,15 +51,17 @@ def get_forecast_status():
     """Returns the status of the forecasting engine."""
     try:
         # Check if the forecast engine is ready
-        # This is a simple implementation; you might want to add more comprehensive checks
+        # This is a simple implementation; you might want to add more
+        # comprehensive checks
         if variable_registry.is_initialized() and feature_store.is_initialized():
             return jsonify({"status": "ready"})
         else:
             return jsonify({"status": "not_ready"})
     except Exception as e:
-        return jsonify(
-            {"error": f"Error checking forecast engine status: {str(e)}"}
-        ), 500
+        return (
+            jsonify({"error": f"Error checking forecast engine status: {str(e)}"}),
+            500,
+        )
 
 
 # === Retrodiction endpoints ===
@@ -77,11 +79,14 @@ def get_retrodiction():
     try:
         snapshot_time = datetime.fromisoformat(snapshot_time_str)
     except ValueError:
-        return jsonify(
-            {
-                "error": "Invalid snapshot_time format. Please use ISO 8601 format (e.g., 'YYYY-MM-DDTHH:MM:SS')."
-            }
-        ), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid snapshot_time format. Please use ISO 8601 format (e.g., 'YYYY-MM-DDTHH:MM:SS')."
+                }
+            ),
+            400,
+        )
 
     try:
         retrodiction_data = run_retrodiction(snapshot_time=snapshot_time, steps=steps)
@@ -238,7 +243,8 @@ def get_current_variables():
     }
 
     # Note: This requires 'example_variable_1' and 'example_variable_2' to exist and have live bindings.
-    # A more robust implementation would iterate through registered variables or have a dedicated method.
+    # A more robust implementation would iterate through registered variables
+    # or have a dedicated method.
 
     return jsonify(current_variables)
 
@@ -259,9 +265,10 @@ def get_historical_variables():
         if historical_data is not None:
             return jsonify(historical_data.to_dict())
         else:
-            return jsonify(
-                {"error": f"Historical data for {variable_name} not found"}
-            ), 404
+            return (
+                jsonify({"error": f"Historical data for {variable_name} not found"}),
+                404,
+            )
     except Exception as e:
         return jsonify({"error": f"Error fetching historical data: {e}"}), 500
 
@@ -289,9 +296,10 @@ def submit_forecast_for_review():
 
         # Validate required fields
         if "forecast_data" not in data:
-            return jsonify(
-                {"status": "error", "error": "Missing forecast_data field"}
-            ), 400
+            return (
+                jsonify({"status": "error", "error": "Missing forecast_data field"}),
+                400,
+            )
 
         # Generate a submission ID
         from datetime import datetime
@@ -324,14 +332,20 @@ def submit_forecast_for_review():
                 }
             )
         else:
-            return jsonify(
-                {"status": "error", "error": "Failed to store submission data"}
-            ), 500
+            return (
+                jsonify(
+                    {"status": "error", "error": "Failed to store submission data"}
+                ),
+                500,
+            )
 
     except Exception as e:
-        return jsonify(
-            {"status": "error", "error": f"Error processing request: {str(e)}"}
-        ), 500
+        return (
+            jsonify(
+                {"status": "error", "error": f"Error processing request: {str(e)}"}
+            ),
+            500,
+        )
 
 
 @app.route(f"{API_PREFIX}/retrodiction/submit_review", methods=["POST"])
@@ -356,9 +370,12 @@ def submit_retrodiction_for_review():
 
         # Validate required fields
         if "retrodiction_data" not in data:
-            return jsonify(
-                {"status": "error", "error": "Missing retrodiction_data field"}
-            ), 400
+            return (
+                jsonify(
+                    {"status": "error", "error": "Missing retrodiction_data field"}
+                ),
+                400,
+            )
 
         # Generate a submission ID
         from datetime import datetime
@@ -391,14 +408,20 @@ def submit_retrodiction_for_review():
                 }
             )
         else:
-            return jsonify(
-                {"status": "error", "error": "Failed to store submission data"}
-            ), 500
+            return (
+                jsonify(
+                    {"status": "error", "error": "Failed to store submission data"}
+                ),
+                500,
+            )
 
     except Exception as e:
-        return jsonify(
-            {"status": "error", "error": f"Error processing request: {str(e)}"}
-        ), 500
+        return (
+            jsonify(
+                {"status": "error", "error": f"Error processing request: {str(e)}"}
+            ),
+            500,
+        )
 
 
 # === Status endpoint ===

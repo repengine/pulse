@@ -156,21 +156,21 @@ def analyze_variable_data(variable_name: str) -> Dict[str, Any]:
                 "has_data": True,
                 "historical_years": round(date_range, 2),
                 "data_points": len(df),
-                "completeness_pct": 100.0 * (len(df) - missing_count) / len(df)
-                if len(df) > 0
-                else 0,
+                "completeness_pct": (
+                    100.0 * (len(df) - missing_count) / len(df) if len(df) > 0 else 0
+                ),
                 "has_missing_values": missing_count > 0,
                 "missing_value_count": missing_count,
                 "date_range": f"{min_date.date()} to {max_date.date()}",
-                "min_value": None
-                if df["value"].isna().all()
-                else float(df["value"].min()),
-                "max_value": None
-                if df["value"].isna().all()
-                else float(df["value"].max()),
-                "mean_value": None
-                if df["value"].isna().all()
-                else float(df["value"].mean()),
+                "min_value": (
+                    None if df["value"].isna().all() else float(df["value"].min())
+                ),
+                "max_value": (
+                    None if df["value"].isna().all() else float(df["value"].max())
+                ),
+                "mean_value": (
+                    None if df["value"].isna().all() else float(df["value"].mean())
+                ),
             }
         )
 
@@ -197,36 +197,48 @@ def analyze_temporal_alignment(
             [v["historical_years"] for v in variable_results.values() if v["has_data"]]
             or [0]
         ),
-        "avg_years": sum(
-            [v["historical_years"] for v in variable_results.values() if v["has_data"]]
-        )
-        / sum(1 for v in variable_results.values() if v["has_data"])
-        if sum(1 for v in variable_results.values() if v["has_data"]) > 0
-        else 0,
+        "avg_years": (
+            sum(
+                [
+                    v["historical_years"]
+                    for v in variable_results.values()
+                    if v["has_data"]
+                ]
+            )
+            / sum(1 for v in variable_results.values() if v["has_data"])
+            if sum(1 for v in variable_results.values() if v["has_data"]) > 0
+            else 0
+        ),
         "variables_meeting_min_years": sum(
             1 for v in variable_results.values() if v["historical_years"] >= MIN_YEARS
         ),
-        "percent_meeting_min_years": 100.0
-        * sum(
-            1 for v in variable_results.values() if v["historical_years"] >= MIN_YEARS
-        )
-        / sum(1 for v in variable_results.values() if v["has_data"])
-        if sum(1 for v in variable_results.values() if v["has_data"]) > 0
-        else 0,
+        "percent_meeting_min_years": (
+            100.0
+            * sum(
+                1
+                for v in variable_results.values()
+                if v["historical_years"] >= MIN_YEARS
+            )
+            / sum(1 for v in variable_results.values() if v["has_data"])
+            if sum(1 for v in variable_results.values() if v["has_data"]) > 0
+            else 0
+        ),
         "variables_meeting_target_years": sum(
             1
             for v in variable_results.values()
             if v["historical_years"] >= TARGET_YEARS
         ),
-        "percent_meeting_target_years": 100.0
-        * sum(
-            1
-            for v in variable_results.values()
-            if v["historical_years"] >= TARGET_YEARS
-        )
-        / sum(1 for v in variable_results.values() if v["has_data"])
-        if sum(1 for v in variable_results.values() if v["has_data"]) > 0
-        else 0,
+        "percent_meeting_target_years": (
+            100.0
+            * sum(
+                1
+                for v in variable_results.values()
+                if v["historical_years"] >= TARGET_YEARS
+            )
+            / sum(1 for v in variable_results.values() if v["has_data"])
+            if sum(1 for v in variable_results.values() if v["has_data"]) > 0
+            else 0
+        ),
     }
 
     return results
@@ -319,13 +331,18 @@ def generate_visualizations(
         plt.figure(figsize=(10, 6))
 
         metrics = [
-            f"Variables with data: {alignment_results['variables_with_data']}/{alignment_results['variables_analyzed']}",
-            f"Min years: {alignment_results['min_years']:.2f}",
-            f"Max years: {alignment_results['max_years']:.2f}",
-            f"Avg years: {alignment_results['avg_years']:.2f}",
-            f"Meeting min ({MIN_YEARS} years): {alignment_results['variables_meeting_min_years']}/{alignment_results['variables_with_data']} ({alignment_results['percent_meeting_min_years']:.1f}%)",
-            f"Meeting target ({TARGET_YEARS} years): {alignment_results['variables_meeting_target_years']}/{alignment_results['variables_with_data']} ({alignment_results['percent_meeting_target_years']:.1f}%)",
-        ]
+            f"Variables with data: {
+                alignment_results['variables_with_data']}/{
+                alignment_results['variables_analyzed']}", f"Min years: {
+                alignment_results['min_years']:.2f}", f"Max years: {
+                    alignment_results['max_years']:.2f}", f"Avg years: {
+                        alignment_results['avg_years']:.2f}", f"Meeting min ({MIN_YEARS} years): {
+                            alignment_results['variables_meeting_min_years']}/{
+                                alignment_results['variables_with_data']} ({
+                                    alignment_results['percent_meeting_min_years']:.1f}%)", f"Meeting target ({TARGET_YEARS} years): {
+                                        alignment_results['variables_meeting_target_years']}/{
+                                            alignment_results['variables_with_data']} ({
+                                                alignment_results['percent_meeting_target_years']:.1f}%)", ]
 
         # Create a table
         plt.axis("off")
@@ -370,7 +387,8 @@ def generate_report(
 
         # Create HTML report
         with open(report_path, "w") as f:
-            f.write(f"""
+            f.write(
+                f"""
             <html>
             <head>
                 <title>Historical Data Quality Report</title>
@@ -391,7 +409,7 @@ def generate_report(
             <body>
                 <h1>Historical Data Quality Report</h1>
                 <p>Generated on: {dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-                
+
                 <div class="summary">
                     <h2>Summary</h2>
                     <p>Variables analyzed: <strong>{alignment_results["variables_analyzed"]}</strong></p>
@@ -400,9 +418,10 @@ def generate_report(
                     <p>Variables meeting minimum target ({MIN_YEARS} years): <strong class="{("good" if alignment_results["percent_meeting_min_years"] >= 80 else "warning" if alignment_results["percent_meeting_min_years"] >= 50 else "bad")}">{alignment_results["variables_meeting_min_years"]}/{alignment_results["variables_with_data"]} ({alignment_results["percent_meeting_min_years"]:.1f}%)</strong></p>
                     <p>Variables meeting ideal target ({TARGET_YEARS} years): <strong class="{("good" if alignment_results["percent_meeting_target_years"] >= 80 else "warning" if alignment_results["percent_meeting_target_years"] >= 50 else "bad")}">{alignment_results["variables_meeting_target_years"]}/{alignment_results["variables_with_data"]} ({alignment_results["percent_meeting_target_years"]:.1f}%)</strong></p>
                 </div>
-                
+
                 <h2>Visualizations</h2>
-            """)
+            """
+            )
 
             # Add visualizations
             for name, path in visualization_paths.items():
@@ -412,7 +431,8 @@ def generate_report(
                     f.write(f'<img src="../{rel_path}" alt="{name}" />\n')
 
             # Variable details table
-            f.write("""
+            f.write(
+                """
                 <h2>Variable Details</h2>
                 <table>
                     <tr>
@@ -427,7 +447,8 @@ def generate_report(
                         <th>Max Value</th>
                         <th>Mean Value</th>
                     </tr>
-            """)
+            """
+            )
 
             # Sort variables by historical years (descending)
             sorted_vars = sorted(
@@ -440,19 +461,20 @@ def generate_report(
                 completeness_class = (
                     "good"
                     if var_results["completeness_pct"] >= 95
-                    else "warning"
-                    if var_results["completeness_pct"] >= 80
-                    else "bad"
+                    else "warning" if var_results["completeness_pct"] >= 80 else "bad"
                 )
                 years_class = (
                     "good"
                     if var_results["historical_years"] >= TARGET_YEARS
-                    else "warning"
-                    if var_results["historical_years"] >= MIN_YEARS
-                    else "bad"
+                    else (
+                        "warning"
+                        if var_results["historical_years"] >= MIN_YEARS
+                        else "bad"
+                    )
                 )
 
-                f.write(f"""
+                f.write(
+                    f"""
                     <tr>
                         <td>{var_name}</td>
                         <td>{"Yes" if var_results["has_data"] else "No"}</td>
@@ -465,20 +487,22 @@ def generate_report(
                         <td>{var_results["max_value"] if var_results["max_value"] is not None else "N/A"}</td>
                         <td>{f"{var_results['mean_value']:.4f}" if var_results["mean_value"] is not None else "N/A"}</td>
                     </tr>
-                """)
+                """
+                )
 
-            f.write("""
+            f.write(
+                """
                 </table>
-                
+
                 <h2>Recommendations</h2>
                 <ul>
-            """)
+            """
+            )
 
             # Generate recommendations
             if alignment_results["percent_meeting_min_years"] < 80:
                 f.write(
-                    f"<li>Increase historical depth for variables below the {MIN_YEARS}-year minimum threshold.</li>"
-                )
+                    f"<li>Increase historical depth for variables below the {MIN_YEARS}-year minimum threshold.</li>")
 
             incomplete_vars = [
                 v
@@ -492,8 +516,9 @@ def generate_report(
                 f.write("<ul>")
                 for v in sorted(incomplete_vars, key=lambda x: x["completeness_pct"]):
                     f.write(
-                        f"<li>{v['variable_name']} ({v['completeness_pct']:.2f}% complete)</li>"
-                    )
+                        f"<li>{
+                            v['variable_name']} ({
+                            v['completeness_pct']:.2f}% complete)</li>")
                 f.write("</ul>")
 
             missing_vars = [
@@ -508,14 +533,16 @@ def generate_report(
                     f.write(f"<li>{var}</li>")
                 f.write("</ul>")
 
-            f.write("""
+            f.write(
+                """
                 </ul>
-                
+
                 <h2>Conclusion</h2>
                 <p>This report provides an overview of the historical timeline data quality for retrodiction training. Based on the analysis, further improvements may be needed to ensure sufficient historical depth and data completeness across all priority variables.</p>
             </body>
             </html>
-            """)
+            """
+            )
 
         logger.info(f"Generated report at {report_path}")
         return report_path

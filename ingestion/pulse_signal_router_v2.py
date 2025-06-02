@@ -101,8 +101,7 @@ class PulseSignalRouter:
         else:
             self.archive_engine.append_signal(signal_record)
             print(
-                f"[PulseSignalRouter] Unhandled signal type: {signal_type}. Archived only."
-            )
+                f"[PulseSignalRouter] Unhandled signal type: {signal_type}. Archived only.")
 
     def batch_route(self, signals: list) -> None:
         """

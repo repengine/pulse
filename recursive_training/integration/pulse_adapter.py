@@ -15,6 +15,7 @@ from engine.pulse_config import PulseConfig
 
 
 from engine.event_bus import event_bus, EventBus  # Import the instance and class
+
 # SymbolicExecutor class is not defined in symbolic_system.symbolic_executor,
 # that module provides functions. So, we remove this import.
 # from symbolic_system.symbolic_executor import SymbolicExecutor
@@ -141,7 +142,8 @@ class PulseAdapter:
             )
             self.event_system = None
         except Exception as e:
-            # Catch any other unexpected errors during assignment or the call to _register_event_handlers
+            # Catch any other unexpected errors during assignment or the call to
+            # _register_event_handlers
             self.logger.error(
                 f"An unexpected error occurred during event system initialization: {e}"
             )
@@ -192,9 +194,9 @@ class PulseAdapter:
             )
         except AttributeError as ae:
             self.logger.error(
-                f"AttributeError while registering event handlers: Does 'event_system' have 'subscribe'? Error: {ae}"
-            )
-            # Potentially self.event_system became None between check and use, or event_bus is malformed.
+                f"AttributeError while registering event handlers: Does 'event_system' have 'subscribe'? Error: {ae}")
+            # Potentially self.event_system became None between check and use, or
+            # event_bus is malformed.
         except Exception as e:
             self.logger.error(
                 f"An unexpected error occurred while registering event handlers: {e}"
@@ -334,11 +336,11 @@ class PulseAdapter:
             # The SymbolicExecutor class as previously used is not available.
             # The symbolic_system.symbolic_executor module contains functions.
             # This method needs to be re-evaluated or call specific functions from that module if applicable.
-            # For now, returning an error as the direct class method call is not possible.
+            # For now, returning an error as the direct class method call is not
+            # possible.
             self.logger.warning(
                 "SymbolicExecutor class interface is not available. "
-                "Rule execution via PulseAdapter.execute_rule is not supported in its current form."
-            )
+                "Rule execution via PulseAdapter.execute_rule is not supported in its current form.")
             return {
                 "status": "error",
                 "message": "Symbolic execution via adapter's execute_rule method is not currently available.",

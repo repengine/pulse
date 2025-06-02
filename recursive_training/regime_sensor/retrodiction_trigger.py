@@ -103,12 +103,12 @@ class RetrodictionSnapshot:
             "variables": self.variables,
             "metadata": self.metadata,
             "processed": self.processed,
-            "processing_start": self.processing_start.isoformat()
-            if self.processing_start
-            else None,
-            "processing_end": self.processing_end.isoformat()
-            if self.processing_end
-            else None,
+            "processing_start": (
+                self.processing_start.isoformat() if self.processing_start else None
+            ),
+            "processing_end": (
+                self.processing_end.isoformat() if self.processing_end else None
+            ),
             "results": self.results,
         }
 
@@ -274,9 +274,9 @@ class RetrodictionTrigger:
         # Create time range based on default window
         end_time = datetime.now()
         start_time = end_time.replace(
-            year=end_time.year - 1
-            if self.default_time_window >= 365
-            else end_time.year,
+            year=(
+                end_time.year - 1 if self.default_time_window >= 365 else end_time.year
+            ),
             day=1,
             month=1,
             hour=0,
@@ -286,7 +286,8 @@ class RetrodictionTrigger:
         )
 
         # Create snapshot
-        snapshot_id = f"snapshot_{len(self.snapshot_history) + 1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        snapshot_id = f"snapshot_{len(self.snapshot_history) +
+                                  1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         snapshot = RetrodictionSnapshot(
             snapshot_id=snapshot_id,
             timestamp=datetime.now(),
@@ -333,9 +334,11 @@ class RetrodictionTrigger:
         if time_range is None:
             end_time = datetime.now()
             start_time = end_time.replace(
-                year=end_time.year - 1
-                if self.default_time_window >= 365
-                else end_time.year,
+                year=(
+                    end_time.year - 1
+                    if self.default_time_window >= 365
+                    else end_time.year
+                ),
                 day=1,
                 month=1,
                 hour=0,
@@ -346,7 +349,8 @@ class RetrodictionTrigger:
             time_range = (start_time, end_time)
 
         # Create snapshot
-        snapshot_id = f"manual_{len(self.snapshot_history) + 1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        snapshot_id = f"manual_{len(self.snapshot_history) +
+                                1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         snapshot = RetrodictionSnapshot(
             snapshot_id=snapshot_id,
             timestamp=datetime.now(),
@@ -371,7 +375,8 @@ class RetrodictionTrigger:
         """
         with self.lock:
             # Add to priority queue with priority as the first element of the tuple
-            # Use negative priority value to make higher priority snapshots processed first
+            # Use negative priority value to make higher priority snapshots processed
+            # first
             self.snapshot_queue.put((-snapshot.priority.value, time.time(), snapshot))
             logger.debug(f"Enqueued snapshot: {snapshot}")
 
@@ -441,7 +446,8 @@ class RetrodictionTrigger:
                 # Check if it's time for a scheduled snapshot
                 self._check_scheduled_snapshot()
 
-                # Get a snapshot from the queue with timeout to allow checking stop_event
+                # Get a snapshot from the queue with timeout to allow checking
+                # stop_event
                 try:
                     _, _, snapshot = self.snapshot_queue.get(timeout=1.0)
                     self._process_snapshot(snapshot)
@@ -476,9 +482,11 @@ class RetrodictionTrigger:
             # Use default time range
             end_time = now
             start_time = end_time.replace(
-                year=end_time.year - 1
-                if self.default_time_window >= 365
-                else end_time.year,
+                year=(
+                    end_time.year - 1
+                    if self.default_time_window >= 365
+                    else end_time.year
+                ),
                 day=1,
                 month=1,
                 hour=0,
@@ -488,7 +496,8 @@ class RetrodictionTrigger:
             )
 
             # Create snapshot
-            snapshot_id = f"scheduled_{len(self.snapshot_history) + 1}_{now.strftime('%Y%m%d%H%M%S')}"
+            snapshot_id = f"scheduled_{len(self.snapshot_history) +
+                                       1}_{now.strftime('%Y%m%d%H%M%S')}"
             snapshot = RetrodictionSnapshot(
                 snapshot_id=snapshot_id,
                 timestamp=now,

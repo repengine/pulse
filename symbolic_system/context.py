@@ -69,7 +69,8 @@ def is_symbolic_enabled(mode: Optional[str] = None) -> bool:
     Returns:
         bool: True if symbolic processing is enabled, False otherwise
     """
-    # If global symbolic system is disabled, always return False. This is the highest priority.
+    # If global symbolic system is disabled, always return False. This is the
+    # highest priority.
     if not engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM:
         return False
 

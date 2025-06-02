@@ -101,7 +101,11 @@ class Event:
         self.processing_history = []
 
     def __str__(self):
-        return f"Event({self.event_id}, {self.event_type.value}, {self.timestamp}, priority={self.priority.name})"
+        return f"Event({
+            self.event_id}, {
+            self.event_type.value}, {
+            self.timestamp}, priority={
+                self.priority.name})"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for serialization."""
@@ -249,7 +253,8 @@ class EventStreamManager:
             # Add to priority queue with priority as the first element of the tuple
             try:
                 if self.event_queue.qsize() < self.max_queue_size:
-                    # Use negative priority value to make higher priority events processed first
+                    # Use negative priority value to make higher priority events
+                    # processed first
                     self.event_queue.put((-event.priority.value, time.time(), event))
                     logger.debug(f"Ingested event: {event}")
 
@@ -429,7 +434,8 @@ class EventStreamManager:
         Returns:
             List of extracted entities
         """
-        # Simple extraction of uppercase sequences that might be companies or organizations
+        # Simple extraction of uppercase sequences that might be companies or
+        # organizations
         potential_entities = re.findall(
             r"\b[A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*)*\b", headline
         )

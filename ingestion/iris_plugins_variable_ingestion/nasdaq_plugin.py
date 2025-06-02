@@ -261,9 +261,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         # Save the parser progress before starting to parse
         progress_file = os.path.join(
-            ingest_dir,
-            f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_start.json",
-        )
+            ingest_dir, f"{code}_progress_{
+                _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_start.json", )
         with open(progress_file, "w") as f:
             json.dump(
                 {
@@ -281,9 +280,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         # Save the parser progress after extracting payload data
         progress_file = os.path.join(
-            ingest_dir,
-            f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_raw_extracted.json",
-        )
+            ingest_dir, f"{code}_progress_{
+                _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_raw_extracted.json", )
         with open(progress_file, "w") as f:
             json.dump(
                 {
@@ -294,9 +292,9 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
                         "name": payload.get("name", ""),
                         "dataset_code": payload.get("dataset_code", ""),
                         "data_points": len(payload.get("data", [])),
-                        "latest_date": latest[0]
-                        if latest and len(latest) > 0
-                        else None,
+                        "latest_date": (
+                            latest[0] if latest and len(latest) > 0 else None
+                        ),
                     },
                 },
                 f,
@@ -319,9 +317,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         # Save incremental progress after basic signal creation
         progress_file = os.path.join(
-            ingest_dir,
-            f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_basic_fields.json",
-        )
+            ingest_dir, f"{code}_progress_{
+                _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_basic_fields.json", )
         with open(progress_file, "w") as f:
             json.dump(
                 {
@@ -340,9 +337,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
             if len(latest) >= 6:
                 # Save progress before processing OHLCV data
                 progress_file = os.path.join(
-                    ingest_dir,
-                    f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_ohlcv_start.json",
-                )
+                    ingest_dir, f"{code}_progress_{
+                        _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_ohlcv_start.json", )
                 with open(progress_file, "w") as f:
                     json.dump(
                         {
@@ -360,16 +356,17 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
                     "open": float(latest[1]) if latest[1] is not None else None,
                     "high": float(latest[2]) if latest[2] is not None else None,
                     "low": float(latest[3]) if latest[3] is not None else None,
-                    "volume": float(latest[5])
-                    if latest[5] is not None and len(latest) > 5
-                    else None,
+                    "volume": (
+                        float(latest[5])
+                        if latest[5] is not None and len(latest) > 5
+                        else None
+                    ),
                 }
 
                 # Save progress after processing OHLCV data
                 progress_file = os.path.join(
-                    ingest_dir,
-                    f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_ohlcv_complete.json",
-                )
+                    ingest_dir, f"{code}_progress_{
+                        _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_ohlcv_complete.json", )
                 with open(progress_file, "w") as f:
                     json.dump(
                         {
@@ -385,9 +382,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
             else:
                 # Shorter data format
                 progress_file = os.path.join(
-                    ingest_dir,
-                    f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_short_start.json",
-                )
+                    ingest_dir, f"{code}_progress_{
+                        _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_short_start.json", )
                 with open(progress_file, "w") as f:
                     json.dump(
                         {
@@ -404,9 +400,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
                 signal["meta"] = {"raw_data": latest}
 
                 progress_file = os.path.join(
-                    ingest_dir,
-                    f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_short_complete.json",
-                )
+                    ingest_dir, f"{code}_progress_{
+                        _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_short_complete.json", )
                 with open(progress_file, "w") as f:
                     json.dump(
                         {
@@ -421,9 +416,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
         else:
             # Generic format - assume second column is the main value if available
             progress_file = os.path.join(
-                ingest_dir,
-                f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_generic_start.json",
-            )
+                ingest_dir, f"{code}_progress_{
+                    _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_generic_start.json", )
             with open(progress_file, "w") as f:
                 json.dump(
                     {
@@ -437,19 +431,23 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
                 )
 
             signal["value"] = float(latest[1]) if len(latest) > 1 else 0.0
-            # Include all available data in metadata for other components to use if needed
+            # Include all available data in metadata for other components to use if
+            # needed
             signal["meta"] = {
-                f"column_{i}": float(val)
-                if val is not None and isinstance(val, (int, float, str)) and val != ""
-                else val
+                f"column_{i}": (
+                    float(val)
+                    if val is not None
+                    and isinstance(val, (int, float, str))
+                    and val != ""
+                    else val
+                )
                 for i, val in enumerate(latest[1:], 1)
                 if i < len(latest)
             }
 
             progress_file = os.path.join(
-                ingest_dir,
-                f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_generic_complete.json",
-            )
+                ingest_dir, f"{code}_progress_{
+                    _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_parse_generic_complete.json", )
             with open(progress_file, "w") as f:
                 json.dump(
                     {
@@ -465,9 +463,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         # Save final progress before persisting to regular storage
         progress_file = os.path.join(
-            ingest_dir,
-            f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_processing_complete.json",
-        )
+            ingest_dir, f"{code}_progress_{
+                _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_processing_complete.json", )
         with open(progress_file, "w") as f:
             json.dump(
                 {
@@ -497,9 +494,8 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
 
         # Save final completion marker
         progress_file = os.path.join(
-            ingest_dir,
-            f"{code}_progress_{_dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_final.json",
-        )
+            ingest_dir, f"{code}_progress_{
+                _dt.datetime.now().strftime('%Y%m%d_%H%M%S')}_final.json", )
         with open(progress_file, "w") as f:
             json.dump(
                 {
@@ -575,7 +571,9 @@ def _fetch_latest(code: str) -> Optional[Dict[str, Any]]:
                         "access_forbidden": "Check your API key permissions",
                         "not_found": "Verify the dataset code or try an alternative dataset",
                         "general_error": "Check network connectivity and try again",
-                    }.get(error_type, "Unknown error"),
+                    }.get(
+                        error_type,
+                        "Unknown error"),
                 },
                 f,
                 indent=2,

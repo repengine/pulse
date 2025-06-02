@@ -29,15 +29,20 @@ def ensemble_forecast(simulation_forecast: Dict, ai_forecast: Dict) -> Dict:
     logger.info(
         "[Forecast Pipeline] Entering ensemble_forecast: type(simulation_forecast)=%s, sample=%s; type(ai_forecast)=%s, sample=%s",
         type(simulation_forecast),
-        {k: simulation_forecast[k] for k in list(simulation_forecast.keys())[:3]}
-        if hasattr(simulation_forecast, "keys")
-        else str(simulation_forecast)[:100],
+        (
+            {k: simulation_forecast[k] for k in list(simulation_forecast.keys())[:3]}
+            if hasattr(simulation_forecast, "keys")
+            else str(simulation_forecast)[:100]
+        ),
         type(ai_forecast),
-        {k: ai_forecast[k] for k in list(ai_forecast.keys())[:3]}
-        if hasattr(ai_forecast, "keys")
-        else str(ai_forecast)[:100],
+        (
+            {k: ai_forecast[k] for k in list(ai_forecast.keys())[:3]}
+            if hasattr(ai_forecast, "keys")
+            else str(ai_forecast)[:100]
+        ),
     )
-    # Check if AI forecasting is enabled in configuration. Default to True if not specified.
+    # Check if AI forecasting is enabled in configuration. Default to True if
+    # not specified.
     enable_ai = getattr(pulse_config, "AI_FORECAST_ENABLED", True)
     if not enable_ai:
         logger.info("AI forecasting is disabled. Returning simulation forecast only.")
@@ -50,7 +55,8 @@ def ensemble_forecast(simulation_forecast: Dict, ai_forecast: Dict) -> Dict:
     sim_weight = ensemble_weights.get("simulation", 0.7)
     ai_weight = ensemble_weights.get("ai", 0.3)
 
-    # Extract values and ensure they are float type to prevent "must be real number, not str" errors
+    # Extract values and ensure they are float type to prevent "must be real
+    # number, not str" errors
     sim_val_raw = simulation_forecast.get("value", 0.0)
     import re
 
@@ -60,15 +66,14 @@ def ensemble_forecast(simulation_forecast: Dict, ai_forecast: Dict) -> Dict:
     try:
         if uuid_like:
             logger.error(
-                f"Simulation forecast 'value' is a UUID string (forecast_id?): {sim_val_raw}. This is a bug upstream. Using default 0.0"
-            )
+                f"Simulation forecast 'value' is a UUID string (forecast_id?): {sim_val_raw}. This is a bug upstream. Using default 0.0")
             sim_value = 0.0
         else:
             sim_value = float(sim_val_raw)
     except (ValueError, TypeError):
         logger.warning(
-            f"Invalid simulation forecast value: {sim_val_raw} (type={type(sim_val_raw)}). Using default 0.0"
-        )
+            f"Invalid simulation forecast value: {sim_val_raw} (type={
+                type(sim_val_raw)}). Using default 0.0")
         sim_value = 0.0
 
     ai_adj_raw = ai_forecast.get("adjustment", 0.0)
@@ -79,15 +84,14 @@ def ensemble_forecast(simulation_forecast: Dict, ai_forecast: Dict) -> Dict:
     try:
         if uuid_like_ai:
             logger.error(
-                f"AI forecast 'adjustment' is a UUID string (forecast_id?): {ai_adj_raw}. This is a bug upstream. Using default 0.0"
-            )
+                f"AI forecast 'adjustment' is a UUID string (forecast_id?): {ai_adj_raw}. This is a bug upstream. Using default 0.0")
             ai_adjustment = 0.0
         else:
             ai_adjustment = float(ai_adj_raw)
     except (ValueError, TypeError):
         logger.warning(
-            f"Invalid AI adjustment value: {ai_adj_raw} (type={type(ai_adj_raw)}). Using default 0.0"
-        )
+            f"Invalid AI adjustment value: {ai_adj_raw} (type={
+                type(ai_adj_raw)}). Using default 0.0")
         ai_adjustment = 0.0
 
     # Compute the combined forecast value with validated float values

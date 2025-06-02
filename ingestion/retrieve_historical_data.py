@@ -24,6 +24,7 @@ python retrieve_historical_data.py --priority 1 --years 3
 python retrieve_historical_data.py --priority 1 --end-date 2025-04-30
 """
 
+from ingestion.iris_utils.historical_data_retriever import main
 import sys
 import os
 
@@ -31,7 +32,6 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 # Now we can import the module
-from ingestion.iris_utils.historical_data_retriever import main
 
 if __name__ == "__main__":
     sys.exit(main())

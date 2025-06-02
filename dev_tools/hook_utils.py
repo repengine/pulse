@@ -62,9 +62,7 @@ def scan_for_hooks(
                             hook_type = (
                                 "test"
                                 if "test" in fname
-                                else "batch"
-                                if "batch" in fname
-                                else "tool"
+                                else "batch" if "batch" in fname else "tool"
                             )
                             hookable_modules.append(
                                 {
@@ -77,11 +75,11 @@ def scan_for_hooks(
                             key = fname.replace(".py", "")
                             metadata[key] = {
                                 "label": f"Auto-hooked CLI tool: {key}",
-                                "category": "suite"
-                                if "test" in fname
-                                else "batch"
-                                if "batch" in fname
-                                else "tool",
+                                "category": (
+                                    "suite"
+                                    if "test" in fname
+                                    else "batch" if "batch" in fname else "tool"
+                                ),
                             }
                     except Exception as e:
                         print(f"⚠️ Failed to parse {fname}: {e}")

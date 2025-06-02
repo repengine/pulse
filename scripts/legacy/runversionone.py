@@ -171,7 +171,8 @@ def establish_baseline_accuracy(
 
     # Initialize WorldState (can be a default state for baseline)
     initial_state = WorldState()
-    # You might want to initialize initial_state.variables with the first snapshot's values
+    # You might want to initialize initial_state.variables with the first
+    # snapshot's values
     first_snapshot = data_loader.get_snapshot_by_turn(0)
     if first_snapshot:
         # Assuming WorldState.variables is a dict or similar mutable structure
@@ -257,8 +258,7 @@ def establish_baseline_accuracy(
 
         if not turn_results:
             logger.warning(
-                f"simulate_forward returned no results for turn {i}. Skipping comparison."
-            )
+                f"simulate_forward returned no results for turn {i}. Skipping comparison.")
             continue
 
         _simulated_state_after_turn = (
@@ -375,7 +375,8 @@ def establish_baseline_accuracy(
                 retrodiction_mode=False,
             )
 
-            # Compare the state *after* simulation (state_for_simulation) to the ground truth snapshot (turn i)
+            # Compare the state *after* simulation (state_for_simulation) to the
+            # ground truth snapshot (turn i)
             state_after_turn_simulated = state_for_simulation.snapshot()
 
             # Compute error metrics for this turn
@@ -485,11 +486,12 @@ if __name__ == "__main__":
         logger.info("Training completed successfully!")
         logger.info("Performance metrics:")
         logger.info(
-            f"  Speedup factor: {training_results['performance']['speedup_factor']:.2f}x"
-        )
+            f"  Speedup factor: {
+                training_results['performance']['speedup_factor']:.2f}x")
         logger.info(
-            f"  Batches processed: {training_results['batches']['completed']}/{training_results['batches']['total']}"
-        )
+            f"  Batches processed: {
+                training_results['batches']['completed']}/{
+                training_results['batches']['total']}")
         logger.info(
             f"  Success rate: {training_results['batches']['success_rate'] * 100:.2f}%"
         )

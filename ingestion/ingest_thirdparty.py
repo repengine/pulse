@@ -52,9 +52,11 @@ def fetch_twitter_signals():
                         "name": tweet.full_text[:64],
                         "value": float(tweet.favorite_count),
                         "source": "twitter",
-                        "timestamp": tweet.created_at.isoformat()
-                        if hasattr(tweet.created_at, "isoformat")
-                        else str(tweet.created_at),
+                        "timestamp": (
+                            tweet.created_at.isoformat()
+                            if hasattr(tweet.created_at, "isoformat")
+                            else str(tweet.created_at)
+                        ),
                     }
                     celery_app.send_task("ingest_and_score_signal", args=[signal_data])
                     logger.info(

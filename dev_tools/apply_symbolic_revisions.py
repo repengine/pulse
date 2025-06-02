@@ -81,8 +81,7 @@ def apply_symbolic_revisions(batch_path=None, plans_path=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Apply symbolic revisions to a batch of forecasts using revision plans."
-    )
+        description="Apply symbolic revisions to a batch of forecasts using revision plans.")
     parser.add_argument("--batch", required=True, help="Forecasts to revise (.jsonl)")
     parser.add_argument("--plans", required=True, help="Revision plans (.json)")
     args = parser.parse_args()

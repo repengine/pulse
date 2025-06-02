@@ -53,8 +53,10 @@ def load_and_display_forecasts(
                 if s["fragility"] not in ("-", None)
             ) / len(summaries)
             print(
-                f"\n📈 Summary — Total: {len(summaries)} | Avg Confidence: {avg_conf:.2f} | Avg Fragility: {avg_frag:.2f}"
-            )
+                f"\n📈 Summary — Total: {
+                    len(summaries)} | Avg Confidence: {
+                    avg_conf:.2f} | Avg Fragility: {
+                    avg_frag:.2f}")
         except Exception:
             pass
 

@@ -142,4 +142,5 @@ class TestForecastGenerator:
             assert "simple" in call_args
             assert "level1_value" in call_args
             # Note: current implementation only extracts one level of nesting
-            # If the code is updated to handle deeper nesting, this test should be updated
+            # If the code is updated to handle deeper nesting, this test should be
+            # updated

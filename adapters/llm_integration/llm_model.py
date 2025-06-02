@@ -314,8 +314,8 @@ class LLMModel:
         model_to_use = model_name or self.model_name
 
         logger.info(
-            f"Generating response with model: {model_to_use}, type: {self.model_type.value}"
-        )
+            f"Generating response with model: {model_to_use}, type: {
+                self.model_type.value}")
         logger.debug(f"Prompt (truncated): {prompt[:100]}...")
 
         # Handle different model types
@@ -335,7 +335,8 @@ class LLMModel:
 
                     # Check if the model is a chat model (starts with gpt-)
                     if model_to_use.startswith("gpt-"):
-                        # Process the prompt to extract messages if it's in the system message format
+                        # Process the prompt to extract messages if it's in the system
+                        # message format
                         if "You are " in prompt and "User Query:" in prompt:
                             # Extract system message and user query
                             system_message = prompt.split("User Query:")[0].strip()
@@ -352,7 +353,8 @@ class LLMModel:
                                 temperature=temperature,
                             )
                         else:
-                            # If not in the expected format, use the whole prompt as user message
+                            # If not in the expected format, use the whole prompt as
+                            # user message
                             response = self.client.chat.completions.create(
                                 model=model_to_use,
                                 messages=[{"role": "user", "content": prompt}],
@@ -393,12 +395,11 @@ class LLMModel:
                                 prompt_tokens, completion_tokens
                             )
                             logger.info(
-                                f"Token usage - Prompt: {prompt_tokens}, Completion: {completion_tokens}, Total: {total_tokens}, Est. cost: ${estimated_cost:.5f}"
-                            )
+                                f"Token usage - Prompt: {prompt_tokens}, Completion: {completion_tokens}, Total: {total_tokens}, Est. cost: ${
+                                    estimated_cost:.5f}")
                         else:
                             logger.info(
-                                f"Token usage - Prompt: {prompt_tokens}, Completion: {completion_tokens}, Total: {total_tokens}"
-                            )
+                                f"Token usage - Prompt: {prompt_tokens}, Completion: {completion_tokens}, Total: {total_tokens}")
 
                     return response_text
 
@@ -413,8 +414,8 @@ class LLMModel:
                         # Calculate exponential backoff delay with jitter
                         delay = base_delay * (2**retry_count) + (random.uniform(0, 1))
                         logger.info(
-                            f"Retrying in {delay:.2f} seconds... (attempt {retry_count}/{max_retries})"
-                        )
+                            f"Retrying in {
+                                delay:.2f} seconds... (attempt {retry_count}/{max_retries})")
                         time.sleep(delay)
                     else:
                         return error_message
@@ -434,7 +435,9 @@ class LLMModel:
         elif self.model_type == ModelType.MOCK:
             # Return a mock response for testing
             logger.info("Generating mock response")
-            return f"This is a mock response from the LLM model. Your prompt was: '{prompt[:50]}...'"
+            return f"This is a mock response from the LLM model. Your prompt was: '{
+                prompt[
+                    :50]}...'"
 
         return "Error: Unknown model type or configuration issue."
 
@@ -475,7 +478,8 @@ class LLMModel:
         Returns:
             Dict[str, Any]: Token usage statistics
         """
-        # This would ideally come from a persistent store, but for now we'll use a simple calculation
+        # This would ideally come from a persistent store, but for now we'll use a
+        # simple calculation
         if not hasattr(self, "_token_usage"):
             self._token_usage = {
                 "prompt_tokens": 0,

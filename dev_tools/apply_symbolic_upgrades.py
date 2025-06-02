@@ -63,8 +63,7 @@ def apply_symbolic_upgrades(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Apply symbolic upgrades to a batch of forecasts using an upgrade plan."
-    )
+        description="Apply symbolic upgrades to a batch of forecasts using an upgrade plan.")
     parser.add_argument(
         "--batch", required=True, help="Path to input forecasts (.jsonl)"
     )

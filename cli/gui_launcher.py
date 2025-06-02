@@ -127,7 +127,8 @@ def main():
     # Check dependencies
     deps_ok, missing_packages = check_dependencies()
     if not deps_ok:
-        message = f"Missing dependencies: {', '.join(missing_packages)}\n\nWould you like to install them now?"
+        message = f"Missing dependencies: {
+            ', '.join(missing_packages)}\n\nWould you like to install them now?"
         root = tk.Tk()
         root.withdraw()
         install = messagebox.askyesno("Missing Dependencies", message)

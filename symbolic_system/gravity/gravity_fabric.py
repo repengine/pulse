@@ -179,7 +179,7 @@ class GravityFabricMetrics:
 
         # Trim history if needed
         if len(self.correction_magnitudes) > self.max_history:
-            self.correction_magnitudes = self.correction_magnitudes[-self.max_history :]
+            self.correction_magnitudes = self.correction_magnitudes[-self.max_history:]
 
     def record_residual(self, magnitude: float) -> None:
         """Record a residual magnitude."""
@@ -187,7 +187,7 @@ class GravityFabricMetrics:
 
         # Trim history if needed
         if len(self.residual_magnitudes) > self.max_history:
-            self.residual_magnitudes = self.residual_magnitudes[-self.max_history :]
+            self.residual_magnitudes = self.residual_magnitudes[-self.max_history:]
 
     def record_update(self) -> None:
         """Record a weight update."""
@@ -819,7 +819,7 @@ class SymbolicGravityFabric:
         # Trim history if needed
         if len(self.residual_history[variable_name]) > self.config.max_history:
             self.residual_history[variable_name] = self.residual_history[variable_name][
-                -self.config.max_history :
+                -self.config.max_history:
             ]
 
         return point

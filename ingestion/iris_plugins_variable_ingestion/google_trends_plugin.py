@@ -38,7 +38,8 @@ class GoogleTrendsPlugin(IrisPluginManager):
 
     # Request configuration
     REQUEST_TIMEOUT = 30.0
-    RETRY_WAIT = 5.0  # seconds between retries (Google Trends can be sensitive to rapid requests)
+    # seconds between retries (Google Trends can be sensitive to rapid requests)
+    RETRY_WAIT = 5.0
     MAX_RETRIES = 3
 
     # Topic categories and their associated keywords
@@ -316,7 +317,8 @@ class GoogleTrendsPlugin(IrisPluginManager):
                         "name": f"gtrends_{category}_related_{normalized_topic}_{region_name}",
                         "value": interest_value,
                         "source": "google_trends_related",
-                        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+                        "timestamp": dt.datetime.now(
+                            dt.timezone.utc).isoformat(),
                         "metadata": {
                             "keyword": keyword,
                             "related_topic": topic_title,
@@ -370,7 +372,8 @@ class GoogleTrendsPlugin(IrisPluginManager):
 
             # Get interest by region
             if region_code == "":  # Global
-                # Get interest by country - using interest_by_region with the proper resolution
+                # Get interest by country - using interest_by_region with the proper
+                # resolution
                 interest_by_region_df = self.pytrends.interest_by_region(
                     resolution="COUNTRY"
                 )
@@ -403,7 +406,8 @@ class GoogleTrendsPlugin(IrisPluginManager):
                 "name": f"gtrends_{category}_{normalized_keyword}_avg_regional_interest",
                 "value": float(avg_interest),
                 "source": "google_trends_regional",
-                "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "timestamp": dt.datetime.now(
+                    dt.timezone.utc).isoformat(),
                 "metadata": {
                     "keyword": keyword,
                     "category": category,
@@ -436,8 +440,7 @@ class GoogleTrendsPlugin(IrisPluginManager):
             except (TypeError, ValueError, AttributeError) as e:
                 # Handle case where variance isn't calculable
                 logger.warning(
-                    f"Could not calculate variance for {keyword}: {e}, using default value"
-                )
+                    f"Could not calculate variance for {keyword}: {e}, using default value")
                 interest_variance = 0.0
 
             var_signal = {

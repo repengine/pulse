@@ -31,7 +31,8 @@ def propose_upgrades():
     # Aggregate divergence types
     divergences = load_jsonl(DIVERGENCE_LOG)
     div_counts = Counter(d.get("divergence_type", "unknown") for d in divergences)
-    # Propose upgrades: most frequent foreign variables/consequences, and most common divergence types
+    # Propose upgrades: most frequent foreign variables/consequences, and most
+    # common divergence types
     upgrades = {
         "proposed_variables": [
             v for v, c in var_counts.most_common(10) if v != "unknown"

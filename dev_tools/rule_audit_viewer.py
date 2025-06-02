@@ -23,8 +23,9 @@ def show_audit_from_forecast(forecast_path):
     print(f"📄 Forecast ID: {data.get('forecast_id')}")
     metadata = data.get("metadata", {})
     print(
-        f"Confidence: {metadata.get('confidence')} | Fragility: {metadata.get('fragility')}"
-    )
+        f"Confidence: {
+            metadata.get('confidence')} | Fragility: {
+            metadata.get('fragility')}")
     audit_log = metadata.get("rule_audit", [])
 
     print("\n🔍 Rule Audit Trail:")

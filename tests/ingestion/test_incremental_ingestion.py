@@ -68,9 +68,9 @@ def inspect_files(path, limit=3):
             result = {
                 "file": path,
                 "sample_lines": lines,
-                "more_lines": True
-                if limit < sum(1 for _ in open(path, "r"))
-                else False,
+                "more_lines": (
+                    True if limit < sum(1 for _ in open(path, "r")) else False
+                ),
             }
 
     return result

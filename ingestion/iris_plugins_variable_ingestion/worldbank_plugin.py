@@ -84,7 +84,7 @@ class WorldBankPlugin(IrisPluginManager):
         start_idx = (
             now.day % (len(self.COUNTRIES) // countries_per_day)
         ) * countries_per_day
-        today_countries = self.COUNTRIES[start_idx : start_idx + countries_per_day]
+        today_countries = self.COUNTRIES[start_idx: start_idx + countries_per_day]
 
         # Rotate through indicators similarly
         indicators_per_day = 5
@@ -93,7 +93,7 @@ class WorldBankPlugin(IrisPluginManager):
         ) * indicators_per_day
         indicator_items = list(self.INDICATORS.items())
         today_indicators = dict(
-            indicator_items[start_idx : start_idx + indicators_per_day]
+            indicator_items[start_idx: start_idx + indicators_per_day]
         )
 
         # Fetch data for each country and indicator combination
@@ -184,8 +184,7 @@ class WorldBankPlugin(IrisPluginManager):
 
             except (ValueError, KeyError, TypeError) as e:
                 logger.error(
-                    f"Error processing World Bank data for {country_code}/{indicator_code}: {e}"
-                )
+                    f"Error processing World Bank data for {country_code}/{indicator_code}: {e}")
 
         return signals
 

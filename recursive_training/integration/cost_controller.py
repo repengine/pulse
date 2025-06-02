@@ -315,13 +315,16 @@ class CostController:
             "monthly_cost_usd": self.current_month_cost,
             "total_cost_usd": self.total_cost,
             "status": self.current_status.value,
-            "daily_limit_percentage": (self.current_day_cost / self.daily_limit) * 100
-            if self.daily_limit > 0
-            else 0,
-            "monthly_limit_percentage": (self.current_month_cost / self.monthly_limit)
-            * 100
-            if self.monthly_limit > 0
-            else 0,
+            "daily_limit_percentage": (
+                (self.current_day_cost / self.daily_limit) * 100
+                if self.daily_limit > 0
+                else 0
+            ),
+            "monthly_limit_percentage": (
+                (self.current_month_cost / self.monthly_limit) * 100
+                if self.monthly_limit > 0
+                else 0
+            ),
         }
 
     def track_operation(
@@ -342,9 +345,9 @@ class CostController:
         """
         # Placeholder implementation - actual tracking logic goes here
         self.logger.debug(
-            f"Tracking operation: {operation_type}, data_size: {data_size}, duration: {duration}, cost: {cost}"
-        )
-        # In a real implementation, this would update internal metrics and potentially store in metrics_store
+            f"Tracking operation: {operation_type}, data_size: {data_size}, duration: {duration}, cost: {cost}")
+        # In a real implementation, this would update internal metrics and
+        # potentially store in metrics_store
 
     def check_cost_limit(self, estimated_cost: float = 0.0) -> bool:
         """
@@ -366,7 +369,9 @@ class CostController:
         new_daily_cost = self.current_day_cost + estimated_cost
         if new_daily_cost > self.daily_limit:
             raise CostLimitException(
-                f"Operation would exceed daily cost limit (${new_daily_cost:.2f} > ${self.daily_limit:.2f})",
+                f"Operation would exceed daily cost limit (${
+                    new_daily_cost:.2f} > ${
+                    self.daily_limit:.2f})",
                 new_daily_cost,
                 self.daily_limit,
             )
@@ -375,7 +380,9 @@ class CostController:
         new_monthly_cost = self.current_month_cost + estimated_cost
         if new_monthly_cost > self.monthly_limit:
             raise CostLimitException(
-                f"Operation would exceed monthly cost limit (${new_monthly_cost:.2f} > ${self.monthly_limit:.2f})",
+                f"Operation would exceed monthly cost limit (${
+                    new_monthly_cost:.2f} > ${
+                    self.monthly_limit:.2f})",
                 new_monthly_cost,
                 self.monthly_limit,
             )
@@ -384,7 +391,9 @@ class CostController:
         new_total_cost = self.total_cost + estimated_cost
         if new_total_cost > self.total_limit:
             raise CostLimitException(
-                f"Operation would exceed total cost limit (${new_total_cost:.2f} > ${self.total_limit:.2f})",
+                f"Operation would exceed total cost limit (${
+                    new_total_cost:.2f} > ${
+                    self.total_limit:.2f})",
                 new_total_cost,
                 self.total_limit,
             )
@@ -528,19 +537,21 @@ class CostController:
             "projected_cost_usd": daily_average * days_ahead,
             "projected_monthly_usd": daily_average * 30,  # 30-day month
             "projected_annual_usd": daily_average * 365,
-            "days_until_daily_limit": (self.daily_limit / daily_average)
-            if daily_average > 0
-            else float("inf"),
+            "days_until_daily_limit": (
+                (self.daily_limit / daily_average)
+                if daily_average > 0
+                else float("inf")
+            ),
             "days_until_monthly_limit": (
-                (self.monthly_limit - self.current_month_cost) / daily_average
-            )
-            if daily_average > 0
-            else float("inf"),
+                ((self.monthly_limit - self.current_month_cost) / daily_average)
+                if daily_average > 0
+                else float("inf")
+            ),
             "days_until_total_limit": (
-                (self.total_limit - self.total_cost) / daily_average
-            )
-            if daily_average > 0
-            else float("inf"),
+                ((self.total_limit - self.total_cost) / daily_average)
+                if daily_average > 0
+                else float("inf")
+            ),
         }
 
         return forecast

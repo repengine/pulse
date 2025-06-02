@@ -305,8 +305,9 @@ def gravity_correction_decorator(func: Callable) -> Callable:
 
         if abs(corrected - result) > 0.001:  # Only log if significant change
             logger.debug(
-                f"Gravity correction for {variable_name}: {result:.4f} → {corrected:.4f}"
-            )
+                f"Gravity correction for {variable_name}: {
+                    result:.4f} → {
+                    corrected:.4f}")
 
         return corrected
 

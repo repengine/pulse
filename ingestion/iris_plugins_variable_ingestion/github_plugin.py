@@ -172,8 +172,8 @@ class GithubPlugin(IrisPluginManager):
                         reset_time = int(resp.headers["X-RateLimit-Reset"])
                         sleep_time = max(1, reset_time - time.time())
                         logger.warning(
-                            f"GitHub API rate limit reached. Sleeping for {sleep_time:.1f} seconds."
-                        )
+                            f"GitHub API rate limit reached. Sleeping for {
+                                sleep_time:.1f} seconds.")
                         time.sleep(sleep_time)
                         continue
 

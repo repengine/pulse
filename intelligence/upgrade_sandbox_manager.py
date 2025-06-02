@@ -58,9 +58,10 @@ class UpgradeSandboxManager:
             print(f"[Sandbox] ✅ Upgrade proposal {upgrade_id} submitted.")
         except IOError as e:
             print(
-                f"[Sandbox] ❌ Error writing upgrade proposal to {self.pending_upgrades_path}: {e}"
-            )
-            # Depending on desired error handling, you might re-raise or return a specific error indicator
+                f"[Sandbox] ❌ Error writing upgrade proposal to {
+                    self.pending_upgrades_path}: {e}")
+            # Depending on desired error handling, you might re-raise or return a
+            # specific error indicator
             raise
         return upgrade_id
 
@@ -83,14 +84,14 @@ class UpgradeSandboxManager:
                         upgrades.append(upgrade.get("upgrade_id", "unknown"))
                     except json.JSONDecodeError as e:
                         print(
-                            f"[Sandbox] ❌ Error decoding JSON line in {self.pending_upgrades_path}: {e}"
-                        )
+                            f"[Sandbox] ❌ Error decoding JSON line in {
+                                self.pending_upgrades_path}: {e}")
                         # Continue processing other lines
                         continue
         except IOError as e:
             print(
-                f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}"
-            )
+                f"[Sandbox] ❌ Error reading pending upgrades from {
+                    self.pending_upgrades_path}: {e}")
             return []  # Return empty list on read error
         return upgrades
 
@@ -118,14 +119,14 @@ class UpgradeSandboxManager:
                             return upgrade
                     except json.JSONDecodeError as e:
                         print(
-                            f"[Sandbox] ❌ Error decoding JSON line while searching for {upgrade_id} in {self.pending_upgrades_path}: {e}"
-                        )
+                            f"[Sandbox] ❌ Error decoding JSON line while searching for {upgrade_id} in {
+                                self.pending_upgrades_path}: {e}")
                         # Continue searching other lines
                         continue
         except IOError as e:
             print(
-                f"[Sandbox] ❌ Error reading pending upgrades from {self.pending_upgrades_path}: {e}"
-            )
+                f"[Sandbox] ❌ Error reading pending upgrades from {
+                    self.pending_upgrades_path}: {e}")
             return None  # Return None on read error
         return None
 

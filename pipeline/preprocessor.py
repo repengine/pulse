@@ -14,7 +14,8 @@ class Preprocessor:
         """
         Load raw forecasts, retrodictions, and IRIS data from storage.
         """
-        # TODO: implement loading logic for PFPA archive, retrodiction memory, and IRIS snapshots
+        # TODO: implement loading logic for PFPA archive, retrodiction memory, and
+        # IRIS snapshots
         pass
 
     def merge_data(self) -> None:

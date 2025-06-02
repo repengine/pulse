@@ -78,8 +78,7 @@ class ForecastMemory:
                 )
                 if uuid_like:
                     logger.warning(
-                        f"UUID-like string in numeric field {numeric_field}: {val}. Setting to 0.0"
-                    )
+                        f"UUID-like string in numeric field {numeric_field}: {val}. Setting to 0.0")
                     forecast_obj[numeric_field] = 0.0
                 else:
                     try:
@@ -164,8 +163,8 @@ class ForecastMemory:
         """
         if license_loss_percent > threshold:
             print(
-                f"⚠️ Memory blocked due to license instability ({license_loss_percent:.1f}%)"
-            )
+                f"⚠️ Memory blocked due to license instability ({
+                    license_loss_percent:.1f}%)")
             try:
                 with open(BLOCKED_MEMORY_LOG, "a") as f:
                     for entry in self._memory:
@@ -210,7 +209,7 @@ class ForecastMemory:
     def _enforce_memory_limit(self) -> None:
         """Ensure memory does not exceed max_entries; prune oldest if needed."""
         if len(self._memory) > self.max_entries:
-            self._memory = self._memory[-self.max_entries :]
+            self._memory = self._memory[-self.max_entries:]
 
     def _persist_to_file(self, forecast_obj: Dict) -> None:
         if not self.persist_dir:

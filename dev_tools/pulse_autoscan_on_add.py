@@ -111,8 +111,8 @@ if __name__ == "__main__":
 
         if newest_change > last_scan:
             logger.info(
-                f"🔁 Detected new or modified file at {time.ctime(newest_change)}. Running hook scan..."
-            )
+                f"🔁 Detected new or modified file at {
+                    time.ctime(newest_change)}. Running hook scan...")
             try:
                 result = subprocess.run(
                     ["python", "dev_tools/pulse_scan_hooks.py"],

@@ -65,7 +65,8 @@ class CensusPlugin:
                 response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
                 data = response.json()
 
-                # Census API typically returns a list of lists, with the first list being headers
+                # Census API typically returns a list of lists, with the first list
+                # being headers
                 if data and len(data) > 1:
                     headers = data[0]
                     observations = [dict(zip(headers, row)) for row in data[1:]]
@@ -74,10 +75,11 @@ class CensusPlugin:
 
                     # Log progress
                     logging.info(
-                        f"Retrieved {batch_size} records, total: {len(all_observations)}"
-                    )
+                        f"Retrieved {batch_size} records, total: {
+                            len(all_observations)}")
 
-                    # Check if we received fewer records than requested - indicates end of data
+                    # Check if we received fewer records than requested - indicates end
+                    # of data
                     if batch_size < limit:
                         logging.info(
                             "Received fewer records than requested, ending pagination"
@@ -93,8 +95,7 @@ class CensusPlugin:
                         break
                 else:
                     logging.warning(
-                        f"No data found for Census endpoint {endpoint} with params {current_params}."
-                    )
+                        f"No data found for Census endpoint {endpoint} with params {current_params}.")
                     break
 
             except requests.exceptions.RequestException as e:
@@ -102,8 +103,8 @@ class CensusPlugin:
                 return None  # Return None on error
 
         logging.info(
-            f"Completed Census data retrieval with {len(all_observations)} total records"
-        )
+            f"Completed Census data retrieval with {
+                len(all_observations)} total records")
         return all_observations if all_observations else None
 
     def parse_date(self, date_string):
@@ -194,8 +195,7 @@ class CensusPlugin:
                             )  # Convert to ISO format for consistency
                         else:
                             logging.warning(
-                                f"Could not parse date format for '{timestamp_str}'. Skipping observation."
-                            )
+                                f"Could not parse date format for '{timestamp_str}'. Skipping observation.")
                             continue
 
                         # Extract additional metadata if available
@@ -222,16 +222,15 @@ class CensusPlugin:
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
                         logging.debug(
-                            f"Saved retail sales data point for {timestamp}: {value} {unit}"
-                        )
+                            f"Saved retail sales data point for {timestamp}: {value} {unit}")
                     except ValueError as e:
                         logging.error(
-                            f"Could not convert value '{value}' to float for Retail Sales on date {timestamp_str}: {str(e)}"
-                        )
+                            f"Could not convert value '{value}' to float for Retail Sales on date {timestamp_str}: {
+                                str(e)}")
                         continue
             print(
-                f"Successfully ingested {len(observations)} observations for Retail Sales."
-            )
+                f"Successfully ingested {
+                    len(observations)} observations for Retail Sales.")
         else:
             print("No data or error fetching data for Retail Sales.")
 
@@ -297,11 +296,11 @@ class CensusPlugin:
                             )  # Convert to ISO format for consistency
                         else:
                             logging.warning(
-                                f"Could not parse date format for '{timestamp_str}'. Skipping observation."
-                            )
+                                f"Could not parse date format for '{timestamp_str}'. Skipping observation.")
                             continue
 
-                        # Determine if this is a housing start or permit based on available fields
+                        # Determine if this is a housing start or permit based on
+                        # available fields
                         data_type = "STARTS" if "STARTS" in obs else "PERMITS"
 
                         # Extract additional metadata if available
@@ -329,16 +328,15 @@ class CensusPlugin:
                         }
                         save_data_point_incremental(data_point, "economic_indicators")
                         logging.debug(
-                            f"Saved {data_type} data point for {timestamp}: {value} {unit}"
-                        )
+                            f"Saved {data_type} data point for {timestamp}: {value} {unit}")
                     except ValueError as e:
                         logging.error(
-                            f"Could not convert value '{value}' to float for {data_type} on date {timestamp_str}: {str(e)}"
-                        )
+                            f"Could not convert value '{value}' to float for {data_type} on date {timestamp_str}: {
+                                str(e)}")
                         continue
             print(
-                f"Successfully ingested {len(observations)} observations for Housing Starts & Building Permits."
-            )
+                f"Successfully ingested {
+                    len(observations)} observations for Housing Starts & Building Permits.")
         else:
             print(
                 "No data or error fetching data for Housing Starts & Building Permits."

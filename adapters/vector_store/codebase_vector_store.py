@@ -63,7 +63,8 @@ class CodebaseVectorStore:
         embeddings = np.array(embeddings).astype("float32")
 
         # Add embeddings to the Faiss index
-        # Note: Ignoring Pylance warnings about parameter names as faiss bindings work correctly at runtime
+        # Note: Ignoring Pylance warnings about parameter names as faiss bindings
+        # work correctly at runtime
         try:
             self.index.add(embeddings)
             logger.debug(f"Added {embeddings.shape[0]} embeddings to index")
@@ -71,12 +72,14 @@ class CodebaseVectorStore:
             logger.error(f"Error adding embeddings to index: {str(e)}")
             raise
 
-        # Store metadata, maintaining the same order as the embeddings added to the index
+        # Store metadata, maintaining the same order as the embeddings added to
+        # the index
         self.document_metadata.extend(metadata)
 
         logger.info(
-            f"Added {len(documents)} documents to the vector store. Total documents: {self.index.ntotal}"
-        )
+            f"Added {
+                len(documents)} documents to the vector store. Total documents: {
+                self.index.ntotal}")
 
     def search(self, query, k=5):
         """
@@ -104,7 +107,8 @@ class CodebaseVectorStore:
         )  # Faiss expects a 2D array
 
         # Perform search
-        # Note: Ignoring Pylance warnings about parameter names as faiss bindings work correctly at runtime
+        # Note: Ignoring Pylance warnings about parameter names as faiss bindings
+        # work correctly at runtime
         try:
             distances, indices = self.index.search(query_embedding, k)
             logger.debug(f"Search returned {len(indices[0])} results")
@@ -122,7 +126,8 @@ class CodebaseVectorStore:
                 )  # Convert from numpy float to Python float
                 metadata = self.document_metadata[doc_index]
 
-                # Get the text from our stored document_texts to ensure we have the right text
+                # Get the text from our stored document_texts to ensure we have the
+                # right text
                 text = (
                     self.document_texts[doc_index]
                     if doc_index < len(self.document_texts)

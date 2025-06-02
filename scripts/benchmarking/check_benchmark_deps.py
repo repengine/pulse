@@ -4,6 +4,13 @@ Check if all dependencies for the retrodiction benchmarking are available.
 
 import importlib
 import sys
+import os
+from pathlib import Path
+
+# Add the project root to Python path so we can import local modules
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 required_packages = [
     ("cProfile", "Part of Python standard library for profiling"),
@@ -17,7 +24,7 @@ required_packages = [
         "recursive_training.advanced_metrics.retrodiction_curriculum",
         "Pulse's retrodiction curriculum",
     ),
-    ("core.optimized_trust_tracker", "Pulse's optimized trust tracker"),
+    ("analytics.optimized_trust_tracker", "Pulse's optimized trust tracker"),
     ("causal_model.optimized_discovery", "Pulse's optimized causal discovery"),
 ]
 

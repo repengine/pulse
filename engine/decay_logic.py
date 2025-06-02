@@ -9,7 +9,9 @@ Author: Pulse v3.5
 """
 
 from engine.worldstate import WorldState
-# Removed hardcoded DEFAULT_DECAY_RATE import; using YAML config via config_loader instead.
+
+# Removed hardcoded DEFAULT_DECAY_RATE import; using YAML config via
+# config_loader instead.
 
 
 from typing import Optional

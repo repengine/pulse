@@ -78,8 +78,7 @@ class EnhancedRetrodictionCurriculum:
             A list of data points (dictionaries) selected for the next training iteration.
         """
         self.logger.info(
-            f"Selecting data for iteration {current_iteration} using enhanced curriculum."
-        )
+            f"Selecting data for iteration {current_iteration} using enhanced curriculum.")
         self.cost_controller.track_operation(
             operation_type="curriculum_data_selection", cost=0.01
         )  # Track cost
@@ -112,7 +111,8 @@ class EnhancedRetrodictionCurriculum:
                 predicted_probs = model.predict_proba(all_data)
 
                 for i, data_point in enumerate(all_data):
-                    # Example: Use the variance of predicted probabilities as uncertainty score
+                    # Example: Use the variance of predicted probabilities as
+                    # uncertainty score
                     if (
                         NUMPY_AVAILABLE
                         and np is not None
@@ -167,8 +167,8 @@ class EnhancedRetrodictionCurriculum:
         # If performance is degrading, prioritize uncertain data
         if is_degrading:
             self.logger.info(
-                f"Performance degrading. Prioritizing {len(uncertain_data)} uncertain data points."
-            )
+                f"Performance degrading. Prioritizing {
+                    len(uncertain_data)} uncertain data points.")
             prioritized_data.extend(uncertain_data)
             # Add remaining data randomly
             import random
@@ -231,7 +231,8 @@ class EnhancedRetrodictionCurriculum:
                 self.uncertainty_threshold_multiplier * 0.9, 1.0
             )
         else:
-            # If performance is stable or improving, gradually reduce focus on uncertain data
+            # If performance is stable or improving, gradually reduce focus on
+            # uncertain data
             self.uncertainty_sampling_ratio = max(
                 self.uncertainty_sampling_ratio - 0.05, 0.1
             )
@@ -240,9 +241,9 @@ class EnhancedRetrodictionCurriculum:
             )
 
         self.logger.info(
-            f"Curriculum updated: uncertainty_sampling_ratio={self.uncertainty_sampling_ratio:.2f}, "
-            f"uncertainty_threshold_multiplier={self.uncertainty_threshold_multiplier:.2f}"
-        )
+            f"Curriculum updated: uncertainty_sampling_ratio={
+                self.uncertainty_sampling_ratio:.2f}, " f"uncertainty_threshold_multiplier={
+                self.uncertainty_threshold_multiplier:.2f}")
 
     def get_curriculum_state(self) -> Dict[str, Any]:
         """

@@ -57,7 +57,8 @@ class ManualOPECPlugin(IrisPluginManager):
                 # Assuming the data file is a CSV inside the zip.
                 # We might need to inspect the zip content to confirm the exact filename.
                 # For now, let's assume a common naming convention or the first file.
-                # A more robust approach would be to check for a file with a .csv extension.
+                # A more robust approach would be to check for a file with a .csv
+                # extension.
                 data_filename = None
                 for name in zf.namelist():
                     if name.endswith(".csv"):
@@ -74,7 +75,8 @@ class ManualOPECPlugin(IrisPluginManager):
 
                     for row in reader:
                         try:
-                            # Assuming columns 'date' and 'value' based on reference file
+                            # Assuming columns 'date' and 'value' based on reference
+                            # file
                             date_str = row.get("date")
                             value_str = row.get("value")
 

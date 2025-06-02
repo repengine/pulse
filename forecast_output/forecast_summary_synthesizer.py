@@ -146,9 +146,9 @@ def summarize_forecasts(
             },
             "arc_drift_summary": arc_drift,
             "arc_volatility_score": arc_volatility if USE_SYMBOLIC_OVERLAYS else None,
-            "symbolic_fragmented": f.get("symbolic_fragmented", False)
-            if USE_SYMBOLIC_OVERLAYS
-            else None,
+            "symbolic_fragmented": (
+                f.get("symbolic_fragmented", False) if USE_SYMBOLIC_OVERLAYS else None
+            ),
         }
         if arc_drift and USE_SYMBOLIC_OVERLAYS:
             scenario["symbolic_arc_drift"] = arc_drift

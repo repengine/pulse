@@ -7,6 +7,7 @@ This test suite verifies:
 4. Output signal format correctness
 """
 
+from ingestion.iris_plugins_variable_ingestion.nasa_power_plugin import NasaPowerPlugin
 import unittest
 import os
 import sys
@@ -14,8 +15,6 @@ from unittest.mock import patch
 
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from ingestion.iris_plugins_variable_ingestion.nasa_power_plugin import NasaPowerPlugin
 
 
 class MockResponse:

@@ -195,7 +195,8 @@ def clean_and_impute_data(data: dict) -> dict:
             # Interpolate missing values using linear interpolation
             df_indexed["value"] = df_indexed["value"].interpolate(method="linear")
 
-            # If there are still NaN values at the beginning or end, use forward/backward fill
+            # If there are still NaN values at the beginning or end, use
+            # forward/backward fill
             if df_indexed["value"].isna().any():
                 df_indexed["value"] = df_indexed["value"].ffill().bfill()
 
@@ -365,8 +366,7 @@ def execute_data_ingestion():
 
         # Import the plugin
         from ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin import (
-            historical_ingestion_plugin,
-        )
+            historical_ingestion_plugin, )
 
         # Run the plugin
         logger.info("Running historical_ingestion_plugin...")
@@ -396,7 +396,8 @@ def execute_data_ingestion():
             variable_data = []
             for date_signals in historical_data_by_date:
                 for signal in date_signals:
-                    # Check if we're dealing with a dictionary or a pandas Series or DataFrame
+                    # Check if we're dealing with a dictionary or a pandas Series or
+                    # DataFrame
                     if isinstance(signal, dict):
                         signal_name = signal.get("name")
                         if signal_name == variable_name:
@@ -567,8 +568,8 @@ def main():
         # 5. Log a summary
         successful = sum(1 for v in results.values() if v.get("success", False))
         logger.info(
-            f"Completed historical data improvement: {successful}/{len(results)} variables successfully processed"
-        )
+            f"Completed historical data improvement: {successful}/{
+                len(results)} variables successfully processed")
 
     except Exception as e:
         logger.error(f"Error in main process: {e}")

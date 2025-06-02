@@ -19,6 +19,8 @@ Usage:
     python scripts/run_causal_benchmarks.py --output custom_output.jsonl
 """
 
+from engine.batch_runner import run_batch_from_config
+from engine.path_registry import PATHS
 import os
 import sys
 import json
@@ -31,8 +33,6 @@ from typing import Dict, List, Any
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from engine.path_registry import PATHS
-from engine.batch_runner import run_batch_from_config
 
 # Default paths and configuration
 DEFAULT_OUTPUT_DIR = PATHS.get(
@@ -41,7 +41,8 @@ DEFAULT_OUTPUT_DIR = PATHS.get(
 DEFAULT_SCENARIOS_FILE = PATHS.get(
     "CAUSAL_BENCHMARKS_CONFIG", "config/causal_benchmark_scenarios.yaml"
 )
-DEFAULT_OUTPUT_FILENAME = f"causal_benchmark_results_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+DEFAULT_OUTPUT_FILENAME = f"causal_benchmark_results_{
+    datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
 
 # Sample benchmark scenarios (hardcoded for initial implementation)
 # These could be moved to a configuration file in the future
@@ -316,16 +317,16 @@ def calculate_metrics(
         "overall_accuracy": metrics["accuracy"]["overall"],
         "overall_drift": metrics["drift"]["overall"],
         "variable_count": len(metrics["accuracy"]["by_variable"]),
-        "best_variable": max(
-            metrics["accuracy"]["by_variable"].items(), key=lambda x: x[1]
-        )[0]
-        if metrics["accuracy"]["by_variable"]
-        else None,
-        "worst_variable": min(
-            metrics["accuracy"]["by_variable"].items(), key=lambda x: x[1]
-        )[0]
-        if metrics["accuracy"]["by_variable"]
-        else None,
+        "best_variable": (
+            max(metrics["accuracy"]["by_variable"].items(), key=lambda x: x[1])[0]
+            if metrics["accuracy"]["by_variable"]
+            else None
+        ),
+        "worst_variable": (
+            min(metrics["accuracy"]["by_variable"].items(), key=lambda x: x[1])[0]
+            if metrics["accuracy"]["by_variable"]
+            else None
+        ),
     }
 
     return metrics
@@ -386,9 +387,11 @@ def run_causal_benchmarks(
                 {
                     "name": r["scenario"].get("name", "unnamed"),
                     "success": "error" not in r,
-                    "metrics": r.get("metrics", {}).get("summary", {})
-                    if "metrics" in r
-                    else {},
+                    "metrics": (
+                        r.get("metrics", {}).get("summary", {})
+                        if "metrics" in r
+                        else {}
+                    ),
                 }
                 for r in all_results
             ],
@@ -419,7 +422,9 @@ def main():
     )
     parser.add_argument(
         "--method",
-        choices=["programmatic", "subprocess"],
+        choices=[
+            "programmatic",
+            "subprocess"],
         default="programmatic",
         help="Method to run benchmarks (programmatic or subprocess) (default: programmatic)",
     )

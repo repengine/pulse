@@ -230,7 +230,8 @@ class TestS3DataStore:
 
             # Patch _get_optimized_storage_path on the S3DataStore class.
             # This ensures that any call to this method on an S3DataStore instance (or through super() from S3DataStore)
-            # will hit this mock. _get_optimized_storage_path is defined in OptimizedDataStore.
+            # will hit this mock. _get_optimized_storage_path is defined in
+            # OptimizedDataStore.
             with patch(
                 "recursive_training.data.s3_data_store.S3DataStore._get_optimized_storage_path",
                 return_value=Path(local_path),
@@ -247,13 +248,15 @@ class TestS3DataStore:
                         )
 
                         # --- Assertions ---
-                        # 1. Check if datetime.now was called (it's called with timezone.utc)
+                        # 1. Check if datetime.now was called (it's called with
+                        # timezone.utc)
                         mock_datetime_in_module.now.assert_any_call(timezone.utc)
                         # Check if strftime was called on the object returned by now()
                         mock_returned_datetime_obj.strftime.assert_called_with(
                             "%Y%m%d%H%M%S"
                         )
-                        # Check if isoformat was called on the object returned by now() for metadata
+                        # Check if isoformat was called on the object returned by now()
+                        # for metadata
                         mock_returned_datetime_obj.isoformat.assert_called_with()
 
                         # 2. Check if the optimized path was retrieved correctly
@@ -265,7 +268,8 @@ class TestS3DataStore:
                         # This is os.path.exists(local_path) in S3DataStore.store_dataset_s3
                         # and also os.path.exists(path) in OptimizedDataStore._optimized_storage_to_dataframe
                         # if PYARROW_AVAILABLE is false, or if the file is not parquet/hdf5.
-                        # The mock for _get_optimized_storage_path should make path = local_path.
+                        # The mock for _get_optimized_storage_path should make path =
+                        # local_path.
                         mock_exists.assert_any_call(Path(local_path))
 
                         # 4. Check if the upload was attempted with correct args

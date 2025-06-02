@@ -91,8 +91,11 @@ class FinancialNewsPlugin(IrisPluginManager):
         if self.alphavantage_api_key or self.newsapi_key:
             self.enabled = True
             logger.info(
-                f"Financial News plugin enabled with {sum(bool(k) for k in [self.alphavantage_api_key, self.newsapi_key])} API key(s)"
-            )
+                f"Financial News plugin enabled with {
+                    sum(
+                        bool(k) for k in [
+                            self.alphavantage_api_key,
+                            self.newsapi_key])} API key(s)")
         else:
             logger.warning("No Financial News API keys found in environment variables")
 

@@ -42,7 +42,9 @@ class ShadowModelMonitor:
         self.delta_window: deque[tuple[dict[str, float], dict[str, float]]] = deque(
             maxlen=window_steps
         )
-        self.current_step_internal = 0  # For internal tracking if needed, though `current_step` is passed in `record_step`
+        # For internal tracking if needed, though `current_step` is passed in
+        # `record_step`
+        self.current_step_internal = 0
 
     def record_step(
         self,
@@ -97,8 +99,7 @@ class ShadowModelMonitor:
         """
         if variable not in self.critical_variables:
             logger.warning(
-                f"Variable '{variable}' not in critical_variables list for ShadowModelMonitor."
-            )
+                f"Variable '{variable}' not in critical_variables list for ShadowModelMonitor.")
             return -1.0  # Or raise error
 
         if not self.delta_window:
@@ -148,10 +149,11 @@ class ShadowModelMonitor:
                 problematic_vars.append(var)
                 triggered = True
                 logger.debug(
-                    f"ShadowModelMonitor: Variable '{var}' exceeded threshold. "
-                    f"Gravity explained {variance_explained_by_gravity * 100:.2f}% of variance "
-                    f"(Threshold: {self.threshold * 100:.2f}%)."
-                )
+                    f"ShadowModelMonitor: Variable '{var}' exceeded threshold. " f"Gravity explained {
+                        variance_explained_by_gravity *
+                        100:.2f}% of variance " f"(Threshold: {
+                        self.threshold *
+                        100:.2f}%).")
 
         return triggered, problematic_vars
 
@@ -208,8 +210,8 @@ if __name__ == "__main__":
             for var_to_check in monitor.critical_variables:
                 ve = monitor.calculate_variance_explained(var_to_check)
                 logger.info(
-                    f"Variance explained by gravity for '{var_to_check}': {ve * 100:.2f}%"
-                )
+                    f"Variance explained by gravity for '{var_to_check}': {
+                        ve * 100:.2f}%")
 
             triggered, problematic_vars = monitor.check_trigger()
             if triggered:

@@ -167,4 +167,5 @@ if __name__ == "__main__":
 
 # Example usage:
 # python rule_fingerprint_expander.py --delta hope=0.1 despair=-0.05 --test-data test_deltas.json
-# python rule_fingerprint_expander.py --input forecasts.json --min-conf 0.7 --approve --output approved_suggestions.json
+# python rule_fingerprint_expander.py --input forecasts.json --min-conf
+# 0.7 --approve --output approved_suggestions.json

@@ -3,7 +3,8 @@ Module for calculating technical indicators from high-frequency data.
 """
 
 # from data.high_frequency_data_access import HighFrequencyDataAccess # Commented out due to missing module
-# from data.high_frequency_data_store import HighFrequencyDataStore # Commented out due to missing module
+# from data.high_frequency_data_store import HighFrequencyDataStore #
+# Commented out due to missing module
 
 # class HighFrequencyIndicators:
 #     def __init__(self, data_access: HighFrequencyDataAccess):

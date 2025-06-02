@@ -66,8 +66,7 @@ def export_digest(
                 with open(str(path), "w", encoding="utf-8") as f:
                     f.write("<pre>\n" + digest_str + "\n</pre>")
                 logger.info(
-                    f"Digest HTML exported to {path} (preformatted, markdown2 not installed)"
-                )
+                    f"Digest HTML exported to {path} (preformatted, markdown2 not installed)")
         else:
             with open(str(path), "w", encoding="utf-8") as f:
                 f.write(digest_str)

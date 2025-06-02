@@ -11,22 +11,19 @@ Demonstration of the enhanced symbolic overlay system showing the key improvemen
 This script demonstrates a complete workflow using the improved symbolic overlay system.
 """
 
+from typing import Optional
+from symbolic_system.optimization import get_symbolic_cache
+from symbolic_system.numeric_transforms import get_numeric_transformer
+from symbolic_system.config import get_symbolic_config
+from symbolic_system.overlays import apply_overlay_interactions
+from symbolic_system.context import enter_retrodiction_mode, enter_simulation_mode
+from engine.worldstate import WorldState
 import os
 import sys
 import time
 
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from engine.worldstate import WorldState
-from symbolic_system.context import enter_retrodiction_mode, enter_simulation_mode
-from symbolic_system.overlays import apply_overlay_interactions
-from symbolic_system.config import get_symbolic_config
-from symbolic_system.numeric_transforms import get_numeric_transformer
-from symbolic_system.optimization import get_symbolic_cache
-
-
-from typing import Optional
 
 
 def print_divider(title: str) -> None:
@@ -130,15 +127,18 @@ def demo_performance_optimization() -> None:
     print(f"Time taken: {second_call_time:.5f} seconds")
 
     # Should be faster using cache
-    print(
-        f"Speed improvement: {first_call_time / max(second_call_time, 0.0001):.1f}x faster"
-    )
+    print(f"Speed improvement: {first_call_time /
+                                max(second_call_time, 0.0001):.1f}x faster")
 
     print("\nCache statistics:")
     print(f"  Cache size: {len(cache.cache)} entries")
+    total_accesses = cache.hits + cache.misses
+    hit_rate_percentage = (
+        (cache.hits / total_accesses * 100) if total_accesses > 0 else 0
+    )
     print(
-        f"  Hit rate: {cache.hits}/{cache.hits + cache.misses} "
-        f"({cache.hits / (cache.hits + cache.misses) * 100:.1f}% if non-zero)"
+        f"  Hit rate: {cache.hits}/{total_accesses} "
+        f"({hit_rate_percentage:.1f}% if non-zero)"
     )
 
 
@@ -282,14 +282,20 @@ def demo_overlay_sophistication() -> None:
 
     print("Relationship strengths:")
     print(
-        f"  optimism → confidence: {state.overlays.get_relationship('optimism', 'confidence'):.2f}"
-    )
+        f"  optimism → confidence: {
+            state.overlays.get_relationship(
+                'optimism',
+                'confidence'):.2f}")
     print(
-        f"  anxiety → uncertainty: {state.overlays.get_relationship('anxiety', 'uncertainty'):.2f}"
-    )
+        f"  anxiety → uncertainty: {
+            state.overlays.get_relationship(
+                'anxiety',
+                'uncertainty'):.2f}")
     print(
-        f"  confidence → anxiety: {state.overlays.get_relationship('confidence', 'anxiety'):.2f}"
-    )
+        f"  confidence → anxiety: {
+            state.overlays.get_relationship(
+                'confidence',
+                'anxiety'):.2f}")
 
 
 def demo_symbolic_numeric_integration() -> None:
@@ -328,9 +334,12 @@ def demo_symbolic_numeric_integration() -> None:
     print("Applied transformations:")
     for t in transformations:
         print(
-            f"  {t['indicator']:<15} → {t['overlay']:<10}: {t['from_value']:.2f} → {t['to_value']:.2f} "
-            f"(confidence: {t['confidence']:.2f})"
-        )
+            f"  {
+                t['indicator']:<15} → {
+                t['overlay']:<10}: {
+                t['from_value']:.2f} → {
+                    t['to_value']:.2f} " f"(confidence: {
+                        t['confidence']:.2f})")
 
     print_overlays(state, "After applying market indicators")
 

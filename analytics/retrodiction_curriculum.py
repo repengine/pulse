@@ -117,7 +117,7 @@ class RetrodictionCurriculumManager:
             summary[tag] = summary.get(tag, 0) + 1
         return summary
 
-    ### --- Mock functions for testing ---
+    # --- Mock functions for testing ---
     def mock_run_historical_retrodiction(
         self, worldstate: Dict[str, Any]
     ) -> Dict[str, Any]:

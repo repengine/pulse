@@ -48,8 +48,10 @@ class BLSPlugin:
                     return None
             else:
                 print(
-                    f"BLS API request failed for {series_id}: {result.get('message', 'Unknown error')}"
-                )
+                    f"BLS API request failed for {series_id}: {
+                        result.get(
+                            'message',
+                            'Unknown error')}")
                 return None
 
         except requests.exceptions.RequestException as e:
@@ -59,7 +61,8 @@ class BLSPlugin:
     def ingest_inflation_measures(self):
         # TODO: Find and add BLS series IDs for inflation measures (e.g., CPI)
         series_ids = {
-            "CONSUMER_PRICE_INDEX_ALL_URBAN": "CUUR0000SA0",  # Example: CPI for All Urban Consumers, All Items
+            # Example: CPI for All Urban Consumers, All Items
+            "CONSUMER_PRICE_INDEX_ALL_URBAN": "CUUR0000SA0",
             # Add other relevant series IDs here (e.g., PPI)
         }
         print("Ingesting Inflation Measures from BLS...")
@@ -101,8 +104,7 @@ class BLSPlugin:
                         date_str = f"{year}-12-31"
                     else:
                         print(
-                            f"Unknown periodicity {periodicity} for series {series_id}. Skipping observation."
-                        )
+                            f"Unknown periodicity {periodicity} for series {series_id}. Skipping observation.")
                         continue
 
                     try:
@@ -116,8 +118,8 @@ class BLSPlugin:
                         )
                     except ValueError:
                         print(
-                            f"Could not convert value '{obs['value']}' to float for series {series_id} on date {date_str}. Skipping observation."
-                        )
+                            f"Could not convert value '{
+                                obs['value']}' to float for series {series_id} on date {date_str}. Skipping observation.")
                         continue
 
                 print(
@@ -127,9 +129,11 @@ class BLSPlugin:
                 print(f"No data or error fetching data for {name} ({series_id})")
 
     def ingest_unemployment_labor_force(self):
-        # TODO: Find and add BLS series IDs for unemployment and labor force participation
+        # TODO: Find and add BLS series IDs for unemployment and labor force
+        # participation
         series_ids = {
-            "BLS_UNEMPLOYMENT_RATE_CIVILIAN": "LNS14000000",  # Example: Unemployment Rate - 16 Years & Over
+            # Example: Unemployment Rate - 16 Years & Over
+            "BLS_UNEMPLOYMENT_RATE_CIVILIAN": "LNS14000000",
             # Add other relevant series IDs here (e.g., Labor Force Participation Rate)
         }
         print("Ingesting Unemployment & Labor Force from BLS...")
@@ -164,8 +168,7 @@ class BLSPlugin:
                         date_str = f"{year}-12-31"
                     else:
                         print(
-                            f"Unknown periodicity {periodicity} for series {series_id}. Skipping observation."
-                        )
+                            f"Unknown periodicity {periodicity} for series {series_id}. Skipping observation.")
                         continue
 
                     try:
@@ -179,8 +182,8 @@ class BLSPlugin:
                         )
                     except ValueError:
                         print(
-                            f"Could not convert value '{obs['value']}' to float for series {series_id} on date {date_str}. Skipping observation."
-                        )
+                            f"Could not convert value '{
+                                obs['value']}' to float for series {series_id} on date {date_str}. Skipping observation.")
                         continue
 
                 print(

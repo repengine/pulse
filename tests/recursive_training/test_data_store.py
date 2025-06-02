@@ -346,7 +346,9 @@ class TestRecursiveDataStore:
                     return [mock_file_old_item1_latest, mock_file_old_item1_meta]
                 elif path_instance_on_which_glob_was_called == expected_old_item2_dir:
                     return [mock_file_old_item2_latest, mock_file_old_item2_meta]
-            return []  # Important: recent_item dirs will return empty, so no os.remove for them
+            return (
+                []
+            )  # Important: recent_item dirs will return empty, so no os.remove for them
 
         # Mock the logger's error method
         mock_logger_error = MagicMock()

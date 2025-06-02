@@ -156,8 +156,8 @@ class PathSanitizingDataStore:
             json.dump(list(countries), f, indent=2)
 
         logger.info(
-            f"Stored dataset {dataset_name} using fallback method with {len(countries)} countries"
-        )
+            f"Stored dataset {dataset_name} using fallback method with {
+                len(countries)} countries")
 
 
 # Set up logging
@@ -502,7 +502,8 @@ def prepare_world_bank_catalog_entries() -> List[Dict[str, Any]]:
             "variable_name": info["variable_name"],
             "source": "world_bank_bulk",
             "api_endpoint": indicator,
-            "required_parameters": {"source": "WorldBank"},
+            "required_parameters": {
+                "source": "WorldBank"},
             "data_type": info["data_type"],
             "update_frequency": info["update_frequency"],
             "limitations": "Annual data only, may have reporting delays and missing values",
@@ -569,7 +570,8 @@ def load_world_bank_data_to_store(
                 "variable_name": variable_name,
                 "source": "world_bank_bulk",
                 "api_endpoint": indicator_code,
-                "required_parameters": {"source": "WorldBank"},
+                "required_parameters": {
+                    "source": "WorldBank"},
                 "data_type": "float",
                 "update_frequency": "annual",
                 "limitations": "Annual data only, may have reporting delays and missing values",
@@ -759,8 +761,7 @@ def integrate_world_bank_data(
 def main():
     """Command-line interface for World Bank data integration."""
     parser = argparse.ArgumentParser(
-        description="Integrate World Bank historical data into the Pulse historical data pipeline"
-    )
+        description="Integrate World Bank historical data into the Pulse historical data pipeline")
 
     input_group = parser.add_mutually_exclusive_group(required=False)
     input_group.add_argument("--file", type=str, help="Path to World Bank CSV file")

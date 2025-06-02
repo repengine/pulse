@@ -140,7 +140,8 @@ def test_get_overlays_dict(basic_worldstate):
     mock_state_with_as_dict.overlays.as_dict.return_value = {"mock_overlay": 0.7}
     assert get_overlays_dict(mock_state_with_as_dict) == {"mock_overlay": 0.7}
 
-    # Test with a dict directly assigned to overlays (should not happen with proper WorldState init, but for robustness)
+    # Test with a dict directly assigned to overlays (should not happen with
+    # proper WorldState init, but for robustness)
     mock_state_with_dict_overlays = MagicMock()
     mock_state_with_dict_overlays.overlays = {"dict_overlay": 0.3}
     assert get_overlays_dict(mock_state_with_dict_overlays) == {"dict_overlay": 0.3}
@@ -184,8 +185,8 @@ def test_simulate_turn_summary(
 ):
     """Test simulate_turn in summary mode."""
     # Configure mock_copy_overlay to return a dict representation
-    mock_copy_overlay.side_effect = (
-        lambda x: x.as_dict() if hasattr(x, "as_dict") else dict(x)
+    mock_copy_overlay.side_effect = lambda x: (
+        x.as_dict() if hasattr(x, "as_dict") else dict(x)
     )
 
     mock_tag_symbolic_state.return_value = {
@@ -238,8 +239,8 @@ def test_simulate_turn_full(
 ):
     """Test simulate_turn in full mode."""
     # Configure mock_copy_overlay
-    mock_copy_overlay.side_effect = (
-        lambda x: x.as_dict() if hasattr(x, "as_dict") else dict(x)
+    mock_copy_overlay.side_effect = lambda x: (
+        x.as_dict() if hasattr(x, "as_dict") else dict(x)
     )
 
     mock_tag_symbolic_state.return_value = {
@@ -453,7 +454,8 @@ def test_simulate_backward(
         "arc_certainty": 0.7,
     }
     mock_reverse_rule_engine.return_value = {"inferred": "data"}
-    # Make sure the mock is properly configured - force side_effect for consistent behavior
+    # Make sure the mock is properly configured - force side_effect for
+    # consistent behavior
     mock_reverse_rule_engine.side_effect = lambda *args: {
         "rule_chains": [],
         "symbolic_tags": [],

@@ -150,7 +150,8 @@ class FunctionRouter:
         except Exception as exc:
             self._log(
                 "❌ Function execution failed",
-                f"{module_path}.{func_name}() for verb '{verb}' → {type(exc).__name__}: {exc}",
+                f"{module_path}.{func_name}() for verb '{verb}' → {
+                    type(exc).__name__}: {exc}",
             )
             raise  # Re-raise the original exception
 

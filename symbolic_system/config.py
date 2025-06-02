@@ -190,8 +190,8 @@ class SymbolicConfig:
             logger.info(f"Switched to symbolic profile: {profile_name}")
         else:
             logger.warning(
-                f"Profile '{profile_name}' not found, staying with {self._active_profile}"
-            )
+                f"Profile '{profile_name}' not found, staying with {
+                    self._active_profile}")
 
     def get_active_profile(self) -> str:
         """Get the name of the active profile"""

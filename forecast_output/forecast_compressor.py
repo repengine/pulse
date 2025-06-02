@@ -93,8 +93,9 @@ def flag_drift_sensitive_forecasts(
         unstable_overlays = set()
 
     logger.info(
-        f"Found {len(volatile_rules)} volatile rules and {len(unstable_overlays)} unstable overlays"
-    )
+        f"Found {
+            len(volatile_rules)} volatile rules and {
+            len(unstable_overlays)} unstable overlays")
 
     for fc in forecasts:
         if not isinstance(fc, dict):
@@ -222,7 +223,8 @@ def compress_forecasts(
 
     if summarize:
         try:
-            # Always call summarize_forecasts after compression for downstream integration.
+            # Always call summarize_forecasts after compression for downstream
+            # integration.
             summarize_forecasts(compressed)
         except Exception as e:
             logger.warning(f"Summary synthesizer failed: {e}")

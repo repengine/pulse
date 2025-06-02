@@ -67,8 +67,8 @@ class EnsembleManager:
                 val = float(output.get("value", 0.0))
             except (ValueError, TypeError):
                 logger.warning(
-                    f"Invalid value for model '{name}': {output.get('value')}. Using default 0.0"
-                )
+                    f"Invalid value for model '{name}': {
+                        output.get('value')}. Using default 0.0")
                 val = 0.0
             combined += weight * val
         ensemble_value = combined / total_weight
@@ -93,8 +93,8 @@ class EnsembleManager:
                 values.append(val)
             except (ValueError, TypeError):
                 logger.warning(
-                    f"Invalid value for model '{name}': {output.get('value')}. Using default 0.0"
-                )
+                    f"Invalid value for model '{name}': {
+                        output.get('value')}. Using default 0.0")
                 values.append(0.0)
 
         stacked_value = meta_model(values)

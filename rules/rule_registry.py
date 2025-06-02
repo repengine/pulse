@@ -26,10 +26,8 @@ print(
 RULES_LOG_PATH = PATHS.get("RULES_LOG_PATH", PATHS["WORLDSTATE_LOG_DIR"])
 
 
-STATIC_RULES_MODULE = "engine.rules.static_rules"
-FINGERPRINTS_PATH = Path(
-    PATHS.get("RULE_FINGERPRINTS", "simulation_engine/rules/rule_fingerprints.json")
-)
+STATIC_RULES_MODULE = "rules.static_rules"
+FINGERPRINTS_PATH = Path(PATHS.get("RULE_FINGERPRINTS", "rules/rule_fingerprints.json"))
 CANDIDATE_RULES_PATH = Path(PATHS.get("CANDIDATE_RULES", "data/candidate_rules.json"))
 
 

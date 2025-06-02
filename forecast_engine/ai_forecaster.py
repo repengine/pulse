@@ -165,8 +165,7 @@ def train(data: List[Dict]) -> bool:
                 return False
         elif _input_size != input_size:
             logger.warning(
-                f"Input size mismatch. Model expects {_input_size}, got {input_size}. Reinitializing."
-            )
+                f"Input size mismatch. Model expects {_input_size}, got {input_size}. Reinitializing.")
             if not _initialize_model(input_size):
                 return False
 
@@ -174,10 +173,14 @@ def train(data: List[Dict]) -> bool:
         try:
             inputs = torch.tensor(
                 [d["features"] for d in valid_data], dtype=torch.float32
-            ).unsqueeze(1)  # shape (batch, seq=1, features)
+            ).unsqueeze(
+                1
+            )  # shape (batch, seq=1, features)
             targets = torch.tensor(
                 [d["adjustment"] for d in valid_data], dtype=torch.float32
-            ).unsqueeze(1)  # shape (batch, 1)
+            ).unsqueeze(
+                1
+            )  # shape (batch, 1)
         except Exception as e:
             logger.error(f"Error preparing input tensors: {e}")
             return False
@@ -263,14 +266,12 @@ def predict(input_features: Dict) -> Dict:
         input_size = len(features)
         if _model is None:
             logger.warning(
-                f"Model not initialized. Initializing with input_size={input_size} (untrained)."
-            )
+                f"Model not initialized. Initializing with input_size={input_size} (untrained).")
             if not _initialize_model(input_size):
                 return {"adjustment": 0.0, "error": "Model initialization failed"}
         elif _input_size != input_size:
             logger.warning(
-                f"Input size mismatch. Model expects {_input_size}, got {input_size}. Using default value."
-            )
+                f"Input size mismatch. Model expects {_input_size}, got {input_size}. Using default value.")
             return {"adjustment": 0.0, "error": "Input size mismatch"}
 
         # Prepare input tensor
@@ -339,9 +340,9 @@ def get_model_status() -> Dict[str, Any]:
         "initialized": _model is not None,
         "input_size": _input_size,
         "type": "LSTM" if _model else None,
-        "trainable_parameters": sum(
-            p.numel() for p in _model.parameters() if p.requires_grad
-        )
-        if _model
-        else 0,
+        "trainable_parameters": (
+            sum(p.numel() for p in _model.parameters() if p.requires_grad)
+            if _model
+            else 0
+        ),
     }

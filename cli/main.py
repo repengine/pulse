@@ -14,30 +14,6 @@ Options:
     --output FILE   Optional output file for digest
 """
 
-import sys
-import os
-import argparse
-import json  # Import the json module
-from datetime import datetime, timezone
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from engine.pulse_config import (
-    STARTUP_BANNER,
-    CONFIG_PATH,
-)  # Import centralized configuration
-
-from utils.log_utils import get_logger
-
-from forecast_output.digest_logger import save_digest_to_file
-from operator_interface.strategos_digest import generate_strategos_digest
-from analytics.forecast_memory import ForecastMemory
-from engine.worldstate import WorldState
-from engine.turn_engine import run_turn
-from engine.causal_rules import apply_causal_rules
-from forecast_output.forecast_generator import generate_forecast
-from forecast_output.pfpa_logger import log_forecast_to_pfpa
-from analytics.pulse_learning_log import log_learning_event
 from ingestion.utils.historical_data_repair import (
     repair_variable_data,
     simulate_repair,
@@ -47,6 +23,28 @@ from ingestion.utils.historical_data_repair import (
     get_all_versions,
     DEFAULT_REPAIR_STRATEGIES,  # Import for choices
 )
+from analytics.pulse_learning_log import log_learning_event
+from forecast_output.pfpa_logger import log_forecast_to_pfpa
+from forecast_output.forecast_generator import generate_forecast
+from engine.causal_rules import apply_causal_rules
+from engine.turn_engine import run_turn
+from engine.worldstate import WorldState
+from analytics.forecast_memory import ForecastMemory
+from operator_interface.strategos_digest import generate_strategos_digest
+from forecast_output.digest_logger import save_digest_to_file
+from utils.log_utils import get_logger
+from engine.pulse_config import (
+    STARTUP_BANNER,
+    CONFIG_PATH,
+)  # Import centralized configuration
+import sys
+import os
+import argparse
+import json  # Import the json module
+from datetime import datetime, timezone
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 logger = get_logger(__name__)
 
@@ -84,8 +82,8 @@ def run_pulse_simulation(turns: int = 1):
                     forecast[field] = float(forecast.get(field, 0.0))
                 except (ValueError, TypeError):
                     logger.warning(
-                        f"Invalid value for {field}: {forecast.get(field)}. Defaulting to 0.0."
-                    )
+                        f"Invalid value for {field}: {
+                            forecast.get(field)}. Defaulting to 0.0.")
                     forecast[field] = 0.0
 
             memory.store(forecast)
@@ -334,12 +332,10 @@ if __name__ == "__main__":
                         check=True,
                     )
                     logger.info(
-                        f"Applied epistemic upgrade plan to {batch_path}, output: {revised_path}"
-                    )
+                        f"Applied epistemic upgrade plan to {batch_path}, output: {revised_path}")
                 else:
                     logger.warning(
-                        f"Batch or upgrade plan not found for application: {batch_path}, {upgrade_path}"
-                    )
+                        f"Batch or upgrade plan not found for application: {batch_path}, {upgrade_path}")
             except Exception as e:
                 logger.error(f"Failed to generate/apply epistemic upgrade plan: {e}")
 

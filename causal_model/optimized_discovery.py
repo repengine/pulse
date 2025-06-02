@@ -126,7 +126,7 @@ class OptimizedCausalDiscovery:
         # Process in batches to avoid memory issues with large graphs
         batch_size = 100
         for i in range(0, len(edges), batch_size):
-            edge_batch = edges[i : i + batch_size]
+            edge_batch = edges[i: i + batch_size]
 
             # Run tests in parallel
             with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
@@ -194,7 +194,8 @@ class OptimizedCausalDiscovery:
                         p_value_raw
                     )  # Extract the scalar p-value and cast to float
 
-                    # If p-value is high, variables are independent given conditioning set
+                    # If p-value is high, variables are independent given conditioning
+                    # set
                     if p_value_scalar > alpha:
                         return True
                 except Exception as e:
@@ -219,7 +220,7 @@ class OptimizedCausalDiscovery:
         for y in scm.graph.nodes():
             neighbors = list(scm.graph.neighbors(y))
             for i, x in enumerate(neighbors):
-                for z in neighbors[i + 1 :]:
+                for z in neighbors[i + 1:]:
                     if not scm.graph.has_edge(x, z) and not scm.graph.has_edge(z, x):
                         unshielded_triples.append((x, y, z))
 

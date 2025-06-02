@@ -317,7 +317,7 @@ def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
         <div class="container">
             <h1>Pulse Trust Metrics Dashboard</h1>
             <p>Generated at: TIMESTAMP</p>
-            
+
             <div class="row">
                 <div class="col col-12">
                     <div class="card">
@@ -353,7 +353,7 @@ def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
                     </div>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col col-12">
                     <div class="card">
@@ -376,7 +376,7 @@ def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
                     </div>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col col-12">
                     <div class="card">
@@ -399,7 +399,7 @@ def generate_html_dashboard(output_dir: str, report: Dict[str, Any]):
                     </div>
                 </div>
             </div>
-            
+
             <div class="card visualizations">
                 <div class="card-header">
                     <h2>Trust Visualizations</h2>

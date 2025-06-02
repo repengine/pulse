@@ -137,8 +137,7 @@ class PulseGrow:
             self.candidates[name]["sti"] = sti
             self.candidates[name]["volatility"] = volatility
             logger.info(
-                f"[PulseGrow] Anomaly tracked for {name}: STI={sti}, Volatility={volatility}"
-            )
+                f"[PulseGrow] Anomaly tracked for {name}: STI={sti}, Volatility={volatility}")
 
     def score_from_scraper(
         self,
@@ -186,8 +185,11 @@ class PulseGrowAuditRunner:
         for name, data in self.pulsegrow.candidates.items():
             avg_score = sum(data["scores"]) / max(len(data["scores"]), 1)
             print(
-                f"Candidate: {name} | Attempts: {data['attempts']} | Avg Score: {avg_score:.2f} | Symbolic Links: {len(data['symbolic_links'])}"
-            )
+                f"Candidate: {name} | Attempts: {
+                    data['attempts']} | Avg Score: {
+                    avg_score:.2f} | Symbolic Links: {
+                    len(
+                        data['symbolic_links'])}")
 
     def review_thresholds(self, threshold: float = 0.7, min_attempts: int = 3):
         """Show which candidates would be promoted/rejected under given thresholds."""

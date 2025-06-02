@@ -101,7 +101,8 @@ class Observer:
             Returns an empty list if contradiction detection fails or no contradictions are found.
         """
         try:
-            # Assuming 'detect_forecast_contradictions' is a function that takes a list of dicts and returns a list of dicts
+            # Assuming 'detect_forecast_contradictions' is a function that takes a
+            # list of dicts and returns a list of dicts
             func: Callable[[List[Dict[str, Any]]], List[Dict[str, Any]]] = (
                 router.run_function("contradiction.detect_forecast_contradictions")
             )
@@ -128,7 +129,8 @@ class Observer:
             Returns an empty dictionary if divergence analysis fails.
         """
         try:
-            # Assuming 'generate_divergence_report' takes a list of dicts and returns a dict
+            # Assuming 'generate_divergence_report' takes a list of dicts and returns
+            # a dict
             func: Callable[[List[Dict[str, Any]]], Dict[str, Any]] = (
                 router.run_function("divergence.generate_divergence_report")
             )
@@ -138,8 +140,7 @@ class Observer:
             return {}
         except Exception as e:
             print(
-                f"[Observer] ❌ Unexpected error during symbolic divergence analysis: {e}"
-            )
+                f"[Observer] ❌ Unexpected error during symbolic divergence analysis: {e}")
             return {}
 
     def compare_forecasts_to_ground_truth(
@@ -222,8 +223,7 @@ class Observer:
                 ]
         except FileNotFoundError:
             print(
-                f"[Observer] ⚠️ No foreign fingerprint archive found at {foreign_fingerprint_path}"
-            )
+                f"[Observer] ⚠️ No foreign fingerprint archive found at {foreign_fingerprint_path}")
             foreign_data = []
         except json.JSONDecodeError as e:
             print(
@@ -286,8 +286,8 @@ class Observer:
                 f.write(json.dumps(episode) + "\n")
         except IOError as e:
             print(
-                f"[Observer] ❌ Error appending learning episode to {self.learning_log_path}: {e}"
-            )
+                f"[Observer] ❌ Error appending learning episode to {
+                    self.learning_log_path}: {e}")
 
 
 # Example CLI usage for standalone testing

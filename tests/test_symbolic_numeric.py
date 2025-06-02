@@ -5,6 +5,8 @@ Tests for the bidirectional transforms between numeric indicators and symbolic s
 Validates the integration between statistical data and symbolic overlays.
 """
 
+from symbolic_system.numeric_transforms import get_numeric_transformer
+from engine.worldstate import WorldState
 import unittest
 import sys
 import os
@@ -13,9 +15,6 @@ from unittest.mock import patch
 
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from engine.worldstate import WorldState
-from symbolic_system.numeric_transforms import get_numeric_transformer
 
 
 class TestSymbolicNumericIntegration(unittest.TestCase):

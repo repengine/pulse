@@ -63,7 +63,11 @@ class InterventionScenario:
         self.processing_time: Optional[timedelta] = None
 
     def __str__(self):
-        return f"Scenario({self.scenario_id}, '{self.name}', {len(self.interventions)} interventions)"
+        return f"Scenario({
+            self.scenario_id}, '{
+            self.name}', {
+            len(
+                self.interventions)} interventions)"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert scenario to dictionary for serialization."""
@@ -78,9 +82,9 @@ class InterventionScenario:
             "creation_time": self.creation_time.isoformat(),
             "results": self.results,
             "processed": self.processed,
-            "processing_time": str(self.processing_time)
-            if self.processing_time
-            else None,
+            "processing_time": (
+                str(self.processing_time) if self.processing_time else None
+            ),
         }
 
     @classmethod
@@ -305,7 +309,8 @@ class CounterfactualSimulator:
             The created scenario
         """
         # Generate a unique ID for the scenario
-        scenario_id = f"scenario_{len(self.scenarios) + 1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        scenario_id = f"scenario_{len(self.scenarios) +
+                                  1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         # Create the scenario
         scenario = InterventionScenario(
@@ -486,8 +491,9 @@ class CounterfactualSimulator:
 
             batch_time = time.time() - start_time
             logger.info(
-                f"Completed batch of {len(scenario_objects)} counterfactual scenarios in {batch_time:.2f}s"
-            )
+                f"Completed batch of {
+                    len(scenario_objects)} counterfactual scenarios in {
+                    batch_time:.2f}s")
 
             return results
 
@@ -695,9 +701,7 @@ if __name__ == "__main__":
     scenario = simulator.create_scenario(
         name="Interest Rate Hike",
         description="Counterfactual scenario where the Fed raises interest rates by 0.5%",
-        interventions={
-            "interest_rate": 0.05  # Intervene to set interest rate to 5%
-        },
+        interventions={"interest_rate": 0.05},  # Intervene to set interest rate to 5%
         evidence={
             "inflation": 0.03,  # Current inflation is 3%
             "gdp_growth": 0.025,  # Current GDP growth is 2.5%

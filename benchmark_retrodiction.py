@@ -355,7 +355,8 @@ class RetrodictionBenchmark:
             # Time the core operations
             logger.info("Benchmarking batch processing")
 
-            # Mock the process_batch method to avoid actual data fetching which might fail
+            # Mock the process_batch method to avoid actual data fetching which might
+            # fail
             with patch.object(
                 coordinator,
                 "_process_batch",
@@ -437,13 +438,24 @@ class RetrodictionBenchmark:
         return {
             "execution_time": end_time - start_time,
             "variables": self.variables,
-            "date_range": f"{self.start_date.isoformat()} to {self.end_date.isoformat()}",
+            "date_range": f"{
+                self.start_date.isoformat()} to {
+                self.end_date.isoformat()}",
             "batch_size_days": self.batch_size_days,
             "max_workers": self.max_workers or "auto",
             "results_summary": {
-                "batches": results.get("batches", {}),
-                "performance": results.get("performance", {}),
-                "variables": {"total": results.get("variables", {}).get("total", 0)},
+                "batches": results.get(
+                    "batches",
+                    {}),
+                "performance": results.get(
+                    "performance",
+                    {}),
+                "variables": {
+                    "total": results.get(
+                        "variables",
+                        {}).get(
+                        "total",
+                        0)},
             },
             "function_stats": function_stats,
             "profile_summary_text": s.getvalue(),
@@ -457,13 +469,13 @@ class RetrodictionBenchmark:
 
         # Run individual component benchmarks
         self.metrics["components"]["data_loading"] = self.benchmark_data_loading()
-        self.metrics["components"]["causal_discovery"] = (
-            self.benchmark_causal_discovery()
-        )
+        self.metrics["components"][
+            "causal_discovery"
+        ] = self.benchmark_causal_discovery()
         self.metrics["components"]["trust_updates"] = self.benchmark_trust_updates()
-        self.metrics["components"]["curriculum_selection"] = (
-            self.benchmark_curriculum_selection()
-        )
+        self.metrics["components"][
+            "curriculum_selection"
+        ] = self.benchmark_curriculum_selection()
 
         # Run full end-to-end benchmark
         self.metrics["overall"] = self.benchmark_full_training()

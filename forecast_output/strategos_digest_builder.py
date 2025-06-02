@@ -291,7 +291,8 @@ def build_digest(
     if skipped:
         logger.warning(f"Skipped {skipped} invalid forecasts in digest build.")
 
-    # All downstream modules (divergence, dual narrative, memory, etc.) now operate on flattened, validated forecasts.
+    # All downstream modules (divergence, dual narrative, memory, etc.) now
+    # operate on flattened, validated forecasts.
 
     # --- Symbolic Divergence Report ---
     divergence_report = generate_divergence_report(flattened, key="arc_label")
@@ -451,9 +452,11 @@ def build_digest(
 
     try:
         if fmt == "json":
-            # Include all keys from the flattened forecast dictionaries for comprehensive JSON output
+            # Include all keys from the flattened forecast dictionaries for
+            # comprehensive JSON output
             digest_json = flattened
-            # Add most evolved section, divergence report, dual narrative scenarios, fork decisions, and entropy report
+            # Add most evolved section, divergence report, dual narrative scenarios,
+            # fork decisions, and entropy report
             return json.dumps(
                 {
                     "forecasts": digest_json,
@@ -495,8 +498,11 @@ def build_digest(
             for label, cluster in cluster_items:
                 lines.append(f"<h2>{label}</h2>")
                 lines.append(
-                    f"<b>Consensus ({overlay_key} rising):</b> {consensus_score(cluster, overlay_key) * 100:.0f}%<br>"
-                )
+                    f"<b>Consensus ({overlay_key} rising):</b> {
+                        consensus_score(
+                            cluster,
+                            overlay_key) *
+                        100:.0f}%<br>")
                 if show_drivers:
                     drivers = summarize_drivers(cluster)
                     if drivers:
@@ -513,15 +519,22 @@ def build_digest(
                     if "causal_explanation" in f:
                         ce = f["causal_explanation"]
                         lines.append(
-                            f"<b>Causal Explanation:</b> {ce.get('variable', '')} &rarr; Parents: {', '.join(ce.get('parents', []))}<br>"
-                        )
+                            f"<b>Causal Explanation:</b> {
+                                ce.get(
+                                    'variable',
+                                    '')} &rarr; Parents: {
+                                ', '.join(
+                                    ce.get(
+                                        'parents',
+                                        []))}<br>")
                 lines.append("<hr>")
             if not clusters:
                 lines.append("<i>No forecasts available.</i>")
             stats = summarize_stats(flattened)
             lines.append(
-                f"<b>Avg Retrodiction Score:</b> {stats['avg_retrodiction']} | <b>Symbolic Score:</b> {stats['avg_symbolic']}<br>"
-            )
+                f"<b>Avg Retrodiction Score:</b> {
+                    stats['avg_retrodiction']} | <b>Symbolic Score:</b> {
+                    stats['avg_symbolic']}<br>")
             lines.append(
                 f"<b>Confidence Sparkline:</b> {stats['confidence_sparkline']}<br>"
             )
@@ -572,8 +585,13 @@ def build_digest(
                     winner_id = d.get("selected_trace_id", "N/A")
                     winner_align = d.get("winner_alignment", "N/A")
                     lines.append(
-                        f"<b>{a.get('arc', 'A')} vs {b.get('arc', 'B')}</b> &rarr; ✅ {winner}<br>"
-                    )
+                        f"<b>{
+                            a.get(
+                                'arc',
+                                'A')} vs {
+                            b.get(
+                                'arc',
+                                'B')}</b> &rarr; ✅ {winner}<br>")
                     lines.append(
                         f"&nbsp;&nbsp;- Winner: {winner_id} (Align: {winner_align})<br>"
                     )
@@ -631,8 +649,11 @@ def build_digest(
         lines.append("|-------------------|----------|---------------|-------|")
         for leader in most_evolved_digest["leaders"]:
             lines.append(
-                f"| {leader['tag']:<17} | {leader['trace_id']:<8} | {leader['arc'] or 'N/A':<13} | {leader['depth']}     |"
-            )
+                f"| {
+                    leader['tag']:<17} | {
+                    leader['trace_id']:<8} | {
+                    leader['arc'] or 'N/A':<13} | {
+                    leader['depth']}     |")
         if not most_evolved_digest["leaders"]:
             lines.append("| _None found_      |          |               |       |")
         lines.append("")
@@ -678,7 +699,8 @@ def build_digest(
         if isinstance(clusters, dict):
             cluster_items = clusters.items()
         elif isinstance(clusters, list):
-            # If clusters is a list, treat each element as a cluster with a generated label
+            # If clusters is a list, treat each element as a cluster with a generated
+            # label
             cluster_items = [
                 (f"Cluster {i + 1}", cluster) for i, cluster in enumerate(clusters)
             ]
@@ -689,8 +711,10 @@ def build_digest(
             # Ensure cluster is a list before passing to consensus_score
             cluster_list = cluster if isinstance(cluster, list) else []
             lines.append(
-                f"Consensus ({overlay_key} rising): {consensus_score(cluster_list, overlay_key) * 100:.0f}%"
-            )
+                f"Consensus ({overlay_key} rising): {
+                    consensus_score(
+                        cluster_list,
+                        overlay_key) * 100:.0f}%")
             if show_drivers:
                 drivers = summarize_drivers(cluster_list)
                 if drivers and isinstance(drivers, list) and len(drivers) > 0:
@@ -707,15 +731,22 @@ def build_digest(
                 if "causal_explanation" in f:
                     ce = f["causal_explanation"]
                     lines.append(
-                        f"Causal Explanation: {ce.get('variable', '')} 2 Parents: {', '.join(ce.get('parents', []))}"
-                    )
+                        f"Causal Explanation: {
+                            ce.get(
+                                'variable',
+                                '')} 2 Parents: {
+                            ', '.join(
+                                ce.get(
+                                    'parents',
+                                    []))}")
                 lines.append("")
         if not clusters:
             lines.append("_No forecasts available._")
         stats = summarize_stats(flattened)
         lines.append(
-            f"🎯 Avg Retrodiction Score: {stats['avg_retrodiction']} | Symbolic Score: {stats['avg_symbolic']}"
-        )
+            f"🎯 Avg Retrodiction Score: {
+                stats['avg_retrodiction']} | Symbolic Score: {
+                stats['avg_symbolic']}")
         lines.append(f"📊 Confidence Sparkline: {stats['confidence_sparkline']}")
         lines.append(
             f"🕓 Forecast Age: Avg {stats['avg_age']}h | Max: {stats['max_age']}h"
@@ -852,7 +883,7 @@ if __name__ == "__main__":
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write("<pre>\n" + digest + "\n</pre>")
             print(
-                f"Digest HTML exported to {args.output} (preformatted, markdown2 not installed)"
-            )
+                f"Digest HTML exported to {
+                    args.output} (preformatted, markdown2 not installed)")
     else:
         print("Unknown export format.")

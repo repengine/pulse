@@ -152,8 +152,7 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
                         # Limit computation for cost control
                         n_samples = min(n_samples, int(1e7 / len(numeric_predictions)))
                         self.logger.info(
-                            f"Limiting bootstrap samples to {n_samples} for cost control"
-                        )
+                            f"Limiting bootstrap samples to {n_samples} for cost control")
 
                     # Bootstrap sampling
                     bootstrap_means = []
@@ -382,12 +381,12 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
                 "expected_calibration_error": float(ece),
                 "brier_score": float(brier_score) if brier_score is not None else None,
                 "reliability_diagram": {
-                    "y_true": prob_true_cal.tolist()
-                    if prob_true_cal is not None
-                    else [],
-                    "y_pred": prob_pred_cal.tolist()
-                    if prob_pred_cal is not None
-                    else [],
+                    "y_true": (
+                        prob_true_cal.tolist() if prob_true_cal is not None else []
+                    ),
+                    "y_pred": (
+                        prob_pred_cal.tolist() if prob_pred_cal is not None else []
+                    ),
                 },
                 "is_well_calibrated": ece < self.calibration_threshold,
             }
@@ -426,17 +425,18 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
         try:
             results: Dict[str, Any] = {
                 "test_type": test_type,
-                "method_a_mean": statistics.mean(method_a_errors)
-                if method_a_errors
-                else None,
-                "method_b_mean": statistics.mean(method_b_errors)
-                if method_b_errors
-                else None,
+                "method_a_mean": (
+                    statistics.mean(method_a_errors) if method_a_errors else None
+                ),
+                "method_b_mean": (
+                    statistics.mean(method_b_errors) if method_b_errors else None
+                ),
                 "significant": False,
                 "p_value": None,
             }
             p_value_local: Optional[float] = None
-            # stat_local: Optional[float] = None # Not used outside conditional block, can define inside
+            # stat_local: Optional[float] = None # Not used outside conditional block,
+            # can define inside
 
             # Perform the selected statistical test
             if SCIPY_AVAILABLE and stats:
@@ -545,7 +545,8 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
         Returns:
             ID of the stored metrics record
         """
-        # First, track with the base implementation - use keyword args for better compatibility
+        # First, track with the base implementation - use keyword args for better
+        # compatibility
         try:
             metric_id = super().track_iteration(
                 iteration=iteration,
@@ -594,7 +595,8 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
                 f"Cost threshold approaching: {cost_info.get('total_cost', 'unknown')}"
             )
 
-        # Store rule performance data if rule_type is provided - with robust error handling
+        # Store rule performance data if rule_type is provided - with robust error
+        # handling
         if rule_type:
             try:
                 # Ensure rule_performance is properly initialized
@@ -760,7 +762,9 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
             [ih for ih in self.iteration_history if "iteration" in ih],
             key=lambda x: x["iteration"],
             reverse=True,
-        )[:5]  # Last 5 iterations
+        )[
+            :5
+        ]  # Last 5 iterations
 
         if len(recent_iterations) < 3:
             return drift_results
@@ -838,7 +842,7 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
             window.append(metrics["mse"])
 
             # Keep only the last N values
-            window = window[-self.stability_window_size :]
+            window = window[-self.stability_window_size:]
             convergence_status["stability_window"] = window
 
         # Skip if we don't have enough data
@@ -866,7 +870,7 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
         # Criterion 2: No significant improvement in last N iterations
         if len(window) >= self.stability_window_size:
             first_half = window[: len(window) // 2]
-            second_half = window[len(window) // 2 :]
+            second_half = window[len(window) // 2:]
 
             first_mean = statistics.mean(first_half)
             second_mean = statistics.mean(second_half)
@@ -908,8 +912,7 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
             convergence_status["converged"] = True
             convergence_status["converged_at_iteration"] = iteration
             self.logger.info(
-                f"Training converged at iteration {iteration} based on advanced criteria"
-            )
+                f"Training converged at iteration {iteration} based on advanced criteria")
 
         return convergence_status
 
@@ -1241,7 +1244,7 @@ class EnhancedRecursiveTrainingMetrics(RecursiveTrainingMetrics):
                 if model_a not in model_metrics:
                     continue
 
-                for model_b in model_names[i + 1 :]:
+                for model_b in model_names[i + 1:]:
                     if model_b not in model_metrics:
                         continue
 

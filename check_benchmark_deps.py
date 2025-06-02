@@ -17,7 +17,7 @@ required_packages = [
         "recursive_training.advanced_metrics.retrodiction_curriculum",
         "Pulse's retrodiction curriculum",
     ),
-    ("core.optimized_trust_tracker", "Pulse's optimized trust tracker"),
+    ("analytics.optimized_trust_tracker", "Pulse's optimized trust tracker"),
     ("causal_model.optimized_discovery", "Pulse's optimized causal discovery"),
 ]
 

@@ -214,8 +214,10 @@ def main():
             if signal_count > 0:
                 example = result["signals"][0]
                 logger.info(
-                    f"  Example signal: {example['name']} = {example['value']} ({example['source']})"
-                )
+                    f"  Example signal: {
+                        example['name']} = {
+                        example['value']} ({
+                        example['source']})")
         elif status == "no_signals":
             logger.info(f"{plugin_name}: WARNING (No signals returned)")
         elif status == "disabled":

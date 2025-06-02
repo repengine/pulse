@@ -23,6 +23,7 @@ import pandas as pd
 import numpy as np  # Added for synthetic data generation
 
 from engine.variable_registry import registry
+
 # from engine.worldstate import WorldState # Not needed in plugin
 # from core.variable_accessor import set_variable # Not needed in plugin
 # from engine.utils.worldstate_io import save_worldstate_to_file # Not needed in plugin
@@ -906,7 +907,9 @@ def fetch_historical_fred_series(
         # Catch specific request exceptions for better error handling
         error_message = f"Request error fetching FRED series {series_id}: {e}"
         if e.response is not None:
-            error_message += f" Status Code: {e.response.status_code}, Response Body: {e.response.text}"
+            error_message += f" Status Code: {
+                e.response.status_code}, Response Body: {
+                e.response.text}"
         logger.error(error_message)
         return None
     except Exception as e:
@@ -974,7 +977,8 @@ def historical_ingestion_plugin() -> List[List[Dict[str, Any]]]:
     )  # Approximate years
 
     # Generate a list of dates for the timeline (daily)
-    # Generate a pandas DatetimeIndex for the timeline (daily) and make it timezone-aware (UTC)
+    # Generate a pandas DatetimeIndex for the timeline (daily) and make it
+    # timezone-aware (UTC)
     timeline_dates_index = pd.date_range(
         start=start_date, end=end_date, freq="D", tz=dt.timezone.utc
     )
@@ -1026,7 +1030,8 @@ def historical_ingestion_plugin() -> List[List[Dict[str, Any]]]:
                 filtered_aligned_data = aligned_data[pd.notna(aligned_data)]
                 # Create the dictionary from filtered items, ensuring datetime keys and applying transform
                 # Create the dictionary from filtered items, ensuring datetime keys and applying transform
-                # Create the dictionary from filtered data, ensuring datetime keys and applying transform
+                # Create the dictionary from filtered data, ensuring datetime keys and
+                # applying transform
                 historical_data[var_name] = {
                     date.to_pydatetime(): data_info["transform"](
                         filtered_aligned_data.loc[date]
@@ -1085,7 +1090,8 @@ def historical_ingestion_plugin() -> List[List[Dict[str, Any]]]:
                 filtered_aligned_data = aligned_data[pd.notna(aligned_data)]
                 # Create the dictionary from filtered items, ensuring datetime keys and applying transform
                 # Create the dictionary from filtered items, ensuring datetime keys and applying transform
-                # Create the dictionary from filtered data, ensuring datetime keys and applying transform
+                # Create the dictionary from filtered data, ensuring datetime keys and
+                # applying transform
                 historical_data[var_name] = {
                     date.to_pydatetime(): data_info["transform"](
                         filtered_aligned_data.loc[date]
@@ -1101,7 +1107,8 @@ def historical_ingestion_plugin() -> List[List[Dict[str, Any]]]:
     ]
 
     for var_name in variables_for_synthetic_data:
-        # Pass the original list of naive datetime objects to generate_synthetic_historical_data
+        # Pass the original list of naive datetime objects to
+        # generate_synthetic_historical_data
         historical_data[var_name] = generate_synthetic_historical_data(
             var_name, [date.replace(tzinfo=None) for date in timeline_dates_index]
         )
@@ -1112,7 +1119,8 @@ def historical_ingestion_plugin() -> List[List[Dict[str, Any]]]:
         signals_for_date: List[Dict[str, Any]] = []
         for var_name in all_variables:
             # Use the historical data for this date, fall back to default if data is missing
-            # Use the historical data for this date. If data is missing, the value will be None.
+            # Use the historical data for this date. If data is missing, the value
+            # will be None.
             value = historical_data.get(var_name, {}).get(current_date)
             signal = {
                 "name": var_name,
@@ -1139,7 +1147,8 @@ if __name__ == "__main__":
     # Example: print signals for the first date
     if historical_data_by_date:
         print("Signals for the first date:")
-        # Convert timestamp back to timezone-naive for printing if needed, or handle timezone in display
+        # Convert timestamp back to timezone-naive for printing if needed, or
+        # handle timezone in display
         for signal in historical_data_by_date[0]:
             print(f"  {signal['name']}: {signal['value']} ({signal['timestamp']})")
 

@@ -219,4 +219,6 @@ if __name__ == "__main__":
 
 # Example usage:
 # python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fuzzy
-# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05 --fingerprints path/to/fingerprints.json --tol 0.05 --min-conf 0.7 --confidence-threshold 0.5
+# python reverse_rule_engine.py --delta hope=0.1 despair=-0.05
+# --fingerprints path/to/fingerprints.json --tol 0.05 --min-conf 0.7
+# --confidence-threshold 0.5

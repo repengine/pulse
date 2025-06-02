@@ -136,8 +136,8 @@ class AdvancedLearningEngine:
                     ignore_index=True,
                 )
                 logging.info(
-                    f"[LearningEngine] Blended live and retrodicted data: {blended.shape[0]} records"
-                )
+                    f"[LearningEngine] Blended live and retrodicted data: {
+                        blended.shape[0]} records")
                 source_df = blended
             else:
                 logging.warning(
@@ -230,9 +230,11 @@ class AdvancedLearningEngine:
     def export_analytics_summary(self) -> Dict[str, Any]:
         return {
             "trust_model_summary": self.memory.get("trust_model_summary"),
-            "overlay_graph_edges": list(self.overlay_graph.edges(data=True))
-            if self.overlay_graph is not None
-            else [],
+            "overlay_graph_edges": (
+                list(self.overlay_graph.edges(data=True))
+                if self.overlay_graph is not None
+                else []
+            ),
             "plugin_summaries": self.summarize_plugins(),
         }
 
@@ -365,8 +367,9 @@ class LearningEngine:
             # Use optimized trust tracker for better performance
             optimized_bayesian_trust_tracker.update(var, mutation_success)
             print(
-                f"[VariableTrust] {var}: trust={optimized_bayesian_trust_tracker.get_trust(var):.3f}, CI={optimized_bayesian_trust_tracker.get_confidence_interval(var)}"
-            )
+                f"[VariableTrust] {var}: trust={
+                    optimized_bayesian_trust_tracker.get_trust(var):.3f}, CI={
+                    optimized_bayesian_trust_tracker.get_confidence_interval(var)}")
 
     def apply_rule_mutation_pressure(self, rule_id, mutation_success):
         print("[Rule Learning] Applying pressure to mutate causal rules...")

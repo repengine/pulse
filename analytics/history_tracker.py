@@ -43,8 +43,7 @@ def track_variable_history(
                 variables = snapshot.get("variables")
                 if not isinstance(variables, dict):
                     print(
-                        f"⚠️ Warning: 'variables' missing or malformed in step {i}. Skipping."
-                    )
+                        f"⚠️ Warning: 'variables' missing or malformed in step {i}. Skipping.")
                     continue
                 try:
                     record = {"step": i, "variables": variables}

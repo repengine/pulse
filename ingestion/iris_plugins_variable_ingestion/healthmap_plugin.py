@@ -135,7 +135,8 @@ class HealthmapPlugin(IrisPluginManager):
         now = dt.datetime.now(dt.timezone.utc)
 
         # Rotate through regions to avoid overloading the API
-        # Using the day of the month modulo the number of feeds to select which feed to query
+        # Using the day of the month modulo the number of feeds to select which
+        # feed to query
         region_key = self._get_rotation_region()
         feed_url = self._get_feed_url(region_key)
 

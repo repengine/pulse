@@ -124,7 +124,7 @@ def main():
     )
 
     for i in range(0, len(all_symbols), args.batch):
-        batch = all_symbols[i : i + args.batch]
+        batch = all_symbols[i: i + args.batch]
         texts = [f"{s['kind']} {s['name']} — {s['summary']}" for s in batch]
         ids = [f"{s['path']}:{s['lineno']}" for s in batch]
         metadata = batch

@@ -432,7 +432,8 @@ class TestResidualGravityEngine(unittest.TestCase):
 
     def test_circuit_breaker(self):
         """Test that circuit breaker limits corrections."""
-        # Force the compute_gravity method to return a value that will trigger the circuit breaker
+        # Force the compute_gravity method to return a value that will trigger the
+        # circuit breaker
         with patch.object(self.engine, "compute_gravity", return_value=1.4):
             # Set lambda to 1.0 for easier calculation
             self.engine.lambda_ = 1.0

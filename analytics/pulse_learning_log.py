@@ -203,8 +203,9 @@ class PulseLearningLogger:
 
         # Both print to console and log to file
         print(
-            f"[BayesianTrust] {kind}={key} trust={trust:.3f} CI={ci} confidence={confidence:.3f} samples={sample_size}"
-        )
+            f"[BayesianTrust] {kind}={key} trust={
+                trust:.3f} CI={ci} confidence={
+                confidence:.3f} samples={sample_size}")
 
         # Log to file
         self.log_event(

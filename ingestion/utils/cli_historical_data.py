@@ -106,15 +106,17 @@ def handle_retrieve_command(args):
             result = retrieve_historical_data(
                 var_info,
                 years=args.years,
-                end_date=None
-                if not args.end_date
-                else datetime.strptime(args.end_date, "%Y-%m-%d"),
+                end_date=(
+                    None
+                    if not args.end_date
+                    else datetime.strptime(args.end_date, "%Y-%m-%d")
+                ),
             )
 
             if "stats" in result:
                 logger.info(
-                    f"Successfully retrieved {result['stats']['data_point_count']} data points"
-                )
+                    f"Successfully retrieved {
+                        result['stats']['data_point_count']} data points")
                 logger.info(f"Completeness: {result['stats']['completeness_pct']:.2f}%")
             else:
                 logger.error(f"Failed to retrieve data for {args.variable}")
@@ -126,9 +128,11 @@ def handle_retrieve_command(args):
             results = retrieve_priority_variables(
                 priority=args.priority,
                 years=args.years,
-                end_date=None
-                if not args.end_date
-                else datetime.strptime(args.end_date, "%Y-%m-%d"),
+                end_date=(
+                    None
+                    if not args.end_date
+                    else datetime.strptime(args.end_date, "%Y-%m-%d")
+                ),
             )
 
             if not results:
@@ -156,9 +160,11 @@ def handle_retrieve_command(args):
                     result = retrieve_historical_data(
                         var_info,
                         years=args.years,
-                        end_date=None
-                        if not args.end_date
-                        else datetime.strptime(args.end_date, "%Y-%m-%d"),
+                        end_date=(
+                            None
+                            if not args.end_date
+                            else datetime.strptime(args.end_date, "%Y-%m-%d")
+                        ),
                     )
 
                     if "stats" in result:
@@ -206,8 +212,9 @@ def handle_transform_command(args):
                 logger.info(f"Dataset ID: {result.data_store_id}")
                 if result.start_date and result.end_date:
                     logger.info(
-                        f"Date range: {result.start_date.date()} to {result.end_date.date()}"
-                    )
+                        f"Date range: {
+                            result.start_date.date()} to {
+                            result.end_date.date()}")
             else:
                 logger.error(f"Failed to transform {args.variable}: {result.error}")
                 return 1
@@ -215,8 +222,8 @@ def handle_transform_command(args):
         elif args.priority:
             # Transform all variables with specified priority
             logger.info(
-                f"Transforming and storing data for all priority {args.priority} variables"
-            )
+                f"Transforming and storing data for all priority {
+                    args.priority} variables")
             results = transform_and_store_priority_variables(args.priority)
 
             if not results:
@@ -289,8 +296,9 @@ def handle_verify_command(args):
 
                 if "start_date" in verification:
                     logger.info(
-                        f"Date range: {verification['start_date']} to {verification['end_date']}"
-                    )
+                        f"Date range: {
+                            verification['start_date']} to {
+                            verification['end_date']}")
                     logger.info(f"Range in days: {verification['date_range_days']}")
 
             elif verification["status"] == "warning":
@@ -301,8 +309,11 @@ def handle_verify_command(args):
 
             else:
                 logger.error(
-                    f"Verification failed for {args.variable}: {verification.get('error', '')}"
-                )
+                    f"Verification failed for {
+                        args.variable}: {
+                        verification.get(
+                            'error',
+                            '')}")
                 return 1
 
         elif args.all:
@@ -324,13 +335,14 @@ def handle_verify_command(args):
                     elif verification["status"] == "warning":
                         warning_count += 1
                         logger.warning(
-                            f"Warnings for {var_name}: {verification['error_count']} errors"
-                        )
+                            f"Warnings for {var_name}: {
+                                verification['error_count']} errors")
                     else:
                         failure_count += 1
                         logger.error(
-                            f"Failed verification for {var_name}: {verification.get('error', '')}"
-                        )
+                            f"Failed verification for {var_name}: {
+                                verification.get(
+                                    'error', '')}")
 
                 except Exception as e:
                     logger.error(f"Error verifying {var_info['variable_name']}: {e}")
@@ -377,8 +389,8 @@ def handle_report_command(args):
                 logger.info(f"Min completeness: {metrics['min_completeness']:.2f}%")
                 logger.info(f"Max completeness: {metrics['max_completeness']:.2f}%")
                 logger.info(
-                    f"Fully complete variables (≥99%): {metrics['fully_complete_variables']}"
-                )
+                    f"Fully complete variables (≥99%): {
+                        metrics['fully_complete_variables']}")
                 logger.info(
                     f"Partially complete variables (80-99%): {metrics['partially_complete_variables']}"
                 )
@@ -552,8 +564,9 @@ def handle_quality_check_command(args):
             logger.info(f"Average overall score: {stats['average_overall_score']:.2f}")
             logger.info(f"Variables analyzed: {report['variables_analyzed']}")
             logger.info(
-                f"Variables with issues: {stats['variables_with_gaps'] + stats['variables_with_anomalies']}"
-            )
+                f"Variables with issues: {
+                    stats['variables_with_gaps'] +
+                    stats['variables_with_anomalies']}")
 
             # Display quality distribution
             quality_dist = stats["quality_distribution"]
@@ -633,8 +646,8 @@ def handle_anomaly_detect_command(args):
         # Generate visualization if requested
         if args.visualize:
             logger.info(
-                f"Generating visualization for {args.variable} with anomalies highlighted"
-            )
+                f"Generating visualization for {
+                    args.variable} with anomalies highlighted")
             vis_paths = visualize_data_quality(
                 args.variable, show_gaps=False, show_trend_breaks=False
             )
@@ -703,7 +716,8 @@ def handle_cross_validate_command(args):
             logger.info(
                 f"Generating cross-source comparison visualization for {args.variable}"
             )
-            # The visualization function will automatically create a cross-source chart if multiple sources are available
+            # The visualization function will automatically create a cross-source
+            # chart if multiple sources are available
             vis_paths = visualize_data_quality(
                 args.variable,
                 show_anomalies=False,
@@ -763,8 +777,8 @@ def handle_repair_command(args):
         elif args.priority:
             # Repair all variables with specified priority
             logger.info(
-                f"Repairing data quality issues for all priority {args.priority} variables"
-            )
+                f"Repairing data quality issues for all priority {
+                    args.priority} variables")
 
             # Get variables with the specified priority
             from ingestion.utils.historical_data_retriever import get_priority_variables
@@ -1039,14 +1053,19 @@ def handle_repair_report_command(args):
                         f"  Mean difference: {diff_stats.get('mean_difference', 0):.4f}"
                     )
                     logger.info(
-                        f"  Median difference: {diff_stats.get('median_difference', 0):.4f}"
-                    )
+                        f"  Median difference: {
+                            diff_stats.get(
+                                'median_difference',
+                                0):.4f}")
                     logger.info(
-                        f"  Standard deviation: {diff_stats.get('std_difference', 0):.4f}"
-                    )
+                        f"  Standard deviation: {
+                            diff_stats.get(
+                                'std_difference',
+                                0):.4f}")
                     logger.info(
-                        f"  Number of differences: {diff_stats.get('num_differences', 0)}"
-                    )
+                        f"  Number of differences: {
+                            diff_stats.get(
+                                'num_differences', 0)}")
 
                 # Save comparison report if requested
                 if args.output:
@@ -1057,8 +1076,10 @@ def handle_repair_report_command(args):
 
             else:
                 logger.error(
-                    f"Failed to compare versions: {result.get('message', 'Unknown error')}"
-                )
+                    f"Failed to compare versions: {
+                        result.get(
+                            'message',
+                            'Unknown error')}")
                 return 1
 
         else:
@@ -1184,11 +1205,15 @@ def handle_gap_analysis_command(args):
                 args.variable, show_anomalies=False, show_trend_breaks=False
             )
             logger.info(
-                f"Visualization with gaps highlighted saved to: {vis_paths.get('time_series', 'unknown')}"
-            )
+                f"Visualization with gaps highlighted saved to: {
+                    vis_paths.get(
+                        'time_series',
+                        'unknown')}")
             logger.info(
-                f"Completeness visualization saved to: {vis_paths.get('completeness', 'not created')}"
-            )
+                f"Completeness visualization saved to: {
+                    vis_paths.get(
+                        'completeness',
+                        'not created')}")
 
         return 0
 
@@ -1345,7 +1370,12 @@ def main():
         "--frequency",
         type=str,
         default="auto",
-        choices=["auto", "D", "B", "W", "M"],
+        choices=[
+            "auto",
+            "D",
+            "B",
+            "W",
+            "M"],
         help="Expected frequency of the data (D=daily, B=business, W=weekly, M=monthly)",
     )
     gap_parser.add_argument(

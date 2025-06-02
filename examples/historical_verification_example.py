@@ -7,6 +7,14 @@ by creating synthetic data with known issues (gaps, anomalies, trend breaks)
 and then running the verification tools on it.
 """
 
+from ingestion.iris_utils.historical_data_verification import (
+    perform_quality_check,
+    detect_anomalies,
+    cross_validate_sources,
+    analyze_gaps,
+    visualize_data_quality,
+    HISTORICAL_DATA_BASE_DIR,
+)
 import os
 import sys
 import json
@@ -19,14 +27,6 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import the verification modules
-from ingestion.iris_utils.historical_data_verification import (
-    perform_quality_check,
-    detect_anomalies,
-    cross_validate_sources,
-    analyze_gaps,
-    visualize_data_quality,
-    HISTORICAL_DATA_BASE_DIR,
-)
 
 
 def create_synthetic_dataset(variable_name, start_date, end_date, with_issues=True):
@@ -280,9 +280,14 @@ def run_verification_demo():
         print(f"\nDetected {len(quality_result.trend_breaks)} trend breaks:")
         for i, break_ in enumerate(quality_result.trend_breaks):
             print(
-                f"  {i + 1}. {break_.timestamp.date()}: Before={break_.before_trend:.2f}, "
-                + f"After={break_.after_trend:.2f}, Magnitude={break_.change_magnitude:.2f}"
-            )
+                f"  {
+                    i +
+                    1}. {
+                    break_.timestamp.date()}: Before={
+                    break_.before_trend:.2f}, " +
+                f"After={
+                    break_.after_trend:.2f}, Magnitude={
+                        break_.change_magnitude:.2f}")
 
     # 6. Run anomaly detection with different methods
     print("\n6. Running anomaly detection with different methods...")
@@ -296,9 +301,13 @@ def run_verification_demo():
                 sorted(anomalies, key=lambda a: a.severity, reverse=True)[:3]
             ):
                 print(
-                    f"  {i + 1}. {anomaly.timestamp.date()}: value={anomaly.value:.2f}, "
-                    + f"severity={anomaly.severity:.2f}"
-                )
+                    f"  {
+                        i +
+                        1}. {
+                        anomaly.timestamp.date()}: value={
+                        anomaly.value:.2f}, " +
+                    f"severity={
+                        anomaly.severity:.2f}")
         except Exception as e:
             print(f"Error with {method} method: {e}")
 

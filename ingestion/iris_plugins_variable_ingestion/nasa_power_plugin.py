@@ -56,8 +56,10 @@ _PARAMETERS = {
     "PRECTOT": "precipitation",  # Precipitation (mm/day)
     "RH2M": "relative_humidity_2m",  # Relative Humidity at 2 Meters (%)
     "WS10M": "wind_speed_10m",  # Wind Speed at 10 Meters (m/s)
-    "ALLSKY_SFC_SW_DWN": "solar_radiation_downward",  # All Sky Surface Shortwave Downward Irradiance (W/m^2)
-    "ALLSKY_SFC_LW_DWN": "longwave_radiation_downward",  # All Sky Surface Longwave Downward Irradiance (W/m^2)
+    # All Sky Surface Shortwave Downward Irradiance (W/m^2)
+    "ALLSKY_SFC_SW_DWN": "solar_radiation_downward",
+    # All Sky Surface Longwave Downward Irradiance (W/m^2)
+    "ALLSKY_SFC_LW_DWN": "longwave_radiation_downward",
 }
 
 # List of major cities to monitor with lat/lon coordinates
@@ -184,8 +186,8 @@ class NasaPowerPlugin(IrisPluginManager):
         # If all attempts failed, return empty list
         if not response_data:
             logger.error(
-                f"[nasa_power_plugin] Failed to fetch data for {location_name} after {self.MAX_RETRIES + 1} attempts"
-            )
+                f"[nasa_power_plugin] Failed to fetch data for {location_name} after {
+                    self.MAX_RETRIES + 1} attempts")
             return signals
 
         # Process the response data
@@ -276,7 +278,8 @@ class NasaPowerPlugin(IrisPluginManager):
         Returns:
             Date string in YYYYMMDD format, or None if no valid dates found
         """
-        # Get all dates from the first parameter (assumes all parameters have same dates)
+        # Get all dates from the first parameter (assumes all parameters have same
+        # dates)
         if not parameter_data or not next(iter(parameter_data.values()), {}):
             return None
 

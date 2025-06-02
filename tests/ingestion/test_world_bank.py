@@ -35,12 +35,12 @@ def test_world_bank():
         print("Fetching global economic data from World Bank API...")
         signals = plugin.fetch_signals()
 
-        assert signals, (
-            "No signals returned. This could be due to API rate limiting or no recent data updates."
-        )
-        assert isinstance(signals, list), (
-            f"Expected a list of signals, but got {type(signals)}"
-        )
+        assert (
+            signals
+        ), "No signals returned. This could be due to API rate limiting or no recent data updates."
+        assert isinstance(
+            signals, list
+        ), f"Expected a list of signals, but got {type(signals)}"
         assert len(signals) > 0, "Fetched signals list is empty."
 
         print(f"✓ Successfully fetched {len(signals)} signals!")

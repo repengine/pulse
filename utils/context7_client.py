@@ -9,7 +9,8 @@ import logging
 from typing import Optional
 
 # Import the MCP interface
-# from sparc.mcp_interface import execute_mcp_tool # Commented out as sparc is not desired
+# from sparc.mcp_interface import execute_mcp_tool # Commented out as
+# sparc is not desired
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -85,8 +86,9 @@ class Context7Client:
 
         # Log the operation
         logger.info(
-            f"Getting documentation for '{library_id}'{' on topic: ' + topic if topic else ''}"
-        )
+            f"Getting documentation for '{library_id}'{
+                ' on topic: ' +
+                topic if topic else ''}")
 
         # For mock implementation, return simulated documentation
         content = f"Documentation for {library_id}"
@@ -130,8 +132,7 @@ def get_library_documentation(
     except Exception as e:
         # Catch any unexpected errors during the process and wrap them.
         logger.error(
-            f"An unexpected error occurred in get_library_documentation for '{library_name}': {e}"
-        )
+            f"An unexpected error occurred in get_library_documentation for '{library_name}': {e}")
         raise ValueError(
             f"Unexpected error in Context7 operation for '{library_name}': {e}"
         ) from e

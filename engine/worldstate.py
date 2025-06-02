@@ -76,7 +76,8 @@ class SymbolicOverlays:
         self.validate()
 
     def __getattr__(self, name: str) -> float:
-        # Prevent __getattr__ from handling internal attributes to avoid recursion with deepcopy
+        # Prevent __getattr__ from handling internal attributes to avoid recursion
+        # with deepcopy
         if name.startswith("_"):
             raise AttributeError(
                 f"'{type(self).__name__}' object has no attribute '{name}' (internal attribute access)"
@@ -85,7 +86,8 @@ class SymbolicOverlays:
             return self._dynamic_overlays[name]
         # This allows direct access to core overlays if they are not explicitly defined as fields
         # but it's better to have them as fields for type checking and clarity.
-        # If this class were to be truly dynamic for core overlays too, this would be more complex.
+        # If this class were to be truly dynamic for core overlays too, this would
+        # be more complex.
         raise AttributeError(
             f"'{type(self).__name__}' object has no attribute '{name}' and it's not a dynamic overlay"
         )
@@ -186,8 +188,7 @@ class SymbolicOverlays:
                 clamped_value = max(0.0, min(1.0, value))
                 if value != clamped_value:
                     logger.debug(
-                        f"Clamping overlay '{name}' value from {value} to {clamped_value}."
-                    )
+                        f"Clamping overlay '{name}' value from {value} to {clamped_value}.")
                     if hasattr(self, name) and name in [
                         "hope",
                         "despair",
@@ -198,7 +199,8 @@ class SymbolicOverlays:
                         super().__setattr__(name, clamped_value)
                     elif name in self._dynamic_overlays:
                         self._dynamic_overlays[name] = clamped_value
-        # Add more validation logic as needed (e.g., for relationships, metadata consistency)
+        # Add more validation logic as needed (e.g., for relationships, metadata
+        # consistency)
 
     def add_overlay(
         self,
@@ -330,7 +332,8 @@ class CapitalExposure:
         self.validate()
 
     def __getattr__(self, name: str) -> float:
-        # Prevent __getattr__ from handling internal attributes to avoid recursion with deepcopy
+        # Prevent __getattr__ from handling internal attributes to avoid recursion
+        # with deepcopy
         if name.startswith("_"):
             raise AttributeError(
                 f"'{type(self).__name__}' object has no attribute '{name}' (internal attribute access)"
@@ -350,7 +353,8 @@ class CapitalExposure:
             if not isinstance(value, (int, float)):
                 raise ValueError(f"Asset value for '{name}' must be numeric.")
             self._dynamic_assets[name] = float(value)
-        # Avoid calling validate during initial field setting by __init__ if it causes issues
+        # Avoid calling validate during initial field setting by __init__ if it
+        # causes issues
         if (
             "_dynamic_assets" in self.__dict__
         ):  # Check if attr exists, bypassing __getattr__
@@ -435,7 +439,8 @@ class Variables:
     data: Dict[str, Any] = field(default_factory=dict)
 
     def __getattr__(self, name: str) -> Any:
-        # Prevent __getattr__ from handling internal attributes to avoid recursion with deepcopy
+        # Prevent __getattr__ from handling internal attributes to avoid recursion
+        # with deepcopy
         if name.startswith("_"):
             raise AttributeError(
                 f"'{type(self).__name__}' object has no attribute '{name}' (internal attribute access)"
@@ -570,7 +575,8 @@ class WorldState:
     def from_dict(cls, data: Dict[str, Any]) -> "WorldState":
         """Create a WorldState object from a dictionary representation."""
         # Ensure sub-components are also created from their dict representations
-        # The analysis doc for worldstate.py (line 127) implies these from_dict methods exist.
+        # The analysis doc for worldstate.py (line 127) implies these from_dict
+        # methods exist.
 
         # Handle potential missing timestamp in older data
         timestamp_val = data.get("timestamp", time.time())
@@ -619,9 +625,9 @@ if __name__ == "__main__":
     )  # Timestamp is part of the state, so it's copied
     # Test that the cloned overlays are independent
     cloned_ws.overlays.hope = 0.1
-    assert ws.overlays.hope != cloned_ws.overlays.hope, (
-        "Overlays in cloned state should be independent"
-    )
+    assert (
+        ws.overlays.hope != cloned_ws.overlays.hope
+    ), "Overlays in cloned state should be independent"
 
     # Test from_dict with partial data
     partial_data = {
@@ -632,8 +638,9 @@ if __name__ == "__main__":
     }
     ws_from_partial = WorldState.from_dict(partial_data)
     print(
-        f"\nWorldState from partial data (Turn {ws_from_partial.turn}, SimID {ws_from_partial.sim_id}):"
-    )
+        f"\nWorldState from partial data (Turn {
+            ws_from_partial.turn}, SimID {
+            ws_from_partial.sim_id}):")
     print(ws_from_partial.to_json(indent=2))
     assert ws_from_partial.turn == 5
     assert ws_from_partial.sim_id == "partial_sim_test"
@@ -649,8 +656,8 @@ if __name__ == "__main__":
     }
     ws_with_ts = WorldState.from_dict(data_with_timestamp)
     print(
-        f"\nWorldState with specific timestamp: {ws_with_ts.timestamp} (should be approx {specific_timestamp})"
-    )
+        f"\nWorldState with specific timestamp: {
+            ws_with_ts.timestamp} (should be approx {specific_timestamp})")
     assert (
         abs(ws_with_ts.timestamp - specific_timestamp) < 0.001
     )  # Check float equality with tolerance
