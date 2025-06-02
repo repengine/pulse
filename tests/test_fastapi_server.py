@@ -150,7 +150,8 @@ class TestAutopilotEndpoints:
         data = response.json()
         assert data["task_id"] == "test-task-id"
         assert data["status"] == "submitted"
-        assert "message" in data
+        assert "result" in data
+        assert "message" in data["result"]
 
     def test_autopilot_engage_validation_error(self, client):
         """Test autopilot engagement with invalid payload."""
@@ -169,7 +170,7 @@ class TestAutopilotEndpoints:
         assert response.status_code == 202
         data = response.json()
         assert data["task_id"] == "test-task-id"
-        assert data["status"] == "accepted"
+        assert data["status"] == "submitted"
 
 
 class TestRetrodictionEndpoints:
@@ -187,7 +188,7 @@ class TestRetrodictionEndpoints:
         assert response.status_code == 202
         data = response.json()
         assert data["task_id"] == "test-task-id"
-        assert data["status"] == "accepted"
+        assert data["status"] == "submitted"
 
     def test_retrodiction_run_validation_error(self, client):
         """Test retrodiction run with invalid date format."""

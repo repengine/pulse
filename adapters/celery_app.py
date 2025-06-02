@@ -57,7 +57,7 @@ def ingest_and_score_signal(self, signal_data):
                 result["alignment_score"] = float(alignment_score)
                 signal_score_histogram.observe(float(trust_score))
             else:
-                # For raw signals, you may want to attach a simple quality score or skip scoring
+                # For raw signals, attach a simple quality score or skip scoring
                 result["trust_score"] = 0.0
                 result["alignment_score"] = 0.0
         else:
@@ -88,7 +88,7 @@ def ingest_and_score_signal(self, signal_data):
 def autopilot_engage_task(self, action: str, parameters: dict):
     """Celery task: engage autopilot with specified action and parameters."""
     import traceback
-    
+
     try:
         # Simulate autopilot engagement logic
         result = {
@@ -96,13 +96,15 @@ def autopilot_engage_task(self, action: str, parameters: dict):
             "parameters": parameters,
             "status": "engaged",
             "timestamp": time.time(),
-            "message": f"Autopilot {action} completed successfully"
+            "message": f"Autopilot {action} completed successfully",
         }
-        
+
         # Add some processing delay to simulate real work
         time.sleep(2)
-        
-        logging.getLogger("pulse.celery").info(f"Autopilot {action} completed: {result}")
+
+        logging.getLogger("pulse.celery").info(
+            f"Autopilot {action} completed: {result}"
+        )
         return result
     except Exception as e:
         logging.getLogger("pulse.celery").error(
@@ -115,18 +117,18 @@ def autopilot_engage_task(self, action: str, parameters: dict):
 def autopilot_disengage_task(self):
     """Celery task: disengage autopilot system."""
     import traceback
-    
+
     try:
         # Simulate autopilot disengagement logic
         result = {
             "status": "disengaged",
             "timestamp": time.time(),
-            "message": "Autopilot disengaged successfully"
+            "message": "Autopilot disengaged successfully",
         }
-        
+
         # Add some processing delay to simulate real work
         time.sleep(1)
-        
+
         logging.getLogger("pulse.celery").info(f"Autopilot disengaged: {result}")
         return result
     except Exception as e:
@@ -140,7 +142,7 @@ def autopilot_disengage_task(self):
 def retrodiction_run_task(self, target_date: str, parameters: dict):
     """Celery task: run retrodiction analysis for target date."""
     import traceback
-    
+
     try:
         # Simulate retrodiction analysis logic
         result = {
@@ -152,14 +154,14 @@ def retrodiction_run_task(self, target_date: str, parameters: dict):
                 "accuracy": 0.87,
                 "confidence": 0.92,
                 "key_factors": ["market_volatility", "trend_momentum"],
-                "recommendations": ["increase_monitoring", "adjust_thresholds"]
+                "recommendations": ["increase_monitoring", "adjust_thresholds"],
             },
-            "message": f"Retrodiction analysis for {target_date} completed"
+            "message": f"Retrodiction analysis for {target_date} completed",
         }
-        
+
         # Add some processing delay to simulate real work
         time.sleep(5)
-        
+
         logging.getLogger("pulse.celery").info(f"Retrodiction completed: {result}")
         return result
     except Exception as e:
