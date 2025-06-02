@@ -34,7 +34,7 @@ The module is **complete** in its intended function as a compatibility layer. It
     *   **Purpose:** Retrieves a default dictionary of variable states. It attempts to load this from the `TRUTH_PATH` file. If the file doesn't exist, isn't valid JSON, or doesn't contain the expected 'variables' key, it returns a hardcoded default: `{"energy_cost": 1.0}`.
     *   **Usage (Conceptual):**
         ```python
-        # from simulation_engine.historical_retrodiction_runner import get_default_variable_state
+        # from engine.historical_retrodiction_runner import get_default_variable_state
         # default_vars = get_default_variable_state()
         # print(default_vars)
         ```
@@ -45,7 +45,7 @@ The module is **complete** in its intended function as a compatibility layer. It
     *   **[`get_snapshot_by_turn(self, turn: int) -> Optional[Dict[str, Any]]`](../../simulation_engine/historical_retrodiction_runner.py:55):** Retrieves a specific snapshot dictionary for a given turn number (as a string key) from the loaded snapshots.
     *   **Usage (Conceptual):**
         ```python
-        # from simulation_engine.historical_retrodiction_runner import RetrodictionLoader
+        # from engine.historical_retrodiction_runner import RetrodictionLoader
         # loader = RetrodictionLoader() # Uses default TRUTH_PATH
         # snapshot_for_turn_5 = loader.get_snapshot_by_turn(5)
         # if snapshot_for_turn_5:

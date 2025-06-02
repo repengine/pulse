@@ -39,7 +39,9 @@ def detect_symbolic_opposition(
     return [(a, b) for a, b in OPPOSING_ARCS.items() if a in labels and b in labels]
 
 
-def score_batch_divergence(forecasts: List[Dict[str, Any]], key: str = "arc_label") -> float:
+def score_batch_divergence(
+    forecasts: List[Dict[str, Any]], key: str = "arc_label"
+) -> float:
     if not isinstance(forecasts, list):
         raise ValueError("Input forecasts must be a list")
     """
@@ -69,7 +71,9 @@ def group_conflicting_forecasts(
     Return {symbolic_label: [forecasts]} for oppositional arcs/tags.
     """
     active_conflicts = detect_symbolic_opposition(forecasts, key=key)
-    group: Dict[str, List[Dict[str, Any]]] = {label: [] for pair in active_conflicts for label in pair}
+    group: Dict[str, List[Dict[str, Any]]] = {
+        label: [] for pair in active_conflicts for label in pair
+    }
     for f in forecasts:
         label = f.get(key, "unknown")
         if label in group:
@@ -77,7 +81,9 @@ def group_conflicting_forecasts(
     return group
 
 
-def generate_divergence_report(forecasts: List[Dict[str, Any]], key: str = "arc_label") -> Dict[str, Any]:
+def generate_divergence_report(
+    forecasts: List[Dict[str, Any]], key: str = "arc_label"
+) -> Dict[str, Any]:
     """
     Return symbolic divergence summary.
 

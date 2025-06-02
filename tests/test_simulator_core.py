@@ -1,5 +1,5 @@
 import pytest
-from simulation_engine.simulator_core import (
+from engine.simulator_core import (
     simulate_turn,
     simulate_forward,
     simulate_backward,
@@ -13,9 +13,9 @@ from simulation_engine.simulator_core import (
     log_to_file,
     reverse_rule_engine,
 )
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from unittest.mock import patch, MagicMock, mock_open
-from simulation_engine.worldstate import SymbolicOverlays, CapitalExposure, Variables
+from engine.worldstate import SymbolicOverlays, CapitalExposure, Variables
 
 
 # Fixture for a basic WorldState
@@ -47,7 +47,7 @@ def test_validate_overlay_valid():
 def test_validate_overlay_invalid_type():
     """Test _validate_overlay with an invalid overlay type."""
     invalid_overlay = [("hope", 0.5), ("despair", 0.2)]
-    assert _validate_overlay(invalid_overlay) is False
+    assert _validate_overlay(invalid_overlay) is False  # type: ignore
 
 
 def test_validate_overlay_invalid_key_type():
@@ -163,14 +163,14 @@ def test_log_to_file(mock_json_dumps, mock_file):
 
 
 # Test simulate_turn (requires extensive mocking)
-@patch("simulation_engine.simulator_core.decay_overlay")
-@patch("simulation_engine.simulator_core.run_rules")
-@patch("simulation_engine.simulator_core.tag_symbolic_state")
+@patch("engine.simulator_core.decay_overlay")
+@patch("engine.simulator_core.run_rules")
+@patch("engine.simulator_core.tag_symbolic_state")
 @patch("trust_system.trust_engine.TrustEngine.enrich_trust_metadata")
-@patch("simulation_engine.simulator_core.WorldState.validate", return_value=[])
-@patch("simulation_engine.simulator_core.WorldState.log_event")
+@patch("engine.simulator_core.WorldState.validate", return_value=[])
+@patch("engine.simulator_core.WorldState.log_event")
 @patch(
-    "simulation_engine.simulator_core._copy_overlay"
+    "engine.simulator_core._copy_overlay"
 )  # Patch _copy_overlay as it's used internally
 def test_simulate_turn_summary(
     mock_copy_overlay,
@@ -219,13 +219,13 @@ def test_simulate_turn_summary(
     assert "full_state" not in result  # Not in summary mode
 
 
-@patch("simulation_engine.simulator_core.decay_overlay")
-@patch("simulation_engine.simulator_core.run_rules")
-@patch("simulation_engine.simulator_core.tag_symbolic_state")
+@patch("engine.simulator_core.decay_overlay")
+@patch("engine.simulator_core.run_rules")
+@patch("engine.simulator_core.tag_symbolic_state")
 @patch("trust_system.trust_engine.TrustEngine.enrich_trust_metadata")
-@patch("simulation_engine.simulator_core.WorldState.validate", return_value=[])
-@patch("simulation_engine.simulator_core.WorldState.log_event")
-@patch("simulation_engine.simulator_core._copy_overlay")  # Patch _copy_overlay
+@patch("engine.simulator_core.WorldState.validate", return_value=[])
+@patch("engine.simulator_core.WorldState.log_event")
+@patch("engine.simulator_core._copy_overlay")  # Patch _copy_overlay
 def test_simulate_turn_full(
     mock_copy_overlay,
     mock_log_event,
@@ -267,22 +267,23 @@ def test_simulate_turn_invalid_state():
     """Test simulate_turn with invalid state."""
     with pytest.raises(ValueError, match="Expected WorldState"):
         simulate_turn(
-            {}, use_symbolism=True
+            {},  # type: ignore
+            use_symbolism=True,
         )  # Pass an empty dict instead of WorldState
 
 
 def test_simulate_turn_invalid_return_mode(basic_worldstate):
     """Test simulate_turn with invalid return mode."""
     with pytest.raises(ValueError, match="Invalid return_mode"):
-        simulate_turn(basic_worldstate, return_mode="invalid_mode")
+        simulate_turn(basic_worldstate, return_mode="invalid_mode")  # type: ignore
 
 
 # Test simulate_forward (requires extensive mocking)
-@patch("simulation_engine.simulator_core.simulate_turn")
+@patch("engine.simulator_core.simulate_turn")
 @patch("trust_system.trust_engine.TrustEngine.apply_all")
-@patch("simulation_engine.simulator_core.log_simulation_trace")
-@patch("simulation_engine.simulator_core.log_episode_event")
-@patch("core.bayesian_trust_tracker.bayesian_trust_tracker")
+@patch("engine.simulator_core.log_simulation_trace")
+@patch("engine.simulator_core.log_episode_event")
+@patch("analytics.bayesian_trust_tracker.bayesian_trust_tracker")
 def test_simulate_forward_basic(
     mock_bayesian_trust_tracker,
     mock_log_episode_event,
@@ -314,17 +315,17 @@ def test_simulate_forward_invalid_turns(basic_worldstate):
     with pytest.raises(ValueError, match="turns must be a positive integer"):
         simulate_forward(basic_worldstate, turns=-5)
     with pytest.raises(ValueError, match="turns must be a positive integer"):
-        simulate_forward(basic_worldstate, turns="abc")
+        simulate_forward(basic_worldstate, turns="abc")  # type: ignore
 
 
-@patch("simulation_engine.state_mutation.adjust_overlay")
-@patch("simulation_engine.state_mutation.update_numeric_variable")
-@patch("simulation_engine.state_mutation.adjust_capital")
-@patch("simulation_engine.simulator_core.simulate_turn")
+@patch("engine.state_mutation.adjust_overlay")
+@patch("engine.state_mutation.update_numeric_variable")
+@patch("engine.state_mutation.adjust_capital")
+@patch("engine.simulator_core.simulate_turn")
 @patch("trust_system.trust_engine.TrustEngine.apply_all")
-@patch("simulation_engine.simulator_core.log_simulation_trace")
-@patch("simulation_engine.simulator_core.log_episode_event")
-@patch("core.bayesian_trust_tracker.bayesian_trust_tracker")
+@patch("engine.simulator_core.log_simulation_trace")
+@patch("engine.simulator_core.log_episode_event")
+@patch("analytics.bayesian_trust_tracker.bayesian_trust_tracker")
 def test_simulate_forward_retrodiction_strict(
     mock_bayesian_trust_tracker,
     mock_log_episode_event,
@@ -372,14 +373,14 @@ def test_simulate_forward_retrodiction_strict(
     mock_bayesian_trust_tracker.batch_update.assert_called()  # Should update trust tracker
 
 
-@patch("simulation_engine.state_mutation.adjust_overlay")
-@patch("simulation_engine.state_mutation.update_numeric_variable")
-@patch("simulation_engine.state_mutation.adjust_capital")
-@patch("simulation_engine.simulator_core.simulate_turn")
+@patch("engine.state_mutation.adjust_overlay")
+@patch("engine.state_mutation.update_numeric_variable")
+@patch("engine.state_mutation.adjust_capital")
+@patch("engine.simulator_core.simulate_turn")
 @patch("trust_system.trust_engine.TrustEngine.apply_all")
-@patch("simulation_engine.simulator_core.log_simulation_trace")
-@patch("simulation_engine.simulator_core.log_episode_event")
-@patch("core.bayesian_trust_tracker.bayesian_trust_tracker")
+@patch("engine.simulator_core.log_simulation_trace")
+@patch("engine.simulator_core.log_episode_event")
+@patch("analytics.bayesian_trust_tracker.bayesian_trust_tracker")
 def test_simulate_forward_retrodiction_seed(
     mock_bayesian_trust_tracker,
     mock_log_episode_event,
@@ -428,13 +429,11 @@ def test_simulate_forward_retrodiction_seed(
 
 
 # Test simulate_backward (requires mocking)
-@patch("simulation_engine.simulator_core.inverse_decay")
-@patch("simulation_engine.simulator_core.tag_symbolic_state")
-@patch(
-    "simulation_engine.rules.reverse_rule_engine.get_fingerprints"
-)  # Corrected patch target
-@patch("simulation_engine.simulator_core.score_symbolic_trace")
-@patch("simulation_engine.simulator_core.reverse_rule_engine")
+@patch("engine.simulator_core.inverse_decay")
+@patch("engine.simulator_core.tag_symbolic_state")
+@patch("rules.reverse_rule_engine.get_fingerprints")  # Corrected patch target
+@patch("engine.simulator_core.score_symbolic_trace")
+@patch("rules.reverse_rule_engine")
 def test_simulate_backward(
     mock_reverse_rule_engine,
     mock_score_symbolic_trace,
@@ -484,9 +483,9 @@ def test_simulate_backward(
 
 
 # Test simulate_counterfactual (requires mocking)
-@patch("simulation_engine.simulator_core.simulate_forward")
-@patch("simulation_engine.simulator_core.score_symbolic_trace")
-@patch("simulation_engine.simulator_core.log_simulation_trace")
+@patch("engine.simulator_core.simulate_forward")
+@patch("engine.simulator_core.score_symbolic_trace")
+@patch("engine.simulator_core.log_simulation_trace")
 def test_simulate_counterfactual(
     mock_log_simulation_trace,
     mock_score_symbolic_trace,
@@ -532,7 +531,7 @@ def test_simulate_counterfactual(
 
 
 # Test validate_variable_trace (requires mocking)
-@patch("simulation_engine.simulator_core.inverse_decay")
+@patch("engine.simulator_core.inverse_decay")
 def test_validate_variable_trace(mock_inverse_decay, basic_worldstate):
     """Test validate_variable_trace function."""
     mock_inverse_decay.side_effect = (
@@ -572,8 +571,8 @@ def test_validate_variable_trace_non_existent_var(basic_worldstate):
 
 
 # Test reverse_rule_engine (stub, just check if it's called)
-@patch("simulation_engine.rules.rule_matching_utils.get_all_rule_fingerprints")
-@patch("simulation_engine.rules.reverse_rule_engine.trace_causal_paths")
+@patch("rules.rule_matching_utils.get_all_rule_fingerprints")
+@patch("rules.reverse_rule_engine.trace_causal_paths")
 def test_reverse_rule_engine_feature(mock_trace_causal_paths, mock_get_fingerprints):
     """Test that reverse_rule_engine returns plausible rule chains, tags, trust scores, and suggestions."""
     state = MagicMock()

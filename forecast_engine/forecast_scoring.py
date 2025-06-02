@@ -10,8 +10,8 @@ Scores each forecast after simulation based on:
 Author: Pulse v0.10
 """
 
-from simulation_engine.worldstate import WorldState
-from core.pulse_learning_log import log_learning_event
+from engine.worldstate import WorldState
+from analytics.pulse_learning_log import log_learning_event
 from datetime import datetime
 
 

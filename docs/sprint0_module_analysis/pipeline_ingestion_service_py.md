@@ -17,7 +17,7 @@ The module appears to be relatively complete for its stated purpose as a wrapper
 ## Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   [`from iris.iris_scraper import IrisScraper`](pipeline/ingestion_service.py:9): Imports the core scraping utility.
+    *   [`from ingestion.iris_scraper import IrisScraper`](pipeline/ingestion_service.py:9): Imports the core scraping utility.
 *   **External Library Dependencies (Standard Library):**
     *   `typing` (for `Dict`, `List`): Used for type hinting ([`pipeline/ingestion_service.py:10`](pipeline/ingestion_service.py:10)).
     *   `argparse`, `sys`, `json`, `pathlib`: Used in the `if __name__ == "__main__":` block for CLI functionality ([`pipeline/ingestion_service.py:31`](pipeline/ingestion_service.py:31)).
@@ -67,7 +67,7 @@ This command runs the ingestion process once and prints the path to the exported
 
 ## Coupling Points
 
-*   **High Coupling with `iris.iris_scraper.IrisScraper`:** The [`IngestionService`](pipeline/ingestion_service.py:12) is fundamentally a wrapper for [`IrisScraper`](iris/iris_scraper.py:9) and directly depends on its methods like [`plugin_manager.autoload()`](pipeline/ingestion_service.py:16), [`batch_ingest_from_plugins()`](pipeline/ingestion_service.py:21), and [`export_signal_log()`](pipeline/ingestion_service.py:22), as well as its `signal_log` attribute.
+*   **High Coupling with `ingestion.iris_scraper.IrisScraper`:** The [`IngestionService`](pipeline/ingestion_service.py:12) is fundamentally a wrapper for [`IrisScraper`](iris/iris_scraper.py:9) and directly depends on its methods like [`plugin_manager.autoload()`](pipeline/ingestion_service.py:16), [`batch_ingest_from_plugins()`](pipeline/ingestion_service.py:21), and [`export_signal_log()`](pipeline/ingestion_service.py:22), as well as its `signal_log` attribute.
 *   **Dependency on IRIS Plugin Ecosystem:** The functionality relies entirely on the plugins available to and loaded by [`IrisScraper`](iris/iris_scraper.py:9).
 
 ## Existing Tests

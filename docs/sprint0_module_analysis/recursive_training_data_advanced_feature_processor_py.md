@@ -25,7 +25,7 @@ The module appears to be operationally complete for its defined scope.
 ### Direct Project Module Imports:
 - [`recursive_training.data.time_frequency_decomposition.apply_time_frequency_decomposition`](recursive_training/data/time_frequency_decomposition.py:16)
 - [`recursive_training.data.graph_based_features.apply_graph_based_features`](recursive_training/data/graph_based_features.py:17)
-- [`recursive_training.data.self_supervised_learning.apply_self_supervised_learning`](recursive_training/data/self_supervised_learning.py:18)
+- [`recursive_training.data.self_supervised_analytics.apply_self_supervised_learning`](recursive_training/data/self_supervised_learning.py:18)
 
 ### External Library Dependencies:
 - `logging`

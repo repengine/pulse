@@ -3,8 +3,8 @@
 Integration test: run a simulation turn and check forecast licensing end-to-end.
 """
 
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn
+from engine.worldstate import WorldState
+from engine.turn_engine import run_turn
 from forecast_output.forecast_licenser import license_forecast
 
 

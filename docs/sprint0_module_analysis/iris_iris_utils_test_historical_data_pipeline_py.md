@@ -26,11 +26,11 @@ The module appears to be operationally complete for its defined scope of testing
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1):
+*   [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1):
     *   [`retrieve_historical_data()`](iris/iris_utils/historical_data_retriever.py:25)
     *   [`load_variable_catalog()`](iris/iris_utils/historical_data_retriever.py:26)
     *   [`create_verification_report()`](iris/iris_utils/historical_data_retriever.py:27) (imported, not used)
-*   [`iris.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py:1):
+*   [`ingestion.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py:1):
     *   [`transform_and_store_variable()`](iris/iris_utils/historical_data_transformer.py:30)
     *   [`verify_transformed_data()`](iris/iris_utils/historical_data_transformer.py:31)
     *   [`generate_data_coverage_report()`](iris/iris_utils/historical_data_transformer.py:32)
@@ -76,7 +76,7 @@ The module appears to be operationally complete for its defined scope of testing
     *   **Description:** The main entry point when the script is executed directly. It initiates the test suite by calling [`run_all_tests()`](iris/iris_utils/test_historical_data_pipeline.py:109), logs the overall result, and returns an appropriate exit code (0 for success, 1 for failure).
     *   **Example Usage (CLI):**
         ```bash
-        python -m iris.iris_utils.test_historical_data_pipeline
+        python -m ingestion.iris_utils.test_historical_data_pipeline
         ```
 
 ## 6. Hardcoding Issues
@@ -100,7 +100,7 @@ The module appears to be operationally complete for its defined scope of testing
 
 ## 7. Coupling Points
 
-*   **High Coupling with `historical_data_retriever` and `historical_data_transformer`**: The module is tightly coupled to the function signatures, return types, and expected behavior of functions imported from [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1) and [`iris.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py:1). Any changes in these dependent modules could necessitate updates in this test script.
+*   **High Coupling with `historical_data_retriever` and `historical_data_transformer`**: The module is tightly coupled to the function signatures, return types, and expected behavior of functions imported from [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1) and [`ingestion.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py:1). Any changes in these dependent modules could necessitate updates in this test script.
 *   **Dependency on Variable Catalog Structure**: The script relies on a specific structure for the variable catalog data, as processed by [`load_variable_catalog()`](iris/iris_utils/historical_data_retriever.py:26) and accessed at [`iris/iris_utils/test_historical_data_pipeline.py:59-62`](iris/iris_utils/test_historical_data_pipeline.py:59-62).
 *   **Implicit Dependency on Data Store**: The script indirectly depends on the behavior and interface of the underlying data storage system (e.g., `RecursiveDataStore`) as abstracted by the `historical_data_transformer` module.
 

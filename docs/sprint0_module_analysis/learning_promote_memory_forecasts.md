@@ -6,7 +6,7 @@
 
 The primary role of this module is to serve as a Command Line Interface (CLI) tool for promoting selected forecasts into a "core forecast memory." It achieves this by:
 1.  Accepting a batch of forecasts from a JSONL file.
-2.  Utilizing functions from the `memory.forecast_memory_promoter` module to select which forecasts are "promotable."
+2.  Utilizing functions from the `analytics.forecast_memory_promoter` module to select which forecasts are "promotable."
 3.  Exporting these selected forecasts to another JSONL file, which represents the core forecast memory.
 
 The module is designed to be invoked from the command line, as indicated by its usage instructions and reliance on the `argparse` library.
@@ -31,14 +31,14 @@ While functional for its basic purpose, several areas could be considered gaps o
 *   **Direct Imports:**
     *   `argparse`: Standard Python library for parsing command-line arguments.
     *   `json`: Standard Python library for JSON manipulation.
-    *   From [`memory.forecast_memory_promoter`](memory/forecast_memory_promoter.py:1) (project module):
+    *   From [`analytics.forecast_memory_promoter`](memory/forecast_memory_promoter.py:1) (project module):
         *   [`select_promotable_forecasts`](memory/forecast_memory_promoter.py:1)
         *   [`export_promoted`](memory/forecast_memory_promoter.py:1)
 *   **Interactions:**
     *   **File System:**
         *   Reads from a JSONL file specified by the `--batch` command-line argument (e.g., `forecasts.jsonl`).
         *   Writes to a JSONL file specified by the `--export` command-line argument (defaults to `memory/core_forecast_memory.jsonl`).
-    *   **Module Interaction:** Delegates the core logic of selecting and exporting forecasts to the imported functions from `memory.forecast_memory_promoter`.
+    *   **Module Interaction:** Delegates the core logic of selecting and exporting forecasts to the imported functions from `analytics.forecast_memory_promoter`.
 *   **Input/Output Files:**
     *   **Input:** A JSONL file containing a list of forecast objects, path provided via `--batch` argument.
     *   **Output:** A JSONL file containing the promoted forecast objects, path provided via `--export` argument.
@@ -76,7 +76,7 @@ While functional for its basic purpose, several areas could be considered gaps o
 
 ## 7. Coupling Points
 
-*   **High Coupling with `memory.forecast_memory_promoter`:** The module is tightly coupled to the [`select_promotable_forecasts`](learning/promote_memory_forecasts.py:9) and [`export_promoted`](learning/promote_memory_forecasts.py:9) functions from the `memory.forecast_memory_promoter` module. This script essentially acts as a CLI frontend for these functions. Any changes to the signature or behavior of these imported functions would directly impact this script.
+*   **High Coupling with `analytics.forecast_memory_promoter`:** The module is tightly coupled to the [`select_promotable_forecasts`](learning/promote_memory_forecasts.py:9) and [`export_promoted`](learning/promote_memory_forecasts.py:9) functions from the `analytics.forecast_memory_promoter` module. This script essentially acts as a CLI frontend for these functions. Any changes to the signature or behavior of these imported functions would directly impact this script.
 *   **Data Format Coupling (JSONL):** The script is coupled to the JSONL format for both input and output files. Changes to this format would require modifications to [`load_jsonl`](learning/promote_memory_forecasts.py:11) and potentially the `export_promoted` function (though the latter is external).
 *   **File System Coupling:** Relies on direct file system operations for reading input and writing output.
 
@@ -85,14 +85,14 @@ While functional for its basic purpose, several areas could be considered gaps o
 *   There are no unit tests or integration tests present *within this file*.
 *   **Testability Assessment:**
     *   The [`load_jsonl`](learning/promote_memory_forecasts.py:11) function is testable in isolation by providing mock file contents.
-    *   The main script logic (argument parsing and orchestration) is best tested via integration tests that execute the script as a subprocess with various command-line arguments and mock input files, then verify the output files or the calls made to the mocked `memory.forecast_memory_promoter` functions.
-*   **Gaps:** The lack of dedicated tests for this CLI script is a gap. The reliability heavily depends on the correctness and testing of the external `memory.forecast_memory_promoter` module.
+    *   The main script logic (argument parsing and orchestration) is best tested via integration tests that execute the script as a subprocess with various command-line arguments and mock input files, then verify the output files or the calls made to the mocked `analytics.forecast_memory_promoter` functions.
+*   **Gaps:** The lack of dedicated tests for this CLI script is a gap. The reliability heavily depends on the correctness and testing of the external `analytics.forecast_memory_promoter` module.
 
 ## 9. Module Architecture and Flow (SPARC Architecture)
 
 The module follows a simple, linear execution flow typical of a CLI script:
 
-1.  **Initialization:** Imports necessary libraries (`argparse`, `json`) and specific functions from `memory.forecast_memory_promoter`.
+1.  **Initialization:** Imports necessary libraries (`argparse`, `json`) and specific functions from `analytics.forecast_memory_promoter`.
 2.  **Argument Parsing:** An `ArgumentParser` instance is created and configured to accept:
     *   `--batch` (required): Path to the input JSONL file.
     *   `--export` (optional, with default): Path for the output JSONL file.
@@ -103,7 +103,7 @@ The module follows a simple, linear execution flow typical of a CLI script:
 5.  **Exporting (Delegation):**
     *   The `selected` forecasts and the export path (from `--export` argument) are passed to [`export_promoted`](learning/promote_memory_forecasts.py:22) (imported function) to write the results to the output file.
 
-This architecture is that of a thin wrapper or orchestrator, delegating the complex business logic to another, more specialized module (`memory.forecast_memory_promoter`). This promotes modularity by separating CLI handling from the core forecast promotion logic.
+This architecture is that of a thin wrapper or orchestrator, delegating the complex business logic to another, more specialized module (`analytics.forecast_memory_promoter`). This promotes modularity by separating CLI handling from the core forecast promotion logic.
 
 ## 10. Naming Conventions (SPARC Maintainability)
 
@@ -121,11 +121,11 @@ Overall, naming conventions are good and contribute positively to maintainabilit
 *   **Specification:**
     *   **Adherence:** Good. The module's purpose as a CLI tool for promoting forecasts is clearly stated in the initial docstring and reflected in its implementation.
 *   **Modularity/Architecture:**
-    *   **Adherence:** Fair. The module effectively delegates core logic to `memory.forecast_memory_promoter`, which is good for modularity.
+    *   **Adherence:** Fair. The module effectively delegates core logic to `analytics.forecast_memory_promoter`, which is good for modularity.
     *   **Areas for Improvement:** Direct file I/O and the hardcoded default export path reduce flexibility. Using a configuration system or dependency injection for file paths and I/O operations could improve this.
 *   **Refinement:**
     *   **Testability:**
-        *   **Adherence:** Poor. No tests are present within the module itself. Its testability relies on external integration tests or thorough testing of the `memory.forecast_memory_promoter` module.
+        *   **Adherence:** Poor. No tests are present within the module itself. Its testability relies on external integration tests or thorough testing of the `analytics.forecast_memory_promoter` module.
         *   **Areas for Improvement:** Add unit tests for [`load_jsonl`](learning/promote_memory_forecasts.py:11) and integration tests for the CLI functionality.
     *   **Security (No Hardcoded Secrets):**
         *   **Adherence:** Good. No secrets, API keys, or highly sensitive data are handled or hardcoded directly in this module. The main security consideration is file system access, which is typical for such a tool.

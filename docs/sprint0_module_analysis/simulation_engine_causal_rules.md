@@ -23,8 +23,8 @@ The module appears to be operational and relatively complete for its defined sco
 ### Direct Imports:
 
 *   **Project Modules:**
-    *   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1) (specifically [`WorldState`](simulation_engine/worldstate.py:471))
-    *   [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:1) (specifically [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`update_numeric_variable()`](simulation_engine/state_mutation.py:27), [`adjust_capital()`](simulation_engine/state_mutation.py:151))
+    *   [`engine.worldstate`](simulation_engine/worldstate.py:1) (specifically [`WorldState`](simulation_engine/worldstate.py:471))
+    *   [`engine.state_mutation`](simulation_engine/state_mutation.py:1) (specifically [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`update_numeric_variable()`](simulation_engine/state_mutation.py:27), [`adjust_capital()`](simulation_engine/state_mutation.py:151))
     *   [`core.variable_accessor`](core/variable_accessor.py:1) (specifically [`get_variable()`](core/variable_accessor.py:11), [`get_overlay()`](core/variable_accessor.py:42))
     *   [`core.pulse_config`](core/pulse_config.py:1) (specifically [`CONFIDENCE_THRESHOLD`](core/pulse_config.py:42), [`DEFAULT_FRAGILITY_THRESHOLD`](core/pulse_config.py:43))
     *   [`core.pulse_learning_log`](core/pulse_learning_log.py:1) (specifically [`log_bayesian_trust_metrics()`](core/pulse_learning_log.py:307))
@@ -121,7 +121,7 @@ To understand the full context and dependencies of [`simulation_engine/causal_ru
 ## Coupling Points (Modularity/Architecture)
 
 *   **Tight Coupling to `WorldState` Structure:** The module is tightly coupled to the specific structure of the [`WorldState`](simulation_engine/worldstate.py:471) object and its sub-objects (`overlays`, `capital`, `variables`). Changes in [`WorldState`](simulation_engine/worldstate.py:471) would likely require changes here.
-*   **Direct Calls to Mutation Functions:** It directly calls functions from [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:1) (e.g., [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`adjust_capital()`](simulation_engine/state_mutation.py:151)).
+*   **Direct Calls to Mutation Functions:** It directly calls functions from [`engine.state_mutation`](simulation_engine/state_mutation.py:1) (e.g., [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`adjust_capital()`](simulation_engine/state_mutation.py:151)).
 *   **Dependency on `core` Modules:** Strong dependencies on several `core` modules:
     *   [`core.variable_accessor`](core/variable_accessor.py:1) for getting variable and overlay values.
     *   [`core.pulse_config`](core/pulse_config.py:1) for global thresholds.
@@ -148,7 +148,7 @@ No inline tests (e.g., doctests or a `if __name__ == "__main__":` block with tes
     *   Iterates through a predefined sequence of rule applications.
     *   For each rule, it calls [`apply_rule()`](simulation_engine/causal_rules.py:100) with specific lambda functions defining the condition and effect.
     *   Conditions typically involve checking overlay values against thresholds (e.g., `get_overlay(s, "hope") > CONFIDENCE_THRESHOLD`) or variable values (e.g., `get_variable(s, "inflation_index") > 0.05`).
-    *   Effects involve calling mutation functions from [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:1) (e.g., [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`update_numeric_variable()`](simulation_engine/state_mutation.py:27), [`adjust_capital()`](simulation_engine/state_mutation.py:151)) and logging symbolic tags.
+    *   Effects involve calling mutation functions from [`engine.state_mutation`](simulation_engine/state_mutation.py:1) (e.g., [`adjust_overlay()`](simulation_engine/state_mutation.py:94), [`update_numeric_variable()`](simulation_engine/state_mutation.py:27), [`adjust_capital()`](simulation_engine/state_mutation.py:151)) and logging symbolic tags.
     *   Collects and returns a list of activated rule IDs.
 4.  **`generate_rule_statistics()` Function:**
     *   Iterates through the `RULES` dictionary.

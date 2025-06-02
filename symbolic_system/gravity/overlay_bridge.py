@@ -13,7 +13,7 @@ Author: Pulse v3.5
 import logging
 from typing import Dict, Optional
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 import symbolic_system.symbolic_utils as legacy_utils
 from symbolic_system.gravity.integration import (
     get_pillar_system,

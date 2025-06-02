@@ -1,10 +1,10 @@
-# test_property_based_simulation_engine.py
+# test_property_based_engine.py
 """
-Property-based tests for simulation_engine.worldstate using hypothesis.
+Property-based tests for engine.worldstate using hypothesis.
 """
 
 from hypothesis import given, strategies as st
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 
 
 def is_valid_state(state: WorldState) -> bool:
@@ -28,7 +28,7 @@ def test_turn_increments_property(turn):
     trust=st.floats(min_value=0, max_value=1),
 )
 def test_overlay_bounds(hope, despair, rage, fatigue, trust):
-    from simulation_engine.worldstate import (
+    from engine.worldstate import (
         SymbolicOverlays,
     )  # Updated to correct class name
 

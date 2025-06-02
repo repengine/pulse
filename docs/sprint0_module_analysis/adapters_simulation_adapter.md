@@ -6,7 +6,7 @@
 
 ## 2. Purpose & Functionality
 
-The primary purpose of the [`SimulationAdapter`](adapters/simulation_adapter.py:4) module is to provide a standardized interface to the core functionalities of the simulation engine. It acts as a bridge between systems that need to interact with the simulation engine and the actual implementation within [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1).
+The primary purpose of the [`SimulationAdapter`](adapters/simulation_adapter.py:4) module is to provide a standardized interface to the core functionalities of the simulation engine. It acts as a bridge between systems that need to interact with the simulation engine and the actual implementation within [`engine.simulator_core`](simulation_engine/simulator_core.py:1).
 
 This adapter implements the [`SimulationInterface`](interfaces/simulation_interface.py:1), ensuring that any component interacting with it can rely on a consistent contract, regardless of the underlying simulation engine's implementation details. This promotes loose coupling and modularity within the Pulse application.
 
@@ -23,7 +23,7 @@ Key functionalities exposed by this adapter include:
 *   **Class: `SimulationAdapter(SimulationInterface)`**
     *   This is the sole class in the module.
     *   It inherits from [`SimulationInterface`](interfaces/simulation_interface.py:1), thereby committing to implement a specific set of methods for simulation interaction.
-    *   Each method in this class is a simple wrapper that delegates the call directly to a corresponding function in the [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) module.
+    *   Each method in this class is a simple wrapper that delegates the call directly to a corresponding function in the [`engine.simulator_core`](simulation_engine/simulator_core.py:1) module.
 
     *   **Methods:**
         *   [`reset_state(self, state)`](adapters/simulation_adapter.py:5)
@@ -40,14 +40,14 @@ Key functionalities exposed by this adapter include:
 
 *   **Internal Pulse Modules:**
     *   [`interfaces.simulation_interface`](interfaces/simulation_interface.py:1): Provides the `SimulationInterface` abstract base class that [`SimulationAdapter`](adapters/simulation_adapter.py:4) implements.
-    *   [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1): This is the core module to which all simulation functionalities are delegated. The adapter directly calls functions within this module.
+    *   [`engine.simulator_core`](simulation_engine/simulator_core.py:1): This is the core module to which all simulation functionalities are delegated. The adapter directly calls functions within this module.
 *   **External Libraries:**
-    *   Based on the provided code, there are no direct external library dependencies within this adapter module itself. Dependencies would reside within the [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) or [`interfaces.simulation_interface`](interfaces/simulation_interface.py:1) modules.
+    *   Based on the provided code, there are no direct external library dependencies within this adapter module itself. Dependencies would reside within the [`engine.simulator_core`](simulation_engine/simulator_core.py:1) or [`interfaces.simulation_interface`](interfaces/simulation_interface.py:1) modules.
 
 ## 5. SPARC Analysis
 
 *   **Specification:**
-    *   **Clarity of Purpose:** The purpose is very clear: to adapt the [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) to the [`SimulationInterface`](interfaces/simulation_interface.py:1).
+    *   **Clarity of Purpose:** The purpose is very clear: to adapt the [`engine.simulator_core`](simulation_engine/simulator_core.py:1) to the [`SimulationInterface`](interfaces/simulation_interface.py:1).
     *   **Well-defined Requirements:** Requirements are implicitly defined by the [`SimulationInterface`](interfaces/simulation_interface.py:1) it implements. Each method directly maps to a required piece of functionality.
 
 *   **Architecture & Modularity:**

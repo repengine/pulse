@@ -224,7 +224,9 @@ def format_result(api_name, env_check, api_test=None):
                 try:
                     content_str = json.dumps(api_test["content"], indent=2)
                     status += f"\n    Response: {content_str}"
-                except Exception:  # Catching general exception, consider more specific if known
+                except (
+                    Exception
+                ):  # Catching general exception, consider more specific if known
                     status += f"\n    Response: {api_test['content']}"
     else:
         status += "Not found"

@@ -1,11 +1,11 @@
 from unittest.mock import patch, MagicMock
-from simulation_engine.simulator_core import simulate_forward
-from simulation_engine.worldstate import WorldState
+from engine.simulator_core import simulate_forward
+from engine.worldstate import WorldState
 
 
-@patch("simulation_engine.state_mutation.adjust_overlay")
-@patch("simulation_engine.state_mutation.update_numeric_variable")
-@patch("simulation_engine.state_mutation.adjust_capital")
+@patch("engine.state_mutation.adjust_overlay")
+@patch("engine.state_mutation.update_numeric_variable")
+@patch("engine.state_mutation.adjust_capital")
 def test_simulate_forward_retrodiction_strict(
     mock_adjust_capital, mock_update_numeric_variable, mock_adjust_overlay
 ):
@@ -42,9 +42,9 @@ def test_simulate_forward_retrodiction_strict(
     assert mock_adjust_capital.call_count == 3
 
 
-@patch("simulation_engine.state_mutation.adjust_overlay")
-@patch("simulation_engine.state_mutation.update_numeric_variable")
-@patch("simulation_engine.state_mutation.adjust_capital")
+@patch("engine.state_mutation.adjust_overlay")
+@patch("engine.state_mutation.update_numeric_variable")
+@patch("engine.state_mutation.adjust_capital")
 def test_simulate_forward_retrodiction_seed(
     mock_adjust_capital, mock_update_numeric_variable, mock_adjust_overlay
 ):

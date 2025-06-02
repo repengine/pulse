@@ -24,6 +24,6 @@ This module is newly introduced in Pulse v0.10. Its functionalities will be deve
 *   **PyYAML (or a similar YAML parsing library)**: For reading and parsing YAML files.
 *   **Pydantic**: For data validation and model instantiation.
 *   **`pathlib`**: For file system path operations.
-*   **`simulation_engine.rules.rule_registry`**: The `RuleRegistry` will likely use this loader to populate its collection of rules from YAML files.
+*   **`engine.rules.rule_registry`**: The `RuleRegistry` will likely use this loader to populate its collection of rules from YAML files.
 
 *(Further details to be added as development progresses.)*

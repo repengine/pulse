@@ -7,8 +7,8 @@ over time to ensure rule engines are modifying state.
 Author: Pulse v0.20
 """
 
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn
+from engine.worldstate import WorldState
+from engine.turn_engine import run_turn
 from utils.log_utils import get_logger
 
 logger = get_logger(__name__)

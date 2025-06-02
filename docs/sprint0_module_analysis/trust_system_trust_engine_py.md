@@ -47,7 +47,7 @@ The `TrustEngine` class acts as the main interface, orchestrating these function
     -   `symbolic_system.symbolic_utils.compute_symbolic_drift_penalty` ([`trust_system/trust_engine.py:13`](trust_system/trust_engine.py:13))
     -   `core.pulse_config.CONFIDENCE_THRESHOLD`, `core.pulse_config.USE_SYMBOLIC_OVERLAYS` ([`trust_system/trust_engine.py:14`](trust_system/trust_engine.py:14))
     -   `trust_system.retrodiction_engine.run_retrodiction_simulation` ([`trust_system/trust_engine.py:15`](trust_system/trust_engine.py:15), [`trust_system/trust_engine.py:677`](trust_system/trust_engine.py:677))
-    -   `simulation_engine.worldstate.WorldState` ([`trust_system/trust_engine.py:16`](trust_system/trust_engine.py:16), [`trust_system/trust_engine.py:678`](trust_system/trust_engine.py:678))
+    -   `engine.worldstate.WorldState` ([`trust_system/trust_engine.py:16`](trust_system/trust_engine.py:16), [`trust_system/trust_engine.py:678`](trust_system/trust_engine.py:678))
     -   `trust_system.services.trust_enrichment_service.TrustEnrichmentService` ([`trust_system/trust_engine.py:214`](trust_system/trust_engine.py:214))
     -   `trust_system.services.trust_scoring_strategy.TrustScoringStrategy`, `DefaultTrustScoringStrategy` ([`trust_system/trust_engine.py:215`](trust_system/trust_engine.py:215))
     -   Local (within-function) imports for enrichment:

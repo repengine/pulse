@@ -51,7 +51,7 @@ Given its role as a deprecated compatibility layer, there are no implementation 
 #   "energy_cost": 1.5
 # }
 
-from simulation_engine.historical_retrodiction_runner import get_default_variable_state
+from engine.historical_retrodiction_runner import get_default_variable_state
 
 default_state = get_default_variable_state()
 # default_state might be {'temperature': 25.5, 'humidity': 60.0}
@@ -70,7 +70,7 @@ print(default_state)
 #   }
 # }
 
-from simulation_engine.historical_retrodiction_runner import RetrodictionLoader
+from engine.historical_retrodiction_runner import RetrodictionLoader
 
 loader = RetrodictionLoader() # Uses default path or PULSE_TRUTH_PATH
 # loader = RetrodictionLoader(path="custom/path/to/data.json") # Uses custom path

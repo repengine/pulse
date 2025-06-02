@@ -25,15 +25,15 @@ import os
 import json
 import argparse
 from datetime import datetime
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn
+from engine.worldstate import WorldState
+from engine.turn_engine import run_turn
 from forecast_engine.forecast_tracker import ForecastTracker
 from forecast_engine.forecast_scoring import score_forecast
 from forecast_engine.forecast_integrity_engine import validate_forecast
 from utils.log_utils import get_logger
-from core.path_registry import PATHS
-from core.pulse_config import CONFIDENCE_THRESHOLD
-from learning.recursion_audit import generate_recursion_report
+from engine.path_registry import PATHS
+from engine.pulse_config import CONFIDENCE_THRESHOLD
+from analytics.recursion_audit import generate_recursion_report
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

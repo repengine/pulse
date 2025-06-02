@@ -59,7 +59,7 @@ While generally complete, some areas suggest potential extensions or reliance on
 
 ### [`SymbolicOverlays`](../../simulation_engine/worldstate.py:32)
 ```python
-from simulation_engine.worldstate import SymbolicOverlays, time # Import time for example
+from engine.worldstate import SymbolicOverlays, time # Import time for example
 
 # Initialize with default values
 overlays = SymbolicOverlays()
@@ -80,7 +80,7 @@ print(f"Children of 'hope': {overlays.get_children('hope')}") # type: ignore
 
 ### [`CapitalExposure`](../../simulation_engine/worldstate.py:389)
 ```python
-from simulation_engine.worldstate import CapitalExposure, time # Import time for example
+from engine.worldstate import CapitalExposure, time # Import time for example
 
 # Initialize with some capital
 capital = CapitalExposure(nvda=10000.0, cash=50000.0) # type: ignore
@@ -92,7 +92,7 @@ print(f"Total non-cash exposure: {capital.total_exposure()}") # type: ignore
 
 ### [`Variables`](../../simulation_engine/worldstate.py:439)
 ```python
-from simulation_engine.worldstate import Variables, time # Import time for example
+from engine.worldstate import Variables, time # Import time for example
 
 # Initialize with some simulation variables
 sim_vars = Variables(data={"risk_appetite": 0.6, "market_volatility": 0.3}) # type: ignore
@@ -104,7 +104,7 @@ print(f"Risk appetite: {sim_vars.get('risk_appetite')}") # type: ignore
 
 ### [`WorldState`](../../simulation_engine/worldstate.py:471)
 ```python
-from simulation_engine.worldstate import WorldState, SymbolicOverlays, CapitalExposure, Variables, time # Import time for example
+from engine.worldstate import WorldState, SymbolicOverlays, CapitalExposure, Variables, time # Import time for example
 
 # Create a new WorldState
 ws = WorldState(turn=0, sim_id="sim_example_001") # type: ignore
@@ -151,7 +151,7 @@ print(f"Loaded turn from JSON: {ws_from_json.turn}, Timestamp: {ws_from_json.tim
 
 *   Based on the provided file listing, there is no explicitly named test file such as `test_worldstate.py` within the `tests/simulation_engine/` or general `tests/` directory.
 *   It is plausible that `WorldState` functionalities are implicitly tested as part of broader integration tests for the simulation engine, such as:
-    *   [`tests/test_property_based_simulation_engine.py`](../../tests/test_property_based_simulation_engine.py)
+    *   [`tests/test_property_based_engine.py`](../../tests/test_property_based_engine.py)
     *   [`tests/test_historical_retrodiction_runner.py`](../../tests/test_historical_retrodiction_runner.py)
     *   [`tests/test_integration_simulation_forecast.py`](../../tests/test_integration_simulation_forecast.py)
 *   **Assessment:** Without dedicated unit tests for `worldstate.py`, it's difficult to ascertain the specific coverage of its methods, especially for edge cases in validation, serialization, and dynamic overlay management. The addition of focused unit tests for this module would be beneficial.

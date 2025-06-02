@@ -12,32 +12,12 @@ import os
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
-try:
-    import pandas as pd
+import pandas as pd
+from engine.pulse_config import PulseConfig
 
-    PANDAS_AVAILABLE = True
-except ImportError:
-    PANDAS_AVAILABLE = False
-
-# Import relevant Pulse components with graceful fallbacks
-try:
-    from core.pulse_config import PulseConfig
-
-    PULSE_CONFIG_AVAILABLE = True
-except ImportError:
-    PULSE_CONFIG_AVAILABLE = False
-
-    # Define a minimal config class as fallback
-    class PulseConfig:
-        """Minimal PulseConfig implementation for fallback."""
-
-        def __init__(self):
-            pass
-
-        def get(self, key, default=None):
-            return default
+PANDAS_AVAILABLE = True  # Assume pandas is available after explicit import
 
 
 class MetricsStore:
@@ -83,15 +63,17 @@ class MetricsStore:
         """
         self.logger = logging.getLogger("MetricsStore")
 
-        # Load configuration with fallback
+        # Load configuration
         try:
-            if PULSE_CONFIG_AVAILABLE:
-                _pulse_config = PulseConfig()
-            else:
-                _pulse_config = PulseConfig()  # Fallback implementation
+            _pulse_config = PulseConfig()
         except Exception as e:
             self.logger.warning(f"Could not initialize PulseConfig: {e}")
-            _pulse_config = PulseConfig()  # Fallback implementation
+            # If PulseConfig() instantiation fails with the proper import,
+            # it's a more significant issue than a missing module.
+            # For now, let's re-raise or handle more explicitly if needed.
+            # Depending on how PulseConfig is designed, it might not need a try-except here.
+            # Assuming PulseConfig() can be instantiated.
+            _pulse_config = PulseConfig()  # Attempt instantiation
         self.config = config or {}
 
         # Set up storage paths
@@ -107,7 +89,7 @@ class MetricsStore:
         self.meta_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize metrics storage
-        self.metrics_cache = {}
+        self.metrics_cache: Dict[str, Dict[str, Any]] = {}
         self.metrics_indices = self._load_indices()
 
         # Configure storage options
@@ -137,7 +119,7 @@ class MetricsStore:
         if os.path.exists(indices_file):
             try:
                 with open(indices_file, "r") as f:
-                    return json.load(f)
+                    return cast(Dict[str, Dict[str, List[str]]], json.load(f))
             except Exception as e:
                 self.logger.error(
                     f"Failed to load metrics indices, creating new ones: {e}"
@@ -410,7 +392,7 @@ class MetricsStore:
 
         try:
             with open(metric_path, "r") as f:
-                metric_data = json.load(f)
+                metric_data = cast(Dict[str, Any], json.load(f))
 
             # Add to cache if enabled
             if self.enable_caching:
@@ -607,10 +589,6 @@ class MetricsStore:
         Returns:
             DataFrame containing the metrics or None if pandas is not available
         """
-        if not PANDAS_AVAILABLE:
-            self.logger.warning("pandas is not available, cannot export to DataFrame")
-            return None
-
         # Convert query parameters to format expected by query_metrics
         if query:
             metric_types = query.get("metric_types")

@@ -28,15 +28,15 @@ The module appears largely functional for the features explicitly described and 
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`learning.recursion_audit`](learning/recursion_audit.py): For [`generate_recursion_report()`](learning/recursion_audit.py:18).
+- [`analytics.recursion_audit`](learning/recursion_audit.py): For [`generate_recursion_report()`](learning/recursion_audit.py:18).
 - [`dev_tools.pulse_ui_plot`](dev_tools/pulse_ui_plot.py): For [`load_variable_trace()`](dev_tools/pulse_ui_plot.py:19) and [`plot_variables()`](dev_tools/pulse_ui_plot.py:19).
 - [`core.pulse_config`](core/pulse_config.py): For accessing and modifying global configurations like `USE_SYMBOLIC_OVERLAYS`.
 - [`operator_interface.learning_log_viewer`](operator_interface/learning_log_viewer.py): For [`load_learning_events()`](operator_interface/learning_log_viewer.py:21), [`summarize_learning_events()`](operator_interface/learning_log_viewer.py:21), [`render_event_digest()`](operator_interface/learning_log_viewer.py:21).
-- [`memory.variable_cluster_engine`](memory/variable_cluster_engine.py): For [`summarize_clusters()`](memory/variable_cluster_engine.py:22).
+- [`analytics.variable_cluster_engine`](memory/variable_cluster_engine.py): For [`summarize_clusters()`](memory/variable_cluster_engine.py:22).
 - [`operator_interface.variable_cluster_digest_formatter`](operator_interface/variable_cluster_digest_formatter.py): For [`format_variable_cluster_digest_md()`](operator_interface/variable_cluster_digest_formatter.py:23).
 - [`operator_interface.mutation_digest_exporter`](operator_interface/mutation_digest_exporter.py): For [`export_full_digest()`](operator_interface/mutation_digest_exporter.py:24).
 - [`operator_interface.symbolic_contradiction_digest`](operator_interface/symbolic_contradiction_digest.py): For [`format_contradiction_cluster_md()`](operator_interface/symbolic_contradiction_digest.py:25) and [`load_symbolic_conflict_events()`](operator_interface/symbolic_contradiction_digest.py:176).
-- [`learning.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py): For [`run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:76).
+- [`analytics.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py): For [`run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:76).
 
 ### External Library Dependencies:
 - `argparse`: For CLI argument parsing.

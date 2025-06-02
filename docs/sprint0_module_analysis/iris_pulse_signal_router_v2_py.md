@@ -17,9 +17,9 @@ The module appears to be operational for its defined scope. The version "0.427A 
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   [`iris.iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py) (or [`iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py))
-    *   [`iris.iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py) (or [`iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py))
-    *   [`iris.iris_archive.IrisArchive`](../../../iris/iris_archive.py) (or [`iris_archive.IrisArchive`](../../../iris/iris_archive.py))
+    *   [`ingestion.iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py) (or [`iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py))
+    *   [`ingestion.iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py) (or [`iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py))
+    *   [`ingestion.iris_archive.IrisArchive`](../../../iris/iris_archive.py) (or [`iris_archive.IrisArchive`](../../../iris/iris_archive.py))
     *   The `try-except ImportError` block (lines 18-25) provides fallback import paths, possibly for different execution environments or local testing.
 *   **External Library Dependencies:**
     *   `datetime` (from `datetime` module, standard library)

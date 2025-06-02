@@ -12,7 +12,7 @@ The primary role of the [`simulation_engine/rl_env.py`](simulation_engine/rl_env
 The module appears largely complete for its intended purpose as an RL environment interface.
 - It correctly defines action and observation spaces using `gym.spaces.Box`.
 - The core RL interaction methods ([`reset()`](simulation_engine/rl_env.py:27) and [`step()`](simulation_engine/rl_env.py:50)) are implemented.
-- Reward computation logic is present in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36), which involves running a full simulation via [`simulate_forward()`](simulation_engine/simulator_core.py:1) from the [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) module.
+- Reward computation logic is present in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36), which involves running a full simulation via [`simulate_forward()`](simulation_engine/simulator_core.py:1) from the [`engine.simulator_core`](simulation_engine/simulator_core.py:1) module.
 
 ## 3. Implementation Gaps / Unfinished Next Steps
 
@@ -23,14 +23,14 @@ The module appears largely complete for its intended purpose as an RL environmen
 ## 4. Connections & Dependencies
 
 -   **Direct Project-Internal Imports:**
-    *   [`from simulation_engine.rules.static_rules import build_static_rules`](simulation_engine/rules/static_rules.py:17)
-    *   [`from simulation_engine.rules.rule_param_registry import RULE_PARAM_REGISTRY`](simulation_engine/rules/rule_param_registry.py:1)
+    *   [`from engine.rules.static_rules import build_static_rules`](simulation_engine/rules/static_rules.py:17)
+    *   [`from engine.rules.rule_param_registry import RULE_PARAM_REGISTRY`](simulation_engine/rules/rule_param_registry.py:1)
 -   **Direct External Library Imports:**
     *   `import gym`
     *   `import numpy as np`
 -   **Project-Internal Imports within Methods:**
-    *   [`from simulation_engine.simulator_core import simulate_forward`](simulation_engine/simulator_core.py:1) (in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36))
-    *   [`from simulation_engine.worldstate import WorldState`](simulation_engine/worldstate.py:1) (in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36))
+    *   [`from engine.simulator_core import simulate_forward`](simulation_engine/simulator_core.py:1) (in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36))
+    *   [`from engine.worldstate import WorldState`](simulation_engine/worldstate.py:1) (in [`compute_robustness_reward()`](simulation_engine/rl_env.py:36))
     *   The re-import of `build_static_rules` within [`compute_robustness_reward()`](simulation_engine/rl_env.py:39) is redundant as it's already imported at the module level.
 -   **Touched Project Files (for dependency and intent mapping):**
     *   [`simulation_engine/rl_env.py`](simulation_engine/rl_env.py:1)
@@ -65,7 +65,7 @@ The module appears largely complete for its intended purpose as an RL environmen
 
 ```python
 import numpy as np
-from simulation_engine.rl_env import SimulationEnv # Assuming rl_env.py is accessible
+from engine.rl_env import SimulationEnv # Assuming rl_env.py is accessible
 
 # Initialize the environment with a specific number of turns per episode
 env = SimulationEnv(turns_per_episode=10)
@@ -104,7 +104,7 @@ for i in range(3):
 ## 7. Coupling Points
 
 -   **[`RULE_PARAM_REGISTRY`](simulation_engine/rules/rule_param_registry.py:1):** The environment is tightly coupled to this registry. The definition of the action space (low, high bounds, number of dimensions) and the interpretation of actions directly depend on the structure and content of [`RULE_PARAM_REGISTRY`](simulation_engine/rules/rule_param_registry.py:1). Any changes to rule IDs, parameter names, or their properties in the registry will necessitate changes or careful validation in this environment.
--   **[`simulate_forward()`](simulation_engine/simulator_core.py:1):** The core logic of reward computation relies entirely on calling [`simulate_forward()`](simulation_engine/simulator_core.py:1) from [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1). The environment's behavior is thus highly dependent on the correctness, performance, and output structure (specifically `fragility`, `confidence`, `drift` in the summary) of the simulation core.
+-   **[`simulate_forward()`](simulation_engine/simulator_core.py:1):** The core logic of reward computation relies entirely on calling [`simulate_forward()`](simulation_engine/simulator_core.py:1) from [`engine.simulator_core`](simulation_engine/simulator_core.py:1). The environment's behavior is thus highly dependent on the correctness, performance, and output structure (specifically `fragility`, `confidence`, `drift` in the summary) of the simulation core.
 -   **[`build_static_rules()`](simulation_engine/rules/static_rules.py:17):** The environment uses this function to get the set of rules whose parameters are being adapted. The `param_overrides` generated by the RL agent's actions are passed to this function.
 
 ## 8. Existing Tests (SPARC Refinement)
@@ -173,4 +173,4 @@ Naming conventions are generally good and contribute to maintainability.
 -   **No Hardcoding (Sensitive Values/Configs):** Medium.
     *   Default `turns_per_episode` should ideally be configurable externally.
     *   Reward function weights are hardcoded.
--   **Overall SPARC Alignment:** Good. The module provides a solid foundation. The primary areas for improvement are enhancing testability and externalizing a few configuration values to improve flexibility and adherence to the "No Hardcoding" principle for configurable items. The module's effectiveness is intrinsically linked to the robustness and correctness of the [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) and the definitions within [`simulation_engine.rules.rule_param_registry`](simulation_engine/rules/rule_param_registry.py:1).
+-   **Overall SPARC Alignment:** Good. The module provides a solid foundation. The primary areas for improvement are enhancing testability and externalizing a few configuration values to improve flexibility and adherence to the "No Hardcoding" principle for configurable items. The module's effectiveness is intrinsically linked to the robustness and correctness of the [`engine.simulator_core`](simulation_engine/simulator_core.py:1) and the definitions within [`engine.rules.rule_param_registry`](simulation_engine/rules/rule_param_registry.py:1).

@@ -18,7 +18,7 @@ The module appears to be a functionally complete test for basic API connectivity
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   `from iris.iris_plugins_variable_ingestion.github_plugin import GithubPlugin` ([`iris/test_github.py:21`](../../../iris/test_github.py:21))
+    *   `from ingestion.iris_plugins_variable_ingestion.github_plugin import GithubPlugin` ([`iris/test_github.py:21`](../../../iris/test_github.py:21))
 *   **External Library Dependencies:**
     *   `sys` ([`iris/test_github.py:6`](../../../iris/test_github.py:6))
     *   `os` ([`iris/test_github.py:7`](../../../iris/test_github.py:7))

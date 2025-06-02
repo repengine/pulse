@@ -1,4 +1,4 @@
-# Module Analysis: learning.engines.continuous_learning
+# Module Analysis: analytics.engines.continuous_learning
 
 ## 1. Module Path
 
@@ -67,7 +67,7 @@
 ## 7. Overall Assessment & Next Steps
 
 *   **Overall Assessment:**
-    *   The [`learning.engines.continuous_learning`](learning/engines/continuous_learning.py:1) module is currently a **placeholder or stub**. It outlines the intent for a continuous learning mechanism focused on trust weight updates but lacks the actual implementation.
+    *   The [`analytics.engines.continuous_learning`](learning/engines/continuous_learning.py:1) module is currently a **placeholder or stub**. It outlines the intent for a continuous learning mechanism focused on trust weight updates but lacks the actual implementation.
     *   The structure is sound, and initial documentation is good. However, its utility is minimal until the core logic is developed.
     *   The quality is adequate for a foundational file, but it's incomplete.
 

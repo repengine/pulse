@@ -61,7 +61,7 @@ def revision_ready(forecast: Dict[str, Any]) -> bool:
     Returns:
         bool: True if symbolic plan can be generated
     """
-    return forecast.get("symbolic_revision_needed", False)
+    return bool(forecast.get("symbolic_revision_needed", False))
 
 
 def generate_revision_report(forecasts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -111,7 +111,7 @@ def plan_revisions_for_fragmented_arcs(
     return plans
 
 
-def _test_revision_planner():
+def _test_revision_planner() -> None:
     """Basic test for symbolic revision planner."""
     dummy = [
         {"arc_label": "Collapse Risk", "symbolic_fragmented": True},

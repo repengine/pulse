@@ -15,7 +15,7 @@ Operational as a basic demonstration/testing script. It successfully uses `capit
 ## Connections & Dependencies
 - **Direct Project Module Imports:**
     - From `capital_engine.capital_layer`: `run_shortview_forecast`, `summarize_exposure`, `portfolio_alignment_tags`.
-    - From `simulation_engine.worldstate`: `WorldState` class.
+    - From `engine.worldstate`: `WorldState` class.
 - **External Library Dependencies:** None.
 - **Input/Output Files:** Input from hardcoded `mock_vars`; output to console.
 

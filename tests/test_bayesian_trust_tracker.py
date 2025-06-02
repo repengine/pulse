@@ -1,4 +1,4 @@
-from core.bayesian_trust_tracker import bayesian_trust_tracker
+from analytics.bayesian_trust_tracker import bayesian_trust_tracker
 
 
 def test_bayesian_updates():

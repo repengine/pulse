@@ -1,4 +1,4 @@
-from simulation_engine.rules.rule_fingerprint_expander import suggest_fingerprints
+from rules.rule_fingerprint_expander import suggest_fingerprints
 
 
 def test_suggest_fingerprints_trust_weighted():

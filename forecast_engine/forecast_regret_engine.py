@@ -91,8 +91,6 @@ def analyze_misses(forecasts: List[Dict], actuals: Dict) -> List[Dict]:
     return misses
 
 
-
-
 def feedback_loop(regrets: List[Dict], log_path: Optional[str] = None):
     """
     Adjust symbolic weights/rules based on regret analysis (stub).

@@ -25,7 +25,7 @@ class RuleEngine:
         """
         Evaluate proposed rules via simulation and retrodiction tests.
         """
-        # TODO: implement batch rule evaluation in simulation_engine.rule_mutation_engine
+        # TODO: implement batch rule evaluation in engine.rule_mutation_engine
         pass
 
     def prune_rules(self) -> None:

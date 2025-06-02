@@ -15,7 +15,7 @@ The [`dev_tools/cli_retrodict_forecasts.py`](dev_tools/cli_retrodict_forecasts.p
     *   Reads forecasts line by line from the specified JSONL file.
     *   Loads the current state from the specified JSON file.
 *   **Retrodiction Analysis:**
-    *   Calls the [`retrospective_analysis_batch()`](learning/learning.py:1) function from the [`learning.learning`](learning/learning.py:1) module to perform the scoring.
+    *   Calls the [`retrospective_analysis_batch()`](learning/learning.py:1) function from the [`analytics.learning`](learning/learning.py:1) module to perform the scoring.
 *   **Output Generation:**
     *   Writes the scored forecast entries to the specified output JSONL file.
 *   **User Feedback:** Prints a confirmation message upon successful completion, indicating the output file location.
@@ -27,7 +27,7 @@ This script serves as a developer tool for evaluating forecast quality through r
 ## 4. Dependencies
 
 ### Internal Pulse Modules:
-*   [`learning.learning`](learning/learning.py:1): Specifically, the [`retrospective_analysis_batch()`](learning/learning.py:1) function.
+*   [`analytics.learning`](learning/learning.py:1): Specifically, the [`retrospective_analysis_batch()`](learning/learning.py:1) function.
 
 ### External Libraries:
 *   `argparse`: For command-line argument parsing (standard Python library).
@@ -44,7 +44,7 @@ This script serves as a developer tool for evaluating forecast quality through r
     *   For its specific purpose as a CLI tool, no major gaps are immediately apparent.
     *   More robust error handling for file I/O (e.g., file not found for `--state` or `--forecasts`) could be added, though `argparse` handles `required=True`.
 *   **Connections & Dependencies:**
-    *   Dependencies are clearly imported and used. The primary dependency is on [`learning.learning.retrospective_analysis_batch()`](learning/learning.py:1).
+    *   Dependencies are clearly imported and used. The primary dependency is on [`analytics.analytics.retrospective_analysis_batch()`](learning/learning.py:1).
 *   **Function and Class Example Usages:**
     *   The script itself is an example of how to use the [`retrospective_analysis_batch()`](learning/learning.py:1) function.
     *   Usage instructions are provided in the module's docstring:
@@ -54,7 +54,7 @@ This script serves as a developer tool for evaluating forecast quality through r
 *   **Hardcoding Issues:**
     *   Default values for `--output` ([`retrodicted_forecasts.jsonl`](dev_tools/cli_retrodict_forecasts.py:15)) and `--threshold` (1.5) are present but are configurable via CLI arguments, which is acceptable for a utility script.
 *   **Coupling Points:**
-    *   The module is coupled to the specific signature and behavior of [`learning.learning.retrospective_analysis_batch()`](learning/learning.py:1).
+    *   The module is coupled to the specific signature and behavior of [`analytics.analytics.retrospective_analysis_batch()`](learning/learning.py:1).
     *   It assumes specific input file formats (JSONL for forecasts, JSON for state).
 *   **Existing Tests:**
     *   Test coverage is not determinable from this file alone. Tests for this CLI tool or the underlying [`retrospective_analysis_batch()`](learning/learning.py:1) function would reside in the `tests/` directory.
@@ -77,4 +77,4 @@ This script serves as a developer tool for evaluating forecast quality through r
 
 ## 7. Summary Note for Main Report
 
-The [`dev_tools/cli_retrodict_forecasts.py`](dev_tools/cli_retrodict_forecasts.py:1) module is a functional command-line tool for applying retrodiction scoring to forecasts, relying on [`learning.learning.retrospective_analysis_batch()`](learning/learning.py:1).
+The [`dev_tools/cli_retrodict_forecasts.py`](dev_tools/cli_retrodict_forecasts.py:1) module is a functional command-line tool for applying retrodiction scoring to forecasts, relying on [`analytics.analytics.retrospective_analysis_batch()`](learning/learning.py:1).

@@ -29,7 +29,7 @@ A minor structural issue exists where the `datetime` module is imported locally 
 ## 4. Connections & Dependencies
 
 ### 4.1. Project Module Imports
-*   The script dynamically imports modules from the [`iris.iris_plugins_variable_ingestion`](../../../iris/iris_plugins_variable_ingestion/) package using `importlib.import_module()` (line 99).
+*   The script dynamically imports modules from the [`ingestion.iris_plugins_variable_ingestion`](../../../iris/iris_plugins_variable_ingestion/) package using `importlib.import_module()` (line 99).
 
 ### 4.2. External Library Dependencies
 *   `os`

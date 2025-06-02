@@ -23,8 +23,8 @@ The primary role of this module is to serve as a practical example and demonstra
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-- [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py): Used for managing simulation state in examples. ([`symbolic_system/gravity/integration_example.py:15`](../../symbolic_system/gravity/integration_example.py:15))
-- [`simulation_engine.simulation_executor.SimulationExecutor`](../../simulation_engine/simulation_executor.py): Used as the backbone for the integrated simulation example. ([`symbolic_system/gravity/integration_example.py:16`](../../symbolic_system/gravity/integration_example.py:16))
+- [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py): Used for managing simulation state in examples. ([`symbolic_system/gravity/integration_example.py:15`](../../symbolic_system/gravity/integration_example.py:15))
+- [`engine.simulation_executor.SimulationExecutor`](../../simulation_engine/simulation_executor.py): Used as the backbone for the integrated simulation example. ([`symbolic_system/gravity/integration_example.py:16`](../../symbolic_system/gravity/integration_example.py:16))
 - [`symbolic_system.gravity.gravity_config.ResidualGravityConfig`](../../symbolic_system/gravity/gravity_config.py): Used for configuring the gravity system. ([`symbolic_system/gravity/integration_example.py:18`](../../symbolic_system/gravity/integration_example.py:18))
 - [`symbolic_system.gravity.integration`](../../symbolic_system/gravity/integration.py): Core functions for interacting with the gravity system. ([`symbolic_system/gravity/integration_example.py:19-24`](../../symbolic_system/gravity/integration_example.py:19-24))
   - [`initialize_gravity_system()`](../../symbolic_system/gravity/integration.py)

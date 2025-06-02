@@ -15,7 +15,7 @@ Based on the analysis of [`dags/retrodiction_dag.py`](dags/retrodiction_dag.py:1
 *   **Historical Retrodiction:**
     *   **File:** [`dags/retrodiction_dag.py`](dags/retrodiction_dag.py:1)
     *   **Purpose:** Schedules and executes historical retrodiction tests. This process likely involves running simulations or models against past data to evaluate their accuracy, refine parameters, or understand past system behavior.
-    *   **Core Logic:** Utilizes the [`run_retrodiction_tests`](simulation_engine/historical_retrodiction_runner.py:7) function from the `simulation_engine.historical_retrodiction_runner` module.
+    *   **Core Logic:** Utilizes the [`run_retrodiction_tests`](simulation_engine/historical_retrodiction_runner.py:7) function from the `engine.historical_retrodiction_runner` module.
 
 ## Common Patterns & Structure in DAG Definitions
 

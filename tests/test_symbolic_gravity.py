@@ -299,7 +299,7 @@ class TestResidualGravityEngine(unittest.TestCase):
         """Set up test fixtures."""
         # Apply patches to enable symbolic system for tests
         self.symbolic_enabled_patcher = patch(
-            "core.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
+            "engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
         )
         self.symbolic_enabled_mock = self.symbolic_enabled_patcher.start()
 
@@ -474,7 +474,7 @@ class TestSymbolicGravityFabric(unittest.TestCase):
         """Set up test fixtures."""
         # Apply patches to enable symbolic system for tests
         self.symbolic_enabled_patcher = patch(
-            "core.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
+            "engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
         )
         self.symbolic_enabled_mock = self.symbolic_enabled_patcher.start()
 

@@ -13,7 +13,7 @@ The module appears to be in an early stage of development or a foundational stat
 
 ## 3. Implementation Gaps / Unfinished Next Steps
 
-*   **Core Functionality Missing:** The actual retrodiction process is mocked. Integration with [`simulation_engine.historical_retrodiction_runner`](simulation_engine/historical_retrodiction_runner.py:0) and [`trust_system.retrodiction_engine`](trust_system/retrodiction_engine.py:0) is a clear next step.
+*   **Core Functionality Missing:** The actual retrodiction process is mocked. Integration with [`engine.historical_retrodiction_runner`](simulation_engine/historical_retrodiction_runner.py:0) and [`trust_system.retrodiction_engine`](trust_system/retrodiction_engine.py:0) is a clear next step.
 *   **PulseMind Integration:** The module prepares a feed for "PulseMind" ([`prepare_pulsemind_feed()`](learning/retrodiction_curriculum.py:95)), but the actual interaction or data schema for PulseMind is not defined within this module.
 *   **Error Handling and Logging:** Beyond a simple print statement in [`harvest_divergence_logs()`](learning/retrodiction_curriculum.py:67) if a file is not found, robust error handling and logging mechanisms are absent.
 *   **Configuration:** The `retrodiction_log_dir` is configurable, but other aspects like scoring weights or batching strategies are hardcoded or very simple.
@@ -22,9 +22,9 @@ The module appears to be in an early stage of development or a foundational stat
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports (Placeholders):**
-    *   `simulation_engine.historical_retrodiction_runner.run_historical_retrodiction` (commented out)
+    *   `engine.historical_retrodiction_runner.run_historical_retrodiction` (commented out)
     *   `trust_system.retrodiction_engine.evaluate_retrodiction_batch` (commented out)
-    *   `simulation_engine.utils.simulation_replayer.replay_simulation` (commented out)
+    *   `engine.utils.simulation_replayer.replay_simulation` (commented out)
 *   **External Library Dependencies:**
     *   `os` (standard library)
     *   `json` (standard library)

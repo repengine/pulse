@@ -29,8 +29,8 @@ It allows for detailed examination of simulation runs, facilitating debugging, v
 ## 4. Connections & Dependencies
 
 ### Project-Internal Dependencies:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:1): For loading and representing simulation states.
-*   [`simulation_engine.turn_engine.run_turn`](simulation_engine/turn_engine.py:1): Potentially used in 'retrodiction' mode (currently placeholder logic).
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:1): For loading and representing simulation states.
+*   [`engine.turn_engine.run_turn`](simulation_engine/turn_engine.py:1): Potentially used in 'retrodiction' mode (currently placeholder logic).
 *   [`logging`](simulation_engine/utils/simulation_replayer.py:19): Standard Python logging.
 *   [`core.path_registry.PATHS`](core/path_registry.py:1): Used to get the default path for replay logs.
 *   [`core.pulse_learning_log.log_learning_event`](core/pulse_learning_log.py:1): For logging replay events.
@@ -55,7 +55,7 @@ It allows for detailed examination of simulation runs, facilitating debugging, v
 
 *   **`ReplayerConfig` Dataclass ([`simulation_engine/utils/simulation_replayer.py:31`](simulation_engine/utils/simulation_replayer.py:31)):**
     ```python
-    from simulation_engine.utils.simulation_replayer import ReplayerConfig
+    from engine.utils.simulation_replayer import ReplayerConfig
 
     # Configure for diagnostic mode, limiting to 10 steps, with verbose output
     config = ReplayerConfig(mode="diagnostic", step_limit=10, verbose=True, show_symbolic=True) # type: ignore
@@ -64,7 +64,7 @@ It allows for detailed examination of simulation runs, facilitating debugging, v
 
 *   **`SimulationReplayer` Class ([`simulation_engine/utils/simulation_replayer.py:75`](simulation_engine/utils/simulation_replayer.py:75)):**
     ```python
-    from simulation_engine.utils.simulation_replayer import SimulationReplayer, ReplayerConfig # type: ignore
+    from engine.utils.simulation_replayer import SimulationReplayer, ReplayerConfig # type: ignore
 
     # Define the directory containing WorldState snapshot .json files
     snapshot_directory = "path/to/your/simulation_snapshots"

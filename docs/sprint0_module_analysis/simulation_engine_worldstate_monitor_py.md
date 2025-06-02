@@ -28,7 +28,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:1) ([`simulation_engine/worldstate_monitor.py:14`](simulation_engine/worldstate_monitor.py:14))
+- [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:1) ([`simulation_engine/worldstate_monitor.py:14`](simulation_engine/worldstate_monitor.py:14))
 - [`utils.log_utils.get_logger`](utils/log_utils.py:1) ([`simulation_engine/worldstate_monitor.py:15`](simulation_engine/worldstate_monitor.py:15))
 - [`core.variable_accessor.get_variable`](core/variable_accessor.py:1), [`set_variable`](core/variable_accessor.py:1), [`get_overlay`](core/variable_accessor.py:1), [`set_overlay`](core/variable_accessor.py:1) ([`simulation_engine/worldstate_monitor.py:16`](simulation_engine/worldstate_monitor.py:16))
 - [`core.path_registry.PATHS`](core/path_registry.py:1) ([`simulation_engine/worldstate_monitor.py:17`](simulation_engine/worldstate_monitor.py:17))
@@ -64,14 +64,14 @@ The module appears to be largely complete and operational for its defined scope.
 - **Displaying and Logging WorldState:**
   ```python
   # Assuming 'current_ws' is a WorldState object and 'previous_ws' is the WorldState from the prior turn
-  from simulation_engine.worldstate_monitor import display_all
+  from engine.worldstate_monitor import display_all
   display_all(current_ws, prev_state=previous_ws, log=True)
   ```
   This would print the current overlays, capital exposure, variable states, and deltas from the previous state to the console, and also log a snapshot to a file.
 
 - **Running a Batch of Forecasts (Simulated):**
   ```python
-  from simulation_engine.worldstate_monitor import run_batch_forecasts
+  from engine.worldstate_monitor import run_batch_forecasts
   # Example symbolic block (conceptual)
   # def my_symbolic_filter(metadata):
   #     return metadata.get("priority_score", 0) > 0.8
@@ -81,7 +81,7 @@ The module appears to be largely complete and operational for its defined scope.
 
 - **Displaying Gravity Correction Details:**
   ```python
-  from simulation_engine.worldstate_monitor import display_gravity_correction_details
+  from engine.worldstate_monitor import display_gravity_correction_details
   # Assuming 'simulation_trace' is a list of dicts from a simulation run
   # and 'problematic_variable' is the name of a variable of interest.
   # Ensure diagnostics.gravity_explainer is available and simulation ran with gravity.

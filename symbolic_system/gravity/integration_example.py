@@ -12,7 +12,7 @@ import logging
 import numpy as np
 from typing import Optional
 
-from simulation_engine.simulation_executor import SimulationExecutor
+from engine.simulation_executor import SimulationExecutor
 
 from symbolic_system.gravity.gravity_config import ResidualGravityConfig
 from symbolic_system.gravity.integration import (

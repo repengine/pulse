@@ -68,7 +68,7 @@ def reverse_rule_engine(state: WorldState, overlays: Dict[str, float], variables
 ## Example Usage
 
 ```python
-from simulation_engine.simulator_core import reverse_rule_engine
+from engine.simulator_core import reverse_rule_engine
 state = ...  # WorldState instance
 overlays = {"hope": 0.5, "despair": -0.1}
 variables = {"energy_cost": 1.0}

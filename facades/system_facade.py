@@ -1,4 +1,4 @@
-from core.service_registry import ServiceRegistry
+from engine.service_registry import ServiceRegistry
 
 
 class SystemFacade:

@@ -24,7 +24,7 @@ from recursive_training.data.data_store import RecursiveDataStore
 from recursive_training.advanced_metrics.retrodiction_curriculum import (
     EnhancedRetrodictionCurriculum,
 )
-from core.optimized_trust_tracker import optimized_bayesian_trust_tracker
+from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
 from causal_model.optimized_discovery import get_optimized_causal_discovery
 
 # Configure logging
@@ -32,6 +32,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("retrodiction_benchmark")
+
 
 class RetrodictionBenchmark:
     """

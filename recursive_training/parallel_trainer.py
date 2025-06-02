@@ -26,8 +26,8 @@ from recursive_training.metrics.metrics_store import get_metrics_store
 from recursive_training.metrics.async_metrics_collector import (
     get_async_metrics_collector,
 )
-from core.optimized_trust_tracker import optimized_bayesian_trust_tracker
-from core.trust_update_buffer import get_trust_update_buffer
+from analytics.optimized_trust_tracker import optimized_bayesian_trust_tracker
+from analytics.trust_update_buffer import get_trust_update_buffer
 
 logger = logging.getLogger(__name__)
 

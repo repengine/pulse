@@ -1,7 +1,7 @@
 # Module Analysis: iris/iris_utils/conftest.py
 
 ## Module Intent/Purpose
-This module serves as a pytest configuration file (`conftest.py`) for the `iris.iris_utils` package. Its primary role is to define and provide fixtures that can be used by tests within this package.
+This module serves as a pytest configuration file (`conftest.py`) for the `ingestion.iris_utils` package. Its primary role is to define and provide fixtures that can be used by tests within this package.
 
 ## Operational Status/Completeness
 The module appears complete for its current, limited purpose of providing a single pytest fixture. There are no obvious placeholders or TODO comments.
@@ -32,7 +32,7 @@ def test_something_with_variable(variable_name):
 The string `"test_variable"` is hardcoded. This is acceptable as it is part of a test fixture designed to provide a specific, predictable value for testing purposes.
 
 ## Coupling Points
-The module is coupled with the `pytest` framework and any test files within the `iris.iris_utils` package that utilize the `variable_name` fixture.
+The module is coupled with the `pytest` framework and any test files within the `ingestion.iris_utils` package that utilize the `variable_name` fixture.
 
 ## Existing Tests
 This file itself is part of the testing infrastructure. The presence of `iris/iris_utils/test_historical_data_pipeline.py` suggests that tests exist in this directory that could potentially utilize the fixtures defined here. The `conftest.py` file is specifically for providing fixtures to tests.

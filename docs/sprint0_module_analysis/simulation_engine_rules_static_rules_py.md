@@ -46,7 +46,7 @@ This function constructs and returns the list of static rules.
 
 *   **Default Usage:**
     ```python
-    from simulation_engine.rules.static_rules import build_static_rules
+    from engine.rules.static_rules import build_static_rules
 
     # Get the default set of static rules
     default_rules = build_static_rules()
@@ -56,7 +56,7 @@ This function constructs and returns the list of static rules.
 *   **Usage with Parameter Overrides:**
     The `param_overrides` argument allows modification of specific rule parameters (like `threshold` or `effect_size`) at runtime.
     ```python
-    from simulation_engine.rules.static_rules import build_static_rules
+    from engine.rules.static_rules import build_static_rules
 
     overrides = {
         "R001_EnergySpike": {

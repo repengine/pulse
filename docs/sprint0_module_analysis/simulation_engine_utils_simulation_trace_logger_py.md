@@ -43,7 +43,7 @@ The module appears to be functionally complete for its core purpose of appending
     - **Purpose:** Ensures that the directory for the given file path exists. If it doesn't, it creates the directory.
     - **Usage:**
       ```python
-      from simulation_engine.utils.simulation_trace_logger import ensure_log_dir
+      from engine.utils.simulation_trace_logger import ensure_log_dir
 
       # Example: Ensure the directory for a log file exists
       log_file_path = "logs/simulation_traces/my_simulation_run.jsonl"
@@ -55,7 +55,7 @@ The module appears to be functionally complete for its core purpose of appending
     - **Purpose:** Logs a simulation trace to a `.jsonl` file. The trace can be a list of dictionaries or a dictionary with a "trace" key.
     - **Usage:**
       ```python
-      from simulation_engine.utils.simulation_trace_logger import log_simulation_trace
+      from engine.utils.simulation_trace_logger import log_simulation_trace
 
       # Example 1: Logging a list of trace entries
       trace_list = [

@@ -36,9 +36,9 @@ from intelligence.intelligence_config import (
     LLM_PROVIDER,
 )
 from config import ai_config  # Keep for OPENAI_API_KEY for now
-from core.variable_registry import VARIABLE_REGISTRY
-from simulation_engine.causal_rules import RULES
-from simulation_engine.worldstate import WorldState
+from engine.variable_registry import VARIABLE_REGISTRY
+from engine.causal_rules import RULES
+from engine.worldstate import WorldState
 
 
 class SimulationExecutor:
@@ -462,7 +462,7 @@ class SimulationExecutor:
             )
             # Assuming forward simulation fallback also doesn't use LLM here
             return self.router.run_function(
-                "simulation_engine.simulator_core.simulate_forward",
+                "engine.simulator_core.simulate_forward",
                 state=initial,
                 turns=days,
                 retrodiction_mode=True,

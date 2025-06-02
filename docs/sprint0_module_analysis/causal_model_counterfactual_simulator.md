@@ -52,7 +52,7 @@ The module's role within the `causal_model/` directory is to serve as the primar
 *   **Internal Pulse Modules:**
     *   [`causal_model.counterfactual_engine.CounterfactualEngine`](causal_model/counterfactual_engine.py:18) (Imported at [`causal_model/counterfactual_simulator.py:18`](causal_model/counterfactual_simulator.py:18))
     *   [`causal_model.structural_causal_model.StructuralCausalModel`](causal_model/structural_causal_model.py:19) (Imported at [`causal_model/counterfactual_simulator.py:19`](causal_model/counterfactual_simulator.py:19))
-    *   *Note: The user prompt mentioned `simulation_engine.simulator_core` and `simulation_engine.worldstate`, but these are not directly imported or used in the provided code of `counterfactual_simulator.py`.*
+    *   *Note: The user prompt mentioned `engine.simulator_core` and `engine.worldstate`, but these are not directly imported or used in the provided code of `counterfactual_simulator.py`.*
 
 *   **External Libraries:**
     *   `os` ([`causal_model/counterfactual_simulator.py:6`](causal_model/counterfactual_simulator.py:6))
@@ -107,7 +107,7 @@ The module's role within the `causal_model/` directory is to serve as the primar
 *   **Error Handling:** While some `try-except` blocks exist, error handling could be more granular in places, potentially defining custom exceptions for better error identification and management.
 *   **Configuration Management:** Consider a more structured configuration management approach (e.g., using Pydantic models or a dedicated config library) if the number of configuration options grows.
 *   **Asynchronous Operations:** For potentially long-running simulations or SCM building, consider adding support for asynchronous operations to avoid blocking.
-*   **Dependency on `simulation_engine`:** Clarify if there's an intended but currently missing integration with `simulation_engine.simulator_core` or `simulation_engine.worldstate` as hinted in the prompt, or if this module is meant to be independent of them. The current code does not show such a dependency.
+*   **Dependency on `simulation_engine`:** Clarify if there's an intended but currently missing integration with `engine.simulator_core` or `engine.worldstate` as hinted in the prompt, or if this module is meant to be independent of them. The current code does not show such a dependency.
 *   **Variable Metadata Usage:** The [`register_variable_metadata()`](causal_model/counterfactual_simulator.py:190) method is present, but the `variable_metadata` attribute is not actively used in the SCM building or simulation logic shown. This feature could be expanded.
 
 ## 7. Overall Assessment & Next Steps

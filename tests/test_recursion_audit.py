@@ -1,7 +1,7 @@
 # tests/test_recursion_audit.py
 
 import unittest
-from learning.recursion_audit import generate_recursion_report
+from analytics.recursion_audit import generate_recursion_report
 
 
 class TestRecursionAudit(unittest.TestCase):

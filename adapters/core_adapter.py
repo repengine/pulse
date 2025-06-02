@@ -1,5 +1,5 @@
 from interfaces.core_interface import CoreInterface
-from core.pulse_config import ConfigLoader, get_config
+from engine.pulse_config import ConfigLoader, get_config
 
 
 class CoreAdapter(CoreInterface):

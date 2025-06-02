@@ -15,7 +15,7 @@ from unittest.mock import patch
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from iris.iris_plugins_variable_ingestion.wikidata_plugin import WikidataPlugin
+from ingestion.iris_plugins_variable_ingestion.wikidata_plugin import WikidataPlugin
 
 
 class MockResponse:
@@ -199,7 +199,9 @@ class TestWikidataPlugin(unittest.TestCase):
             },
         }
 
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.ensure_data_directory")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.ensure_data_directory"
+    )
     def test_plugin_init(self, mock_ensure_dir):
         """Test plugin initialization."""
         plugin = WikidataPlugin()
@@ -229,9 +231,13 @@ class TestWikidataPlugin(unittest.TestCase):
         query_type = self.plugin._get_query_type_for_domain("unknown_domain")
         self.assertEqual(query_type, "company_info")
 
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response")
+    @patch("ingestion.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response"
+    )
     def test_execute_sparql_query_company(
         self, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -264,10 +270,16 @@ class TestWikidataPlugin(unittest.TestCase):
         self.assertEqual(result["industryLabel"], "software industry")
         self.assertEqual(result["ceoLabel"], "Satya Nadella")
 
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_processed_data")
+    @patch("ingestion.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_processed_data"
+    )
     def test_process_company_results(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -333,10 +345,16 @@ class TestWikidataPlugin(unittest.TestCase):
         # Check that processed data was saved
         self.assertEqual(mock_save_processed.call_count, len(signals))
 
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_processed_data")
+    @patch("ingestion.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_processed_data"
+    )
     def test_process_country_results(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -387,9 +405,13 @@ class TestWikidataPlugin(unittest.TestCase):
         self.assertIsNotNone(unemployment_signal)
         self.assertEqual(unemployment_signal["value"], 3.8)
 
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response")
+    @patch("ingestion.iris_plugins_variable_ingestion.wikidata_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_request_metadata"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.save_api_response"
+    )
     def test_failed_api_call(self, mock_save_response, mock_save_metadata, mock_get):
         """Test error handling for failed API calls."""
         # Mock a failed API response
@@ -407,10 +429,10 @@ class TestWikidataPlugin(unittest.TestCase):
 
     @patch("random.choice")
     @patch(
-        "iris.iris_plugins_variable_ingestion.wikidata_plugin.WikidataPlugin._execute_sparql_query"
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.WikidataPlugin._execute_sparql_query"
     )
     @patch(
-        "iris.iris_plugins_variable_ingestion.wikidata_plugin.WikidataPlugin._process_query_results"
+        "ingestion.iris_plugins_variable_ingestion.wikidata_plugin.WikidataPlugin._process_query_results"
     )
     def test_fetch_signals(
         self, mock_process_results, mock_execute_query, mock_random_choice

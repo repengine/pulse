@@ -44,7 +44,7 @@ The module defines one class, [`TraceMemory`](../../memory/trace_memory.py:18).
 *   **`TraceMemory(path: Optional[str] = None)`:**
     *   **Initialization:** Creates an instance of the trace memory manager. If `path` is not provided, it defaults to `PATHS.get("TRACE_DB", "logs/trace_memory_log.jsonl")`. It also ensures the directory for the log file exists.
     ```python
-    from memory.trace_memory import TraceMemory
+    from analytics.trace_memory import TraceMemory
     
     # Initialize with default path
     tm = TraceMemory()

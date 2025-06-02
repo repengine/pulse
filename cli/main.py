@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.pulse_config import (
+from engine.pulse_config import (
     STARTUP_BANNER,
     CONFIG_PATH,
 )  # Import centralized configuration
@@ -31,14 +31,14 @@ from utils.log_utils import get_logger
 
 from forecast_output.digest_logger import save_digest_to_file
 from operator_interface.strategos_digest import generate_strategos_digest
-from memory.forecast_memory import ForecastMemory
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn
-from simulation_engine.causal_rules import apply_causal_rules
+from analytics.forecast_memory import ForecastMemory
+from engine.worldstate import WorldState
+from engine.turn_engine import run_turn
+from engine.causal_rules import apply_causal_rules
 from forecast_output.forecast_generator import generate_forecast
 from forecast_output.pfpa_logger import log_forecast_to_pfpa
-from core.pulse_learning_log import log_learning_event
-from iris.iris_utils.historical_data_repair import (
+from analytics.pulse_learning_log import log_learning_event
+from ingestion.utils.historical_data_repair import (
     repair_variable_data,
     simulate_repair,
     get_repair_report,
@@ -144,7 +144,7 @@ except Exception as e:
     )
 # Strategic trust audit
 try:
-    from learning.trust_audit import audit_forecasts
+    from analytics.trust_audit import audit_forecasts
 
     audit_forecasts()
     log_learning_event(

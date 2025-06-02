@@ -15,7 +15,7 @@ class DefaultTrustScoringStrategy(TrustScoringStrategy):
 
     def score(self, forecast: Dict, memory: Optional[List[Dict]] = None) -> float:
         from trust_system.trust_engine import compute_risk_score
-        from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
+        from engine.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
         from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
 
         fcast = forecast.get("forecast", {})

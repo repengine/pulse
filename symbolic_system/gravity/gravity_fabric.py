@@ -17,7 +17,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from symbolic_system.gravity.symbolic_pillars import (
     SymbolicPillar,
     SymbolicPillarSystem,

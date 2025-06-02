@@ -13,10 +13,10 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import Dict
+from typing import Dict, Any
 
 
-def explain_forecast_license(forecast: Dict) -> str:
+def explain_forecast_license(forecast: Dict[str, Any]) -> str:
     """
     Return a plain-language explanation for the license status of a forecast.
     This function expects trust and license metadata to be present on the forecast.

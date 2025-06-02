@@ -19,7 +19,7 @@ The module is described as "production-ready" in its docstring. It implements co
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_scraper.IrisScraper`](iris/iris_scraper.py) ([`iris/ingest_fs.py:10`](iris/ingest_fs.py:10))
+*   [`ingestion.iris_scraper.IrisScraper`](iris/iris_scraper.py) ([`iris/ingest_fs.py:10`](iris/ingest_fs.py:10))
 *   [`core.celery_app.celery_app`](core/celery_app.py) ([`iris/ingest_fs.py:13`](iris/ingest_fs.py:13))
 *   [`core.metrics.start_metrics_server`](core/metrics.py) ([`iris/ingest_fs.py:14`](iris/ingest_fs.py:14))
 
@@ -82,7 +82,7 @@ The module is described as "production-ready" in its docstring. It implements co
 
 *   **`core.celery_app`:** Tightly coupled for dispatching tasks. Changes to Celery configuration or the specific task name (`"ingest_and_score_signal"`) would necessitate changes in this module.
 *   **`core.metrics`:** Coupled for initiating the metrics server via `start_metrics_server`.
-*   **`iris.iris_scraper`:** Loosely coupled. An instance is created and passed to `SignalFileHandler`, but its methods are not directly invoked in the file processing logic shown.
+*   **`ingestion.iris_scraper`:** Loosely coupled. An instance is created and passed to `SignalFileHandler`, but its methods are not directly invoked in the file processing logic shown.
 *   **File System Structure:** Relies on the existence and accessibility of `MONITOR_DIR` and `ARCHIVE_DIR`.
 *   **Data Format Contract:** Implicitly expects that the data within the JSON and CSV files conforms to a structure that the downstream Celery task (`"ingest_and_score_signal"`) can process.
 

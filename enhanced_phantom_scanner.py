@@ -1,7 +1,7 @@
 import os
 import ast
 import sys
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Set
 from collections import defaultdict
 
 
@@ -11,14 +11,22 @@ class EnhancedPhantomScanner:
     Tracks imports and provides more context about where functions are called.
     """
 
-    def __init__(self, root_dir: str):
-        self.root_dir = root_dir
-        self.defined_functions = set()  # Functions defined in the codebase
-        self.called_functions = defaultdict(set)  # Function -> files where called
-        self.imported_names = defaultdict(set)  # Module -> imported names
-        self.module_imports = defaultdict(set)  # File -> imported modules
-        self.module_aliases = defaultdict(dict)  # File -> {alias: module}
-        self.function_contexts = defaultdict(
+    def __init__(self, root_dir: str) -> None:
+        self.root_dir: str = root_dir
+        self.defined_functions: Set[str] = set()  # Functions defined in the codebase
+        self.called_functions: Dict[str, Set[str]] = defaultdict(
+            set
+        )  # Function -> files where called
+        self.imported_names: Dict[str, Set[str]] = defaultdict(
+            set
+        )  # Module -> imported names
+        self.module_imports: Dict[str, Set[str]] = defaultdict(
+            set
+        )  # File -> imported modules
+        self.module_aliases: Dict[str, Dict[str, str]] = defaultdict(
+            dict
+        )  # File -> {alias: module}
+        self.function_contexts: Dict[str, List[Tuple[str, int]]] = defaultdict(
             list
         )  # Function -> (file, line number) contexts
 
@@ -36,17 +44,17 @@ class EnhancedPhantomScanner:
 
             for filename in filenames:
                 if filename.endswith(".py"):
-                    file_path = os.path.join(dirpath, filename)
-                    rel_path = os.path.relpath(file_path, self.root_dir)
+                    file_path: str = os.path.join(dirpath, filename)
+                    rel_path: str = os.path.relpath(file_path, self.root_dir)
                     self._process_file(file_path, rel_path)
 
     def _process_file(self, filepath: str, rel_path: str) -> None:
         """Process a Python file to extract definitions, imports, and calls."""
         try:
             with open(filepath, "r", encoding="utf-8") as f:
-                file_content = f.read()
+                file_content: str = f.read()
 
-            tree = ast.parse(file_content, filename=filepath)
+            tree: ast.Module = ast.parse(file_content, filename=filepath)
 
             # Find all imports and function definitions first
             for node in ast.walk(tree):
@@ -64,7 +72,7 @@ class EnhancedPhantomScanner:
                 # Track from-imports
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
-                        module = node.module
+                        module: str = node.module
                         for name in node.names:
                             if name.name == "*":
                                 # Can't track * imports statically
@@ -77,18 +85,18 @@ class EnhancedPhantomScanner:
             # Now track function calls and contextual information
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call):
-                    func_name = self._extract_name(node.func)
+                    func_name: Optional[str] = self._extract_name(node.func)
                     if func_name:
                         self.called_functions[func_name].add(rel_path)
                         # Add line number context
                         if hasattr(node, "lineno"):
-                            context = (rel_path, node.lineno)
+                            context: Tuple[str, int] = (rel_path, node.lineno)
                             self.function_contexts[func_name].append(context)
 
         except Exception as e:
             print(f"[WARNING] Failed to parse {filepath}: {e}")
 
-    def _extract_name(self, func) -> Optional[str]:
+    def _extract_name(self, func: ast.expr) -> Optional[str]:
         """Extract function name from a function call node."""
         if isinstance(func, ast.Name):
             return func.id
@@ -102,12 +110,12 @@ class EnhancedPhantomScanner:
         Returns a dictionary of phantom function names -> list of (file, line) contexts.
         """
         # Flatten all imported names
-        all_imported = set()
+        all_imported: Set[str] = set()
         for names in self.imported_names.values():
             all_imported.update(names)
 
         # Find functions that are called but neither defined nor imported
-        phantom_functions = {}
+        phantom_functions: Dict[str, List[Tuple[str, int]]] = {}
         for func_name, files in self.called_functions.items():
             if (
                 func_name not in self.defined_functions
@@ -128,7 +136,7 @@ class EnhancedPhantomScanner:
         # Common standard library and third-party modules
         # This is a simplification - in a real implementation you'd want to
         # check against actual modules in sys.modules or a more comprehensive list
-        std_lib_prefixes = {
+        std_lib_prefixes: Set[str] = {
             "os_",
             "sys_",
             "math_",
@@ -146,7 +154,7 @@ class EnhancedPhantomScanner:
             "get_",
         }
 
-        ml_lib_prefixes = {
+        ml_lib_prefixes: Set[str] = {
             "np_",
             "pd_",
             "plt_",
@@ -162,7 +170,7 @@ class EnhancedPhantomScanner:
         }
 
         # Project-specific prefixes (customize based on your project)
-        project_prefixes = {
+        project_prefixes: Set[str] = {
             "pulse_",
             "forecast_",
             "sim_",
@@ -176,18 +184,18 @@ class EnhancedPhantomScanner:
             "memory_",
         }
 
-        categories = {
+        categories: Dict[str, List[str]] = {
             "standard_lib": [],
             "ml_libraries": [],
             "project_specific": [],
             "unknown": [],
         }
 
-        true_phantoms = self.find_true_phantoms()
+        true_phantoms: Dict[str, List[Tuple[str, int]]] = self.find_true_phantoms()
 
         for func_name in true_phantoms:
             # Check each function name against our prefix sets
-            categorized = False
+            categorized: bool = False
 
             for prefix in std_lib_prefixes:
                 if func_name.startswith(prefix) or func_name.lower().startswith(prefix):
@@ -224,8 +232,8 @@ class EnhancedPhantomScanner:
         Args:
             max_contexts: Maximum number of call contexts to show per function
         """
-        true_phantoms = self.find_true_phantoms()
-        categories = self.categorize_phantom_functions()
+        true_phantoms: Dict[str, List[Tuple[str, int]]] = self.find_true_phantoms()
+        categories: Dict[str, List[str]] = self.categorize_phantom_functions()
 
         print("\n=== Enhanced Phantom Function Report ===")
         print(f"Total Functions Defined: {len(self.defined_functions)}")
@@ -240,9 +248,9 @@ class EnhancedPhantomScanner:
         # Print detailed report for project-specific phantom functions (highest priority)
         print("\n=== Project-Specific Phantom Functions (Highest Priority) ===")
         for func in sorted(categories["project_specific"]):
-            contexts = true_phantoms[func][:max_contexts]
-            context_strs = [f"{file}:{line}" for file, line in contexts]
-            more = (
+            contexts: List[Tuple[str, int]] = true_phantoms[func][:max_contexts]
+            context_strs: List[str] = [f"{file}:{line}" for file, line in contexts]
+            more: str = (
                 ""
                 if len(contexts) <= max_contexts
                 else f" (and {len(true_phantoms[func]) - max_contexts} more...)"
@@ -269,13 +277,13 @@ class EnhancedPhantomScanner:
         print("4. Review 'unknown' category functions for false positives")
 
 
-def main():
+def main() -> None:
     if len(sys.argv) > 1:
-        project_path = sys.argv[1]
+        project_path: str = sys.argv[1]
     else:
         project_path = input("Enter path to Pulse project root: ").strip().strip('"')
 
-    scanner = EnhancedPhantomScanner(project_path)
+    scanner: EnhancedPhantomScanner = EnhancedPhantomScanner(project_path)
     print("Scanning for phantom functions with enhanced context...")
     scanner.scan()
     scanner.report()

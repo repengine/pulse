@@ -9,7 +9,7 @@ The module [`dags/retrodiction_dag.py`](../../dags/retrodiction_dag.py:1) define
 *   **DAG Definition:** Defines an Airflow DAG named `historical_retrodiction`.
 *   **Scheduling:** The DAG is scheduled to run daily (see "Implementation Gaps" regarding a minor syntax issue in the schedule interval).
 *   **Task Execution:** It contains a single task, `run_retrodiction`, implemented as an Airflow [`PythonOperator`](https://airflow.apache.org/docs/apache-airflow/stable/howto/operator/python.html).
-*   **Retrodiction Logic:** This task calls the [`run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py) function from the [`simulation_engine.historical_retrodiction_runner`](../../simulation_engine/historical_retrodiction_runner.py) module.
+*   **Retrodiction Logic:** This task calls the [`run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py) function from the [`engine.historical_retrodiction_runner`](../../simulation_engine/historical_retrodiction_runner.py) module.
 *   **Parameterization:** The retrodiction task can be parameterized via Airflow's `params` feature, allowing specification of `start_dates`, `days` (duration of retrodiction), and `parallel` (number of workers). Default values are provided if params are not specified.
 
 ## 3. Role within `dags/` Directory
@@ -25,7 +25,7 @@ This module serves as an automated workflow definition within the `dags/` direct
 *   `datetime` (from `datetime`)
 
 ### Internal Pulse Modules:
-*   [`simulation_engine.historical_retrodiction_runner`](../../simulation_engine/historical_retrodiction_runner.py): Specifically, the [`run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py) function.
+*   [`engine.historical_retrodiction_runner`](../../simulation_engine/historical_retrodiction_runner.py): Specifically, the [`run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py) function.
 
 ## 5. SPARC Principles Assessment
 
@@ -38,7 +38,7 @@ The module appears to define a functionally complete DAG for its intended purpos
 *   **Parameter Documentation:** While parameterization is available, explicit documentation within the DAG file or related project documentation on how to trigger the DAG with custom parameters would be beneficial for users.
 
 ### Connections & Dependencies
-The primary internal dependency is on [`simulation_engine.historical_retrodiction_runner.run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py). The DAG's functionality is directly tied to this runner.
+The primary internal dependency is on [`engine.historical_retrodiction_runner.run_retrodiction_tests`](../../simulation_engine/historical_retrodiction_runner.py). The DAG's functionality is directly tied to this runner.
 
 ### Function and Class Example Usages
 *   **DAG Instantiation:**

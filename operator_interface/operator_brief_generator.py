@@ -16,7 +16,7 @@ from typing import List, Dict, Optional
 from trust_system.forecast_episode_logger import summarize_episodes
 import os
 
-from simulation_engine.simulation_drift_detector import run_simulation_drift_analysis
+from engine.simulation_drift_detector import run_simulation_drift_analysis
 
 
 def load_jsonl(path: str) -> List[Dict]:

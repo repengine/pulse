@@ -25,8 +25,8 @@ The module appears largely functional and complete for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- `from memory.pulsegrow import PulseGrow` ([`iris/variable_recommender.py:20`](../../../iris/variable_recommender.py:20))
-- `from memory.variable_performance_tracker import VariablePerformanceTracker` ([`iris/variable_recommender.py:25`](../../../iris/variable_recommender.py:25))
+- `from analytics.pulsegrow import PulseGrow` ([`iris/variable_recommender.py:20`](../../../iris/variable_recommender.py:20))
+- `from analytics.variable_performance_tracker import VariablePerformanceTracker` ([`iris/variable_recommender.py:25`](../../../iris/variable_recommender.py:25))
 
 ### External Library Dependencies:
 - `os` (Python standard library)
@@ -76,7 +76,7 @@ The module appears largely functional and complete for its defined scope.
         6. Calling `register_variables_with_metadata` to register variables with `PulseGrow`.
     - **Example Usage (CLI):**
       ```bash
-      python -m iris.variable_recommender --log_path logs/variable_score_log.jsonl --top_n 10 --min_count 5 --output recommended_output.json
+      python -m ingestion.variable_recommender --log_path logs/variable_score_log.jsonl --top_n 10 --min_count 5 --output recommended_output.json
       ```
 
 ## 6. Hardcoding Issues
@@ -89,8 +89,8 @@ The module appears largely functional and complete for its defined scope.
 
 ## 7. Coupling Points
 
-- **`memory.pulsegrow.PulseGrow`:** The module is tightly coupled with `PulseGrow` for its registration feature. If `PulseGrow`'s API changes (e.g., `register_variable` method signature or metadata expectations), this module would require updates. The fallback mechanism mitigates complete failure if `PulseGrow` is absent.
-- **`memory.variable_performance_tracker.VariablePerformanceTracker`:** This is a significant coupling point. The recommender module delegates the core tasks of data loading from logs, variable scoring, and drift detection to `VariablePerformanceTracker`. Changes in the tracker's methods (e.g., `score_variable_effectiveness()`, `detect_variable_drift()`) or the structure of data it returns would directly impact this module.
+- **`analytics.pulsegrow.PulseGrow`:** The module is tightly coupled with `PulseGrow` for its registration feature. If `PulseGrow`'s API changes (e.g., `register_variable` method signature or metadata expectations), this module would require updates. The fallback mechanism mitigates complete failure if `PulseGrow` is absent.
+- **`analytics.variable_performance_tracker.VariablePerformanceTracker`:** This is a significant coupling point. The recommender module delegates the core tasks of data loading from logs, variable scoring, and drift detection to `VariablePerformanceTracker`. Changes in the tracker's methods (e.g., `score_variable_effectiveness()`, `detect_variable_drift()`) or the structure of data it returns would directly impact this module.
 - **Log File Format:** The module's ability to process variable performance data (either directly via `load_variable_scores` or indirectly via `VariablePerformanceTracker`) is dependent on the structure and keys present in the input JSONL/JSON log files.
 - **Output File Format:** The structure of the JSON output file (if generated) is defined within the [`main()`](../../../iris/variable_recommender.py:126) function. Consumers of this file would depend on this structure.
 

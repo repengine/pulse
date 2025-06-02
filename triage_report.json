@@ -274,7 +274,7 @@
     "issues": []
   },
   "dags/retrodiction_dag.py": {
-    "description": "Defines an Airflow DAG for daily historical retrodiction tests, calling `simulation_engine.historical_retrodiction_runner.run_retrodiction_tests()`.",
+    "description": "Defines an Airflow DAG for daily historical retrodiction tests, calling `engine.historical_retrodiction_runner.run_retrodiction_tests()`.",
     "issues": []
   },
   "data/manual_ingestion.py": {
@@ -302,11 +302,11 @@
     "issues": []
   },
   "dev_tools/cli_retrodict_forecasts.py": {
-    "description": "Functional command-line tool for applying retrodiction scoring to forecasts, relying on `learning.learning.retrospective_analysis_batch()`.",
+    "description": "Functional command-line tool for applying retrodiction scoring to forecasts, relying on `analytics.analytics.retrospective_analysis_batch()`.",
     "issues": []
   },
   "dev_tools/cli_trace_audit.py": {
-    "description": "Provides a command-line interface for the `memory.trace_audit_engine` to replay, summarize, or audit traces.",
+    "description": "Provides a command-line interface for the `analytics.trace_audit_engine` to replay, summarize, or audit traces.",
     "issues": []
   },
   "dev_tools/compress_forecast_chain.py": {
@@ -452,7 +452,7 @@
     "issues": []
   },
   "dev_tools/symbolic_flip_analyzer.py": {
-    "description": "is a CLI tool for analyzing symbolic state transition patterns and loops within forecast episodes, depending on `memory.forecast_episode_tracer` and `symbolic_system.symbolic_flip_classifier`.",
+    "description": "is a CLI tool for analyzing symbolic state transition patterns and loops within forecast episodes, depending on `analytics.forecast_episode_tracer` and `symbolic_system.symbolic_flip_classifier`.",
     "issues": []
   },
   "dev_tools/testing/api_key_test.py": {
@@ -1071,7 +1071,7 @@
     "issues": []
   },
   "iris/iris_utils/conftest.py": {
-    "description": "Description: provides a simple pytest fixture for the iris.iris_utils package, appearing complete for its limited testing utility purpose.",
+    "description": "Description: provides a simple pytest fixture for the ingestion.iris_utils package, appearing complete for its limited testing utility purpose.",
     "issues": []
   },
   "iris/iris_utils/historical_data_repair.py": {
@@ -1223,11 +1223,11 @@
     "issues": []
   },
   "learning/promote_memory_forecasts.py": {
-    "description": "CLI tool to select \"promotable\" forecasts from a batch and export them to core forecast memory. Relies on `memory.forecast_memory_promoter`. Key Gap: Core promotion logic is external.",
+    "description": "CLI tool to select \"promotable\" forecasts from a batch and export them to core forecast memory. Relies on `analytics.forecast_memory_promoter`. Key Gap: Core promotion logic is external.",
     "issues": []
   },
   "learning/pulse_ui_audit_cycle.py": {
-    "description": "Description: CLI tool for comparing recursive forecast cycles and generating improvement audit reports, relying on `learning.recursion_audit` for core logic.",
+    "description": "Description: CLI tool for comparing recursive forecast cycles and generating improvement audit reports, relying on `analytics.recursion_audit` for core logic.",
     "issues": []
   },
   "learning/recursion_audit.py": {
@@ -1247,7 +1247,7 @@
     "issues": []
   },
   "learning/trace_forecast_episode.py": {
-    "description": "Description: CLI tool for tracing forecast episode lineage and summarizing symbolic drift, relying on `memory.forecast_episode_tracer` for core logic.",
+    "description": "Description: CLI tool for tracing forecast episode lineage and summarizing symbolic drift, relying on `analytics.forecast_episode_tracer` for core logic.",
     "issues": []
   },
   "learning/transforms/basic_transforms.py": {
@@ -1355,7 +1355,7 @@
     "issues": []
   },
   "operator_interface/rule_cluster_viewer.py": {
-    "description": "Description: Analysis of [`operator_interface/rule_cluster_viewer.py`](operator_interface/rule_cluster_viewer.py:1) shows it displays rule clusters by domain and volatility for operator review, relying on `memory.rule_cluster_engine` and lacking dedicated tests.",
+    "description": "Description: Analysis of [`operator_interface/rule_cluster_viewer.py`](operator_interface/rule_cluster_viewer.py:1) shows it displays rule clusters by domain and volatility for operator review, relying on `analytics.rule_cluster_engine` and lacking dedicated tests.",
     "issues": []
   },
   "operator_interface/strategos_digest.py": {
@@ -1392,7 +1392,7 @@
       "TODO (Line 44): # TODO: Replace with actual data loading mechanism if different (File: pipeline/evaluator.py)",
       "TODO (Line 86): # TODO: Implement more sophisticated feedback generation and storage (File: pipeline/evaluator.py)",
       "TODO (Line 88): # TODO: Integrate proposed_rule_changes into a management mechanism (File: pipeline/evaluator.py)",
-      "TODO (Line 110): # TODO: implement evaluation logic calling simulation_engine.simulate_forward (File: pipeline/evaluator.py)",
+      "TODO (Line 110): # TODO: implement evaluation logic calling engine.simulate_forward (File: pipeline/evaluator.py)",
       "TODO (Line 111): # TODO: Incorporate historical forecast data for evaluation and training (File: pipeline/evaluator.py)",
       "TODO (Line 209): # TODO: Implement more sophisticated rule generation/pruning logic (File: pipeline/evaluator.py)"
     ]
@@ -1436,7 +1436,7 @@
     "issues": [
       "TODO (Line 14): # TODO: set up GPT client and symbolic_system interfaces (File: pipeline/rule_engine.py)",
       "TODO (Line 20): # TODO: implement rule generation logic using GPT and pulse_symbolic_revision_planner (File: pipeline/rule_engine.py)",
-      "TODO (Line 27): # TODO: implement batch rule evaluation in simulation_engine.rule_mutation_engine (File: pipeline/rule_engine.py)",
+      "TODO (Line 27): # TODO: implement batch rule evaluation in engine.rule_mutation_engine (File: pipeline/rule_engine.py)",
       "TODO (Line 34): # TODO: implement pruning strategy (File: pipeline/rule_engine.py)"
     ]
   },
@@ -1969,7 +1969,7 @@
     "issues": []
   },
   "trust_system/retrodiction_engine.py": {
-    "description": "This module serves as a wrapper for running retrodiction simulations. It utilizes the unified \\`simulate_forward\\` function from \\`simulation_engine.simulator_core\\` by setting it to \"retrodiction mode.\" The module handles the results of these simulations, providing functions to save them to a persistent \\`ForecastMemory\\` instance, ensuring that complex objects like overlays are properly serialized. It also includes a utility to save individual forecast objects.",
+    "description": "This module serves as a wrapper for running retrodiction simulations. It utilizes the unified \\`simulate_forward\\` function from \\`engine.simulator_core\\` by setting it to \"retrodiction mode.\" The module handles the results of these simulations, providing functions to save them to a persistent \\`ForecastMemory\\` instance, ensuring that complex objects like overlays are properly serialized. It also includes a utility to save individual forecast objects.",
     "issues": []
   },
   "trust_system/rule_adjustment.py": {

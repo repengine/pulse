@@ -24,9 +24,9 @@ There are no obvious placeholders (e.g., `pass` statements in empty functions) o
 ## 4. Connections & Dependencies
 
 ### Direct Imports from Other Project Modules:
--   [`simulation_engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:1) ([`simulation_engine/rules/rule_matching_utils.py:15`](simulation_engine/rules/rule_matching_utils.py:15))
--   [`simulation_engine.rules.rule_coherence_checker.validate_rule_schema`](simulation_engine/rules/rule_coherence_checker.py:1) ([`simulation_engine/rules/rule_matching_utils.py:16`](simulation_engine/rules/rule_matching_utils.py:16))
--   [`simulation_engine.rules.rule_coherence_checker.get_all_rule_fingerprints_dict`](simulation_engine/rules/rule_coherence_checker.py:1) ([`simulation_engine/rules/rule_matching_utils.py:16`](simulation_engine/rules/rule_matching_utils.py:16)) - *Note: `get_all_rule_fingerprints_dict` is imported but not used in the provided code snippet.*
+-   [`engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:1) ([`simulation_engine/rules/rule_matching_utils.py:15`](simulation_engine/rules/rule_matching_utils.py:15))
+-   [`engine.rules.rule_coherence_checker.validate_rule_schema`](simulation_engine/rules/rule_coherence_checker.py:1) ([`simulation_engine/rules/rule_matching_utils.py:16`](simulation_engine/rules/rule_matching_utils.py:16))
+-   [`engine.rules.rule_coherence_checker.get_all_rule_fingerprints_dict`](simulation_engine/rules/rule_coherence_checker.py:1) ([`simulation_engine/rules/rule_matching_utils.py:16`](simulation_engine/rules/rule_matching_utils.py:16)) - *Note: `get_all_rule_fingerprints_dict` is imported but not used in the provided code snippet.*
 
 ### External Library Dependencies:
 -   `typing` (standard library): For type hinting (`Dict`, `List`, `Optional`, `Tuple`).

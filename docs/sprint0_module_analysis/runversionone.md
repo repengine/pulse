@@ -34,11 +34,11 @@ No explicit TODO comments or obvious placeholders for core functionality were no
 ## Connections & Dependencies
 
 ### Direct Imports from Other Project Modules
-- [`simulation_engine.simulator_core`](../../../simulation_engine/simulator_core.py): [`simulate_forward`](../../../runversionone.py:7), [`WorldState`](../../../runversionone.py:7)
-- [`simulation_engine.worldstate`](../../../simulation_engine/worldstate.py): [`Variables`](../../../runversionone.py:8), [`SymbolicOverlays`](../../../runversionone.py:8), [`CapitalExposure`](../../../runversionone.py:8)
+- [`engine.simulator_core`](../../../simulation_engine/simulator_core.py): [`simulate_forward`](../../../runversionone.py:7), [`WorldState`](../../../runversionone.py:7)
+- [`engine.worldstate`](../../../simulation_engine/worldstate.py): [`Variables`](../../../runversionone.py:8), [`SymbolicOverlays`](../../../runversionone.py:8), [`CapitalExposure`](../../../runversionone.py:8)
 - [`recursive_training.data.data_store`](../../../recursive_training/data/data_store.py): [`RecursiveDataStore`](../../../runversionone.py:9)
 - [`recursive_training.advanced_metrics.enhanced_metrics`](../../../recursive_training/advanced_metrics/enhanced_metrics.py): [`EnhancedRecursiveTrainingMetrics`](../../../runversionone.py:10)
-- [`learning.learning`](../../../learning/learning.py): [`LearningEngine`](../../../runversionone.py:11)
+- [`analytics.learning`](../../../learning/learning.py): [`LearningEngine`](../../../runversionone.py:11)
 - [`recursive_training.parallel_trainer`](../../../recursive_training/parallel_trainer.py): [`ParallelTrainingCoordinator`](../../../runversionone.py:12), [`run_parallel_retrodiction_training`](../../../runversionone.py:12)
 - [`core.optimized_trust_tracker`](../../../core/optimized_trust_tracker.py): [`optimized_bayesian_trust_tracker`](../../../runversionone.py:13) (imported but not used)
 

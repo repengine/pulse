@@ -6,7 +6,7 @@ Thin OO wrapper around run_ingest.py logic so it can be:
 * executed as `python -m ingestion_service --once`
 """
 
-from iris.iris_scraper import IrisScraper
+from ingestion.iris_scraper import IrisScraper
 from typing import Dict, List
 
 

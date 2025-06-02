@@ -20,8 +20,8 @@ The module appears to be operationally complete for its defined scope of fetchin
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) (as base class)
-*   Functions from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py):
+*   [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) (as base class)
+*   Functions from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py):
     *   [`ensure_data_directory()`](iris/iris_utils/ingestion_persistence.py)
     *   [`save_request_metadata()`](iris/iris_utils/ingestion_persistence.py)
     *   [`save_api_response()`](iris/iris_utils/ingestion_persistence.py)
@@ -127,7 +127,7 @@ The module contains several hardcoded values:
 
 *   **HealthMap RSS Feed Structure:** The plugin is tightly coupled to the specific XML structure of HealthMap's RSS feeds and the way alert levels are encoded in URL parameters (e.g., `?c=red`). Changes to the feed format or URL parameter scheme by HealthMap would likely break the plugin.
 *   **`IrisPluginManager`:** Dependency on the [`IrisPluginManager`](iris/iris_plugins.py) class for its inheritance and expected plugin interface.
-*   **`ingestion_persistence` Utilities:** Relies on the functions provided by [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) for saving data. Changes to this utility's API or behavior could affect the plugin.
+*   **`ingestion_persistence` Utilities:** Relies on the functions provided by [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) for saving data. Changes to this utility's API or behavior could affect the plugin.
 *   **Network Availability:** Dependent on network access to `healthmap.org`.
 
 ## 8. Existing Tests

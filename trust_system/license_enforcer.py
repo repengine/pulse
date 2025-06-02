@@ -80,8 +80,6 @@ def export_rejected_forecasts(forecasts: List[Dict], path: str) -> None:
         print(f"❌ Failed to save rejected forecasts: {e}")
 
 
-
-
 def full_trust_license_audit_pipeline(
     forecasts: List[Dict],
     current_state: Optional[Dict] = None,

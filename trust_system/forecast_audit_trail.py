@@ -56,7 +56,7 @@ def generate_forecast_audit(
     ret_error = None
     if current_state:
         try:
-            from learning.learning import (
+            from analytics.learning import (
                 compute_retrodiction_error,
             )  # moved import here to avoid circular import
 

@@ -3,12 +3,12 @@ Test suite for rule matching and registry consistency across Pulse modules.
 """
 
 import pytest
-from simulation_engine.rules import (
+from rules import (
     rule_matching_utils,
     reverse_rule_mapper,
     reverse_rule_engine,
 )
-from simulation_engine.rules.rule_registry import RuleRegistry
+from rules.rule_registry import RuleRegistry
 
 
 @pytest.fixture

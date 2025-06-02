@@ -9,7 +9,7 @@ The primary purpose of the [`dev_tools/generate_plugin_stubs.py`](dev_tools/gene
 *   **Plugin Definition:** Defines a predefined list of plugins, including their names, descriptions, and associated domains, within a JSON-like list named [`STUBS`](dev_tools/generate_plugin_stubs.py:15).
 *   **Directory Creation:** Creates a target directory named [`iris_plugins_variable_ingestion/`](dev_tools/generate_plugin_stubs.py:49) if it does not already exist.
 *   **Stub Generation:** Uses a Python code template ([`TEMPLATE`](dev_tools/generate_plugin_stubs.py:52)) to generate the content for each plugin stub.
-    *   Each generated stub class inherits from [`iris.iris_scraper.IrisScraper`](iris/iris_scraper.py:1).
+    *   Each generated stub class inherits from [`ingestion.iris_scraper.IrisScraper`](iris/iris_scraper.py:1).
     *   Stub classes are automatically named using CamelCase based on the plugin's snake_case name (e.g., `gdelt_plugin` becomes `GdeltPlugin`).
     *   Includes placeholder attributes like `plugin_name`, `enabled = False`, and `concurrency = 2`.
     *   Includes a placeholder method [`fetch_signals(self) -> List[Dict[str, Any]]`](dev_tools/generate_plugin_stubs.py:65) and an empty [`additional_method(self) -> None`](dev_tools/generate_plugin_stubs.py:69).
@@ -29,7 +29,7 @@ This script serves as a developer utility within the `dev_tools/` directory. Its
 *   [`sys`](https://docs.python.org/3/library/sys.html)
 
 ### Internal Pulse Modules
-*   [`iris.iris_scraper.IrisScraper`](iris/iris_scraper.py:1) (imported after `sys.path` modification to include project [`ROOT`](dev_tools/generate_plugin_stubs.py:9))
+*   [`ingestion.iris_scraper.IrisScraper`](iris/iris_scraper.py:1) (imported after `sys.path` modification to include project [`ROOT`](dev_tools/generate_plugin_stubs.py:9))
 
 ### External Libraries
 *   None apparent.
@@ -43,12 +43,12 @@ This script serves as a developer utility within the `dev_tools/` directory. Its
     *   The [`additional_method`](dev_tools/generate_plugin_stubs.py:69) in the template is a `pass` and lacks specific context within this generator script.
 *   **Connections & Dependencies:**
     *   Directly tied to the Iris plugin architecture through its use of [`IrisScraper`](iris/iris_scraper.py:1) as a base class for generated stubs.
-    *   Relies on the project structure for `sys.path` modification to locate [`iris.iris_scraper`](iris/iris_scraper.py:1).
+    *   Relies on the project structure for `sys.path` modification to locate [`ingestion.iris_scraper`](iris/iris_scraper.py:1).
 *   **Function and Class Example Usages:**
     The script itself is executed directly. An example of how a *generated* plugin might be used (after being completed and moved to the appropriate directory):
     ```python
     # Assuming 'gdelt_plugin.py' was generated and completed:
-    # from iris.plugins.gdelt_plugin import GdeltPlugin # Path might vary
+    # from ingestion.plugins.gdelt_plugin import GdeltPlugin # Path might vary
     #
     # plugin = GdeltPlugin()
     # if plugin.enabled:

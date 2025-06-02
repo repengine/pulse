@@ -12,7 +12,7 @@ Based on the code alone, it is difficult to identify specific implementation gap
 ## Connections & Dependencies
 *   **Direct imports from other project modules:**
     *   [`forecast_output.mutation_compression_engine`](forecast_output/mutation_compression_engine.py)
-    *   [`memory.forecast_episode_tracer`](memory/forecast_episode_tracer.py)
+    *   [`analytics.forecast_episode_tracer`](memory/forecast_episode_tracer.py)
 *   **External library dependencies:**
     *   `argparse`
     *   `json`

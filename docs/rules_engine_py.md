@@ -31,8 +31,8 @@ This module (or the significant enhancement of the existing one) is a key develo
 
 *   **`rules.schemas.Rule`**: Consumes `Rule` objects.
 *   **`core.worldstate_v2.WorldStateV2`**: Reads from and mutates `WorldStateV2` instances.
-*   **`simulation_engine.rules.rule_registry`**: To obtain the rules to be executed.
-*   **`simulation_engine.rules.rule_audit_layer`**: For logging rule activations and changes.
+*   **`engine.rules.rule_registry`**: To obtain the rules to be executed.
+*   **`engine.rules.rule_audit_layer`**: For logging rule activations and changes.
 *   May require utility functions for dynamic attribute access and type conversion based on `variable_path`, `target_path`, and `value_type` specified in conditions/effects.
 
 *(Further details to be added as development progresses.)*

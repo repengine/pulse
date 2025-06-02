@@ -59,7 +59,7 @@ There are no obvious TODOs or major placeholders within the implemented function
 The module docstring provides a clear usage example:
 
 ```python
-from iris.iris_utils.ingestion_persistence import (
+from ingestion.iris_utils.ingestion_persistence import (
     ensure_data_directory,
     save_to_file,
     save_request_metadata,

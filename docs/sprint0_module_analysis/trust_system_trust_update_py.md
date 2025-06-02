@@ -37,7 +37,7 @@ The primary purpose of this module is to dynamically update the \"trust weights\
 ## 4. Connections & Dependencies
 - **Direct imports from other project modules:**
     - `from forecast_output.pfpa_logger import PFPA_ARCHIVE` ([`trust_system/trust_update.py:10`](trust_system/trust_update.py:10)): This is a critical dependency for the source of forecasts to be updated.
-    - `from memory.forecast_memory import ForecastMemory` ([`trust_system/trust_update.py:11`](trust_system/trust_update.py:11)): Used to instantiate `pfpa_memory`, though this instance isn't directly used by the main weight update function.
+    - `from analytics.forecast_memory import ForecastMemory` ([`trust_system/trust_update.py:11`](trust_system/trust_update.py:11)): Used to instantiate `pfpa_memory`, though this instance isn't directly used by the main weight update function.
 - **External library dependencies:**
     - `typing.Dict`, `List`, `Callable` ([`trust_system/trust_update.py:12`](trust_system/trust_update.py:12)) (Python standard library)
     - `logging` ([`trust_system/trust_update.py:13`](trust_system/trust_update.py:13)) (Python standard library)

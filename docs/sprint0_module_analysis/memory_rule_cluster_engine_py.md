@@ -19,7 +19,7 @@ The module appears to be operationally functional and complete for its stated pu
 
 ### Direct Project Module Imports:
 *   [`core.path_registry.PATHS`](core/path_registry.py:) (specifically for `RULE_MUTATION_LOG` path)
-*   [`simulation_engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:)
+*   [`engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:)
 
 ### External Library Dependencies:
 *   `json`
@@ -71,7 +71,7 @@ The `if __name__ == "__main__":` block (lines [`100-107`](memory/rule_cluster_en
 
 ## 7. Coupling Points
 
-*   **`RuleRegistry`:** The module is tightly coupled to [`simulation_engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:) for accessing rule definitions and their metadata. Changes to `RuleRegistry`'s structure or how rules are stored/accessed could impact this module.
+*   **`RuleRegistry`:** The module is tightly coupled to [`engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:) for accessing rule definitions and their metadata. Changes to `RuleRegistry`'s structure or how rules are stored/accessed could impact this module.
 *   **`RULE_MUTATION_LOG` Format:** The [`score_rule_volatility`](memory/rule_cluster_engine.py:36) function expects `RULE_MUTATION_LOG` to be a JSONL file where each line is a JSON object with a specific structure (i.e., `entry.get("mutation", {}).get("rule")` to extract the rule ID). Changes to this log format would break the volatility scoring.
 *   **`core.path_registry.PATHS`:** Dependency on `PATHS` for resolving the `RULE_MUTATION_LOG` path creates coupling with the path configuration system.
 *   **Rule Metadata Structure:** The module relies on rules having specific keys in their metadata, such as `"domain"` for clustering (line [`31`](memory/rule_cluster_engine.py:31)) and `"rule_id"` or `"id"` for identification (line [`24`](memory/rule_cluster_engine.py:24)).

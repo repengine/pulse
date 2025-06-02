@@ -26,8 +26,8 @@ These commands encapsulate specific actions that modify or analyze the simulatio
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py) (specifically [`decay_overlay()`](simulation_engine/state_mutation.py) used by [`DecayCommand`](simulation_engine/services/simulation_command.py:11))
-- [`simulation_engine.rule_engine`](simulation_engine/rule_engine.py) (specifically [`run_rules()`](simulation_engine/rule_engine.py) used by [`RuleCommand`](simulation_engine/services/simulation_command.py:17))
+- [`engine.state_mutation`](simulation_engine/state_mutation.py) (specifically [`decay_overlay()`](simulation_engine/state_mutation.py) used by [`DecayCommand`](simulation_engine/services/simulation_command.py:11))
+- [`engine.rule_engine`](simulation_engine/rule_engine.py) (specifically [`run_rules()`](simulation_engine/rule_engine.py) used by [`RuleCommand`](simulation_engine/services/simulation_command.py:17))
 - [`symbolic_system.symbolic_state_tagger`](symbolic_system/symbolic_state_tagger.py) (specifically [`tag_symbolic_state()`](symbolic_system/symbolic_state_tagger.py) used by [`SymbolicTagCommand`](simulation_engine/services/simulation_command.py:23))
 
 ### External Library Dependencies:
@@ -64,7 +64,7 @@ class CustomSimulationStep(SimulationCommand):
 ```python
 # Assuming 'sim_state' is an initialized simulation state object
 # and DecayCommand is imported.
-# from simulation_engine.services.simulation_command import DecayCommand
+# from engine.services.simulation_command import DecayCommand
 
 # decay_cmd = DecayCommand()
 # decay_cmd.execute(sim_state)
@@ -75,7 +75,7 @@ class CustomSimulationStep(SimulationCommand):
 ```python
 # Assuming 'sim_state' is an initialized simulation state object
 # and RuleCommand is imported.
-# from simulation_engine.services.simulation_command import RuleCommand
+# from engine.services.simulation_command import RuleCommand
 
 # rule_cmd = RuleCommand()
 # rule_cmd.execute(sim_state)
@@ -86,7 +86,7 @@ class CustomSimulationStep(SimulationCommand):
 ```python
 # Assuming 'sim_state' is an initialized simulation state object
 # with 'overlays', and optionally 'sim_id' and 'turn' attributes.
-# from simulation_engine.services.simulation_command import SymbolicTagCommand
+# from engine.services.simulation_command import SymbolicTagCommand
 
 # symbolic_cmd = SymbolicTagCommand()
 # symbolic_cmd.execute(sim_state)
@@ -108,8 +108,8 @@ class CustomSimulationStep(SimulationCommand):
 
 - **State Object Structure:** All commands are tightly coupled to the structure and expected attributes of the `state` object (e.g., `state.overlays`, `state.sim_id`, `state.turn`). Changes to this structure could break the commands.
 - **Service Modules:**
-    - [`DecayCommand`](simulation_engine/services/simulation_command.py:9) is coupled to [`simulation_engine.state_mutation.decay_overlay()`](simulation_engine/state_mutation.py).
-    - [`RuleCommand`](simulation_engine/services/simulation_command.py:15) is coupled to [`simulation_engine.rule_engine.run_rules()`](simulation_engine/rule_engine.py).
+    - [`DecayCommand`](simulation_engine/services/simulation_command.py:9) is coupled to [`engine.state_mutation.decay_overlay()`](simulation_engine/state_mutation.py).
+    - [`RuleCommand`](simulation_engine/services/simulation_command.py:15) is coupled to [`engine.rule_engine.run_rules()`](simulation_engine/rule_engine.py).
     - [`SymbolicTagCommand`](simulation_engine/services/simulation_command.py:20) is coupled to [`symbolic_system.symbolic_state_tagger.tag_symbolic_state()`](symbolic_system/symbolic_state_tagger.py).
 - **Local Imports:** The use of local imports within the `execute` methods (e.g., line 11, 17, 23) is a form of coupling that might be intended to avoid circular dependencies or reduce initial module load time.
 
@@ -117,8 +117,8 @@ class CustomSimulationStep(SimulationCommand):
 
 - Based on the provided workspace file list, there is no apparent dedicated test file for this module (e.g., `tests/simulation_engine/services/test_simulation_command.py`).
 - The functionalities invoked by these commands (decay, rule execution, symbolic tagging) might be tested within the test suites for their respective modules:
-    - [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py)
-    - [`simulation_engine.rule_engine`](simulation_engine/rule_engine.py)
+    - [`engine.state_mutation`](simulation_engine/state_mutation.py)
+    - [`engine.rule_engine`](simulation_engine/rule_engine.py)
     - [`symbolic_system.symbolic_state_tagger`](symbolic_system/symbolic_state_tagger.py)
 - Direct testing of the command classes themselves, ensuring they correctly call their dependencies and handle the `state` object, might be missing or located elsewhere not immediately identifiable.
 

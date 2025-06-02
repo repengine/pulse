@@ -28,7 +28,7 @@ There are no obvious TODO comments or major incomplete placeholders in the core 
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_scraper.IrisScraper`](../../../iris/iris_scraper.py:10)
+*   [`ingestion.iris_scraper.IrisScraper`](../../../iris/iris_scraper.py:10)
 *   [`core.celery_app.celery_app`](../../../core/celery_app.py)
 *   [`core.metrics.start_metrics_server`](../../../core/metrics.py)
 

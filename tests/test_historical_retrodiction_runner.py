@@ -1,9 +1,9 @@
 import json
-from simulation_engine.simulator_core import simulate_forward
-from core.variable_registry import get_default_variable_state
+from engine.simulator_core import simulate_forward
+from engine.variable_registry import get_default_variable_state
 
 # RetrodictionLoader is deprecated; removed due to unification.
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 
 
 def test_retrodiction_simulation_basic(tmp_path):
@@ -38,7 +38,7 @@ def test_retrodiction_simulation_basic(tmp_path):
 
 def test_load_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "simulation_engine.historical_retrodiction_runner.TRUTH_PATH",
+        "engine.historical_retrodiction_runner.TRUTH_PATH",
         str(tmp_path / "data.json"),
     )
     result = get_default_variable_state()
@@ -49,8 +49,6 @@ def test_load_existing(tmp_path, monkeypatch):
     file = tmp_path / "data.json"
     data = {"date": "2020-01-01", "variables": {"fed_funds_rate": 0.07}}
     file.write_text(json.dumps(data))
-    monkeypatch.setattr(
-        "simulation_engine.historical_retrodiction_runner.TRUTH_PATH", str(file)
-    )
+    monkeypatch.setattr("engine.historical_retrodiction_runner.TRUTH_PATH", str(file))
     result = get_default_variable_state()
     assert result is not None

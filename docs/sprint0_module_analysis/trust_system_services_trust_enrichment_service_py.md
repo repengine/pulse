@@ -48,7 +48,7 @@ The module appears to be functionally complete for its defined purpose as an enr
 -   **Interaction with Other Modules (Implied):**
     -   **[`TrustEngine`](trust_system/trust_engine.py:1):** This service is designed to be used by `TrustEngine` (as seen in `TrustEngine.__init__` and `TrustEngine.enrich_trust_metadata`). The helper functions it calls are currently defined within `TrustEngine`.
     -   **Plugin Providers:** Any module that defines and registers a trust enrichment plugin would interact with this service.
-    -   The helper functions themselves (e.g., `_enrich_alignment`) have their own dependencies (e.g., `trust_system.alignment_index`, `learning.learning`), which are indirectly relevant.
+    -   The helper functions themselves (e.g., `_enrich_alignment`) have their own dependencies (e.g., `trust_system.alignment_index`, `analytics.learning`), which are indirectly relevant.
 -   **Input/Output Files:**
     -   None directly. This module operates on in-memory forecast dictionaries.
 

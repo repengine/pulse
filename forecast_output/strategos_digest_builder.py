@@ -197,8 +197,6 @@ def render_fields(f: Dict[str, Any], fields: List[str]) -> List[str]:
     return lines
 
 
-
-
 def log_prompt(
     prompt: str, config: dict, overlays: dict, path: str = "logs/prompt_log.jsonl"
 ):
@@ -317,7 +315,7 @@ def build_digest(
 
     # --- Most Evolved Forecasts by Cluster ---
     try:
-        from memory.cluster_mutation_tracker import (
+        from analytics.cluster_mutation_tracker import (
             track_cluster_lineage,
             select_most_evolved,
             summarize_mutation_depths,
@@ -365,7 +363,7 @@ def build_digest(
 
     # --- Symbolic Entropy Report ---
     try:
-        from memory.forecast_memory_entropy import generate_entropy_report
+        from analytics.forecast_memory_entropy import generate_entropy_report
 
         # Optionally, load memory forecasts if available in config
         memory_forecasts = None
@@ -744,7 +742,7 @@ def filter_forecasts_by_prompt(forecasts: List[Dict], prompt: str) -> List[Dict]
 
 if __name__ == "__main__":
     import argparse
-    from core.path_registry import PATHS
+    from engine.path_registry import PATHS
 
     parser = argparse.ArgumentParser(description="Strategos Digest Builder CLI")
     parser.add_argument(

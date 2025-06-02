@@ -27,7 +27,7 @@ The module appears to be operationally functional for its defined scope of Twitt
 ## 4. Connections & Dependencies
 
 -   **Direct Project Module Imports:**
-    -   [`iris.iris_scraper.IrisScraper`](iris/iris_scraper.py:7)
+    -   [`ingestion.iris_scraper.IrisScraper`](iris/iris_scraper.py:7)
     -   [`core.celery_app.celery_app`](core/celery_app.py:9)
     -   [`core.metrics.start_metrics_server`](core/metrics.py:10)
 -   **External Library Dependencies:**
@@ -73,7 +73,7 @@ The module appears to be operationally functional for its defined scope of Twitt
 
 -   **`core.celery_app`:** Tightly coupled to the Celery application instance from [`core.celery_app`](core/celery_app.py:9) and the specific task name `"ingest_and_score_signal"`.
 -   **`core.metrics`:** Coupled to the [`start_metrics_server`](core/metrics.py:10) function.
--   **`iris.iris_scraper`:** Instantiation creates a coupling point, though its functionality isn't actively used in the main loop.
+-   **`ingestion.iris_scraper`:** Instantiation creates a coupling point, though its functionality isn't actively used in the main loop.
 -   **Tweepy Library & Twitter API:** Directly dependent on the `tweepy` library's interface and the Twitter API's behavior and data structures.
 -   **Environment Variables:** Relies on a specific set of environment variables for configuration (e.g., `TWITTER_API_KEY`, `TWITTER_API_SECRET`).
 

@@ -26,7 +26,7 @@ The primary role of the `fred_plugin.py` module is to fetch various economic dat
 ## 4. Connections & Dependencies
 
 *   **Internal Project Modules:**
-    *   [`iris.iris_utils.ingestion_persistence.save_data_point_incremental`](iris/iris_utils/ingestion_persistence.py:4): Used to save the fetched and processed data points.
+    *   [`ingestion.iris_utils.ingestion_persistence.save_data_point_incremental`](iris/iris_utils/ingestion_persistence.py:4): Used to save the fetched and processed data points.
 *   **External Libraries:**
     *   `requests`: For making HTTP GET requests to the FRED API.
     *   `pandas`: Imported ([`line 2`](iris/iris_plugins_variable_ingestion/fred_plugin.py:2)) but not directly used within the visible code of this module. It might be used by the imported `save_data_point_incremental` function or was intended for future use.
@@ -48,7 +48,7 @@ The primary role of the `fred_plugin.py` module is to fetch various economic dat
     # import os
     # os.environ["FRED_API_KEY"] = "YOUR_KEY_HERE"
 
-    from iris.iris_plugins_variable_ingestion.fred_plugin import FREDPlugin
+    from ingestion.iris_plugins_variable_ingestion.fred_plugin import FREDPlugin
 
     def run_fred_ingestion():
         fred_plugin = FREDPlugin()
@@ -80,7 +80,7 @@ The primary role of the `fred_plugin.py` module is to fetch various economic dat
 
 ## 7. Coupling Points
 
-*   **`iris.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for data persistence. Any changes to its API or behavior would require updates in this plugin.
+*   **`ingestion.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for data persistence. Any changes to its API or behavior would require updates in this plugin.
 *   **FRED API:** Directly coupled to the FRED API's URL structure, request parameters, and JSON response format (e.g., `response.json().get("observations")`, `obs['date']`, `obs['value']`).
 *   **Environment Variable `FRED_API_KEY`:** Relies on this specific environment variable for API authentication.
 *   **Hardcoded Series and Categories:** The hardcoded series IDs and the `"economic_indicators"` category name create coupling with specific external data identifiers and internal storage conventions.
@@ -90,7 +90,7 @@ The primary role of the `fred_plugin.py` module is to fetch various economic dat
 *   Based on the provided file list and common project structures, there is no dedicated test file (e.g., `tests/iris_plugins_variable_ingestion/test_fred_plugin.py`) for this module.
 *   Testing this module would require mocking:
     *   `requests.get` to simulate FRED API responses (success and error cases).
-    *   [`iris.iris_utils.ingestion_persistence.save_data_point_incremental`](iris/iris_utils/ingestion_persistence.py:4) to verify data persistence calls.
+    *   [`ingestion.iris_utils.ingestion_persistence.save_data_point_incremental`](iris/iris_utils/ingestion_persistence.py:4) to verify data persistence calls.
     *   `os.environ.get` to control the API key availability.
 
 ## 9. Module Architecture and Flow

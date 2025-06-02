@@ -18,8 +18,8 @@ The module is partially complete. It successfully implements threshold mutation 
 
 ### Direct Project Module Imports:
 *   [`core.path_registry.PATHS`](../../../core/path_registry.py:) (from [`core.path_registry`](../../../core/path_registry.py:16))
-*   [`memory.rule_cluster_engine.score_rule_volatility`](../../../memory/rule_cluster_engine.py:) (from [`memory.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:17))
-*   [`simulation_engine.rules.rule_registry.RuleRegistry`](../../../simulation_engine/rules/rule_registry.py:) (from [`simulation_engine.rules.rule_registry`](../../../simulation_engine/rules/rule_registry.py:18))
+*   [`analytics.rule_cluster_engine.score_rule_volatility`](../../../memory/rule_cluster_engine.py:) (from [`analytics.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:17))
+*   [`engine.rules.rule_registry.RuleRegistry`](../../../simulation_engine/rules/rule_registry.py:) (from [`engine.rules.rule_registry`](../../../simulation_engine/rules/rule_registry.py:18))
 *   [`core.pulse_learning_log.log_learning_event`](../../../core/pulse_learning_log.py:) (from [`core.pulse_learning_log`](../../../core/pulse_learning_log.py:19))
 
 ### External Library Dependencies:
@@ -32,7 +32,7 @@ The module is partially complete. It successfully implements threshold mutation 
 
 ### Shared Data Interactions:
 *   **Rule Loading:** Reads rules via the `RuleRegistry` instance. The actual source of these rules (e.g., JSON files) is managed by the `RuleRegistry`.
-*   **Volatility Scoring:** Interacts with [`memory.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:) by calling [`score_rule_volatility()`](../../../memory/rule_cluster_engine.py:).
+*   **Volatility Scoring:** Interacts with [`analytics.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:) by calling [`score_rule_volatility()`](../../../memory/rule_cluster_engine.py:).
 *   **Logging:**
     *   Writes mutation details to a JSONL file specified by `RULE_MUTATION_LOG` (default: [`logs/rule_mutation_log.jsonl`](../../../logs/rule_mutation_log.jsonl), configured via [`PATHS`](../../../core/path_registry.py:22)).
     *   Uses [`log_learning_event()`](../../../core/pulse_learning_log.py:) to record mutation events.
@@ -69,8 +69,8 @@ The module is partially complete. It successfully implements threshold mutation 
 
 ## 7. Coupling Points
 
-*   **`RuleRegistry` ([`simulation_engine.rules.rule_registry`](../../../simulation_engine/rules/rule_registry.py:18)):** Tightly coupled for loading and accessing rule definitions.
-*   **`score_rule_volatility` ([`memory.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:17)):** Dependency for determining which rules are candidates for mutation.
+*   **`RuleRegistry` ([`engine.rules.rule_registry`](../../../simulation_engine/rules/rule_registry.py:18)):** Tightly coupled for loading and accessing rule definitions.
+*   **`score_rule_volatility` ([`analytics.rule_cluster_engine`](../../../memory/rule_cluster_engine.py:17)):** Dependency for determining which rules are candidates for mutation.
 *   **`PATHS` ([`core.path_registry`](../../../core/path_registry.py:16)):** Used for resolving the path to the rule mutation log file.
 *   **`log_learning_event` ([`core.pulse_learning_log`](../../../core/pulse_learning_log.py:19)):** Used for logging learning-related events.
 *   **Mutation Log File Structure:** Implicit coupling with any system that might consume or parse [`logs/rule_mutation_log.jsonl`](../../../logs/rule_mutation_log.jsonl).

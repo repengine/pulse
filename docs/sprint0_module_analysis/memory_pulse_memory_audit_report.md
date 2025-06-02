@@ -29,7 +29,7 @@ Despite its operational status, there are several areas for potential improvemen
 ## 4. Connections & Dependencies
 
 *   **Direct Imports:**
-    *   `from memory.forecast_memory import ForecastMemory` ([`memory/pulse_memory_audit_report.py:10`](memory/pulse_memory_audit_report.py:10)): A critical dependency on the [`ForecastMemory`](memory/forecast_memory.py:1) class, presumably defined in [`memory/forecast_memory.py`](memory/forecast_memory.py:1) within the same package.
+    *   `from analytics.forecast_memory import ForecastMemory` ([`memory/pulse_memory_audit_report.py:10`](memory/pulse_memory_audit_report.py:10)): A critical dependency on the [`ForecastMemory`](memory/forecast_memory.py:1) class, presumably defined in [`memory/forecast_memory.py`](memory/forecast_memory.py:1) within the same package.
     *   `import csv` ([`memory/pulse_memory_audit_report.py:21`](memory/pulse_memory_audit_report.py:21)): Standard Python library, used conditionally for CSV export.
     *   `Optional` from `typing` (implied by type hint `Optional[str]` on [`memory/pulse_memory_audit_report.py:12`](memory/pulse_memory_audit_report.py:12)): Standard Python library for type hinting.
 *   **Interactions:**

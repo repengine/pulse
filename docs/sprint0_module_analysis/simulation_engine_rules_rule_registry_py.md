@@ -1,4 +1,4 @@
-# Module Analysis: `simulation_engine.rules.rule_registry`
+# Module Analysis: `engine.rules.rule_registry`
 
 **File Path:** [`simulation_engine/rules/rule_registry.py`](../../simulation_engine/rules/rule_registry.py)
 
@@ -9,7 +9,7 @@ The `rule_registry.py` module serves as a centralized system for managing all ty
 *   Loading rules from various sources (Python modules and JSON files).
 *   Storing and organizing these rules.
 *   Providing methods to access, query (e.g., by type or tag), and group rules.
-*   Delegating the validation of rule structures and uniqueness to the [`simulation_engine.rules.rule_coherence_checker`](../../simulation_engine/rules/rule_coherence_checker.py) module.
+*   Delegating the validation of rule structures and uniqueness to the [`engine.rules.rule_coherence_checker`](../../simulation_engine/rules/rule_coherence_checker.py) module.
 *   Offering functionalities to add new rules, promote candidate rules to active status, update rule trust scores, and disable rules.
 *   Exporting the current set of rules to a JSON file.
 *   Ensuring that all interactions with rules occur through this registry for consistency and centralized control.
@@ -36,8 +36,8 @@ The module appears to be largely complete and functional for its defined scope.
 ### Internal Project Dependencies:
 *   [`core.path_registry`](../../core/path_registry.py): Used to fetch configured file paths (e.g., `RULE_FINGERPRINTS`, `CANDIDATE_RULES`, `WORLDSTATE_LOG_DIR`) via the `PATHS` dictionary.
 *   [`core.pulse_config`](../../core/pulse_config.py): Imports `MODULES_ENABLED`, though its direct usage isn't apparent in the snippet, suggesting potential conditional logic elsewhere or for future use.
-*   [`simulation_engine.rules.rule_coherence_checker`](../../simulation_engine/rules/rule_coherence_checker.py): Crucial for validating rule schemas and uniqueness via the [`validate_rule_schema()`](../../simulation_engine/rules/rule_coherence_checker.py:25) function. It also imports [`get_all_rule_fingerprints_dict()`](../../simulation_engine/rules/rule_coherence_checker.py:25), though its direct use isn't visible in this module's code.
-*   [`simulation_engine.rules.static_rules`](../../simulation_engine/rules/static_rules.py): This module is dynamically imported using `importlib` to load static rules. It's expected to have a `build_static_rules()` method.
+*   [`engine.rules.rule_coherence_checker`](../../simulation_engine/rules/rule_coherence_checker.py): Crucial for validating rule schemas and uniqueness via the [`validate_rule_schema()`](../../simulation_engine/rules/rule_coherence_checker.py:25) function. It also imports [`get_all_rule_fingerprints_dict()`](../../simulation_engine/rules/rule_coherence_checker.py:25), though its direct use isn't visible in this module's code.
+*   [`engine.rules.static_rules`](../../simulation_engine/rules/static_rules.py): This module is dynamically imported using `importlib` to load static rules. It's expected to have a `build_static_rules()` method.
 
 ### External Library Dependencies:
 *   `importlib`: For dynamic module loading (used for `static_rules`).
@@ -62,7 +62,7 @@ The module appears to be largely complete and functional for its defined scope.
 The `RuleRegistry` class is the core of the module.
 
 ```python
-from simulation_engine.rules.rule_registry import RuleRegistry
+from engine.rules.rule_registry import RuleRegistry
 
 # Initialize the registry
 registry = RuleRegistry()
@@ -131,7 +131,7 @@ python simulation_engine/rules/rule_registry.py --trust <rule_id> <delta_value>
 ## 6. Hardcoding Issues
 
 *   **Default File Paths:**
-    *   `STATIC_RULES_MODULE`: Hardcoded to `"simulation_engine.rules.static_rules"`. This is a structural dependency.
+    *   `STATIC_RULES_MODULE`: Hardcoded to `"engine.rules.static_rules"`. This is a structural dependency.
     *   `FINGERPRINTS_PATH`: Defaults to `"simulation_engine/rules/rule_fingerprints.json"` if `PATHS["RULE_FINGERPRINTS"]` is not set in [`core.path_registry`](../../core/path_registry.py).
     *   `CANDIDATE_RULES_PATH`: Defaults to `"data/candidate_rules.json"` if `PATHS["CANDIDATE_RULES"]` is not set.
 *   **Rule Schema:** The [`add_rule()`](../../simulation_engine/rules/rule_registry.py:84) method checks for a hardcoded list of `required_fields`: `["symbolic_tags", "source", "trust_weight", "enabled", "type"]`. This defines the basic schema for a rule to be added.
@@ -141,8 +141,8 @@ python simulation_engine/rules/rule_registry.py --trust <rule_id> <delta_value>
 
 *   **Rule Object Structure:** The module is tightly coupled to the expected dictionary structure of rule objects and specific keys like `"id"`, `"rule_id"`, `"type"`, `"enabled"`, `"trust_weight"`, and `"symbolic_tags"`.
 *   **`core.path_registry`:** Relies on this module to provide paths for rule files. Changes to `PATHS` keys or structure could impact this module.
-*   **`simulation_engine.rules.rule_coherence_checker`:** Strong coupling for rule validation. The API of [`validate_rule_schema()`](../../simulation_engine/rules/rule_coherence_checker.py:25) is a critical dependency.
-*   **`simulation_engine.rules.static_rules`:** Depends on this module existing and providing a `build_static_rules()` function that returns a list of rule dictionaries.
+*   **`engine.rules.rule_coherence_checker`:** Strong coupling for rule validation. The API of [`validate_rule_schema()`](../../simulation_engine/rules/rule_coherence_checker.py:25) is a critical dependency.
+*   **`engine.rules.static_rules`:** Depends on this module existing and providing a `build_static_rules()` function that returns a list of rule dictionaries.
 *   **File System & Format:** Direct dependency on JSON file format for fingerprint and candidate rules, and for exporting rules.
 
 ## 8. Existing Tests

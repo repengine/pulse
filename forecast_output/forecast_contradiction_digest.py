@@ -11,7 +11,7 @@ import os
 import json
 from collections import defaultdict
 from typing import List, Dict
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 CONTRADICTION_LOG_PATH = PATHS.get(
     "CONTRADICTION_LOG_PATH", "logs/forecast_contradiction_log.jsonl"

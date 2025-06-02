@@ -224,7 +224,7 @@ def format_result(api_name, env_check, api_test=None):
                 try:
                     content_str = json.dumps(api_test["content"], indent=2)
                     status += f"\n    Response: {content_str}"
-                except TypeError: # Handle cases where content is not JSON serializable
+                except TypeError:  # Handle cases where content is not JSON serializable
                     status += f"\n    Response: {api_test['content']}"
     else:
         status += "Not found"

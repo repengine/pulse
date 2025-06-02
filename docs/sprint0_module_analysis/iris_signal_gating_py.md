@@ -8,7 +8,7 @@ The primary role of the `iris/signal_gating.py` module is to act as a **Symbolic
 
 The module appears largely complete for its defined scope.
 - It successfully loads gating rules from an external YAML file ([`iris/signal_gating_rules.yaml`](iris/signal_gating_rules.yaml)) and includes a hardcoded fallback mechanism if the file is missing or corrupted.
-- Integration with `PulseGrow` (from `memory.pulsegrow`) for escalated signals is present, with a try-except block to handle cases where `PulseGrow` might not be available.
+- Integration with `PulseGrow` (from `analytics.pulsegrow`) for escalated signals is present, with a try-except block to handle cases where `PulseGrow` might not be available.
 - The core logic for accepting, suppressing, and escalating signals based on STI and anomaly counts is implemented.
 - Logging of decisions is included.
 - There are no explicit "TODO" comments or obvious major placeholders within the provided code, suggesting it fulfills its immediate intended functions.
@@ -23,7 +23,7 @@ The module appears largely complete for its defined scope.
 ## 4. Connections & Dependencies
 
 -   **Direct Imports from Other Project Modules:**
-    *   `from memory.pulsegrow import PulseGrow` (conditionally imported, attempts to instantiate [`pulse_grow = PulseGrow()`](iris/signal_gating.py:26))
+    *   `from analytics.pulsegrow import PulseGrow` (conditionally imported, attempts to instantiate [`pulse_grow = PulseGrow()`](iris/signal_gating.py:26))
 -   **External Library Dependencies:**
     *   `logging`
     *   `typing` (List, Dict, Any, Tuple)
@@ -56,7 +56,7 @@ The module appears largely complete for its defined scope.
     *   **Output:** Returns a tuple containing three lists: `(accepted_signals, suppressed_signals, escalated_signals)`.
     *   **Example Usage:**
         ```python
-        # from iris.signal_gating import gate_signals # Assuming appropriate import
+        # from ingestion.signal_gating import gate_signals # Assuming appropriate import
         
         signals_to_process = [
             {"name": "HighTrustSignal", "symbolic": "hope", "sti": 0.85, "anomaly": False},
@@ -90,7 +90,7 @@ The module appears largely complete for its defined scope.
 ## 7. Coupling Points
 
 -   **[`iris/signal_gating_rules.yaml`](iris/signal_gating_rules.yaml):** The module is tightly coupled to the existence and structure of this YAML file for its primary operational rules. The fallback mechanism mitigates complete failure but relies on potentially outdated hardcoded rules.
--   **`memory.pulsegrow.PulseGrow`:** The module is coupled to the `PulseGrow` class from the `memory` module for escalating signals. It includes a graceful degradation (setting `pulse_grow` to `None`) if the import fails.
+-   **`analytics.pulsegrow.PulseGrow`:** The module is coupled to the `PulseGrow` class from the `memory` module for escalating signals. It includes a graceful degradation (setting `pulse_grow` to `None`) if the import fails.
 -   **Input Signal Structure:** The [`gate_signals`](iris/signal_gating.py:57) function expects incoming signals to be a list of dictionaries, each with specific keys (`"name"`, `"symbolic"`, `"sti"`, `"anomaly"`). Changes to this data contract from upstream modules (e.g., `scraper.py`) would break the gating logic.
 
 ## 8. Existing Tests
@@ -104,7 +104,7 @@ The module appears largely complete for its defined scope.
     *   A logger instance is obtained.
     *   The path to the gating rules YAML file ([`GATING_RULES_PATH`](iris/signal_gating.py:33)) is constructed.
     *   The [`load_gating_rules()`](iris/signal_gating.py:34) function is invoked to parse the YAML file or use hardcoded defaults. The result is stored in the global `GATING_RULES` dictionary.
-    *   An attempt is made to import `PulseGrow` from [`memory.pulsegrow`](iris/signal_gating.py:25) and instantiate it. If this fails, `pulse_grow` is set to `None`.
+    *   An attempt is made to import `PulseGrow` from [`analytics.pulsegrow`](iris/signal_gating.py:25) and instantiate it. If this fails, `pulse_grow` is set to `None`.
     *   An empty dictionary, [`symbolic_anomaly_counter`](iris/signal_gating.py:55), is initialized to track anomalies per symbolic type for flood control.
 
 2.  **Signal Processing ([`gate_signals()`](iris/signal_gating.py:57) function):**

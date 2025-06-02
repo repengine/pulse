@@ -27,7 +27,7 @@ The primary role of the [`iris/test_alpha_vantage.py`](../../../iris/test_alpha_
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   `from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin` ([`iris/test_alpha_vantage.py:21`](../../../iris/test_alpha_vantage.py:21))
+    *   `from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin` ([`iris/test_alpha_vantage.py:21`](../../../iris/test_alpha_vantage.py:21))
 *   **External Library Dependencies:**
     *   [`sys`](../../../iris/test_alpha_vantage.py:6)
     *   [`os`](../../../iris/test_alpha_vantage.py:7)

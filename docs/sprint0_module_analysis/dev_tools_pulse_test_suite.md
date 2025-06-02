@@ -37,8 +37,8 @@ This module serves as a developer utility for performing quick, high-level valid
 
 ### Internal Pulse Modules:
 
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:0): Used to create and manage the simulation's state.
-*   [`simulation_engine.turn_engine.run_turn`](simulation_engine/turn_engine.py:0): Used to advance the simulation by one turn.
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:0): Used to create and manage the simulation's state.
+*   [`engine.turn_engine.run_turn`](simulation_engine/turn_engine.py:0): Used to advance the simulation by one turn.
 *   [`utils.log_utils.get_logger`](utils/log_utils.py:0): Used for logging test progress and results.
 
 ### External Libraries:

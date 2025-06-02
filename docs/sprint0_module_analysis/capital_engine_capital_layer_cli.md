@@ -29,14 +29,14 @@ Currently, it operates using a predefined set of mock worldstate variables and e
         *   [`run_shortview_forecast()`](capital_engine/capital_layer.py)
         *   [`summarize_exposure()`](capital_engine/capital_layer.py)
         *   [`portfolio_alignment_tags()`](capital_engine/capital_layer.py)
-    *   From [`simulation_engine.worldstate`](simulation_engine/worldstate.py):
+    *   From [`engine.worldstate`](simulation_engine/worldstate.py):
         *   [`WorldState`](simulation_engine/worldstate.py:1)
 
 ## 4. Dependencies
 
 *   **Internal Pulse Modules**:
     *   [`capital_engine.capital_layer`](capital_engine/capital_layer.py) (provides the core business logic)
-    *   [`simulation_engine.worldstate`](simulation_engine/worldstate.py) (provides the `WorldState` class)
+    *   [`engine.worldstate`](simulation_engine/worldstate.py) (provides the `WorldState` class)
 *   **External Libraries**:
     *   No direct external library dependencies like `argparse` or `click` are used in this script for CLI argument parsing. Dependencies of the imported internal modules are not covered here.
 

@@ -2,5 +2,8 @@
 
 from pulse.config.loader import Config
 
-OPENAI_API_KEY: str = Config.get("ai.openai_api_key")
-DEFAULT_OPENAI_MODEL: str = Config.get("ai.default_model_name")
+# Create a config instance for backward compatibility
+_config = Config()
+
+OPENAI_API_KEY: str = _config.get("ai.openai_api_key")
+DEFAULT_OPENAI_MODEL: str = _config.get("ai.default_model_name")

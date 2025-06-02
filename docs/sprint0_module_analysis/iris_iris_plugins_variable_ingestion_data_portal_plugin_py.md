@@ -22,7 +22,7 @@ The module is currently a **stub and highly incomplete**.
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   `from iris.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/data_portal_plugin.py:6`](iris/iris_plugins_variable_ingestion/data_portal_plugin.py:6)): The `DataPortalPlugin` class inherits from `IrisPluginManager`, making it part of the Iris plugin ecosystem.
+    *   `from ingestion.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/data_portal_plugin.py:6`](iris/iris_plugins_variable_ingestion/data_portal_plugin.py:6)): The `DataPortalPlugin` class inherits from `IrisPluginManager`, making it part of the Iris plugin ecosystem.
 *   **External Library Dependencies:**
     *   `typing` (standard Python library): Used for type hints (`List`, `Dict`, `Any`) ([`iris/iris_plugins_variable_ingestion/data_portal_plugin.py:5`](iris/iris_plugins_variable_ingestion/data_portal_plugin.py:5)).
     *   *Implied Dependencies (for full implementation):* Libraries for HTTP requests (e.g., `requests`) and data processing (e.g., `json`, `pandas`) would likely be needed.
@@ -40,7 +40,7 @@ The module is currently a **stub and highly incomplete**.
 
     ```python
     # Conceptual usage by the Iris plugin system:
-    # from iris.iris_plugins_variable_ingestion.data_portal_plugin import DataPortalPlugin
+    # from ingestion.iris_plugins_variable_ingestion.data_portal_plugin import DataPortalPlugin
 
     # plugin_instance = DataPortalPlugin()
     #
@@ -66,7 +66,7 @@ The module is currently a **stub and highly incomplete**.
 
 ## 7. Coupling Points
 
-*   **`IrisPluginManager`:** The module is tightly coupled to the [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) through inheritance. Changes to the `IrisPluginManager` API could directly impact this plugin.
+*   **`IrisPluginManager`:** The module is tightly coupled to the [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) through inheritance. Changes to the `IrisPluginManager` API could directly impact this plugin.
 *   **Iris System Data Format:** The structure of the dictionaries returned by [`fetch_signals()`](iris/iris_plugins_variable_ingestion/data_portal_plugin.py:13) (i.e., `List[Dict[str, Any]]`) implies an expected data format for signals within the Iris system.
 
 ## 8. Existing Tests

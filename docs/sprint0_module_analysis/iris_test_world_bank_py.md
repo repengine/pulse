@@ -30,7 +30,7 @@ While functional for basic testing, the module has potential areas for extension
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
--   `from iris.iris_plugins_variable_ingestion.worldbank_plugin import WorldBankPlugin` ([`iris/test_world_bank.py:21`](iris/test_world_bank.py:21))
+-   `from ingestion.iris_plugins_variable_ingestion.worldbank_plugin import WorldBankPlugin` ([`iris/test_world_bank.py:21`](iris/test_world_bank.py:21))
 
 ### External Library Dependencies
 -   `sys` ([`iris/test_world_bank.py:6`](iris/test_world_bank.py:6))
@@ -75,7 +75,7 @@ The module defines one primary function:
 
 ## 7. Coupling Points
 
--   **`WorldBankPlugin`:** The test is tightly coupled to the `WorldBankPlugin` class from `iris.iris_plugins_variable_ingestion.worldbank_plugin`. Any changes to the plugin's API (e.g., method names, parameters, `enabled` attribute) will likely require updates to this test script.
+-   **`WorldBankPlugin`:** The test is tightly coupled to the `WorldBankPlugin` class from `ingestion.iris_plugins_variable_ingestion.worldbank_plugin`. Any changes to the plugin's API (e.g., method names, parameters, `enabled` attribute) will likely require updates to this test script.
 -   **External World Bank API:** The test relies on the availability and consistent behavior of the external World Bank API. Changes in the API or network issues can cause test failures.
 
 ## 8. Existing Tests

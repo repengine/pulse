@@ -18,7 +18,7 @@ import time
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from symbolic_system.context import enter_retrodiction_mode, enter_simulation_mode
 from symbolic_system.overlays import apply_overlay_interactions
 from symbolic_system.config import get_symbolic_config
@@ -27,6 +27,7 @@ from symbolic_system.optimization import get_symbolic_cache
 
 
 from typing import Optional
+
 
 def print_divider(title: str) -> None:
     """Print a section divider"""

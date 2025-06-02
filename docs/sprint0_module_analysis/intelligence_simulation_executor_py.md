@@ -33,8 +33,8 @@ There are no obvious major placeholders like `pass` in critical functions or wid
 *   [`intelligence.intelligence_config`](intelligence/intelligence_config.py:) (various GPT and Gemini config constants)
 *   [`config`](config/) (`ai_config`)
 *   [`core.variable_registry`](core/variable_registry.py:) (`VARIABLE_REGISTRY`)
-*   [`simulation_engine.causal_rules`](simulation_engine/causal_rules.py:) (`RULES`)
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:) (`WorldState`)
+*   [`engine.causal_rules`](simulation_engine/causal_rules.py:) (`RULES`)
+*   [`engine.worldstate`](simulation_engine/worldstate.py:) (`WorldState`)
 
 ### External Library Dependencies:
 *   `google.generativeai` (as `genai`)
@@ -49,7 +49,7 @@ There are no obvious major placeholders like `pass` in critical functions or wid
     *   `forecast_engine.generate_forecast`
     *   `retrodiction.run_retrodiction_test`
     *   `retrodiction.get_snapshot_loader`
-    *   `simulation_engine.simulator_core.simulate_forward`
+    *   `engine.simulator_core.simulate_forward`
 *   **Configuration Objects:** Uses `ai_config` and constants from `intelligence_config`.
 *   **Registries:** Accesses `VARIABLE_REGISTRY` and `RULES`.
 

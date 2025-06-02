@@ -41,7 +41,7 @@ There are no obvious major placeholders (e.g., `TODO`, `FIXME`, `NotImplementedE
 *   [`intelligence.simulation_executor.SimulationExecutor`](intelligence/simulation_executor.py:15)
 *   [`intelligence.intelligence_observer.Observer`](intelligence/intelligence_observer.py:16)
 *   [`intelligence.upgrade_sandbox_manager.UpgradeSandboxManager`](intelligence/upgrade_sandbox_manager.py:17)
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:18) (for type hinting)
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:18) (for type hinting)
 
 ### External Library Dependencies:
 
@@ -51,7 +51,7 @@ There are no obvious major placeholders (e.g., `TODO`, `FIXME`, `NotImplementedE
 ### Interaction with Other Modules via Shared Data:
 
 *   **WorldState:** The [`WorldState`](simulation_engine/worldstate.py:18) object is central. It's initialized via [`load_initial_state()`](intelligence/worldstate_loader.py:14), passed to and modified by the [`SimulationExecutor`](intelligence/simulation_executor.py:15), and its snapshot is passed to the [`Observer`](intelligence/intelligence_observer.py:16).
-*   **Module Loading:** The [`FunctionRouter`](intelligence/function_router.py:13) is used to load other modules dynamically based on string paths (e.g., `"simulation_engine.turn_engine"`).
+*   **Module Loading:** The [`FunctionRouter`](intelligence/function_router.py:13) is used to load other modules dynamically based on string paths (e.g., `"engine.turn_engine"`).
 *   **Divergence Reports & Upgrade Proposals:** The [`Observer`](intelligence/intelligence_observer.py:16) generates divergence reports and upgrade proposals, which are handled within the `IntelligenceCore` (though the proposal handling is currently just a print statement).
 
 ### Input/Output Files:
@@ -166,9 +166,9 @@ router = FunctionRouter()
     ```
 *   **Module Paths for `load_standard_modules`:** The paths to standard modules are hardcoded strings within the [`load_standard_modules()`](intelligence/intelligence_core.py:51) method (lines 56-59).
     ```python
-    # "turn_engine": "simulation_engine.turn_engine", # Line 56
-    # "causal_rules": "simulation_engine.causal_rules", # Line 57
-    # "retrodiction": "simulation_engine.historical_retrodiction_runner", # Line 58
+    # "turn_engine": "engine.turn_engine", # Line 56
+    # "causal_rules": "engine.causal_rules", # Line 57
+    # "retrodiction": "engine.historical_retrodiction_runner", # Line 58
     # "forecast_engine": "forecast_engine.forecast_generator", # Line 59
     ```
     The list `self.loaded_modules` is also updated with hardcoded names (line 61).
@@ -248,7 +248,7 @@ The [`IntelligenceCore`](intelligence/intelligence_core.py:20) acts as a facade 
 *   **Variable Names:** Generally snake_case (e.g., `last_worldstate`, `start_year`, `divergence_report`).
     *   `ws_obj` (line 114, 119, 120) is a bit short but understandable in context as "WorldState object".
 *   **Type Hinting:** Uses standard types from `typing` module. Class names used in type hints are correctly cased (e.g., `WorldState`, `FunctionRouter`).
-*   **Module Paths (Strings):** Module paths like `"simulation_engine.turn_engine"` are consistent with Python's dot notation for modules.
+*   **Module Paths (Strings):** Module paths like `"engine.turn_engine"` are consistent with Python's dot notation for modules.
 *   **Constants/Defaults:**
     *   Default string `"default"` for `source` is lowercase.
     *   Default integer `2023` for `start_year`.

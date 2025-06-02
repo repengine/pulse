@@ -1,6 +1,6 @@
 # Historical Data Repair
 
-This document describes the historical data repair module (`iris.iris_utils.historical_data_repair`) and its capabilities for addressing missing data and inconsistencies in historical time series data.
+This document describes the historical data repair module (`ingestion.iris_utils.historical_data_repair`) and its capabilities for addressing missing data and inconsistencies in historical time series data.
 
 ## Introduction
 

@@ -9,10 +9,10 @@ Author: Pulse v0.4
 """
 
 from typing import Dict, List, Optional, Any, Callable
-from memory.forecast_memory import ForecastMemory
+from analytics.forecast_memory import ForecastMemory
 import logging
-from core.path_registry import PATHS
-from simulation_engine.worldstate import WorldState
+from engine.path_registry import PATHS
+from engine.worldstate import WorldState
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 
@@ -42,7 +42,7 @@ def run_retrodiction_simulation(
     Returns:
         List[Dict[str, Any]]: List of simulation results per turn with trust metadata.
     """
-    from simulation_engine.simulator_core import simulate_forward
+    from engine.simulator_core import simulate_forward
 
     results = simulate_forward(
         state=initial_state,

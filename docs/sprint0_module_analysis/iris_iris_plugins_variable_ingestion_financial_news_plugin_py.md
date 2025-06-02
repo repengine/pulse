@@ -10,7 +10,7 @@ The module appears largely functional for its defined scope.
 - It correctly handles API key retrieval from environment variables ([`ALPHAVANTAGE_API_KEY`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:85), [`NEWSAPI_KEY`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:86)) and disables itself if keys are missing.
 - It implements fetching logic for various news categories (company, sector, topic, market).
 - A basic, rule-based sentiment analysis function ([`_calculate_sentiment_score`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:444)) is included.
-- It utilizes helper functions from [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) for saving request metadata, raw API responses, and processed signal data.
+- It utilizes helper functions from [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) for saving request metadata, raw API responses, and processed signal data.
 - The sentiment analysis ([`_calculate_sentiment_score`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:444)) is explicitly noted as a "simplified version" (line 447), indicating a known area for future enhancement rather than an incomplete feature for its current implementation.
 - No other obvious TODOs or major placeholders are present.
 
@@ -25,8 +25,8 @@ The module appears largely functional for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
--   [`from iris.iris_plugins import IrisPluginManager`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:17)
--   [`from iris.iris_utils.ingestion_persistence import ensure_data_directory, save_request_metadata, save_api_response, save_processed_data`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:18-23)
+-   [`from ingestion.iris_plugins import IrisPluginManager`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:17)
+-   [`from ingestion.iris_utils.ingestion_persistence import ensure_data_directory, save_request_metadata, save_api_response, save_processed_data`](../../iris/iris_plugins_variable_ingestion/financial_news_plugin.py:18-23)
 
 ### External Library Dependencies
 -   `datetime` (as `dt`)
@@ -39,7 +39,7 @@ The module appears largely functional for its defined scope.
 
 ### Interactions via Shared Data
 -   **Environment Variables:** Reads `ALPHAVANTAGE_API_KEY` and `NEWSAPI_KEY`.
--   **File System:** Interacts with the file system via [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) to store:
+-   **File System:** Interacts with the file system via [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) to store:
     -   Request metadata (e.g., in `data/financial_news/requests/`)
     -   Raw API responses (e.g., in `data/financial_news/responses/`)
     -   Processed signal data (e.g., in `data/financial_news/processed/`)
@@ -57,7 +57,7 @@ The module appears largely functional for its defined scope.
 The `FinancialNewsPlugin` class is designed to be managed by an Iris plugin system.
 ```python
 # Hypothetical usage within Iris plugin management
-# from iris.iris_plugins_variable_ingestion.financial_news_plugin import FinancialNewsPlugin
+# from ingestion.iris_plugins_variable_ingestion.financial_news_plugin import FinancialNewsPlugin
 
 # financial_news_plugin_instance = FinancialNewsPlugin()
 
@@ -100,7 +100,7 @@ This internal method is used to perform basic sentiment analysis on news text wh
 ## 7. Coupling Points
 
 -   **`IrisPluginManager`:** Tightly coupled through inheritance.
--   **`iris.iris_utils.ingestion_persistence`:** Tightly coupled for all data storage operations (metadata, responses, processed signals).
+-   **`ingestion.iris_utils.ingestion_persistence`:** Tightly coupled for all data storage operations (metadata, responses, processed signals).
 -   **Environment Variables:** Dependent on `ALPHAVANTAGE_API_KEY` and `NEWSAPI_KEY` for operation.
 -   **External APIs (AlphaVantage, NewsAPI):** Directly interacts with these services, making it susceptible to their availability, rate limits, and changes in API contracts.
 -   **File System:** Implicitly coupled via `ingestion_persistence` which writes to a predefined directory structure (e.g., `data/financial_news/...`).

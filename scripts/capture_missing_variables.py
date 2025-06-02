@@ -16,8 +16,10 @@ import pandas as pd
 # Add project root to path to enable imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
-from iris.iris_utils.ingestion_persistence import (
+from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import (
+    AlphaVantagePlugin,
+)
+from ingestion.iris_utils.ingestion_persistence import (
     ensure_data_directory,
     save_request_metadata,
     save_api_response,

@@ -31,7 +31,7 @@ The module appears largely functional and complete for its defined scope. Key fu
 
 ### Direct Project Module Imports:
 *   [`core.path_registry import PATHS`](memory/trace_audit_engine.py:17) (Note: `PATHS` is not directly used in the visible code of this module, but might be used by dependencies or was planned for use).
-*   [`memory.forecast_memory import ForecastMemory`](memory/trace_audit_engine.py:18)
+*   [`analytics.forecast_memory import ForecastMemory`](memory/trace_audit_engine.py:18)
 *   [`utils.log_utils import get_logger`](memory/trace_audit_engine.py:19)
 *   [`core.pulse_config import TRACE_OUTPUT_DIR`](memory/trace_audit_engine.py:20)
 *   `from main import run_simulation` (Local import within [`replay_trace()`](memory/trace_audit_engine.py:97))
@@ -96,7 +96,7 @@ The module appears largely functional and complete for its defined scope. Key fu
 
 ## 7. Coupling Points
 
-*   **`ForecastMemory`:** Tightly coupled with [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py) for storing trace metadata via the `store()` method.
+*   **`ForecastMemory`:** Tightly coupled with [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py) for storing trace metadata via the `store()` method.
 *   **Trace Data Structure:** The module is coupled to the expected structure of simulation input (`sim_input`) and output (`sim_output`) dictionaries, particularly keys like `"overlays"`, `"variables"`, `"forks"`, and `"trust"`. Changes to these data structures in the simulation engine would require updates here.
 *   **Serialization Logic:** The helper functions [`overlay_to_dict()`](memory/trace_audit_engine.py:28) and [`variables_to_dict()`](memory/trace_audit_engine.py:34) imply coupling with objects that either have an `as_dict()` method or can be directly converted to a dictionary.
 *   **`main.run_simulation`:** The [`replay_trace()`](memory/trace_audit_engine.py:91) function is directly coupled to the `run_simulation` function from `main.py` for re-executing simulations.

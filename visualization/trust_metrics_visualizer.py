@@ -9,8 +9,8 @@ Author: Pulse v0.32
 import matplotlib.pyplot as plt
 from typing import Dict, Any, Optional
 import os
-from core.bayesian_trust_tracker import bayesian_trust_tracker
-from core.pulse_learning_log import generate_trust_report
+from analytics.bayesian_trust_tracker import bayesian_trust_tracker
+from analytics.pulse_learning_log import generate_trust_report
 
 
 def plot_trust_evolution(

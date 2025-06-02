@@ -52,24 +52,24 @@ The module appears largely functional for its core responsibility of forward sim
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py) (or [`.worldstate.WorldState`](simulation_engine/worldstate.py))
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py) (or [`.worldstate.WorldState`](simulation_engine/worldstate.py))
 *   [`diagnostics.shadow_model_monitor.ShadowModelMonitor`](diagnostics/shadow_model_monitor.py) (with a fallback)
-*   [`simulation_engine.state_mutation.decay_overlay`](simulation_engine/state_mutation.py)
-*   [`simulation_engine.rule_engine.run_rules`](simulation_engine/rule_engine.py)
+*   [`engine.state_mutation.decay_overlay`](simulation_engine/state_mutation.py)
+*   [`engine.rule_engine.run_rules`](simulation_engine/rule_engine.py)
 *   [`trust_system.forecast_episode_logger.log_episode_event`](trust_system/forecast_episode_logger.py)
 *   [`symbolic_system.symbolic_state_tagger.tag_symbolic_state`](symbolic_system/symbolic_state_tagger.py) (with fallback)
 *   [`symbolic_system.symbolic_trace_scorer.score_symbolic_trace`](symbolic_system/symbolic_trace_scorer.py)
-*   [`simulation_engine.utils.simulation_trace_logger.log_simulation_trace`](simulation_engine/utils/simulation_trace_logger.py)
-*   [`simulation_engine.rules.reverse_rule_mapper.match_rule_by_delta`](simulation_engine/rules/reverse_rule_mapper.py), [`get_all_rule_fingerprints()`](simulation_engine/rules/reverse_rule_mapper.py)
-*   [`learning.learning.LearningEngine`](learning/learning.py)
+*   [`engine.utils.simulation_trace_logger.log_simulation_trace`](simulation_engine/utils/simulation_trace_logger.py)
+*   [`engine.rules.reverse_rule_mapper.match_rule_by_delta`](simulation_engine/rules/reverse_rule_mapper.py), [`get_all_rule_fingerprints()`](simulation_engine/rules/reverse_rule_mapper.py)
+*   [`analytics.analytics.LearningEngine`](learning/learning.py)
 *   [`core.pulse_learning_log.log_learning_event`](core/pulse_learning_log.py)
 *   [`symbolic_system.gravity.symbolic_gravity_fabric.create_default_fabric`](symbolic_system/gravity/symbolic_gravity_fabric.py) (imported within [`simulate_turn()`](simulation_engine/simulator_core.py:157))
-*   [`simulation_engine.state_mutation.update_numeric_variable`](simulation_engine/state_mutation.py), [`adjust_overlay()`](simulation_engine/state_mutation.py), [`adjust_capital()`](simulation_engine/state_mutation.py) (imported within [`simulate_forward()`](simulation_engine/simulator_core.py:581))
+*   [`engine.state_mutation.update_numeric_variable`](simulation_engine/state_mutation.py), [`adjust_overlay()`](simulation_engine/state_mutation.py), [`adjust_capital()`](simulation_engine/state_mutation.py) (imported within [`simulate_forward()`](simulation_engine/simulator_core.py:581))
 *   [`core.variable_accessor.set_variable`](core/variable_accessor.py) (imported within [`simulate_forward()`](simulation_engine/simulator_core.py:581))
 *   [`core.bayesian_trust_tracker.bayesian_trust_tracker`](core/bayesian_trust_tracker.py) (imported within [`simulate_forward()`](simulation_engine/simulator_core.py:581))
 *   [`trust_system.trust_engine.TrustEngine`](trust_system/trust_engine.py) (imported within [`simulate_turn()`](simulation_engine/simulator_core.py:157) and [`simulate_forward()`](simulation_engine/simulator_core.py:581))
-*   [`simulation_engine.rules.reverse_rule_engine.trace_causal_paths`](simulation_engine/rules/reverse_rule_engine.py), [`get_fingerprints()`](simulation_engine/rules/reverse_rule_engine.py), [`suggest_new_rule_if_no_match()`](simulation_engine/rules/reverse_rule_engine.py) (imported within [`reverse_rule_engine()`](simulation_engine/simulator_core.py:1101))
-*   [`simulation_engine.worldstate_monitor.display_gravity_correction_details`](simulation_engine/worldstate_monitor.py) (imported in `__main__`)
+*   [`engine.rules.reverse_rule_engine.trace_causal_paths`](simulation_engine/rules/reverse_rule_engine.py), [`get_fingerprints()`](simulation_engine/rules/reverse_rule_engine.py), [`suggest_new_rule_if_no_match()`](simulation_engine/rules/reverse_rule_engine.py) (imported within [`reverse_rule_engine()`](simulation_engine/simulator_core.py:1101))
+*   [`engine.worldstate_monitor.display_gravity_correction_details`](simulation_engine/worldstate_monitor.py) (imported in `__main__`)
 *   [`symbolic_system.gravity.gravity_config.ResidualGravityConfig`](symbolic_system/gravity/gravity_config.py) (imported in `__main__`)
 
 ### External Library Dependencies:
@@ -100,8 +100,8 @@ The module appears largely functional for its core responsibility of forward sim
 *   **[`simulate_forward(state, turns, ...)`simulation_engine/simulator_core.py:581]:**
     The primary function for running multi-turn simulations.
     ```python
-    from simulation_engine.worldstate import WorldState
-    from simulation_engine.simulator_core import simulate_forward
+    from engine.worldstate import WorldState
+    from engine.simulator_core import simulate_forward
 
     ws = WorldState()
     ws.sim_id = "example_simulation"
@@ -125,8 +125,8 @@ The module appears largely functional for its core responsibility of forward sim
 *   **[`simulate_counterfactual(initial_state, fork_vars, turns, ...)`simulation_engine/simulator_core.py:916]:**
     Runs a base simulation and a forked simulation with modified initial variables, then compares their traces.
     ```python
-    from simulation_engine.worldstate import WorldState
-    from simulation_engine.simulator_core import simulate_counterfactual
+    from engine.worldstate import WorldState
+    from engine.simulator_core import simulate_counterfactual
 
     initial_ws = WorldState()
     initial_ws.overlays = {"optimism": 0.6, "pessimism": 0.3}
@@ -142,8 +142,8 @@ The module appears largely functional for its core responsibility of forward sim
 *   **[`validate_variable_trace(var_name, known_trace, state, ...)`simulation_engine/simulator_core.py:747]:**
     Validates a known historical trace for a single variable by reconstructing a trace backward.
     ```python
-    from simulation_engine.worldstate import WorldState
-    from simulation_engine.simulator_core import validate_variable_trace
+    from engine.worldstate import WorldState
+    from engine.simulator_core import validate_variable_trace
 
     current_ws = WorldState()
     current_ws.overlays = {"stability": 0.75} # Current value at T0
@@ -159,8 +159,8 @@ The module appears largely functional for its core responsibility of forward sim
 *   **[`reset_state(state)`simulation_engine/simulator_core.py:109]:**
     Resets overlays, variables, turn count, and event log of a `WorldState` object.
     ```python
-    from simulation_engine.worldstate import WorldState
-    from simulation_engine.simulator_core import reset_state, simulate_forward
+    from engine.worldstate import WorldState
+    from engine.simulator_core import reset_state, simulate_forward
 
     ws = WorldState()
     ws.overlays = {"excitement": 0.9}
@@ -191,8 +191,8 @@ The module appears largely functional for its core responsibility of forward sim
 ## 7. Coupling Points
 
 *   **`WorldState` Object:** This is the central data structure. Most functions in the module operate on or expect a `WorldState` instance, making the module tightly coupled to its definition and structure.
-*   **Rule Engine ([`simulation_engine.rule_engine.run_rules`](simulation_engine/rule_engine.py)):** A critical dependency for applying the core simulation logic that modifies the `WorldState`.
-*   **State Mutation ([`simulation_engine.state_mutation`](simulation_engine/state_mutation.py)):** Functions like [`decay_overlay()`](simulation_engine/state_mutation.py) are directly responsible for specific state changes.
+*   **Rule Engine ([`engine.rule_engine.run_rules`](simulation_engine/rule_engine.py)):** A critical dependency for applying the core simulation logic that modifies the `WorldState`.
+*   **State Mutation ([`engine.state_mutation`](simulation_engine/state_mutation.py)):** Functions like [`decay_overlay()`](simulation_engine/state_mutation.py) are directly responsible for specific state changes.
 *   **Symbolic System (`symbolic_system` directory):**
     *   [`symbolic_state_tagger.tag_symbolic_state`](symbolic_system/symbolic_state_tagger.py)
     *   [`symbolic_trace_scorer.score_symbolic_trace`](symbolic_system/symbolic_trace_scorer.py)
@@ -200,7 +200,7 @@ The module appears largely functional for its core responsibility of forward sim
     These indicate a strong coupling for advanced symbolic processing and state correction features.
 *   **Trust System (`trust_system` directory):**
     *   [`TrustEngine`](trust_system/trust_engine.py) and [`forecast_episode_logger.log_episode_event`](trust_system/forecast_episode_logger.py) are used for enriching simulation output with trust-related metadata.
-*   **Learning Engine ([`learning.learning.LearningEngine`](learning/learning.py)):** Integrated into the simulation loop via [`process_turn()`](learning/learning.py) hooks.
+*   **Learning Engine ([`analytics.analytics.LearningEngine`](learning/learning.py)):** Integrated into the simulation loop via [`process_turn()`](learning/learning.py) hooks.
 *   **Diagnostics ([`diagnostics.shadow_model_monitor.ShadowModelMonitor`](diagnostics/shadow_model_monitor.py)):** Integrated to monitor critical variables, particularly in relation to the gravity system.
 *   **Logging Mechanism:** The module uses both a module-level `logging.getLogger(__name__)` and allows for an optional callable `logger` to be passed into main simulation functions, creating a dependency on logging infrastructure.
 
@@ -216,7 +216,7 @@ The module appears largely functional for its core responsibility of forward sim
     *   Validating variable traces using [`validate_variable_trace()`](simulation_engine/simulator_core.py:747).
 *   **Formal Test Suite:**
     *   The module's docstring includes a TODO for "Add unit tests and validation utilities" (line 37), indicating a recognized need for more formal and comprehensive testing.
-    *   A dedicated test file like `tests/test_simulator_core.py` is not directly referenced or apparent from within this module's code. External test files like `tests/test_integration_simulation_forecast.py` or `tests/test_property_based_simulation_engine.py` might provide some coverage, but specific unit tests for `simulator_core.py` functions are likely needed.
+    *   A dedicated test file like `tests/test_simulator_core.py` is not directly referenced or apparent from within this module's code. External test files like `tests/test_integration_simulation_forecast.py` or `tests/test_property_based_engine.py` might provide some coverage, but specific unit tests for `simulator_core.py` functions are likely needed.
 
 ## 9. Module Architecture and Flow
 

@@ -9,9 +9,9 @@ Author: Pulse v0.33
 """
 
 from typing import Dict, Optional, List, Any
-from simulation_engine.worldstate import WorldState
-from simulation_engine.state_mutation import adjust_capital
-from core.variable_accessor import get_overlay
+from engine.worldstate import WorldState
+from engine.state_mutation import adjust_capital
+from engine.variable_accessor import get_overlay
 from symbolic_system.symbolic_utils import symbolic_fragility_index
 from pulse.config.loader import Config  # Import the new Config class
 

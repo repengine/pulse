@@ -9,7 +9,7 @@ The primary role of the [`google_trends_plugin.py`](iris/iris_plugins_variable_i
 The module appears to be largely complete and operational for its defined scope.
 - It checks for the availability of the `pytrends` library and disables itself if not found ([`PYTRENDS_AVAILABLE`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:23), [`enabled`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:35)).
 - It implements fetching mechanisms for interest over time, related topics, and interest by region.
-- Data persistence for requests, API responses, and processed signals is handled via utilities from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py).
+- Data persistence for requests, API responses, and processed signals is handled via utilities from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py).
 - Basic error handling (try-except blocks) and logging are implemented.
 - There are no explicit "TODO" comments or obvious major placeholders.
 
@@ -25,8 +25,8 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 -   **Direct Project Imports:**
-    *   `from iris.iris_plugins import IrisPluginManager` ([`IrisPluginManager`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:13))
-    *   `from iris.iris_utils.ingestion_persistence import ensure_data_directory, save_request_metadata, save_api_response, save_processed_data` ([`ensure_data_directory`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_request_metadata`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_api_response`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_processed_data`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14))
+    *   `from ingestion.iris_plugins import IrisPluginManager` ([`IrisPluginManager`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:13))
+    *   `from ingestion.iris_utils.ingestion_persistence import ensure_data_directory, save_request_metadata, save_api_response, save_processed_data` ([`ensure_data_directory`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_request_metadata`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_api_response`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14), [`save_processed_data`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:14))
 -   **External Library Dependencies:**
     *   `datetime` (as `dt`) ([`dt`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:7))
     *   `logging` ([`logging`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:8))
@@ -35,7 +35,7 @@ The module appears to be largely complete and operational for its defined scope.
     *   `requests` (imported, likely used by `pytrends`) ([`requests`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:12))
     *   `pytrends.request.TrendReq` (conditionally imported, core dependency) ([`TrendReq`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:22))
 -   **Shared Data Interaction:**
-    *   Persists data using functions from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py), identified by `_SOURCE_NAME = "google_trends"` ([`_SOURCE_NAME`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:31)). This data is likely consumed by other parts of the Iris system.
+    *   Persists data using functions from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py), identified by `_SOURCE_NAME = "google_trends"` ([`_SOURCE_NAME`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:31)). This data is likely consumed by other parts of the Iris system.
 -   **Input/Output Files:**
     *   **Outputs:**
         *   Request metadata files.
@@ -107,8 +107,8 @@ The module appears to be largely complete and operational for its defined scope.
 ## 7. Coupling Points
 
 -   **`pytrends` Library:** The module is tightly coupled to the `pytrends` library. Any breaking changes in `pytrends` or its underlying access to Google Trends would directly impact this plugin.
--   **Iris Plugin System:** Relies on `iris.iris_plugins.IrisPluginManager` ([`IrisPluginManager`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:13)) as its base class.
--   **Iris Ingestion Persistence:** Depends on [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) for saving all data. Changes to this utility's interface or behavior could break the plugin.
+-   **Iris Plugin System:** Relies on `ingestion.iris_plugins.IrisPluginManager` ([`IrisPluginManager`](iris/iris_plugins_variable_ingestion/google_trends_plugin.py:13)) as its base class.
+-   **Iris Ingestion Persistence:** Depends on [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) for saving all data. Changes to this utility's interface or behavior could break the plugin.
 -   **Signal Structure:** The format of the generated signal dictionaries (containing keys like "name", "value", "source", "timestamp", "metadata") forms a contract with downstream data consumers within the Iris system.
 
 ## 8. Existing Tests

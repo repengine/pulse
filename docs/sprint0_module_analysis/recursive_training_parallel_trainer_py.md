@@ -38,7 +38,7 @@ This suggests that while the parallelization framework is built, the core traini
 *   [`core.trust_update_buffer.get_trust_update_buffer`](core/trust_update_buffer.py)
 *   [`recursive_training.data.streaming_data_store.StreamingDataStore`](recursive_training/data/streaming_data_store.py) (optional import)
 *   [`recursive_training.data.optimized_data_store.OptimizedDataStore`](recursive_training/data/optimized_data_store.py) (optional import)
-*   [`simulation_engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py) (imported within [`_run_retrodiction_on_batch()`](recursive_training/parallel_trainer.py:563))
+*   [`engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py) (imported within [`_run_retrodiction_on_batch()`](recursive_training/parallel_trainer.py:563))
 
 ### External Library Dependencies:
 *   `os`

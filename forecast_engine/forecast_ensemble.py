@@ -8,7 +8,7 @@ via core configuration settings in core/pulse_config.py.
 
 import logging
 from typing import Dict
-import core.pulse_config as pulse_config
+import engine.pulse_config as pulse_config
 
 logger = logging.getLogger(__name__)
 

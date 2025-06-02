@@ -29,8 +29,8 @@ However, there are placeholder default values for `dt` (delta time) and `state_d
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py)
-*   [`simulation_engine.state_mutation.adjust_overlay`](simulation_engine/state_mutation.py:18)
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py)
+*   [`engine.state_mutation.adjust_overlay`](simulation_engine/state_mutation.py:18)
 *   [`symbolic_system.gravity.symbolic_pillars.SymbolicPillarSystem`](symbolic_system/gravity/symbolic_pillars.py:20)
 *   [`symbolic_system.gravity.engines.residual_gravity_engine.ResidualGravityEngine`](symbolic_system/gravity/engines/residual_gravity_engine.py:21)
 *   [`symbolic_system.gravity.engines.residual_gravity_engine.GravityEngineConfig`](symbolic_system/gravity/engines/residual_gravity_engine.py:21)
@@ -129,7 +129,7 @@ value = my_predictive_function("some_input_parameter")
     *   Configuration objects like [`ResidualGravityConfig`](symbolic_system/gravity/gravity_config.py:23) and [`GravityEngineConfig`](symbolic_system/gravity/engines/residual_gravity_engine.py:21).
 *   **Simulation Engine:** Strong dependency on:
     *   The [`WorldState`](simulation_engine/worldstate.py) object structure, particularly its `overlays` attribute.
-    *   The [`adjust_overlay()`](simulation_engine/state_mutation.py:18) function from [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:18).
+    *   The [`adjust_overlay()`](simulation_engine/state_mutation.py:18) function from [`engine.state_mutation`](simulation_engine/state_mutation.py:18).
 *   **Global State:** The use of module-level global variables (`_pillar_system`, `_gravity_fabric`, `_gravity_enabled`) for managing the state of the gravity system introduces global coupling. Access to these is generally managed via getter functions (e.g., [`get_pillar_system()`](symbolic_system/gravity/integration.py:89)), which mitigates direct global access but still represents a centralized state.
 *   **Simulation Lifecycle:** The simulation hooks ([`pre_simulation_hook()`](symbolic_system/gravity/integration.py:185) and [`post_simulation_hook()`](symbolic_system/gravity/integration.py:203)) create an explicit dependency on the timing and calling conventions of the main simulation loop.
 

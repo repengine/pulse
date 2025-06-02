@@ -1,5 +1,5 @@
 import pytest
-from core.path_registry import get_path
+from engine.path_registry import get_path
 
 
 def test_get_path_keyerror():

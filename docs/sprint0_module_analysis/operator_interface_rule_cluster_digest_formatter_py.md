@@ -26,7 +26,7 @@ There are no explicit `TODO` comments or obvious placeholders suggesting incompl
 ## 4. Connections & Dependencies
 
 - **Project-Internal Dependencies:**
-    - `from memory.rule_cluster_engine import summarize_rule_clusters` ([`operator_interface/rule_cluster_digest_formatter.py:12`](../../operator_interface/rule_cluster_digest_formatter.py:12)): This is a critical dependency for fetching the data to be formatted.
+    - `from analytics.rule_cluster_engine import summarize_rule_clusters` ([`operator_interface/rule_cluster_digest_formatter.py:12`](../../operator_interface/rule_cluster_digest_formatter.py:12)): This is a critical dependency for fetching the data to be formatted.
 - **External Library Dependencies:**
     - `import os` ([`operator_interface/rule_cluster_digest_formatter.py:10`](../../operator_interface/rule_cluster_digest_formatter.py:10)): Used for path manipulation and directory creation in [`export_cluster_digest_md()`](../../operator_interface/rule_cluster_digest_formatter.py:38).
     - `import json` ([`operator_interface/rule_cluster_digest_formatter.py:11`](../../operator_interface/rule_cluster_digest_formatter.py:11)): Imported but not directly used in the provided code. This might be a remnant from previous development or intended for future extensions.
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 ## 7. Coupling Points
 
-- **Data Source Coupling:** Tightly coupled to the [`summarize_rule_clusters()`](../../memory/rule_cluster_engine.py) function from [`memory.rule_cluster_engine`](../../memory/rule_cluster_engine.py). Any changes to the output structure (e.g., key names, data types) of [`summarize_rule_clusters()`](../../memory/rule_cluster_engine.py) would require corresponding changes in [`format_cluster_digest_md()`](../../operator_interface/rule_cluster_digest_formatter.py:22).
+- **Data Source Coupling:** Tightly coupled to the [`summarize_rule_clusters()`](../../memory/rule_cluster_engine.py) function from [`analytics.rule_cluster_engine`](../../memory/rule_cluster_engine.py). Any changes to the output structure (e.g., key names, data types) of [`summarize_rule_clusters()`](../../memory/rule_cluster_engine.py) would require corresponding changes in [`format_cluster_digest_md()`](../../operator_interface/rule_cluster_digest_formatter.py:22).
 - **Output Format Coupling:** The module is specifically designed to output Markdown. If other formats are required, significant modifications or new functions would be needed.
 
 ## 8. Existing Tests

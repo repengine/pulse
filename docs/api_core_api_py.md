@@ -15,7 +15,7 @@ The module provides a range of endpoints, some of which are fully functional bas
     - Overall system status.
 
 - **Partially Implemented / Mocked:**
-    - POST retrodiction run: Starts a background thread which *simulates* work and writes status/results to a JSON file. It does not appear to call the actual `run_retrodiction` from `simulation_engine.simulate_backward`.
+    - POST retrodiction run: Starts a background thread which *simulates* work and writes status/results to a JSON file. It does not appear to call the actual `run_retrodiction` from `engine.simulate_backward`.
     - Retrodiction status check: Reads status from the JSON file created by the mock background task.
     - Current variables retrieval: Contains placeholder logic to fetch a few example variables and notes the need for a more robust implementation in `VariableRegistry`.
 
@@ -38,7 +38,7 @@ The module provides a range of endpoints, some of which are fully functional bas
     - `datetime`, `uuid`, `threading`, `time`, `json`, `os`.
 - **Direct imports from other project modules:**
     - `forecast_engine.forecast_memory.load_forecast_history`
-    - `simulation_engine.simulate_backward.run_retrodiction`
+    - `engine.simulate_backward.run_retrodiction`
     - `core.variable_registry.VariableRegistry`
     - `core.feature_store.FeatureStore`
     - `core.training_review_store.store_training_submission` (Module not in provided file list)
@@ -69,7 +69,7 @@ Clients would interact with this module via HTTP requests:
 ## Coupling Points
 - **High coupling** with `VariableRegistry` and `FeatureStore` for data retrieval.
 - Dependency on `forecast_engine.forecast_memory` for forecast history.
-- Dependency on `simulation_engine.simulate_backward` for synchronous retrodiction.
+- Dependency on `engine.simulate_backward` for synchronous retrodiction.
 - Dependency on the (assumed) `core.training_review_store` module.
 - The structure of data returned by these underlying modules directly impacts the API responses.
 

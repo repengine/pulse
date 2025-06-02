@@ -31,8 +31,8 @@ No obvious placeholders (e.g., `pass` statements in critical logic blocks) or ma
 - **Standard Library:** `random`, `json`, `logging`, `os`, `datetime` (from `datetime`), `Dict`, `List`, `Any` (from `typing`).
 - **Project Modules:**
     - [`core.path_registry.PATHS`](core/path_registry.py:16)
-    - [`memory.rule_cluster_engine.score_rule_volatility`](memory/rule_cluster_engine.py:17)
-    - [`simulation_engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:18)
+    - [`analytics.rule_cluster_engine.score_rule_volatility`](memory/rule_cluster_engine.py:17)
+    - [`engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py:18)
     - [`core.pulse_learning_log.log_learning_event`](core/pulse_learning_log.py:19)
 
 ### Touched Project Files (for dependency mapping):
@@ -61,7 +61,7 @@ To understand the full context of `simulation_engine/rule_mutation_engine.py`, t
 
 ### Input/Output Files:
 - **Input:**
-    - Implicitly, rule files loaded by `RuleRegistry` (e.g., `simulation_engine/rules/rule_fingerprints.json`, `data/candidate_rules.json`, and static rules defined in `simulation_engine.rules.static_rules.py`).
+    - Implicitly, rule files loaded by `RuleRegistry` (e.g., `simulation_engine/rules/rule_fingerprints.json`, `data/candidate_rules.json`, and static rules defined in `engine.rules.static_rules.py`).
     - `logs/rule_mutation_log.jsonl` (read by `score_rule_volatility` in the dependency `memory/rule_cluster_engine.py`).
 - **Output:**
     - `logs/rule_mutation_log.jsonl`: Appends JSON line entries for each mutation applied.
@@ -123,8 +123,8 @@ These hardcoded values should ideally be configurable, perhaps through `pulse_co
 ## 7. Coupling Points
 
 - **`core.path_registry`:** Tightly coupled for resolving the `RULE_MUTATION_LOG` path.
-- **`memory.rule_cluster_engine`:** Directly calls `score_rule_volatility` to guide mutation candidate selection. This creates a dependency on the specific scoring logic of that module.
-- **`simulation_engine.rules.rule_registry.RuleRegistry`:** Heavily coupled for loading and accessing all rules. The mutation engine directly modifies rule dictionaries obtained from this registry (in memory).
+- **`analytics.rule_cluster_engine`:** Directly calls `score_rule_volatility` to guide mutation candidate selection. This creates a dependency on the specific scoring logic of that module.
+- **`engine.rules.rule_registry.RuleRegistry`:** Heavily coupled for loading and accessing all rules. The mutation engine directly modifies rule dictionaries obtained from this registry (in memory).
 - **`core.pulse_learning_log`:** Coupled for logging learning events related to mutations.
 - **File I/O for `RULE_MUTATION_LOG`:** Direct file writing operations for logging.
 
@@ -156,7 +156,7 @@ The module follows a relatively straightforward procedural flow:
     *   Calls [`get_all_rules()`](simulation_engine/rule_mutation_engine.py:32) to get a dictionary of current rules from the `_registry`.
     *   If rules exist, it calls [`propose_rule_mutations()`](simulation_engine/rule_mutation_engine.py:36) with these rules.
     *   **`propose_rule_mutations()`:**
-        *   Calls `score_rule_volatility()` (from `memory.rule_cluster_engine`) to get volatility scores for rules.
+        *   Calls `score_rule_volatility()` (from `analytics.rule_cluster_engine`) to get volatility scores for rules.
         *   Sorts rules by volatility and selects the `top_n` candidates.
         *   For each candidate:
             *   Mutates the 'threshold' by a random factor (±20%), clamping it between 0 and 1.

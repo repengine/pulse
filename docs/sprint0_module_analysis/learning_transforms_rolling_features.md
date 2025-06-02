@@ -1,4 +1,4 @@
-# Module Analysis: learning.transforms.rolling_features
+# Module Analysis: analytics.transforms.rolling_features
 
 ## Module Path
 
@@ -78,7 +78,7 @@ This module is part of the `learning/transforms/` subdirectory, indicating its r
 
 ## Overall Assessment & Next Steps
 
-The [`learning.transforms.rolling_features`](learning/transforms/rolling_features.py:1) module is currently a minimal but functional starting point for generating rolling window features. The existing [`rolling_mean_feature`](learning/transforms/rolling_features.py:9) function is well-implemented, clear, and adequately tested for its current scope.
+The [`analytics.transforms.rolling_features`](learning/transforms/rolling_features.py:1) module is currently a minimal but functional starting point for generating rolling window features. The existing [`rolling_mean_feature`](learning/transforms/rolling_features.py:9) function is well-implemented, clear, and adequately tested for its current scope.
 
 **Quality:**
 *   **Code Quality:** High for the existing function.

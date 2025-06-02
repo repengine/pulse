@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`simulation_engine/rules/reverse_rule_engine.py`](../../simulation_engine/rules/reverse_rule_engine.py) module is to construct reverse causal chains from observed deltas (changes in variables or overlays). It achieves this by utilizing rule fingerprints to trace and identify sequences of rules that could logically explain an observed change in the simulation's state. Its core responsibilities include tracing these rule chains, supporting both exact and fuzzy matching (weighted by trust scores), and leveraging centralized matching logic from [`simulation_engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py).
+The primary role of the [`simulation_engine/rules/reverse_rule_engine.py`](../../simulation_engine/rules/reverse_rule_engine.py) module is to construct reverse causal chains from observed deltas (changes in variables or overlays). It achieves this by utilizing rule fingerprints to trace and identify sequences of rules that could logically explain an observed change in the simulation's state. Its core responsibilities include tracing these rule chains, supporting both exact and fuzzy matching (weighted by trust scores), and leveraging centralized matching logic from [`engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py).
 
 ## 2. Operational Status/Completeness
 
@@ -24,11 +24,11 @@ The module appears to be largely complete and operational for its defined respon
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
--   [`simulation_engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):
+-   [`engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):
     -   [`get_all_rule_fingerprints()`](../../simulation_engine/rules/rule_matching_utils.py:15)
     -   [`match_rule_by_delta()`](../../simulation_engine/rules/rule_matching_utils.py:16)
     -   [`fuzzy_match_rule_by_delta()`](../../simulation_engine/rules/rule_matching_utils.py:17)
--   [`simulation_engine.rules.rule_fingerprint_expander`](../../simulation_engine/rules/rule_fingerprint_expander.py):
+-   [`engine.rules.rule_fingerprint_expander`](../../simulation_engine/rules/rule_fingerprint_expander.py):
     -   [`suggest_fingerprint_from_delta()`](../../simulation_engine/rules/rule_fingerprint_expander.py:44) (imported locally within [`suggest_new_rule_if_no_match()`](../../simulation_engine/rules/reverse_rule_engine.py:38))
 
 ### External Library Dependencies
@@ -85,8 +85,8 @@ The module appears to be largely complete and operational for its defined respon
 
 ## 7. Coupling Points
 
--   **[`simulation_engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):** The module is tightly coupled with `rule_matching_utils` for all rule matching logic and fingerprint retrieval. Changes to function signatures or behavior in `rule_matching_utils` would directly affect this module.
--   **[`simulation_engine.rules.rule_fingerprint_expander`](../../simulation_engine/rules/rule_fingerprint_expander.py):** Coupled for the logic related to suggesting new rule fingerprints when no matches are found.
+-   **[`engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):** The module is tightly coupled with `rule_matching_utils` for all rule matching logic and fingerprint retrieval. Changes to function signatures or behavior in `rule_matching_utils` would directly affect this module.
+-   **[`engine.rules.rule_fingerprint_expander`](../../simulation_engine/rules/rule_fingerprint_expander.py):** Coupled for the logic related to suggesting new rule fingerprints when no matches are found.
 -   **Rule Fingerprint Schema:** The module's logic is highly dependent on the specific structure and keys within the rule fingerprint dictionaries (e.g., expecting `"rule_id"`, `"effects"`, `"trust"`, `"frequency"`). Any modifications to this schema would likely break functionality.
 -   **Delta Format:** The module expects observed deltas to be provided as `Dict[str, float]`.
 

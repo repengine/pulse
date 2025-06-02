@@ -38,10 +38,10 @@ import readline  # For command history and editing
 from datetime import datetime
 from typing import Callable, Dict, List
 from utils.log_utils import get_logger
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
-from memory.pulse_memory_audit_report import audit_memory
-from memory.forecast_memory import ForecastMemory
+from analytics.pulse_memory_audit_report import audit_memory
+from analytics.forecast_memory import ForecastMemory
 from trust_system.trust_engine import TrustEngine
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
@@ -195,7 +195,7 @@ def cmd_view_trace(args: List[str]) -> None:
     if not args:
         print("Usage: view-trace [trace.jsonl]")
         return
-    from simulation_engine.utils.simulation_trace_viewer import load_trace
+    from engine.utils.simulation_trace_viewer import load_trace
 
     try:
         for i, event in enumerate(load_trace(args[0])):

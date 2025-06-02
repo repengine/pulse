@@ -22,7 +22,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:): Used to access symbolic overlay data.
+    *   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:): Used to access symbolic overlay data.
 *   **External Library Dependencies:**
     *   `typing.Dict`: For type hinting.
     *   `math`: Imported but not explicitly used in the provided snippet. It might have been intended for more complex calculations or removed during development.
@@ -81,7 +81,7 @@ The module appears to be largely complete and operational for its defined scope.
 
 ## 7. Coupling Points
 
-*   **[`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:)**: Tightly coupled, as it's the primary source of symbolic overlay data for most functions. Changes to the structure of `WorldState` or how overlays are stored could break this module.
+*   **[`engine.worldstate.WorldState`](simulation_engine/worldstate.py:)**: Tightly coupled, as it's the primary source of symbolic overlay data for most functions. Changes to the structure of `WorldState` or how overlays are stored could break this module.
 *   **Forecasting Module (Implicit):** The [`compute_symbolic_drift_penalty()`](symbolic_system/symbolic_utils.py:73) function is coupled to the structure of the `forecast` dictionary produced by an upstream forecasting component. Changes to the keys or data types in this dictionary would impact this function.
 *   **Specific Symbolic Overlay Semantics:** The logic within [`symbolic_tension_score()`](symbolic_system/symbolic_utils.py:33) and [`symbolic_fragility_index()`](symbolic_system/symbolic_utils.py:54) is based on specific interpretations and relationships between "hope", "despair", "rage", "trust", and "fatigue". If the meaning or interaction of these symbolic overlays changes elsewhere in the system, these functions might become inaccurate or misleading.
 

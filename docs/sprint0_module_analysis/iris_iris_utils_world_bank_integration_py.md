@@ -55,11 +55,11 @@ Despite its general completeness, some areas suggest potential improvements or u
 
 ### Direct Project Imports
 
-*   [`iris.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py):
+*   [`ingestion.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py):
     *   [`TransformationResult`](iris/iris_utils/historical_data_transformer.py)
     *   [`store_transformed_data`](iris/iris_utils/historical_data_transformer.py) (Note: This import is present but `store_transformed_data` itself is not directly called in the provided code. [`save_transformation_result`](iris/iris_utils/historical_data_transformer.py) is used instead.)
     *   [`save_transformation_result`](iris/iris_utils/historical_data_transformer.py)
-*   [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py):
+*   [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py):
     *   [`load_variable_catalog`](iris/iris_utils/historical_data_retriever.py)
     *   [`RetrievalStats`](iris/iris_utils/historical_data_retriever.py) (Note: This import is present but `RetrievalStats` is not directly used in the provided code.)
 *   [`recursive_training.data.data_store.RecursiveDataStore`](recursive_training/data/data_store.py)
@@ -102,7 +102,7 @@ Despite its general completeness, some areas suggest potential improvements or u
 
 *   **[`PathSanitizingDataStore()`](iris/iris_utils/world_bank_integration.py:67):**
     ```python
-    # from iris.iris_utils.world_bank_integration import PathSanitizingDataStore
+    # from ingestion.iris_utils.world_bank_integration import PathSanitizingDataStore
     data_store = PathSanitizingDataStore()
     # ... prepare data_items and dataset_metadata ...
     dataset_id = data_store.store_dataset("my_dataset_name", data_items, dataset_metadata)
@@ -111,21 +111,21 @@ Despite its general completeness, some areas suggest potential improvements or u
 
 *   **[`extract_world_bank_zip(zip_path: str, extract_dir: Optional[str] = None)`](iris/iris_utils/world_bank_integration.py:264):**
     ```python
-    # from iris.iris_utils.world_bank_integration import extract_world_bank_zip
+    # from ingestion.iris_utils.world_bank_integration import extract_world_bank_zip
     csv_file_path = extract_world_bank_zip("path/to/your/world_bank_data.zip", "temp_extraction_dir")
     ```
     Extracts the content of a World Bank data ZIP file, expecting to find a CSV file within it.
 
 *   **[`process_world_bank_data(csv_path: str)`](iris/iris_utils/world_bank_integration.py:305):**
     ```python
-    # from iris.iris_utils.world_bank_integration import process_world_bank_data
+    # from ingestion.iris_utils.world_bank_integration import process_world_bank_data
     processed_data = process_world_bank_data("path/to/extracted_world_bank.csv")
     ```
     Reads the World Bank CSV data, filters for indicators defined in [`WORLD_BANK_INDICATORS`](iris/iris_utils/world_bank_integration.py:176), and structures it.
 
 *   **[`transform_world_bank_data(wb_data: Dict[str, Dict[str, List[Dict[str, Any]]]])`](iris/iris_utils/world_bank_integration.py:382):**
     ```python
-    # from iris.iris_utils.world_bank_integration import transform_world_bank_data
+    # from ingestion.iris_utils.world_bank_integration import transform_world_bank_data
     # wb_data is the output from process_world_bank_data
     standardized_data = transform_world_bank_data(wb_data)
     ```
@@ -133,7 +133,7 @@ Despite its general completeness, some areas suggest potential improvements or u
 
 *   **[`load_world_bank_data_to_store(transformed_data: Dict[str, List[Dict[str, Any]]])`](iris/iris_utils/world_bank_integration.py:513):**
     ```python
-    # from iris.iris_utils.world_bank_integration import load_world_bank_data_to_store
+    # from ingestion.iris_utils.world_bank_integration import load_world_bank_data_to_store
     # transformed_data is the output from transform_world_bank_data
     storage_results = load_world_bank_data_to_store(transformed_data)
     ```
@@ -141,7 +141,7 @@ Despite its general completeness, some areas suggest potential improvements or u
 
 *   **[`integrate_world_bank_data(...)`](iris/iris_utils/world_bank_integration.py:652):**
     ```python
-    # from iris.iris_utils.world_bank_integration import integrate_world_bank_data
+    # from ingestion.iris_utils.world_bank_integration import integrate_world_bank_data
     # To use a specific ZIP file and update the catalog (default behavior)
     results = integrate_world_bank_data(zip_path="path/to/world_bank_data.zip")
 
@@ -190,7 +190,7 @@ The module follows a structured, step-by-step approach to data integration:
 1.  **Initialization & Configuration:**
     *   Standard library imports (`os`, `json`, `csv`, `datetime`, `logging`, `argparse`, `zipfile`, `pathlib`).
     *   Third-party imports (`pandas`).
-    *   Project-specific imports from `iris.iris_utils` and `recursive_training.data.data_store`.
+    *   Project-specific imports from `ingestion.iris_utils` and `recursive_training.data.data_store`.
     *   Logging is configured.
     *   Constants are defined for default paths ([`MANUAL_DATA_DIR`](iris/iris_utils/world_bank_integration.py:170), [`EXTRACTED_DATA_DIR`](iris/iris_utils/world_bank_integration.py:171), [`VARIABLE_CATALOG_PATH`](iris/iris_utils/world_bank_integration.py:173)) and World Bank indicators ([`WORLD_BANK_INDICATORS`](iris/iris_utils/world_bank_integration.py:176)).
 

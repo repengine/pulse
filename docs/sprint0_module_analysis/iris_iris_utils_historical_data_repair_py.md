@@ -15,7 +15,7 @@ While the module is functionally rich, one potential implementation gap is noted
 ## Connections & Dependencies
 
 *   **Direct imports from other project modules:**
-    *   [`iris.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py) (lines 84-97): Used for loading data, detecting gaps and anomalies, performing quality checks, cross-validating sources, and detecting seasonality.
+    *   [`ingestion.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py) (lines 84-97): Used for loading data, detecting gaps and anomalies, performing quality checks, cross-validating sources, and detecting seasonality.
 *   **External library dependencies:**
     *   `copy`
     *   `datetime`
@@ -44,7 +44,7 @@ While the module is functionally rich, one potential implementation gap is noted
 ## Connections & Dependencies
 
 *   **Direct imports from other project modules:**
-    *   [`iris.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py) (lines 84-97): Used for loading data, detecting gaps and anomalies, performing quality checks, cross-validating sources, and detecting seasonality.
+    *   [`ingestion.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py) (lines 84-97): Used for loading data, detecting gaps and anomalies, performing quality checks, cross-validating sources, and detecting seasonality.
 *   **External library dependencies:**
     *   `copy`
     *   `datetime`
@@ -130,7 +130,7 @@ Several hardcoded values and configurations are present:
 *   File naming conventions for saving repair versions and processed data.
 ## Coupling Points
 
-The module exhibits significant coupling with the `iris.iris_utils.historical_data_verification` module, relying heavily on its functions for data loading, quality assessment, and issue detection. It is also coupled with the defined file system structure for storing and retrieving historical data and repair versions.
+The module exhibits significant coupling with the `ingestion.iris_utils.historical_data_verification` module, relying heavily on its functions for data loading, quality assessment, and issue detection. It is also coupled with the defined file system structure for storing and retrieving historical data and repair versions.
 ## Existing Tests
 
 Based on the provided file list, the presence of [`iris/iris_utils/test_historical_data_pipeline.py`](iris/iris_utils/test_historical_data_pipeline.py) suggests that testing for this module and related historical data utilities exists. The extent of test coverage and the specific aspects tested would require examining the content of this test file.

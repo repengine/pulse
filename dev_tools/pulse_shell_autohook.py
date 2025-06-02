@@ -17,7 +17,7 @@ Author: Pulse v0.10
 import json
 from utils.log_utils import get_logger
 from dev_tools.hook_utils import scan_for_hooks
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 logger = get_logger(__name__)
 

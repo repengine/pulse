@@ -15,7 +15,7 @@ from unittest.mock import patch
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from iris.iris_plugins_variable_ingestion.openfda_plugin import OpenfdaPlugin
+from ingestion.iris_plugins_variable_ingestion.openfda_plugin import OpenfdaPlugin
 
 
 class MockResponse:
@@ -138,7 +138,9 @@ class TestOpenFdaPlugin(unittest.TestCase):
             ],
         }
 
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.ensure_data_directory")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.ensure_data_directory"
+    )
     def test_plugin_init(self, mock_ensure_dir):
         """Test plugin initialization."""
         plugin = OpenfdaPlugin()
@@ -171,10 +173,14 @@ class TestOpenFdaPlugin(unittest.TestCase):
         field = self.plugin._get_count_field("drug_recalls")
         self.assertEqual(field, "openfda.pharm_class_epc.exact")
 
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data")
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata"
+    )
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data"
+    )
     def test_process_count_data(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -211,10 +217,14 @@ class TestOpenFdaPlugin(unittest.TestCase):
         self.assertEqual(metadata["term"], "Headache")
         self.assertEqual(metadata["rank"], 1)
 
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data")
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata"
+    )
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data"
+    )
     def test_process_drug_events_data(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -245,10 +255,14 @@ class TestOpenFdaPlugin(unittest.TestCase):
             death_signal["value"], 33.33, places=2
         )  # 1/3 events resulted in death
 
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data")
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata"
+    )
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_processed_data"
+    )
     def test_process_recalls_data(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -295,9 +309,11 @@ class TestOpenFdaPlugin(unittest.TestCase):
         self.assertIsNotNone(voluntary_signal)
         self.assertEqual(voluntary_signal["value"], 75.0)  # 3/4 recalls are voluntary
 
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata")
-    @patch("iris.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.requests.get")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_request_metadata"
+    )
+    @patch("ingestion.iris_plugins_variable_ingestion.openfda_plugin.save_api_response")
     def test_failed_api_call(self, mock_save_response, mock_save_metadata, mock_get):
         """Test error handling for failed API calls."""
         # Mock a failed API response

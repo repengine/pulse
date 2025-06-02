@@ -36,14 +36,14 @@ However, several areas indicate incompleteness or reliance on placeholder/dummy 
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`learning.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:0) (imported but not directly used)
-*   [`learning.recursion_audit.generate_recursion_report()`](learning/recursion_audit.py:0) (imported but not directly used)
+*   [`analytics.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:0) (imported but not directly used)
+*   [`analytics.recursion_audit.generate_recursion_report()`](learning/recursion_audit.py:0) (imported but not directly used)
 *   [`dev_tools.pulse_ui_plot.load_variable_trace()`](dev_tools/pulse_ui_plot.py:0)
 *   [`dev_tools.pulse_ui_plot.plot_variables()`](dev_tools/pulse_ui_plot.py:0)
 *   [`core.pulse_config`](core/pulse_config.py:0)
 *   [`operator_interface.learning_log_viewer.load_learning_events()`](operator_interface/learning_log_viewer.py:0)
 *   [`operator_interface.learning_log_viewer.summarize_learning_events()`](operator_interface/learning_log_viewer.py:0)
-*   [`memory.variable_cluster_engine.summarize_clusters()`](memory/variable_cluster_engine.py:0)
+*   [`analytics.variable_cluster_engine.summarize_clusters()`](memory/variable_cluster_engine.py:0)
 *   [`operator_interface.variable_cluster_digest_formatter.format_variable_cluster_digest_md()`](operator_interface/variable_cluster_digest_formatter.py:0) (imported but not directly used)
 *   [`operator_interface.mutation_digest_exporter.export_full_digest()`](operator_interface/mutation_digest_exporter.py:0) (imported but not directly used)
 *   [`operator_interface.symbolic_contradiction_digest.format_contradiction_cluster_md()`](operator_interface/symbolic_contradiction_digest.py:0) (imported but not directly used)

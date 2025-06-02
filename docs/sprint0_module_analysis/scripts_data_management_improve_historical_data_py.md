@@ -33,7 +33,7 @@ One identified placeholder for future enhancement is within the [`clean_and_impu
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   `from iris.iris_plugins_variable_ingestion.historical_ingestion_plugin import historical_ingestion_plugin` ([`scripts/data_management/improve_historical_data.py:329`](scripts/data_management/improve_historical_data.py:329)): This is a critical dependency for sourcing the initial historical data.
+*   `from ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin import historical_ingestion_plugin` ([`scripts/data_management/improve_historical_data.py:329`](scripts/data_management/improve_historical_data.py:329)): This is a critical dependency for sourcing the initial historical data.
 
 ### External Library Dependencies:
 *   `os`
@@ -114,7 +114,7 @@ One identified placeholder for future enhancement is within the [`clean_and_impu
 
 ## 7. Coupling Points
 
-*   **[`iris.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion/historical_ingestion_plugin.py):**
+*   **[`ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion/historical_ingestion_plugin.py):**
     *   **Very High Coupling:** The script directly modifies the source code of this plugin ([`scripts/data_management/improve_historical_data.py:101-121`](scripts/data_management/improve_historical_data.py:101-121)) and executes it ([`scripts/data_management/improve_historical_data.py:329-333`](scripts/data_management/improve_historical_data.py:329-333)). Changes to the plugin's internal constant name, file structure, or output data format would likely break this script.
 *   **File System Structure:**
     *   **High Coupling:** The script relies on a specific, hardcoded directory structure within `data/historical_timeline/` for reading inputs and writing outputs. Any deviation would require code changes.

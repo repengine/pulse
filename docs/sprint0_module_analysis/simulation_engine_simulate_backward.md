@@ -31,7 +31,7 @@ However, a key piece of functionality, the calculation of `retrodiction_score`, 
     - `datetime` (datetime)
 - **Project Modules:**
     - `from intelligence.worldstate_loader import load_historical_snapshot` ([`simulation_engine/simulate_backward.py:10`](simulation_engine/simulate_backward.py:10))
-    - `from simulation_engine.worldstate import WorldState` ([`simulation_engine/simulate_backward.py:11`](simulation_engine/simulate_backward.py:11))
+    - `from engine.worldstate import WorldState` ([`simulation_engine/simulate_backward.py:11`](simulation_engine/simulate_backward.py:11))
 - **External Libraries:**
     - None directly in this file, but dependencies like `pandas` are used in imported modules ([`intelligence/worldstate_loader.py:23`](intelligence/worldstate_loader.py:23)).
 
@@ -61,7 +61,7 @@ To understand the full context and dependencies, the following project files wer
 
 \`\`\`python
 from datetime import datetime
-from simulation_engine.simulate_backward import run_retrodiction
+from engine.simulate_backward import run_retrodiction
 
 # Define the historical point in time to start retrodiction from
 snapshot_datetime = datetime(2024, 1, 1, 12, 0, 0) 
@@ -94,7 +94,7 @@ except Exception as e:
 ## 7. Coupling Points
 
 - **`intelligence.worldstate_loader.load_historical_snapshot()` ([`simulation_engine/simulate_backward.py:10`](simulation_engine/simulate_backward.py:10)):** Tightly coupled to this specific function for loading data. Changes to the signature or behavior of this loader function would directly impact `simulate_backward.py`.
-- **`simulation_engine.worldstate.WorldState` ([`simulation_engine/simulate_backward.py:11`](simulation_engine/simulate_backward.py:11)):** Directly depends on the structure of the `WorldState` object, particularly its `overlays` attribute and how to access its dictionary representation (checking for `as_dict` or iterating `items()`).
+- **`engine.worldstate.WorldState` ([`simulation_engine/simulate_backward.py:11`](simulation_engine/simulate_backward.py:11)):** Directly depends on the structure of the `WorldState` object, particularly its `overlays` attribute and how to access its dictionary representation (checking for `as_dict` or iterating `items()`).
 - **`DEFAULT_DECAY_RATE` ([`simulation_engine/simulate_backward.py:13`](simulation_engine/simulate_backward.py:13)):** The core retrodiction logic is coupled to this constant. If the forward simulation uses a different or more complex decay mechanism, this retrodiction will be inaccurate.
 
 ## 8. Existing Tests (SPARC Refinement)
@@ -128,7 +128,7 @@ except Exception as e:
         d. `current_overlays` is updated to `previous_overlays` for the next iteration.
     5. A stubbed `retrodiction_score` is set to `0.0`.
     6. A dictionary containing `retrodicted_states` and `retrodiction_score` is returned.
-- **Modularity:** The module is reasonably modular for its specific task of backward simulation. It relies on other modules for data loading ([`intelligence.worldstate_loader`](intelligence/worldstate_loader.py:1)) and data structures ([`simulation_engine.worldstate`](simulation_engine/worldstate.py:1)).
+- **Modularity:** The module is reasonably modular for its specific task of backward simulation. It relies on other modules for data loading ([`intelligence.worldstate_loader`](intelligence/worldstate_loader.py:1)) and data structures ([`engine.worldstate`](simulation_engine/worldstate.py:1)).
 - **Fit in Larger System:** This module likely serves as a component for historical analysis or model validation within the larger simulation engine, allowing the system to "rewind" states to understand how a current state might have evolved or to compare retrodicted states with actual historical data.
 
 ## 10. Naming Conventions (SPARC Maintainability)

@@ -42,8 +42,8 @@ class TestRuleAdjustment(unittest.TestCase):
             },
         }
 
-    @patch("simulation_engine.rules.rule_registry.RuleRegistry.update_trust_score")
-    @patch("core.variable_registry.registry.register_variable")
+    @patch("rules.rule_registry.RuleRegistry.update_trust_score")
+    @patch("engine.variable_registry.VariableRegistry.register_variable")
     @patch(
         "trust_system.rule_adjustment.log_variable_weight_change"
     )  # Corrected patch target
@@ -52,7 +52,7 @@ class TestRuleAdjustment(unittest.TestCase):
     ):
         # Mock the rule_registry's get_rules_by_symbolic_tag method
         with patch(
-            "simulation_engine.rules.rule_registry.RuleRegistry.get_rules_by_symbolic_tag"
+            "rules.rule_registry.RuleRegistry.get_rules_by_symbolic_tag"
         ) as mock_get_rules:
             # Set up mock rule data
             mock_get_rules.return_value = [

@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of [`iris/test_newsapi_direct.py`](../../../iris/test_newsapi_direct.py:1) is to test the functionality of the [`NewsapiPlugin`](../../../iris/iris_plugins_variable_ingestion/newsapi_plugin.py) from the `iris.iris_plugins_variable_ingestion` package. It achieves this by directly setting the `NEWSAPI_KEY` environment variable within the script before initializing and using the plugin to fetch news signals. This allows for a direct test of the plugin's core news fetching capabilities, assuming a valid API key is provided.
+The primary role of [`iris/test_newsapi_direct.py`](../../../iris/test_newsapi_direct.py:1) is to test the functionality of the [`NewsapiPlugin`](../../../iris/iris_plugins_variable_ingestion/newsapi_plugin.py) from the `ingestion.iris_plugins_variable_ingestion` package. It achieves this by directly setting the `NEWSAPI_KEY` environment variable within the script before initializing and using the plugin to fetch news signals. This allows for a direct test of the plugin's core news fetching capabilities, assuming a valid API key is provided.
 
 ## 2. Operational Status/Completeness
 
@@ -27,7 +27,7 @@ The module appears to be a functional test script. However, it is **incomplete**
     *   [`logging`](https://docs.python.org/3/library/logging.html): Configured but not explicitly used within the `test_newsapi` function itself ([`iris/test_newsapi_direct.py:8`](../../../iris/test_newsapi_direct.py:8), [`iris/test_newsapi_direct.py:12`](../../../iris/test_newsapi_direct.py:12)).
     *   [`pprint`](https://docs.python.org/3/library/pprint.html): Used for pretty-printing the fetched signals ([`iris/test_newsapi_direct.py:9`](../../../iris/test_newsapi_direct.py:9), [`iris/test_newsapi_direct.py:60`](../../../iris/test_newsapi_direct.py:60)).
 *   **Project Module Imports:**
-    *   [`from iris.iris_plugins_variable_ingestion.newsapi_plugin import NewsapiPlugin`](../../../iris/test_newsapi_direct.py:26): Imports the plugin class to be tested.
+    *   [`from ingestion.iris_plugins_variable_ingestion.newsapi_plugin import NewsapiPlugin`](../../../iris/test_newsapi_direct.py:26): Imports the plugin class to be tested.
 *   **External Library Dependencies:**
     *   Implicitly depends on the libraries used by [`NewsapiPlugin`](../../../iris/iris_plugins_variable_ingestion/newsapi_plugin.py) to interact with the NewsAPI (e.g., `newsapi-python`). These are not directly imported in this test script.
 *   **Interaction via Shared Data:**

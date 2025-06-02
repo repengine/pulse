@@ -2,11 +2,11 @@ import unittest
 from unittest.mock import patch, MagicMock
 import torch  # Added for torch.tensor
 from forecast_engine import ai_forecaster, forecast_ensemble
-from core import pulse_config
+from engine import pulse_config
 
 
 class TestAIForecaster(unittest.TestCase):
-    def test_predict_default(self):
+    def test_predict_default(self) -> None:
         # The 'ai_forecaster.predict' function uses a module-level '_model'.
         # We need to patch this '_model'.
         # This mock_model will simulate an instance of LSTMForecaster.
@@ -27,7 +27,9 @@ class TestAIForecaster(unittest.TestCase):
             patch(
                 "forecast_engine.ai_forecaster._model", mock_lstm_model_instance
             ) as _patched_model,
-            patch("forecast_engine.ai_forecaster._input_size", 1) as _patched_input_size,
+            patch(
+                "forecast_engine.ai_forecaster._input_size", 1
+            ) as _patched_input_size,
             patch(
                 "forecast_engine.ai_forecaster._initialize_model", return_value=True
             ) as _mock_init_model,
@@ -55,7 +57,7 @@ class TestAIForecaster(unittest.TestCase):
                 msg=f"Prediction unexpectedly returned an error: {result.get('error')}",
             )
 
-    def test_ensemble_forecast(self):
+    def test_ensemble_forecast(self) -> None:
         simulation_forecast = {"value": 100.0}
         ai_forecast_data = {"adjustment": 10.0}
         # Ensure AI forecasting is enabled and weights are set for consistent testing.
@@ -70,7 +72,7 @@ class TestAIForecaster(unittest.TestCase):
         self.assertIn("ensemble_forecast", combined)
         self.assertAlmostEqual(combined["ensemble_forecast"], 103.0)
 
-    def test_train_update_no_error(self):
+    def test_train_update_no_error(self) -> None:
         # Verify that train and update functions run without error on empty data.
         try:
             ai_forecaster.train([])

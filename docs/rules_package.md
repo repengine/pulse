@@ -17,8 +17,8 @@ This package is newly introduced in Pulse v0.10. Its components will be develope
 
 ## 4. Connections & Dependencies
 
-*   **`simulation_engine.rule_engine` (or `rules.engine`)**: For executing the loaded rules.
-*   **`simulation_engine.rules.rule_registry`**: For managing and providing access to the loaded rules.
+*   **`engine.rule_engine` (or `rules.engine`)**: For executing the loaded rules.
+*   **`engine.rules.rule_registry`**: For managing and providing access to the loaded rules.
 *   **`core.worldstate_v2`**: The rules operate on and mutate `WorldStateV2` objects.
 *   **Pydantic**: For schema definition and validation.
 *   **PyYAML**: For loading rules from YAML files.

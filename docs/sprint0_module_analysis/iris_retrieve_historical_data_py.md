@@ -21,7 +21,7 @@ The core purpose of the combined system is to:
     *   Data fetching logic for supported sources is implemented with retry mechanisms.
     *   Basic data transformation (e.g., division for FRED data) is present.
     *   Data analysis features (calculating completeness, identifying gaps, and anomalies) are implemented in [`analyze_data()`](../../../iris/iris_utils/historical_data_retriever.py:431).
-    *   Data and metadata persistence using the [`iris.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) module is integrated.
+    *   Data and metadata persistence using the [`ingestion.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) module is integrated.
     *   No obvious TODOs or major placeholders are visible in the provided code for the current scope.
 
 ## 3. Implementation Gaps / Unfinished Next Steps
@@ -47,9 +47,9 @@ The core purpose of the combined system is to:
 ### 4.1. Direct Project Module Imports
 
 *   **From `iris/retrieve_historical_data.py`:**
-    *   [`iris.iris_utils.historical_data_retriever.main`](../../../iris/iris_utils/historical_data_retriever.py:34)
+    *   [`ingestion.iris_utils.historical_data_retriever.main`](../../../iris/iris_utils/historical_data_retriever.py:34)
 *   **From `iris/iris_utils/historical_data_retriever.py`:**
-    *   [`iris.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) (specifically functions: [`ensure_data_directory()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_api_response()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_processed_data()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_request_metadata()`](../../../iris/iris_utils/ingestion_persistence.py))
+    *   [`ingestion.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) (specifically functions: [`ensure_data_directory()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_api_response()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_processed_data()`](../../../iris/iris_utils/ingestion_persistence.py), [`save_request_metadata()`](../../../iris/iris_utils/ingestion_persistence.py))
 
 ### 4.2. External Library Dependencies
 
@@ -114,7 +114,7 @@ Key functions for programmatic use:
 
 *   **[`retrieve_historical_data(variable_info, years, end_date, rate_limit_delay)`](../../../iris/iris_utils/historical_data_retriever.py:208):**
     ```python
-    from iris.iris_utils.historical_data_retriever import retrieve_historical_data, load_variable_catalog
+    from ingestion.iris_utils.historical_data_retriever import retrieve_historical_data, load_variable_catalog
     import datetime as dt
 
     catalog = load_variable_catalog()
@@ -135,7 +135,7 @@ Key functions for programmatic use:
 
 *   **[`retrieve_priority_variables(priority, years, end_date, rate_limit_delay)`](../../../iris/iris_utils/historical_data_retriever.py:534):**
     ```python
-    from iris.iris_utils.historical_data_retriever import retrieve_priority_variables
+    from ingestion.iris_utils.historical_data_retriever import retrieve_priority_variables
 
     # Retrieve data for all priority 1 variables
     priority_1_results = retrieve_priority_variables(priority=1, years=2)
@@ -148,7 +148,7 @@ Key functions for programmatic use:
 
     ```python
     # Example (conceptual, assumes 'my_data_series' is a pd.Series with DatetimeIndex)
-    # from iris.iris_utils.historical_data_retriever import analyze_data
+    # from ingestion.iris_utils.historical_data_retriever import analyze_data
     # import pandas as pd
     # import datetime as dt
     #
@@ -187,7 +187,7 @@ The module [`iris/iris_utils/historical_data_retriever.py`](../../../iris/iris_u
 ## 7. Coupling Points
 
 *   **Variable Catalog Structure:** Tightly coupled to the specific JSON structure of [`data/historical_timeline/variable_catalog.json`](../../../data/historical_timeline/variable_catalog.json). Changes to key names (e.g., `"variable_name"`, `"source"`, `"api_endpoint"`, `"priority"`, `"required_parameters"`) in the catalog would require code changes in [`historical_data_retriever.py`](../../../iris/iris_utils/historical_data_retriever.py:1).
-*   **`ingestion_persistence` Module:** Highly dependent on the interface and behavior of the [`iris.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) module for all data storage operations. The file paths and directory structures for stored data are largely determined by this external module.
+*   **`ingestion_persistence` Module:** Highly dependent on the interface and behavior of the [`ingestion.iris_utils.ingestion_persistence`](../../../iris/iris_utils/ingestion_persistence.py) module for all data storage operations. The file paths and directory structures for stored data are largely determined by this external module.
 *   **External APIs (FRED, Yahoo Finance):** The module's functionality is directly tied to the availability, API contracts, and data formats of the FRED and Yahoo Finance services. Changes or outages in these external services can break the data retrieval process.
 *   **CLI Wrapper Coupling:** The `main()` function in [`iris/retrieve_historical_data.py`](../../../iris/retrieve_historical_data.py:36) is directly coupled to the `main()` function in [`iris/iris_utils/historical_data_retriever.py`](../../../iris/iris_utils/historical_data_retriever.py:656).
 *   **Path Manipulation for Imports:** The `sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))` line in [`iris/retrieve_historical_data.py`](../../../iris/retrieve_historical_data.py:31) makes assumptions about the project's directory structure to enable correct imports. This can be brittle if the file is moved or the project structure changes significantly.
@@ -215,7 +215,7 @@ The system operates in two main parts: the CLI wrapper and the core utility modu
 
 **A. `iris/retrieve_historical_data.py` (CLI Wrapper - Entry Point):**
 1.  **Path Setup:** Modifies `sys.path` to ensure modules in the parent `iris` directory are importable.
-2.  **Import:** Imports the `main` function from `iris.iris_utils.historical_data_retriever`.
+2.  **Import:** Imports the `main` function from `ingestion.iris_utils.historical_data_retriever`.
 3.  **Execution:** If run as the main script (`if __name__ == "__main__":`), it calls `sys.exit(main())`, transferring control to the core logic module.
 
 **B. `iris/iris_utils/historical_data_retriever.py` (Core Logic):**

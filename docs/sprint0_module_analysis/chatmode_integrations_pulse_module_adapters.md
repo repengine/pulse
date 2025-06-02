@@ -24,11 +24,11 @@ Key functionalities include:
 The module is primarily composed of adapter functions:
 
 *   **Core Pulse Interactions:**
-    *   [`run_simulation(parameters=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:40): Adapts [`simulation_engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:1).
-    *   [`get_data(symbol=None, data_type=None, date_range=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:129): Adapts [`iris.iris_utils.historical_data_retriever.retrieve_historical_data()`](iris/iris_utils/historical_data_retriever.py:30) and [`iris.iris_plugins_finance.finance_plugins()`](iris/iris_plugins_finance.py:1). Contains placeholder logic for news.
+    *   [`run_simulation(parameters=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:40): Adapts [`engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:1).
+    *   [`get_data(symbol=None, data_type=None, date_range=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:129): Adapts [`ingestion.iris_utils.historical_data_retriever.retrieve_historical_data()`](iris/iris_utils/historical_data_retriever.py:30) and [`ingestion.iris_plugins_finance.finance_plugins()`](iris/iris_plugins_finance.py:1). Contains placeholder logic for news.
     *   [`get_forecast(symbol=None, horizon=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:324): Adapts [`forecast_engine.forecast_ensemble.ensemble_forecast()`](forecast_engine/forecast_ensemble.py:18). Contains placeholder logic for detailed forecast generation.
     *   [`get_trust_score(item=None, context=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:458): Adapts [`trust_system.trust_engine.TrustEngine()`](trust_system/trust_engine.py:1) (path assumed).
-    *   [`query_memory(query=None, limit=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:555): Adapts [`memory.trace_memory.TraceMemory()`](memory/trace_memory.py:24).
+    *   [`query_memory(query=None, limit=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:555): Adapts [`analytics.trace_memory.TraceMemory()`](memory/trace_memory.py:24).
     *   [`query_symbolic_system(query=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:669): Adapts [`symbolic_system.symbolic_state_tagger.tag_symbolic_state()`](symbolic_system/symbolic_state_tagger.py:27). Contains placeholder logic.
     *   [`explain_forecast(symbol=None, forecast_id=None, **kwargs)`](chatmode/integrations/pulse_module_adapters.py:816): Provides forecast explanations, partly based on [`get_forecast()`](chatmode/integrations/pulse_module_adapters.py:324). Contains placeholder logic.
 
@@ -42,14 +42,14 @@ The module is primarily composed of adapter functions:
 ## 4. Dependencies
 
 *   **Internal Pulse Modules:**
-    *   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1)
-    *   [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1)
+    *   [`engine.worldstate`](simulation_engine/worldstate.py:1)
+    *   [`engine.simulator_core`](simulation_engine/simulator_core.py:1)
     *   [`forecast_engine.forecast_ensemble`](forecast_engine/forecast_ensemble.py:1)
     *   [`trust_system.trust_engine`](trust_system/trust_engine.py:1) (Path assumed, not in environment file list)
-    *   [`memory.trace_memory`](memory/trace_memory.py:1)
+    *   [`analytics.trace_memory`](memory/trace_memory.py:1)
     *   [`symbolic_system.symbolic_state_tagger`](symbolic_system/symbolic_state_tagger.py:1)
-    *   [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1)
-    *   [`iris.iris_plugins_finance`](iris/iris_plugins_finance.py:1)
+    *   [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py:1)
+    *   [`ingestion.iris_plugins_finance`](iris/iris_plugins_finance.py:1)
     *   [`recursive_training.parallel_trainer`](recursive_training/parallel_trainer.py:1)
     *   [`recursive_training.integration.process_registry`](recursive_training/integration/process_registry.py:1)
     *   [`recursive_training.integration.config_manager`](recursive_training/integration/config_manager.py:1)

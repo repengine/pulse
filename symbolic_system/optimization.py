@@ -14,7 +14,7 @@ import functools
 import time
 import logging
 from typing import Any, Tuple, Callable, ParamSpec, TypeVar, Dict, Optional, cast
-from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
+from engine.pulse_config import ENABLE_SYMBOLIC_SYSTEM
 
 P = ParamSpec("P")
 R = TypeVar("R", bound=object)
@@ -112,7 +112,9 @@ def get_symbolic_cache() -> SymbolicCache:
     return _symbolic_cache
 
 
-def cached_symbolic(ttl_seconds: int = 60) -> Callable[[Callable[P, R]], Callable[P, R]]:
+def cached_symbolic(
+    ttl_seconds: int = 60,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator for caching symbolic computation results.
 
@@ -166,9 +168,9 @@ def lazy_symbolic(func: Callable[P, Optional[R]]) -> Callable[P, Optional[R]]:
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[R]:
         # Get fresh values each time to ensure we have the latest values
-        from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
-        from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
-        from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+        from engine.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
+        from engine.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+        from engine.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
 
         # Skip evaluation if symbolic system is disabled
         if not current_enable:
@@ -184,7 +186,9 @@ def lazy_symbolic(func: Callable[P, Optional[R]]) -> Callable[P, Optional[R]]:
     return wrapper
 
 
-def training_optimized(default_value: Optional[R] = None) -> Callable[[Callable[P, R]], Callable[P, Optional[R]]]:
+def training_optimized(
+    default_value: Optional[R] = None,
+) -> Callable[[Callable[P, R]], Callable[P, Optional[R]]]:
     """
     Decorator specifically for optimizing symbolic operations during training.
     Provides simplified execution in training modes.
@@ -200,8 +204,8 @@ def training_optimized(default_value: Optional[R] = None) -> Callable[[Callable[
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[R]:
             # Get fresh values each time
-            from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
-            from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+            from engine.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+            from engine.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
 
             # Use simplified execution in training/retrodiction mode
             if current_mode == "retrodiction":
@@ -210,7 +214,9 @@ def training_optimized(default_value: Optional[R] = None) -> Callable[[Callable[
                     return default_value
 
                 # Otherwise use training-specific implementation if provided
-                training_impl = cast(Optional[Callable[P, R]], kwargs.pop("training_impl", None))
+                training_impl = cast(
+                    Optional[Callable[P, R]], kwargs.pop("training_impl", None)
+                )
                 if training_impl and callable(training_impl):
                     return training_impl(*args, **kwargs)
 
@@ -225,7 +231,7 @@ def training_optimized(default_value: Optional[R] = None) -> Callable[[Callable[
 def is_expensive_operation() -> bool:
     """Check if we're in a mode where expensive operations should be avoided"""
     # Get fresh values
-    from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+    from engine.pulse_config import CURRENT_SYSTEM_MODE as current_mode
 
     expensive_modes = {"retrodiction", "training"}
     return current_mode in expensive_modes
@@ -241,9 +247,9 @@ def get_operation_level() -> str:
         "none" - No operations
     """
     # Get fresh values
-    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
-    from core.pulse_config import CURRENT_SYSTEM_MODE as current_mode
-    from core.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
+    from engine.pulse_config import ENABLE_SYMBOLIC_SYSTEM as current_enable
+    from engine.pulse_config import CURRENT_SYSTEM_MODE as current_mode
+    from engine.pulse_config import SYMBOLIC_PROCESSING_MODES as current_modes
 
     if not current_enable:
         return "none"

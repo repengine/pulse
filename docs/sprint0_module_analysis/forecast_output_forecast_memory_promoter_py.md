@@ -23,7 +23,7 @@ The module appears to be functionally complete for its defined scope.
 
 ### Direct Imports from Other Project Modules:
 -   `from forecast_output.forecast_prioritization_engine import rank_certified_forecasts` ([`forecast_output/forecast_memory_promoter.py:11`](forecast_output/forecast_memory_promoter.py:11)): Used to rank forecasts before promotion.
--   `from memory.forecast_memory import ForecastMemory` ([`forecast_output/forecast_memory_promoter.py:12`](forecast_output/forecast_memory_promoter.py:12)): Used to instantiate the memory store for saving forecasts.
+-   `from analytics.forecast_memory import ForecastMemory` ([`forecast_output/forecast_memory_promoter.py:12`](forecast_output/forecast_memory_promoter.py:12)): Used to instantiate the memory store for saving forecasts.
 -   `from utils.log_utils import log_info` ([`forecast_output/forecast_memory_promoter.py:13`](forecast_output/forecast_memory_promoter.py:13)): Used for logging information.
 
 ### External Library Dependencies:
@@ -70,7 +70,7 @@ The module contains a single primary function:
 ## 7. Coupling Points
 
 -   **[`forecast_output.forecast_prioritization_engine.rank_certified_forecasts()`](forecast_output/forecast_prioritization_engine.py):** Tightly coupled for the ranking logic. Changes in the ranking function's signature or behavior could directly impact this module.
--   **[`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py):** Tightly coupled for storing forecasts. Changes to the `ForecastMemory` class's interface (especially the [`store()`](memory/forecast_memory.py) method) would require updates here.
+-   **[`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py):** Tightly coupled for storing forecasts. Changes to the `ForecastMemory` class's interface (especially the [`store()`](memory/forecast_memory.py) method) would require updates here.
 -   **Forecast Dictionary Structure:** The module relies on a specific structure for the forecast dictionaries it processes (e.g., expecting keys like `"certified"`, `"confidence"`). Changes in this data structure from upstream modules would break this module's logic.
 -   **[`utils.log_utils.log_info()`](utils/log_utils.py):** Coupled for logging.
 

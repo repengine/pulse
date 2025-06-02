@@ -65,7 +65,7 @@ It acts as the main HTTP interface for interacting with these core Pulse systems
 
 *   **Internal Pulse Modules:**
     *   [`forecast_engine.forecast_memory`](forecast_engine/forecast_memory.py:1): Specifically, [`load_forecast_history()`](forecast_engine/forecast_memory.py:4).
-    *   [`simulation_engine.simulate_backward`](simulation_engine/simulate_backward.py:1): Specifically, [`run_retrodiction()`](simulation_engine/simulate_backward.py:5).
+    *   [`engine.simulate_backward`](simulation_engine/simulate_backward.py:1): Specifically, [`run_retrodiction()`](simulation_engine/simulate_backward.py:5).
     *   [`core.variable_registry`](core/variable_registry.py:1): Provides [`VariableRegistry`](core/variable_registry.py:6).
     *   [`core.feature_store`](core/feature_store.py:1): Provides [`FeatureStore`](core/feature_store.py:7).
     *   [`core.training_review_store`](core/training_review_store.py:1): Specifically, [`store_training_submission()`](core/training_review_store.py:269).

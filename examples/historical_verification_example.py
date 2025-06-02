@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import the verification modules
-from iris.iris_utils.historical_data_verification import (
+from ingestion.iris_utils.historical_data_verification import (
     perform_quality_check,
     detect_anomalies,
     cross_validate_sources,

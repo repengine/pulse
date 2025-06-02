@@ -34,12 +34,12 @@ Key areas of incompleteness:
 
 ## Connections & Dependencies
 - **Direct Project Module Imports (conditionally used or placeholders):**
-    - `learning.forecast_pipeline_runner.run_forecast_pipeline`
-    - `learning.recursion_audit.generate_recursion_report`
+    - `analytics.forecast_pipeline_runner.run_forecast_pipeline`
+    - `analytics.recursion_audit.generate_recursion_report`
     - `dev_tools.pulse_ui_plot.load_variable_trace`, `plot_variables`
     - `core.pulse_config`
     - `operator_interface.learning_log_viewer.load_learning_events`, `summarize_learning_events`
-    - `memory.variable_cluster_engine.summarize_clusters`
+    - `analytics.variable_cluster_engine.summarize_clusters`
 - **External Library Dependencies:**
     - `flask`, `os`, `datetime`, `threading`, `time`, `random`, `logging`, `sys`, `typing`.
 - **Interaction with other modules:** Primarily intended via direct function calls to the imported Pulse modules. Currently, these interactions are largely bypassed by simulation logic.

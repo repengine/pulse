@@ -8,11 +8,11 @@ Author: Pulse v0.10
 """
 
 import argparse
-from simulation_engine.worldstate import WorldState
-from simulation_engine.causal_rules import apply_causal_rules
-from simulation_engine.rule_engine import run_rules
+from engine.worldstate import WorldState
+from engine.causal_rules import apply_causal_rules
+from engine.rule_engine import run_rules
 from utils.log_utils import get_logger
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

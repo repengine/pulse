@@ -7,7 +7,7 @@ import sys
 import argparse
 import logging
 import os
-from iris.iris_utils.historical_data_retriever import (
+from ingestion.utils.historical_data_retriever import (
     load_variable_catalog,
     retrieve_historical_data,
     retrieve_priority_variables,

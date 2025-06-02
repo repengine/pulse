@@ -25,7 +25,7 @@ The module appears to be operationally complete for its defined, narrow scope.
 ## 4. Connections & Dependencies
 
 ### Project-Internal Dependencies:
-- `from simulation_engine.worldstate import WorldState`: Imports the [`WorldState`](../../simulation_engine/worldstate.py:1) class, which is crucial for comparing states before and after rule execution.
+- `from engine.worldstate import WorldState`: Imports the [`WorldState`](../../simulation_engine/worldstate.py:1) class, which is crucial for comparing states before and after rule execution.
 
 ### External Library Dependencies:
 - `from typing import Dict, Any`: Uses standard Python typing features.
@@ -42,8 +42,8 @@ This function is called after a simulation rule has been applied to capture the 
 
 **Example Usage:**
 ```python
-from simulation_engine.worldstate import WorldState # Assuming WorldState and its methods are defined
-from simulation_engine.rules.rule_audit_layer import audit_rule
+from engine.worldstate import WorldState # Assuming WorldState and its methods are defined
+from engine.rules.rule_audit_layer import audit_rule
 
 # Dummy WorldState instances for demonstration
 class MockVariables:

@@ -9,7 +9,7 @@ The primary role of the [`iris/iris_plugins_variable_ingestion/coinmarketcap_plu
 The module appears largely complete for its defined scope of fetching current data for a list of top cryptocurrencies and global metrics.
 - It includes API key handling (disabling the plugin if the key is not found via the `COINMARKETCAP_API_KEY` environment variable).
 - It implements retry logic for API requests ([`_safe_get`](../../iris/iris_plugins_variable_ingestion/coinmarketcap_plugin.py:105)).
-- It handles data persistence for API requests, responses, and processed signals using utilities from [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:).
+- It handles data persistence for API requests, responses, and processed signals using utilities from [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:).
 - There are no obvious TODO comments or major placeholders for its current functionality.
 
 ## 3. Implementation Gaps / Unfinished Next Steps
@@ -25,8 +25,8 @@ The module appears largely complete for its defined scope of fetching current da
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`iris.iris_plugins.IrisPluginManager`](../../iris/iris_plugins.py:) ([`CoinMarketCapPlugin`](../../iris/iris_plugins_variable_ingestion/coinmarketcap_plugin.py:29))
-- From [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:):
+- [`ingestion.iris_plugins.IrisPluginManager`](../../iris/iris_plugins.py:) ([`CoinMarketCapPlugin`](../../iris/iris_plugins_variable_ingestion/coinmarketcap_plugin.py:29))
+- From [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:):
     - [`ensure_data_directory`](../../iris/iris_utils/ingestion_persistence.py:)
     - [`save_request_metadata`](../../iris/iris_utils/ingestion_persistence.py:)
     - [`save_api_response`](../../iris/iris_utils/ingestion_persistence.py:)
@@ -99,7 +99,7 @@ The module appears largely complete for its defined scope of fetching current da
 ## 7. Coupling Points
 
 - **`IrisPluginManager`:** The module is tightly coupled to the [`IrisPluginManager`](../../iris/iris_plugins.py:) base class, inheriting its structure and expected methods (like `fetch_signals`).
-- **`ingestion_persistence` Utilities:** Significant coupling with the functions from [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:) for all data storage operations. Changes to this utility module's API could break this plugin.
+- **`ingestion_persistence` Utilities:** Significant coupling with the functions from [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:) for all data storage operations. Changes to this utility module's API could break this plugin.
 - **CoinMarketCap API:** Directly dependent on the CoinMarketCap API's endpoints, request/response structure, and authentication mechanism. API changes would require updates to this plugin.
 - **Environment Variable:** Relies on the specific environment variable `COINMARKETCAP_API_KEY` being set.
 - **Signal Format:** Produces signals in a specific dictionary format, which consumers of these signals will expect.

@@ -27,15 +27,15 @@ The module appears largely functional for its defined responsibilities.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.worldstate`](simulation_engine/worldstate.py): For [`WorldState`](simulation_engine/worldstate.py:0) class.
-- [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py): For [`decay_overlay()`](simulation_engine/state_mutation.py:0) function.
-- [`simulation_engine.causal_rules`](simulation_engine/causal_rules.py): For [`apply_causal_rules()`](simulation_engine/causal_rules.py:0) function.
-- [`simulation_engine.rule_engine`](simulation_engine/rule_engine.py): For [`run_rules()`](simulation_engine/rule_engine.py:0) function.
+- [`engine.worldstate`](simulation_engine/worldstate.py): For [`WorldState`](simulation_engine/worldstate.py:0) class.
+- [`engine.state_mutation`](simulation_engine/state_mutation.py): For [`decay_overlay()`](simulation_engine/state_mutation.py:0) function.
+- [`engine.causal_rules`](simulation_engine/causal_rules.py): For [`apply_causal_rules()`](simulation_engine/causal_rules.py:0) function.
+- [`engine.rule_engine`](simulation_engine/rule_engine.py): For [`run_rules()`](simulation_engine/rule_engine.py:0) function.
 - [`core.path_registry`](core/path_registry.py): For the [`PATHS`](core/path_registry.py:0) dictionary.
-- [`memory.trace_audit_engine`](memory/trace_audit_engine.py): For [`assign_trace_metadata()`](memory/trace_audit_engine.py:0) and [`register_trace_to_memory()`](memory/trace_audit_engine.py:0).
+- [`analytics.trace_audit_engine`](memory/trace_audit_engine.py): For [`assign_trace_metadata()`](memory/trace_audit_engine.py:0) and [`register_trace_to_memory()`](memory/trace_audit_engine.py:0).
 - [`core.pulse_config`](core/pulse_config.py): For the [`ENABLE_TRACE_LOGGING`](core/pulse_config.py:0) constant.
 - [`core.variable_accessor`](core/variable_accessor.py): For [`set_variable()`](core/variable_accessor.py:0).
-- [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py): For [`simulate_forward()`](simulation_engine/simulator_core.py:0) (aliased as `RetrodictionLoader`).
+- [`engine.simulator_core`](simulation_engine/simulator_core.py): For [`simulate_forward()`](simulation_engine/simulator_core.py:0) (aliased as `RetrodictionLoader`).
 
 ### External Library Dependencies:
 - `typing`: For `Callable`, `Optional`, `Dict`.
@@ -44,7 +44,7 @@ The module appears largely functional for its defined responsibilities.
 - Utilizes the [`PATHS`](core/path_registry.py:0) dictionary from [`core.path_registry`](core/path_registry.py) to determine `TURN_LOG_PATH`.
 - Interacts with the `learning_engine` object (if provided) by calling its `on_simulation_turn_end` method.
 - Logs events directly to the passed `WorldState` object.
-- Registers trace information to a memory system via functions from [`memory.trace_audit_engine`](memory/trace_audit_engine.py).
+- Registers trace information to a memory system via functions from [`analytics.trace_audit_engine`](memory/trace_audit_engine.py).
 
 ### Input/Output Files:
 - Potentially logs information to `TURN_LOG_PATH`, which defaults to `PATHS["WORLDSTATE_LOG_DIR"]` if `PATHS.get("TURN_LOG_PATH")` is not found ([`simulation_engine/turn_engine.py:34`](simulation_engine/turn_engine.py:34)). The exact nature and content of these logs are not detailed in this module but are managed by the `WorldState` object's `log_event` method.
@@ -54,7 +54,7 @@ The module appears largely functional for its defined responsibilities.
 - **[`initialize_worldstate(start_year: Optional[int] = None, **kwargs) -> WorldState`](simulation_engine/turn_engine.py:40):**
   A factory function to create and initialize a `WorldState` object. This allows other parts of the system (like `IntelligenceCore`) to bootstrap a simulation without directly importing the `WorldState` class.
   ```python
-  from simulation_engine.turn_engine import initialize_worldstate
+  from engine.turn_engine import initialize_worldstate
   # Basic initialization
   world = initialize_worldstate()
   # Initialization with a specific start year
@@ -66,7 +66,7 @@ The module appears largely functional for its defined responsibilities.
 - **[`run_turn(state: WorldState, rule_fn: Optional[Callable[[WorldState], None]] = None, decay_rate: float = 0.01, verbose: bool = True, learning_engine=None, injection_snapshot: Optional[Dict[str, float]] = None) -> list[dict]`](simulation_engine/turn_engine.py:50):**
   The core function that executes a single turn of the simulation.
   ```python
-  from simulation_engine.turn_engine import run_turn, initialize_worldstate
+  from engine.turn_engine import run_turn, initialize_worldstate
   current_worldstate = initialize_worldstate()
   # Run a basic turn
   audit_log = run_turn(current_worldstate)
@@ -90,12 +90,12 @@ The module appears largely functional for its defined responsibilities.
 ## 7. Coupling Points
 
 - **High Coupling with `WorldState`:** The module is tightly coupled with the [`WorldState`](simulation_engine/worldstate.py:0) object, as it directly manipulates its attributes and calls its methods (e.g., `log_event`, `advance_turn`, accessing `overlays`, `variables`).
-- **Core Simulation Logic:** Tightly coupled with [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py), [`simulation_engine.causal_rules`](simulation_engine/causal_rules.py), and [`simulation_engine.rule_engine`](simulation_engine/rule_engine.py) for the fundamental steps of a simulation turn.
+- **Core Simulation Logic:** Tightly coupled with [`engine.state_mutation`](simulation_engine/state_mutation.py), [`engine.causal_rules`](simulation_engine/causal_rules.py), and [`engine.rule_engine`](simulation_engine/rule_engine.py) for the fundamental steps of a simulation turn.
 - **Configuration/Path Management:** Depends on [`core.path_registry`](core/path_registry.py) for `TURN_LOG_PATH` and [`core.pulse_config`](core/pulse_config.py) for `ENABLE_TRACE_LOGGING`. Changes in these central configurations directly affect the module's behavior.
 - **Optional Systems:**
     - `learning_engine`: If provided, the module calls its `on_simulation_turn_end` method.
     - `trace_audit_engine`: If `ENABLE_TRACE_LOGGING` is true, the module interacts with this system.
-    - `RetrodictionLoader` ([`simulation_engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:0)): Used if `injection_snapshot` is provided.
+    - `RetrodictionLoader` ([`engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:0)): Used if `injection_snapshot` is provided.
 
 ## 8. Existing Tests
 

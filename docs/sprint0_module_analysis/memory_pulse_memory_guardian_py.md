@@ -21,7 +21,7 @@ The module appears partially operational.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
--   [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:1): Used as the primary object type for memory manipulation.
+-   [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:1): Used as the primary object type for memory manipulation.
 -   [`trust_system.trust_engine.TrustEngine`](trust_system/trust_engine.py:1): Used by [`prune_incoherent_forecasts()`](memory/pulse_memory_guardian.py:64) to check forecast coherence.
 
 ### External Library Dependencies:
@@ -42,8 +42,8 @@ The module appears partially operational.
 
 -   **Pruning memory by entry count:**
     ```python
-    from memory.forecast_memory import ForecastMemory
-    from memory.pulse_memory_guardian import prune_memory
+    from analytics.forecast_memory import ForecastMemory
+    from analytics.pulse_memory_guardian import prune_memory
 
     fm = ForecastMemory()
     # populate fm with forecasts
@@ -52,8 +52,8 @@ The module appears partially operational.
 
 -   **Pruning memory by confidence:**
     ```python
-    from memory.forecast_memory import ForecastMemory
-    from memory.pulse_memory_guardian import prune_memory_advanced
+    from analytics.forecast_memory import ForecastMemory
+    from analytics.pulse_memory_guardian import prune_memory_advanced
 
     fm = ForecastMemory()
     # populate fm with forecasts that have a "confidence" key
@@ -62,7 +62,7 @@ The module appears partially operational.
 
 -   **Pruning incoherent forecasts:**
     ```python
-    from memory.pulse_memory_guardian import prune_incoherent_forecasts
+    from analytics.pulse_memory_guardian import prune_incoherent_forecasts
 
     # memory_batch is a list of forecast dictionaries
     forecast_batch = [
@@ -73,7 +73,7 @@ The module appears partially operational.
     ```
 -   **Archiving a variable (conceptual):**
     ```python
-    from memory.pulse_memory_guardian import archive_variable_fossil
+    from analytics.pulse_memory_guardian import archive_variable_fossil
 
     variable_data = {"last_value": 123, "update_time": "2023-01-01T10:00:00Z"}
     archive_variable_fossil("my_variable", variable_data, dry_run=True)

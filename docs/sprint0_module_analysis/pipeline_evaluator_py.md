@@ -13,7 +13,7 @@ The module appears to be partially complete but operational for its core task of
     *   [`evaluate`](pipeline/evaluator.py:44): `TODO: Replace with actual data loading mechanism if different` (currently assumes Parquet)
     *   [`evaluate`](pipeline/evaluator.py:86): `TODO: Implement more sophisticated feedback generation and storage`
     *   [`evaluate`](pipeline/evaluator.py:88): `TODO: Integrate proposed_rule_changes into a management mechanism`
-    *   [`evaluate`](pipeline/evaluator.py:110): `TODO: implement evaluation logic calling simulation_engine.simulate_forward`
+    *   [`evaluate`](pipeline/evaluator.py:110): `TODO: implement evaluation logic calling engine.simulate_forward`
     *   [`evaluate`](pipeline/evaluator.py:111): `TODO: Incorporate historical forecast data for evaluation and training`
     *   [`analyze_and_propose_rule_changes`](pipeline/evaluator.py:209): `TODO: Implement more sophisticated rule generation/pruning logic`
 
@@ -21,7 +21,7 @@ The module appears to be partially complete but operational for its core task of
 
 *   **More Extensive Intentions:**
     *   The TODO in [`__init__`](pipeline/evaluator.py:16) suggests an intention to interact with a simulation client, which is not currently implemented.
-    *   The TODO in [`evaluate`](pipeline/evaluator.py:110) to call `simulation_engine.simulate_forward` indicates a planned but missing step for a more comprehensive evaluation process, possibly involving running simulations with proposed changes.
+    *   The TODO in [`evaluate`](pipeline/evaluator.py:110) to call `engine.simulate_forward` indicates a planned but missing step for a more comprehensive evaluation process, possibly involving running simulations with proposed changes.
     *   The TODO in [`evaluate`](pipeline/evaluator.py:111) about incorporating historical forecast data suggests a broader scope for evaluation and training feedback loops.
 *   **Logical Next Steps:**
     *   A mechanism to apply or manage the [`proposed_rule_changes.json`](pipeline/rule_proposals/proposed_rule_changes.json:1) (as noted in [`evaluate`](pipeline/evaluator.py:88)).

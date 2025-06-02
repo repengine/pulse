@@ -22,9 +22,9 @@ from typing import Any, Dict, Optional
 
 import pandas as pd
 
-from simulation_engine.worldstate import WorldState
-from core.variable_registry import registry  # singleton instance
-from iris.variable_ingestion import ingest_live_variables  # lightweight wrapper
+from engine.worldstate import WorldState
+from engine.variable_registry import registry  # singleton instance
+from ingestion.variable_ingestion import ingest_live_variables  # lightweight wrapper
 from intelligence.intelligence_config import (
     WORLDSTATE_DEFAULT_SOURCE,
     WORLDSTATE_INJECT_LIVE_DEFAULT,
@@ -89,7 +89,7 @@ def load_initial_state(
         baseline_vars.update(live_vars)  # Live vars can overwrite baseline
 
     # Create the WorldState instance explicitly passing args with refined type checks
-    from simulation_engine.worldstate import (
+    from engine.worldstate import (
         Variables,
         SymbolicOverlays,
         CapitalExposure,
@@ -212,7 +212,7 @@ def load_historical_snapshot(
         )  # Extract metadata if provided
 
         # Create the WorldState instance explicitly passing args with refined type checks
-        from simulation_engine.worldstate import (
+        from engine.worldstate import (
             Variables,
             SymbolicOverlays,
             CapitalExposure,

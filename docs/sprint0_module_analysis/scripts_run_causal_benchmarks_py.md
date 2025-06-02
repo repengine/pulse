@@ -43,9 +43,9 @@ There are no strong indications that development started on a significantly diff
 ### Direct Imports from Other Project Modules:
 - [`core.path_registry.PATHS`](core/path_registry.py) (from [`scripts/run_causal_benchmarks.py:35`](scripts/run_causal_benchmarks.py:35))
 - [`core.pulse_config.SHADOW_MONITOR_CONFIG`](core/pulse_config.py) (from [`scripts/run_causal_benchmarks.py:36`](scripts/run_causal_benchmarks.py:36)) - Note: `SHADOW_MONITOR_CONFIG` is imported but not explicitly used in the provided code.
-- [`simulation_engine.batch_runner.run_batch_from_config()`](simulation_engine/batch_runner.py) (from [`scripts/run_causal_benchmarks.py:37`](scripts/run_causal_benchmarks.py:37))
+- [`engine.batch_runner.run_batch_from_config()`](simulation_engine/batch_runner.py) (from [`scripts/run_causal_benchmarks.py:37`](scripts/run_causal_benchmarks.py:37))
 - [`forecast_output.forecast_generator.generate_forecast()`](forecast_output/forecast_generator.py) (from [`scripts/run_causal_benchmarks.py:38`](scripts/run_causal_benchmarks.py:38)) - Note: `generate_forecast` is imported but not explicitly used in the provided code.
-- [`learning.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py) (from [`scripts/run_causal_benchmarks.py:39`](scripts/run_causal_benchmarks.py:39)) - Note: `run_forecast_pipeline` is imported but not explicitly used in the provided code.
+- [`analytics.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py) (from [`scripts/run_causal_benchmarks.py:39`](scripts/run_causal_benchmarks.py:39)) - Note: `run_forecast_pipeline` is imported but not explicitly used in the provided code.
 
 ### External Library Dependencies:
 - `os` ([`scripts/run_causal_benchmarks.py:22`](scripts/run_causal_benchmarks.py:22))
@@ -134,7 +134,7 @@ There are no strong indications that development started on a significantly diff
 
 ## Coupling Points
 
-- **[`simulation_engine.batch_runner`](simulation_engine/batch_runner.py):** Tightly coupled, as this script's core function is to run benchmarks using [`run_batch_from_config()`](simulation_engine/batch_runner.py:0) (either directly or via subprocess). The `--gravity-off` / `gravity_enabled=False` parameter is a key part of this interaction.
+- **[`engine.batch_runner`](simulation_engine/batch_runner.py):** Tightly coupled, as this script's core function is to run benchmarks using [`run_batch_from_config()`](simulation_engine/batch_runner.py:0) (either directly or via subprocess). The `--gravity-off` / `gravity_enabled=False` parameter is a key part of this interaction.
 - **[`core.path_registry.PATHS`](core/path_registry.py):** Relies on this for default file paths, making it dependent on the path definitions within the registry.
 - **Configuration File Structure:** Implicitly coupled to the expected structure of the benchmark scenario configuration files (YAML/JSON) and the output structure of [`run_batch_from_config()`](simulation_engine/batch_runner.py:0) (for metric calculation).
 - **Output Data Format (JSONL):** The script produces and consumes JSONL for results, creating a dependency on this format for any downstream analysis tools.
@@ -184,7 +184,7 @@ Overall, the existing tests provide good coverage for the programmatic execution
 
 3.  **Single Scenario Execution (Two Methods):**
     *   **`run_scenario_programmatically()`:**
-        *   Calls [`run_batch_from_config()`](simulation_engine/batch_runner.py:0) from [`simulation_engine.batch_runner`](simulation_engine/batch_runner.py) with `gravity_enabled=False`.
+        *   Calls [`run_batch_from_config()`](simulation_engine/batch_runner.py:0) from [`engine.batch_runner`](simulation_engine/batch_runner.py) with `gravity_enabled=False`.
         *   Passes the scenario's `configs` and a unique output path for this specific scenario's detailed results.
         *   Calls [`calculate_metrics()`](scripts/run_causal_benchmarks.py:240) on the results.
         *   Returns a dictionary with scenario info, timestamp, metrics, and output path.

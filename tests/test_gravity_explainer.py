@@ -17,30 +17,30 @@ import os  # Add os import
 _project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
-import pytest # noqa E402
-import os # noqa E402
-import json # noqa E402
-import logging # noqa E402
-from typing import Dict, Optional # noqa E402
+import pytest  # noqa E402
+import os  # noqa E402
+import json  # noqa E402
+import logging  # noqa E402
+from typing import Dict, Optional  # noqa E402
 
 # Import real dependencies if available, otherwise mock
-import sys # noqa E402
-from unittest.mock import MagicMock, patch # noqa E402
+import sys  # noqa E402
+from unittest.mock import MagicMock, patch  # noqa E402
 
 # Import for type annotations only
-from typing import TYPE_CHECKING # noqa E402
+from typing import TYPE_CHECKING  # noqa E402
 
 if TYPE_CHECKING:
-    from simulation_engine.worldstate import WorldState
+    from engine.worldstate import WorldState
 
 # Try to import actual modules with fallbacks to mocks
 try:
-    from simulation_engine.worldstate import WorldState
+    from engine.worldstate import WorldState
 except ImportError:
     WorldState = MagicMock
 
 try:
-    from simulation_engine.simulator_core import simulate_forward
+    from engine.simulator_core import simulate_forward
 except ImportError:
     simulate_forward = MagicMock()
 
@@ -61,7 +61,7 @@ except ImportError:
     export_gravity_explanation_json = MagicMock()
 
 try:
-    from simulation_engine.worldstate_monitor import display_gravity_correction_details
+    from engine.worldstate_monitor import display_gravity_correction_details
 except ImportError:
     display_gravity_correction_details = MagicMock()
 
@@ -214,7 +214,7 @@ def test_simulation_trace_contains_gravity_details():
 
         try:
             # Method 1: Try using a variable accessor API if available
-            from core.variable_accessor import set_variable
+            from engine.variable_accessor import set_variable
 
             for var_name, value in variables_dict.items():
                 set_variable(ws, var_name, value)
@@ -238,7 +238,7 @@ def test_simulation_trace_contains_gravity_details():
 
         try:
             # Method 1: Try using an overlay accessor API if available
-            from core.variable_accessor import set_overlay
+            from engine.variable_accessor import set_overlay
 
             for overlay_name, value in overlays_dict.items():
                 set_overlay(ws, overlay_name, value)
@@ -283,7 +283,7 @@ def test_simulation_trace_contains_gravity_details():
             patch(
                 "symbolic_system.gravity.engines.residual_gravity_engine.ResidualGravityEngine"
             ) as MockResidualEngine,
-            patch("simulation_engine.simulator_core.run_rules") as _mock_run_rules,
+            patch("engine.simulator_core.run_rules") as _mock_run_rules,
             patch.object(ResidualGravityConfig, "load") as mock_load_config,
         ):  # Corrected attribute name
             # Configure the mock_load_config to return a config where gravity is active for relevant vars
@@ -513,7 +513,7 @@ def test_cli_integration():
 
         with patch.object(sys, "argv", test_args):
             with patch(
-                "simulation_engine.worldstate_monitor.display_gravity_correction_details"
+                "engine.worldstate_monitor.display_gravity_correction_details"
             ) as mock_display:
                 # We're not actually running the CLI, just verifying the setup
                 mock_display.return_value = None
@@ -521,7 +521,7 @@ def test_cli_integration():
                 # Import the module to trigger CLI argument parsing
                 # This is a bit hacky for unit tests, but demonstrates the integration
                 try:
-                    # import simulation_engine.simulator_core
+                    # import engine.simulator_core
 
                     # Here we would need to call a function that parses args and processes,
                     # but in a unit test context, we just check the args were correct

@@ -26,7 +26,7 @@ The module appears largely complete and operational for its defined scope. Key f
 -   [`trust_system.license_enforcer`](../../trust_system/license_enforcer.py): Imports [`annotate_forecasts()`](../../trust_system/license_enforcer.py) and [`filter_licensed()`](../../trust_system/license_enforcer.py) ([`line 15`](../../memory/forecast_memory.py:15)).
 -   [`core.pulse_learning_log`](../../core/pulse_learning_log.py): For [`log_learning_event()`](../../core/pulse_learning_log.py) ([`line 16`](../../memory/forecast_memory.py:16)).
 -   [`utils.log_utils`](../../utils/log_utils.py): For [`get_logger()`](../../utils/log_utils.py) ([`line 19`](../../memory/forecast_memory.py:19)).
--   [`memory.cluster_mutation_tracker`](../../memory/cluster_mutation_tracker.py): Imports [`track_cluster_lineage()`](../../memory/cluster_mutation_tracker.py) and [`select_most_evolved()`](../../memory/cluster_mutation_tracker.py) within the [`retain_cluster_lineage_leaders()`](../../memory/forecast_memory.py:170) method.
+-   [`analytics.cluster_mutation_tracker`](../../memory/cluster_mutation_tracker.py): Imports [`track_cluster_lineage()`](../../memory/cluster_mutation_tracker.py) and [`select_most_evolved()`](../../memory/cluster_mutation_tracker.py) within the [`retain_cluster_lineage_leaders()`](../../memory/forecast_memory.py:170) method.
 
 ### External Library Dependencies:
 -   `typing`: For type hints (`List`, `Dict`, `Optional`) ([`line 12`](../../memory/forecast_memory.py:12)).
@@ -50,7 +50,7 @@ The module appears largely complete and operational for its defined scope. Key f
 ## 5. Function and Class Example Usages
 
 ```python
-from memory.forecast_memory import ForecastMemory
+from analytics.forecast_memory import ForecastMemory
 
 # Initialize ForecastMemory, optionally specifying persistence directory and max entries
 # Assumes PATHS is configured, e.g., PATHS = {"FORECAST_HISTORY": "data/forecast_history"}
@@ -121,7 +121,7 @@ memory_store.retain_certified_forecasts()
 -   **`core.path_registry`**: Tightly coupled for the default persistence directory (`PATHS["FORECAST_HISTORY"]`). Changes to how paths are managed could impact this module.
 -   **Forecast Object Structure**: The module heavily relies on the internal structure (expected keys and data types) of the `forecast_obj` dictionaries. Changes to this structure elsewhere in the system would require updates here. Examples include keys like `forecast_id`, `confidence`, `domain`, `overlays`, `certified`, `unstable_symbolic_path`, `trust_label`, `license`.
 -   **`trust_system.license_enforcer`**: Imports suggest a functional dependency, particularly for license-related processing, even if not all imported functions are directly called in the visible code.
--   **`memory.cluster_mutation_tracker`**: Dependency for the `retain_cluster_lineage_leaders` functionality.
+-   **`analytics.cluster_mutation_tracker`**: Dependency for the `retain_cluster_lineage_leaders` functionality.
 -   **File System & JSON Format**: Interaction with the file system for persistence (reading/writing JSON files) creates coupling. Changes in storage format or strategy would affect [`_persist_to_file()`](../../memory/forecast_memory.py:186) and [`_load_from_files()`](../../memory/forecast_memory.py:209).
 -   **`core.pulse_learning_log`**: Coupled for logging learning events related to memory updates.
 
@@ -160,7 +160,7 @@ The `ForecastMemory` class is the central component of this module.
     -   [`retain_only_stable_forecasts()`](../../memory/forecast_memory.py:151): Filters `self._memory` to keep only forecasts not marked with `unstable_symbolic_path`.
     -   [`retain_certified_forecasts()`](../../memory/forecast_memory.py:159): Filters `self._memory` to keep only forecasts where `certified` is `True`.
     -   [`tag_uncertified_for_review()`](../../memory/forecast_memory.py:164): Sets `memory_flag` to `"uncertified_discard"` for non-certified forecasts.
-    -   [`retain_cluster_lineage_leaders()`](../../memory/forecast_memory.py:170): Uses [`memory.cluster_mutation_tracker`](../../memory/cluster_mutation_tracker.py) to keep only the most evolved forecast per narrative cluster.
+    -   [`retain_cluster_lineage_leaders()`](../../memory/forecast_memory.py:170): Uses [`analytics.cluster_mutation_tracker`](../../memory/cluster_mutation_tracker.py) to keep only the most evolved forecast per narrative cluster.
 -   **Internal Persistence Logic**:
     -   [`_enforce_memory_limit()`](../../memory/forecast_memory.py:181): If `len(self._memory)` exceeds `self.max_entries`, truncates the list to keep only the most recent `self.max_entries`.
     -   [`_persist_to_file()`](../../memory/forecast_memory.py:186): Saves a single `forecast_obj` to a JSON file named `<forecast_id>.json` in `self.persist_dir`. Includes a "PATCH" to handle serialization of `overlays`.

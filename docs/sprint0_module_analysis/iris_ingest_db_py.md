@@ -27,7 +27,7 @@ No explicit "TODO" comments or obvious placeholders for core functionality are p
 ## 4. Connections & Dependencies
 
 *   **Direct Imports from Other Project Modules:**
-    *   [`iris.iris_scraper.IrisScraper`](iris/iris_scraper.py:) (instantiated but unused in `poll_database`)
+    *   [`ingestion.iris_scraper.IrisScraper`](iris/iris_scraper.py:) (instantiated but unused in `poll_database`)
     *   [`core.celery_app.celery_app`](core/celery_app.py:) (used to send tasks)
     *   [`core.metrics.start_metrics_server`](core/metrics.py:) (used to start Prometheus metrics endpoint)
 *   **External Library Dependencies:**

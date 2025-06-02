@@ -24,15 +24,15 @@ logger = logging.getLogger("pulse-api-server")
 
 # Try to import Pulse modules, but handle gracefully if not available
 try:
-    # from learning.forecast_pipeline_runner import run_forecast_pipeline # F401
-    # from learning.recursion_audit import generate_recursion_report # F401
+    # from analytics.forecast_pipeline_runner import run_forecast_pipeline # F401
+    # from analytics.recursion_audit import generate_recursion_report # F401
     # from dev_tools.pulse_ui_plot import load_variable_trace, plot_variables # F401
     # import core.pulse_config # F401
     # from operator_interface.learning_log_viewer import ( # F401
     #     load_learning_events, # F401
     #     summarize_learning_events, # F401
     # ) # F401
-    # from memory.variable_cluster_engine import summarize_clusters # F401
+    # from analytics.variable_cluster_engine import summarize_clusters # F401
 
     has_pulse_modules = True
 except ImportError as e:
@@ -207,7 +207,9 @@ def run_retrodiction():
 
     # Validate parameters
     if not params or not params.get("start_date"):
-        return jsonify({"status": "error", "error": "start_date is required in JSON body"})
+        return jsonify(
+            {"status": "error", "error": "start_date is required in JSON body"}
+        )
 
     run_id = f"retro-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
@@ -268,7 +270,11 @@ def run_learning_audit():
     """Run a learning audit."""
     params = request.json
 
-    if not params or not params.get("previous_batch_id") or not params.get("current_batch_id"):
+    if (
+        not params
+        or not params.get("previous_batch_id")
+        or not params.get("current_batch_id")
+    ):
         return jsonify(
             {
                 "status": "error",

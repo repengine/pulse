@@ -23,7 +23,7 @@ There are no explicit signs that the module was intended to be more extensive in
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   `from memory.forecast_memory import ForecastMemory` ([`memory/forecast_memory.py`](../../../memory/forecast_memory.py:10))
+    *   `from analytics.forecast_memory import ForecastMemory` ([`memory/forecast_memory.py`](../../../memory/forecast_memory.py:10))
 *   **External Library Dependencies:**
     *   `csv` (Python standard library, imported conditionally within the [`audit_memory`](../../../memory/pulse_memory_audit_report.py:12) function if `csv_path` is provided).
 *   **Interaction with Other Modules:**
@@ -43,8 +43,8 @@ The module contains a single primary function:
     *   **Purpose:** Prints a summary of the forecast memory and optionally exports details to a CSV file.
     *   **Usage Example:**
         ```python
-        from memory.forecast_memory import ForecastMemory
-        from memory.pulse_memory_audit_report import audit_memory
+        from analytics.forecast_memory import ForecastMemory
+        from analytics.pulse_memory_audit_report import audit_memory
 
         # Assuming 'fm' is an initialized and populated ForecastMemory object
         fm = ForecastMemory()

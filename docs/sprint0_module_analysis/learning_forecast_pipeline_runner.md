@@ -43,15 +43,15 @@ The module appears to be largely complete and operational for its defined scope.
 *   [`forecast_output.strategos_digest_builder`](forecast_output/strategos_digest_builder.py:1): [`build_digest()`](forecast_output/strategos_digest_builder.py:1)
 *   [`trust_system.trust_engine`](trust_system/trust_engine.py:1): `TrustEngine`
 *   [`trust_system.fragility_detector`](trust_system/fragility_detector.py:1): [`tag_fragility()`](trust_system/fragility_detector.py:1)
-*   [`memory.trace_audit_engine`](memory/trace_audit_engine.py:1): [`assign_trace_metadata()`](memory/trace_audit_engine.py:1), [`register_trace_to_memory()`](memory/trace_audit_engine.py:1)
-*   [`memory.forecast_memory`](memory/forecast_memory.py:1): `ForecastMemory`
+*   [`analytics.trace_audit_engine`](memory/trace_audit_engine.py:1): [`assign_trace_metadata()`](memory/trace_audit_engine.py:1), [`register_trace_to_memory()`](memory/trace_audit_engine.py:1)
+*   [`analytics.forecast_memory`](memory/forecast_memory.py:1): `ForecastMemory`
 *   [`utils.log_utils`](utils/log_utils.py:1): [`log_info()`](utils/log_utils.py:1)
 *   [`forecast_output.forecast_prioritization_engine`](forecast_output/forecast_prioritization_engine.py:1): [`select_top_forecasts()`](forecast_output/forecast_prioritization_engine.py:1)
-*   [`memory.forecast_memory_promoter`](memory/forecast_memory_promoter.py:1): [`select_promotable_forecasts()`](memory/forecast_memory_promoter.py:1), [`export_promoted()`](memory/forecast_memory_promoter.py:1)
+*   [`analytics.forecast_memory_promoter`](memory/forecast_memory_promoter.py:1): [`select_promotable_forecasts()`](memory/forecast_memory_promoter.py:1), [`export_promoted()`](memory/forecast_memory_promoter.py:1)
 *   [`capital_engine.capital_layer`](capital_engine/capital_layer.py:1): [`run_capital_forks()`](capital_engine/capital_layer.py:1), [`summarize_exposure()`](capital_engine/capital_layer.py:1), [`portfolio_alignment_tags()`](capital_engine/capital_layer.py:1) (Note: `run_capital_forks` is imported but not directly used in `run_forecast_pipeline`)
 *   [`forecast_output.forecast_confidence_gate`](forecast_output/forecast_confidence_gate.py:1): [`filter_by_confidence()`](forecast_output/forecast_confidence_gate.py:1)
-*   [`memory.trace_memory`](memory/trace_memory.py:1): `TraceMemory`
-*   [`memory.variable_performance_tracker`](memory/variable_performance_tracker.py:1): `VariablePerformanceTracker`
+*   [`analytics.trace_memory`](memory/trace_memory.py:1): `TraceMemory`
+*   [`analytics.variable_performance_tracker`](memory/variable_performance_tracker.py:1): `VariablePerformanceTracker`
 *   [`forecast_output.forecast_contradiction_detector`](forecast_output/forecast_contradiction_detector.py:1): [`detect_forecast_contradictions()`](forecast_output/forecast_contradiction_detector.py:1)
 *   [`core.pulse_learning_log`](core/pulse_learning_log.py:1): [`log_learning_event()`](core/pulse_learning_log.py:1)
 *   [`GPT.gpt_causal_translator`](GPT/gpt_causal_translator.py:1): [`extract_rules_from_gpt_output()`](GPT/gpt_causal_translator.py:1), [`label_symbolic_arcs()`](GPT/gpt_causal_translator.py:1), [`identify_missing_domains()`](GPT/gpt_causal_translator.py:1)

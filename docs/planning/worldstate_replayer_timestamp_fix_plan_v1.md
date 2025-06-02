@@ -552,8 +552,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 # Assuming these are correct project imports based on analysis
-from simulation_engine.worldstate import WorldState
-from simulation_engine.turn_engine import run_turn # If run_turn is the correct import
+from engine.worldstate import WorldState
+from engine.turn_engine import run_turn # If run_turn is the correct import
 # from utils.log_utils import get_logger # Assuming this path
 # from core.path_registry import PATHS # Assuming this path
 # from core.pulse_learning_log import log_learning_event # Assuming this path

@@ -34,7 +34,7 @@ The module is intended to be used for:
 
 ### Direct Project Module Imports:
 -   [`core.variable_registry.VARIABLE_REGISTRY`](../../../core/variable_registry.py:): Central source for all variable metadata (types, tags). Accessed in [`cluster_by_domain()`](../../../memory/variable_cluster_engine.py:39) and [`cluster_by_tag()`](../../../memory/variable_cluster_engine.py:58).
--   [`memory.variable_performance_tracker.VariablePerformanceTracker`](../../../memory/variable_performance_tracker.py:): Used by [`score_cluster_volatility()`](../../../memory/variable_cluster_engine.py:71) to fetch variable effectiveness scores (fragility, certified ratio).
+-   [`analytics.variable_performance_tracker.VariablePerformanceTracker`](../../../memory/variable_performance_tracker.py:): Used by [`score_cluster_volatility()`](../../../memory/variable_cluster_engine.py:71) to fetch variable effectiveness scores (fragility, certified ratio).
 
 ### External Library Dependencies:
 -   `json` ([`memory/variable_cluster_engine.py:16`](../../../memory/variable_cluster_engine.py:16)): Imported but not directly used in the provided code.
@@ -59,7 +59,7 @@ The module is intended to be used for:
 -   **[`cluster_by_domain()`](../../../memory/variable_cluster_engine.py:28):**
     ```python
     # Example:
-    # from memory.variable_cluster_engine import cluster_by_domain
+    # from analytics.variable_cluster_engine import cluster_by_domain
     # domain_clusters = cluster_by_domain()
     # print(domain_clusters)
     # Output might be: {'economic': ['gdp_usa', 'interest_rate'], 'social': ['population_density']}
@@ -68,7 +68,7 @@ The module is intended to be used for:
 -   **[`cluster_by_tag(tag: str)`](../../../memory/variable_cluster_engine.py:45):**
     ```python
     # Example:
-    # from memory.variable_cluster_engine import cluster_by_tag
+    # from analytics.variable_cluster_engine import cluster_by_tag
     # financial_vars = cluster_by_tag("financial_indicator")
     # print(financial_vars)
     # Output might be: ['gdp_usa', 'stock_price_xyz']
@@ -77,7 +77,7 @@ The module is intended to be used for:
 -   **[`score_cluster_volatility(cluster: List[str])`](../../../memory/variable_cluster_engine.py:61):**
     ```python
     # Example:
-    # from memory.variable_cluster_engine import score_cluster_volatility
+    # from analytics.variable_cluster_engine import score_cluster_volatility
     # economic_vars = ['gdp_usa', 'interest_rate']
     # volatility = score_cluster_volatility(economic_vars)
     # print(f"Volatility of economic cluster: {volatility}")
@@ -107,7 +107,7 @@ The module is intended to be used for:
 ## 7. Coupling Points
 
 -   **High Coupling with [`core.variable_registry.VARIABLE_REGISTRY`](../../../core/variable_registry.py:):** The module's core functionality depends entirely on the existence and assumed schema (keys like `"type"`, `"tags"`) of this registry.
--   **High Coupling with [`memory.variable_performance_tracker.VariablePerformanceTracker`](../../../memory/variable_performance_tracker.py:):** Relies on the `score_variable_effectiveness()` method and the structure of the dictionary it returns (keys like `"avg_fragility"`, `"certified_ratio"`).
+-   **High Coupling with [`analytics.variable_performance_tracker.VariablePerformanceTracker`](../../../memory/variable_performance_tracker.py:):** Relies on the `score_variable_effectiveness()` method and the structure of the dictionary it returns (keys like `"avg_fragility"`, `"certified_ratio"`).
 -   **Implicit Schema:** The expected structure of variable metadata and performance scores is an implicit contract. Changes in these external structures would break this module.
 
 ## 8. Existing Tests

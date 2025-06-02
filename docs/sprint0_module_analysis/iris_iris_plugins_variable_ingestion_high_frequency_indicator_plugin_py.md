@@ -35,10 +35,10 @@ The module appears largely functional for its core purpose of fetching and forma
 *   **Direct Project Module Imports:**
     *   [`data.high_frequency_data_access.HighFrequencyDataAccess`](../../../../data/high_frequency_data_access.py)
     *   [`data.high_frequency_data_store.HighFrequencyDataStore`](../../../../data/high_frequency_data_store.py)
-    *   [`iris.high_frequency_indicators.HighFrequencyIndicators`](../../../../iris/high_frequency_indicators.py)
+    *   [`ingestion.high_frequency_indicators.HighFrequencyIndicators`](../../../../iris/high_frequency_indicators.py)
     *   [`core.variable_registry.VARIABLE_REGISTRY`](../../../../core/variable_registry.py) (Imported, but not directly used in the `fetch_signals` method shown. Potentially used by the base class or for future extensions.)
-    *   [`iris.iris_plugins.IrisPluginManager`](../../../../iris/iris_plugins.py) (Base class)
-    *   [`iris.iris_plugins_variable_ingestion.alpha_vantage_plugin.AlphaVantagePlugin`](../../../../iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py) (Specifically for `STOCK_SYMBOLS`)
+    *   [`ingestion.iris_plugins.IrisPluginManager`](../../../../iris/iris_plugins.py) (Base class)
+    *   [`ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin.AlphaVantagePlugin`](../../../../iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py) (Specifically for `STOCK_SYMBOLS`)
 *   **External Library Dependencies:**
     *   `datetime` (as `dt`)
     *   `logging`
@@ -59,8 +59,8 @@ The module appears largely functional for its core purpose of fetching and forma
     *   The core logic resides in its [`fetch_signals()`](../../../../iris/iris_plugins_variable_ingestion/high_frequency_indicator_plugin.py:28) method.
     *   Example (commented out in the module):
         ```python
-        # from iris.iris_plugins import IrisPluginManager
-        # from iris.iris_plugins_variable_ingestion.high_frequency_indicator_plugin import HighFrequencyIndicatorPlugin
+        # from ingestion.iris_plugins import IrisPluginManager
+        # from ingestion.iris_plugins_variable_ingestion.high_frequency_indicator_plugin import HighFrequencyIndicatorPlugin
         # manager = IrisPluginManager()
         # plugin_instance = HighFrequencyIndicatorPlugin()
         # manager.register_plugin(plugin_instance.fetch_signals) # Or however plugins are registered

@@ -17,7 +17,7 @@ The module appears to be functionally complete for its stated, limited purpose o
 ## 4. Connections & Dependencies
 
 *   **Direct Project Imports:**
-    *   [`from memory.rule_cluster_engine import summarize_rule_clusters`](../../operator_interface/rule_cluster_viewer.py:10): This is the core dependency, providing the data that the module visualizes.
+    *   [`from analytics.rule_cluster_engine import summarize_rule_clusters`](../../operator_interface/rule_cluster_viewer.py:10): This is the core dependency, providing the data that the module visualizes.
 *   **External Library Dependencies:**
     *   None apparent beyond standard Python libraries.
 *   **Interaction via Shared Data:**
@@ -52,7 +52,7 @@ The module contains one primary function, [`render_cluster_digest()`](../../oper
 
 ## 7. Coupling Points
 
-*   **`memory.rule_cluster_engine.summarize_rule_clusters()`:** The module is tightly coupled to this function. Any changes to the function signature or the structure of the data it returns would likely require modifications to [`rule_cluster_viewer.py`](../../operator_interface/rule_cluster_viewer.py:1).
+*   **`analytics.rule_cluster_engine.summarize_rule_clusters()`:** The module is tightly coupled to this function. Any changes to the function signature or the structure of the data it returns would likely require modifications to [`rule_cluster_viewer.py`](../../operator_interface/rule_cluster_viewer.py:1).
 *   **Output Format:** The current implementation is coupled to console-based output via the `print()` function. Changing to a different output mechanism (e.g., GUI, web, file) would require significant changes.
 
 ## 8. Existing Tests
@@ -64,7 +64,7 @@ The module contains one primary function, [`render_cluster_digest()`](../../oper
 
 The module's architecture is straightforward:
 
-1.  **Import Dependencies:** Imports [`summarize_rule_clusters`](../../memory/rule_cluster_engine.py) from [`memory.rule_cluster_engine`](../../memory/rule_cluster_engine.py).
+1.  **Import Dependencies:** Imports [`summarize_rule_clusters`](../../memory/rule_cluster_engine.py) from [`analytics.rule_cluster_engine`](../../memory/rule_cluster_engine.py).
 2.  **Define `render_cluster_digest` Function:**
     *   Takes `limit` and `volatility_threshold` as parameters.
     *   Calls [`summarize_rule_clusters()`](../../memory/rule_cluster_engine.py) to get cluster data.

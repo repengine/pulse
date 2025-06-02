@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-This module, [`cdc_socrata_plugin.py`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:1), serves as a plugin stub designed to fetch health-related data signals from the CDC's Open Data platform, which utilizes Socrata. Its primary role is to integrate with the Iris plugin system ([`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:1)) to ingest this external data.
+This module, [`cdc_socrata_plugin.py`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:1), serves as a plugin stub designed to fetch health-related data signals from the CDC's Open Data platform, which utilizes Socrata. Its primary role is to integrate with the Iris plugin system ([`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:1)) to ingest this external data.
 
 ## 2. Operational Status/Completeness
 
@@ -27,7 +27,7 @@ The module is currently a **stub** and is **not operational**.
 
 - **Direct Project Imports:**
     - `from typing import List, Dict, Any` ([`iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:5`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:5))
-    - `from iris.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:6`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:6))
+    - `from ingestion.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:6`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:6))
 - **External Library Dependencies:**
     - None are explicitly imported in the current stub.
     - Implementation would likely require libraries such as `requests` for HTTP calls or a Socrata-specific client library.
@@ -67,7 +67,7 @@ The [`fetch_signals()`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.
 
 ## 7. Coupling Points
 
-- The module is tightly coupled to the [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:1) class through inheritance. This is inherent to its design as a plugin.
+- The module is tightly coupled to the [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:1) class through inheritance. This is inherent to its design as a plugin.
 - Future implementation of [`fetch_signals()`](iris/iris_plugins_variable_ingestion/cdc_socrata_plugin.py:13) will introduce coupling with the CDC Socrata API and any libraries used to interact with it.
 
 ## 8. Existing Tests

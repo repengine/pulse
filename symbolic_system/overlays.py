@@ -11,8 +11,8 @@ enabling coherent symbolic behavior across modules.
 Author: Pulse v3.5
 """
 
-from simulation_engine.worldstate import WorldState
-from simulation_engine.state_mutation import adjust_overlay
+from engine.worldstate import WorldState
+from engine.state_mutation import adjust_overlay
 from typing import Dict, Optional
 
 # Import optimization utilities
@@ -24,7 +24,7 @@ from symbolic_system.optimization import (
 )
 
 OVERLAY_NAMES = getattr(
-    __import__("core.pulse_config"),
+    __import__("engine.pulse_config"),
     "OVERLAY_NAMES",
     ["hope", "despair", "rage", "fatigue", "trust"],
 )
@@ -54,7 +54,7 @@ def boost_overlay(state: WorldState, name: str, amount: float = 0.02) -> None:
     Will be a no-op if symbolic system is disabled.
     """
     # Import directly inside function to get the latest value
-    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
+    from engine.pulse_config import ENABLE_SYMBOLIC_SYSTEM
 
     # Skip processing if symbolic system is disabled
     if not ENABLE_SYMBOLIC_SYSTEM:
@@ -70,7 +70,7 @@ def suppress_overlay(state: WorldState, name: str, amount: float = 0.02) -> None
     Will be a no-op if symbolic system is disabled.
     """
     # Import directly inside function to get the latest value
-    from core.pulse_config import ENABLE_SYMBOLIC_SYSTEM
+    from engine.pulse_config import ENABLE_SYMBOLIC_SYSTEM
 
     # Skip processing if symbolic system is disabled
     if not ENABLE_SYMBOLIC_SYSTEM:
@@ -149,7 +149,11 @@ def get_overlay_summary(state: WorldState) -> Dict[str, Dict[str, float]]:
     Returns:
         Dict with overlay summary information
     """
-    summary: Dict[str, Dict[str, float]] = {"dominant": {}, "moderate": {}, "suppressed": {}}
+    summary: Dict[str, Dict[str, float]] = {
+        "dominant": {},
+        "moderate": {},
+        "suppressed": {},
+    }
 
     for name in OVERLAY_NAMES:
         value = get_overlay_value(state, name)

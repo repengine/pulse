@@ -27,9 +27,9 @@ No obvious placeholders (e.g., `pass` statements in critical logic paths) or maj
 
 ### Direct Imports (Project Modules):
 
--   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1): Provides the `WorldState` class, which is the central data structure the rule engine operates on.
--   [`simulation_engine.rules.static_rules`](simulation_engine/rules/static_rules.py:1): Provides the [`build_static_rules()`](simulation_engine/rules/static_rules.py:17) function to load the set of rules to be executed.
--   [`simulation_engine.rules.rule_audit_layer`](simulation_engine/rules/rule_audit_layer.py:1): Provides the [`audit_rule()`](simulation_engine/rules/rule_audit_layer.py:18) function to create detailed audit logs for triggered rules.
+-   [`engine.worldstate`](simulation_engine/worldstate.py:1): Provides the `WorldState` class, which is the central data structure the rule engine operates on.
+-   [`engine.rules.static_rules`](simulation_engine/rules/static_rules.py:1): Provides the [`build_static_rules()`](simulation_engine/rules/static_rules.py:17) function to load the set of rules to be executed.
+-   [`engine.rules.rule_audit_layer`](simulation_engine/rules/rule_audit_layer.py:1): Provides the [`audit_rule()`](simulation_engine/rules/rule_audit_layer.py:18) function to create detailed audit logs for triggered rules.
 -   [`symbolic_system.symbolic_bias_tracker`](symbolic_system/symbolic_bias_tracker.py:1): Provides the `SymbolicBiasTracker` class used to record the frequency of symbolic tags associated with triggered rules.
 
 ### Direct Imports (External Libraries):
@@ -69,8 +69,8 @@ To understand the full context and dependencies of [`simulation_engine/rule_engi
 **`run_rules(state: WorldState, verbose: bool = True) -> list[dict]`**
 
 ```python
-from simulation_engine.worldstate import WorldState, Variables, SymbolicOverlays
-from simulation_engine.rule_engine import run_rules
+from engine.worldstate import WorldState, Variables, SymbolicOverlays
+from engine.rule_engine import run_rules
 
 # Initialize a WorldState instance
 current_state = WorldState()

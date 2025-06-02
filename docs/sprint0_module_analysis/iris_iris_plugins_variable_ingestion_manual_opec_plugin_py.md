@@ -23,10 +23,10 @@ The module appears functionally complete for its stated purpose of reading from 
     *   [`zipfile`](#)
     *   [`csv`](#)
     *   [`typing`](#) (`Dict`, `List`, `Any`, `Optional`)
-    *   [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py)
-    *   [`iris.iris_utils.ingestion_persistence.save_processed_data`](iris/iris_utils/ingestion_persistence.py)
+    *   [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py)
+    *   [`ingestion.iris_utils.ingestion_persistence.save_processed_data`](iris/iris_utils/ingestion_persistence.py)
 *   **External Library Dependencies:** Standard Python libraries (`datetime`, `logging`, `os`, `zipfile`, `csv`, `typing`).
-*   **Interaction with other modules:** Interacts with `iris.iris_plugins.IrisPluginManager` by inheriting from it and with `iris.iris_utils.ingestion_persistence.save_processed_data` to save processed data.
+*   **Interaction with other modules:** Interacts with `ingestion.iris_plugins.IrisPluginManager` by inheriting from it and with `ingestion.iris_utils.ingestion_persistence.save_processed_data` to save processed data.
 *   **Input/Output Files:**
     *   Input: `data/manual_bulk_data/QDL_OPEC_7f41729ade733436c2dc493d282cef69.zip`
     *   Output: Data saved via `save_processed_data`, likely to a persistence layer managed by that utility.
@@ -38,8 +38,8 @@ The module appears functionally complete for its stated purpose of reading from 
 
 ```python
 # Example (conceptual) of how the plugin would be used by IrisPluginManager
-from iris.iris_plugins import IrisPluginManager
-from iris.iris_plugins_variable_ingestion.manual_opec_plugin import ManualOPECPlugin
+from ingestion.iris_plugins import IrisPluginManager
+from ingestion.iris_plugins_variable_ingestion.manual_opec_plugin import ManualOPECPlugin
 
 # Assuming the zip file is in place
 mgr = IrisPluginManager()
@@ -61,7 +61,7 @@ print(signals)
 
 *   Strongly coupled with the specific structure and naming of the input zip file and the CSV within it.
 *   Coupled with the `IrisPluginManager` interface by inheriting from it.
-*   Coupled with the `save_processed_data` function from `iris.iris_utils.ingestion_persistence`.
+*   Coupled with the `save_processed_data` function from `ingestion.iris_utils.ingestion_persistence`.
 
 ## Existing Tests
 

@@ -17,12 +17,12 @@ The module appears to be functionally complete for its stated purpose. It handle
 - **Implied Next Steps:** Depending on the complexity of `run_forecast_pipeline`, future enhancements could involve:
     - More sophisticated error reporting.
     - Logging integration beyond simple print statements.
-    - Options to configure sub-components of the pipeline if [`learning.forecast_pipeline_runner.run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:0) allows for it.
+    - Options to configure sub-components of the pipeline if [`analytics.forecast_pipeline_runner.run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:0) allows for it.
 
 ## 4. Connections & Dependencies
 
 ### Direct Imports from Other Project Modules:
-- [`learning.forecast_pipeline_runner.run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:19): This is the core function that this CLI module wraps.
+- [`analytics.forecast_pipeline_runner.run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:19): This is the core function that this CLI module wraps.
 
 ### External Library Dependencies:
 - `argparse`: Used for parsing command-line arguments.
@@ -68,7 +68,7 @@ The module appears to be functionally complete for its stated purpose. It handle
 
 ## 7. Coupling Points
 
-- **High Coupling with `learning.forecast_pipeline_runner`:** The module is tightly coupled to the [`run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:19) function from the [`learning.forecast_pipeline_runner`](../../learning/forecast_pipeline_runner.py:0) module. Any changes to the signature or behavior of `run_forecast_pipeline` would likely require changes in this CLI wrapper.
+- **High Coupling with `analytics.forecast_pipeline_runner`:** The module is tightly coupled to the [`run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:19) function from the [`analytics.forecast_pipeline_runner`](../../learning/forecast_pipeline_runner.py:0) module. Any changes to the signature or behavior of `run_forecast_pipeline` would likely require changes in this CLI wrapper.
 - **Data Format Dependency:** Relies on the input being a `.jsonl` file where each line is a valid JSON object. The structure of these JSON objects is implicitly defined by what [`run_forecast_pipeline`](../../learning/forecast_pipeline_runner.py:19) expects.
 
 ## 8. Existing Tests

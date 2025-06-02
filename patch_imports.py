@@ -42,7 +42,7 @@ def patch_imports_in_file(file_path: str, project_root: str) -> bool:
     with open(file_path, "r", encoding="utf-8") as f:
         lines: List[str] = f.readlines()
 
-    for line_content in lines: # Renamed line to line_content to avoid conflict
+    for line_content in lines:  # Renamed line to line_content to avoid conflict
         stripped: str = line_content.strip()
         # Try to match "from ... import ..." statements
         m_from: Optional[Match[str]] = pattern_from.match(stripped)
@@ -54,7 +54,9 @@ def patch_imports_in_file(file_path: str, project_root: str) -> bool:
                 candidates: List[str] = search_module(base_module, project_root)
                 if len(candidates) == 1:
                     new_module: str = candidates[0]
-                    new_line_content: str = line_content.replace(module_name, new_module)
+                    new_line_content: str = line_content.replace(
+                        module_name, new_module
+                    )
                     print(
                         f"File {file_path}: Replacing '{module_name}' with '{new_module}'"
                     )
@@ -89,12 +91,12 @@ def patch_all_imports(project_root: str) -> None:
     for root, dirs, files in os.walk(project_root):
         # Ignore all directories starting with a dot
         dirs[:] = [d for d in dirs if not d.startswith(".")]
-        for file_name in files: # Renamed file to file_name
+        for file_name in files:  # Renamed file to file_name
             # Ignore files that start with a dot
             if file_name.startswith("."):
                 continue
             if file_name.endswith(".py") and file_name != "patch_imports.py":
-                file_path_to_patch: str = os.path.join(root, file_name) # Renamed
+                file_path_to_patch: str = os.path.join(root, file_name)  # Renamed
                 if patch_imports_in_file(file_path_to_patch, project_root):
                     changes_made += 1
     print(f"Patched imports in {changes_made} files.")

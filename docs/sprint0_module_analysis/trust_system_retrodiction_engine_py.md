@@ -31,18 +31,18 @@ The module appears to be largely complete for its refactored purpose as a wrappe
 ## 4. Connections & Dependencies
 
 -   **Direct Imports from Other Project Modules:**
-    -   From [`memory.forecast_memory`](memory/forecast_memory.py:12): [`ForecastMemory`](memory/forecast_memory.py:24) class.
+    -   From [`analytics.forecast_memory`](memory/forecast_memory.py:12): [`ForecastMemory`](memory/forecast_memory.py:24) class.
     -   From [`utils.log_utils`](utils/log_utils.py:13): [`get_logger()`](utils/log_utils.py:20).
     -   From [`core.path_registry`](core/path_registry.py:14): `PATHS` dictionary.
-    -   From [`simulation_engine.worldstate`](simulation_engine/worldstate.py:16): [`WorldState`](simulation_engine/worldstate.py:16) class.
-    -   From [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:45): [`simulate_forward()`](simulation_engine/simulator_core.py:45) (imported locally within [`run_retrodiction_simulation`](trust_system/retrodiction_engine.py:25)).
+    -   From [`engine.worldstate`](simulation_engine/worldstate.py:16): [`WorldState`](simulation_engine/worldstate.py:16) class.
+    -   From [`engine.simulator_core`](simulation_engine/simulator_core.py:45): [`simulate_forward()`](simulation_engine/simulator_core.py:45) (imported locally within [`run_retrodiction_simulation`](trust_system/retrodiction_engine.py:25)).
     -   From [`forecast_output.pfpa_logger`](forecast_output/pfpa_logger.py:114): `pfpa_memory` (imported locally within [`simulate_retrodiction_test`](trust_system/retrodiction_engine.py:110)).
 -   **External Library Dependencies:**
     -   [`typing`](https://docs.python.org/3/library/typing.html): `Dict`, `List`, `Optional`, `Any`, `Callable`.
     -   [`pathlib`](https://docs.python.org/3/library/pathlib.html): `Path` (though not directly used in a way that affects runtime beyond path definition from `PATHS`).
     -   [`json`](https://docs.python.org/3/library/json.html): (Implicitly used by `ForecastMemory` if it persists to JSON files, but not directly in this module's code for saving, as it delegates to `ForecastMemory.store()`).
 -   **Interaction with Other Modules (Implied):**
-    -   **`simulation_engine.simulator_core`:** This is a critical dependency, as [`run_retrodiction_simulation()`](trust_system/retrodiction_engine.py:25) is essentially a configured call to [`simulate_forward()`](simulation_engine/simulator_core.py:45).
+    -   **`engine.simulator_core`:** This is a critical dependency, as [`run_retrodiction_simulation()`](trust_system/retrodiction_engine.py:25) is essentially a configured call to [`simulate_forward()`](simulation_engine/simulator_core.py:45).
     -   **Learning Modules:** Modules responsible for learning from past performance would consume the retrodiction results stored by this engine.
     -   **Data Loaders:** A `retrodiction_loader` object is expected to provide historical \"ground truth\" data to the simulation. The interface or origin of this loader is not defined within this module.
 -   **Input/Output Files:**
@@ -55,13 +55,13 @@ The module appears to be largely complete for its refactored purpose as a wrappe
 -   **Running a retrodiction simulation:**
     ```python
     from trust_system.retrodiction_engine import run_retrodiction_simulation, save_retrodiction_results
-    from simulation_engine.worldstate import WorldState
+    from engine.worldstate import WorldState
 
     initial_sim_state = WorldState()
     # ... populate initial_state ...
 
     # Assume 'my_retro_loader' is an object that can provide historical snapshots
-    # for the simulation_engine.simulator_core when in retrodiction_mode.
+    # for the engine.simulator_core when in retrodiction_mode.
     my_retro_loader = None # Placeholder for an actual loader object
 
     retro_results = run_retrodiction_simulation(
@@ -88,8 +88,8 @@ The module appears to be largely complete for its refactored purpose as a wrappe
 
 ## 7. Coupling Points
 
--   **[`simulation_engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:45):** The entire functionality of [`run_retrodiction_simulation()`](trust_system/retrodiction_engine.py:25) depends on this function and its correct behavior in \"retrodiction_mode\".
--   **[`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:24):** Used for storing results. Changes to `ForecastMemory`'s API or persistence logic could affect this module.
+-   **[`engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:45):** The entire functionality of [`run_retrodiction_simulation()`](trust_system/retrodiction_engine.py:25) depends on this function and its correct behavior in \"retrodiction_mode\".
+-   **[`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:24):** Used for storing results. Changes to `ForecastMemory`'s API or persistence logic could affect this module.
 -   **`WorldState` Object Structure:** The module expects `WorldState` objects and specifically interacts with `overlays` that might have an `as_dict()` method. The serialization helper [`overlay_to_dict()`](trust_system/retrodiction_engine.py:63) attempts to handle this.
 -   **Forecast Object Structure:** Assumes forecast dictionaries contain keys like `\"overlays\"`, `\"forks\"`, and `\"trace_id\"`.
 

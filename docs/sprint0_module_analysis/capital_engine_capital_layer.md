@@ -38,8 +38,8 @@ The module is composed of several functions:
 ## 4. Dependencies
 
 *   **Internal Pulse Modules:**
-    *   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py)
-    *   [`simulation_engine.state_mutation.adjust_capital`](simulation_engine/state_mutation.py)
+    *   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py)
+    *   [`engine.state_mutation.adjust_capital`](simulation_engine/state_mutation.py)
     *   [`core.variable_accessor.get_overlay`](core/variable_accessor.py)
     *   [`core.pulse_config`](core/pulse_config.py) (constants: `CONFIDENCE_THRESHOLD`, `DEFAULT_FRAGILITY_THRESHOLD`, `TRUST_WEIGHT`, `DESPAIR_WEIGHT`)
     *   [`symbolic_system.symbolic_utils.symbolic_fragility_index`](symbolic_system/symbolic_utils.py)

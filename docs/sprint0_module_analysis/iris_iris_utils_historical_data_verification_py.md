@@ -36,7 +36,7 @@ However, there are a few areas indicating incompleteness:
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py):
+*   [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py):
     *   `load_variable_catalog` ([`iris/iris_utils/historical_data_verification.py:69`](iris/iris_utils/historical_data_verification.py:69))
     *   `get_priority_variables` ([`iris/iris_utils/historical_data_verification.py:70`](iris/iris_utils/historical_data_verification.py:70))
     *   `HISTORICAL_DATA_BASE_DIR` ([`iris/iris_utils/historical_data_verification.py:71`](iris/iris_utils/historical_data_verification.py:71))
@@ -78,7 +78,7 @@ The module docstring ([`iris/iris_utils/historical_data_verification.py:17-46`](
 
 *   **[`perform_quality_check(variable_name)`](iris/iris_utils/historical_data_verification.py:1003):**
     ```python
-    # from iris.iris_utils.historical_data_verification import perform_quality_check
+    # from ingestion.iris_utils.historical_data_verification import perform_quality_check
     # quality_report_result = perform_quality_check("spx_close")
     # print(quality_report_result.quality_score.overall_score)
     # for anomaly in quality_report_result.anomalies:
@@ -88,7 +88,7 @@ The module docstring ([`iris/iris_utils/historical_data_verification.py:17-46`](
 
 *   **[`detect_anomalies(series, method, threshold)`](iris/iris_utils/historical_data_verification.py:522):**
     ```python
-    # from iris.iris_utils.historical_data_verification import detect_anomalies, load_processed_data
+    # from ingestion.iris_utils.historical_data_verification import detect_anomalies, load_processed_data
     # series_data = load_processed_data("spx_close")
     # anomalies_list = detect_anomalies(series_data, method="iqr", threshold=1.5)
     # for anomaly_obj in anomalies_list:
@@ -97,7 +97,7 @@ The module docstring ([`iris/iris_utils/historical_data_verification.py:17-46`](
 
 *   **[`cross_validate_sources(variable_name)`](iris/iris_utils/historical_data_verification.py:1228):**
     ```python
-    # from iris.iris_utils.historical_data_verification import cross_validate_sources
+    # from ingestion.iris_utils.historical_data_verification import cross_validate_sources
     # validation_result = cross_validate_sources("unemployment_rate")
     # print(validation_result.correlation_matrix)
     # print(validation_result.recommendation)
@@ -129,7 +129,7 @@ The module docstring ([`iris/iris_utils/historical_data_verification.py:17-46`](
 
 ## 7. Coupling Points
 
-*   **High Coupling with [`historical_data_retriever.py`](iris/iris_utils/historical_data_retriever.py):** This module is tightly coupled with [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py) for obtaining the base data directory path (`HISTORICAL_DATA_BASE_DIR`), loading the variable catalog, and fetching priority variables. Changes in the retriever's API or data structures could significantly impact this verification module.
+*   **High Coupling with [`historical_data_retriever.py`](iris/iris_utils/historical_data_retriever.py):** This module is tightly coupled with [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py) for obtaining the base data directory path (`HISTORICAL_DATA_BASE_DIR`), loading the variable catalog, and fetching priority variables. Changes in the retriever's API or data structures could significantly impact this verification module.
 *   **File System Structure Dependency:** Relies on a specific directory structure and file naming convention (`*_processed.json`) for input data, managed externally (likely by the retriever module).
 *   **Internal Orchestration:** The [`perform_quality_check`](iris/iris_utils/historical_data_verification.py:1003) function acts as a central orchestrator, calling numerous other specialized detection and calculation functions within the module, leading to significant internal coupling.
 *   **Visualization Library:** The [`visualize_data_quality`](iris/iris_utils/historical_data_verification.py:1650) function is tightly coupled to `matplotlib` for generating plots.

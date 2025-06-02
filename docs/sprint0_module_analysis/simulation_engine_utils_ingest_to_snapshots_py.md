@@ -21,12 +21,12 @@ The module appears to be functionally complete for its defined task. It handles 
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:7)
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:7)
 *   [`core.variable_accessor.set_variable`](core/variable_accessor.py:8)
-*   [`simulation_engine.utils.worldstate_io.save_worldstate_to_file`](simulation_engine/utils/worldstate_io.py:9)
-*   [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:11)
-*   [`iris.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion.py:13)
-*   [`iris.iris_plugins_variable_ingestion.HISTORY_SNAPSHOT_PREFIX`](iris/iris_plugins_variable_ingestion.py:13) (Constant)
+*   [`engine.utils.worldstate_io.save_worldstate_to_file`](simulation_engine/utils/worldstate_io.py:9)
+*   [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:11)
+*   [`ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion.py:13)
+*   [`ingestion.iris_plugins_variable_ingestion.HISTORY_SNAPSHOT_PREFIX`](iris/iris_plugins_variable_ingestion.py:13) (Constant)
 
 ### External Library Dependencies:
 *   `argparse` (Python standard library)
@@ -40,7 +40,7 @@ The module appears to be functionally complete for its defined task. It handles 
 *   **Input:** Implicitly relies on the data source(s) accessed by the [`historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion.py:13). The specifics of these sources are external to this module.
 *   **Output:** Generates multiple JSON files, each representing a [`WorldState`](simulation_engine/worldstate.py:7) snapshot for a historical turn.
     *   **Directory:** Specified by the `--output-dir` command-line argument (defaults to `snapshots/`).
-    *   **Filename Pattern:** `"{HISTORY_SNAPSHOT_PREFIX}{turn:04d}.json"` (e.g., `historical_snapshot_0001.json`). The `HISTORY_SNAPSHOT_PREFIX` is imported from [`iris.iris_plugins_variable_ingestion`](iris/iris_plugins_variable_ingestion.py:13).
+    *   **Filename Pattern:** `"{HISTORY_SNAPSHOT_PREFIX}{turn:04d}.json"` (e.g., `historical_snapshot_0001.json`). The `HISTORY_SNAPSHOT_PREFIX` is imported from [`ingestion.iris_plugins_variable_ingestion`](iris/iris_plugins_variable_ingestion.py:13).
 
 ## 5. Function and Class Example Usages
 
@@ -69,9 +69,9 @@ The module is designed to be run as a command-line script.
 
 ## 7. Coupling Points
 
-*   **Iris Plugin System:** Tightly coupled with [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:11) and specifically relies on the existence and output format of [`iris.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion.py:13).
-*   **WorldState Module:** Dependent on the [`WorldState`](simulation_engine/worldstate.py:7) class from [`simulation_engine.worldstate`](simulation_engine/worldstate.py:7) for creating state snapshots.
-*   **Core Utilities:** Relies on [`core.variable_accessor.set_variable`](core/variable_accessor.py:8) for populating the `WorldState` and [`simulation_engine.utils.worldstate_io.save_worldstate_to_file`](simulation_engine/utils/worldstate_io.py:9) for saving it.
+*   **Iris Plugin System:** Tightly coupled with [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:11) and specifically relies on the existence and output format of [`ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin`](iris/iris_plugins_variable_ingestion.py:13).
+*   **WorldState Module:** Dependent on the [`WorldState`](simulation_engine/worldstate.py:7) class from [`engine.worldstate`](simulation_engine/worldstate.py:7) for creating state snapshots.
+*   **Core Utilities:** Relies on [`core.variable_accessor.set_variable`](core/variable_accessor.py:8) for populating the `WorldState` and [`engine.utils.worldstate_io.save_worldstate_to_file`](simulation_engine/utils/worldstate_io.py:9) for saving it.
 *   **Data Format:** Expects the historical data (signals) to be a list of dictionaries, each with "name" and "value" keys, as per processing loop at [`simulation_engine/utils/ingest_to_snapshots.py:57-62`](simulation_engine/utils/ingest_to_snapshots.py:57-62).
 
 ## 8. Existing Tests

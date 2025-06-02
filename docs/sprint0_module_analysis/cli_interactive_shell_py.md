@@ -30,17 +30,17 @@ The docstring also mentions "Stub hooks for external module integration," sugges
     *   [`utils.log_utils`](utils/log_utils.py)
     *   [`core.path_registry`](core/path_registry.py)
     *   [`core.pulse_config`](core/pulse_config.py)
-    *   [`memory.pulse_memory_audit_report`](memory/pulse_memory_audit_report.py)
-    *   [`memory.forecast_memory`](memory/forecast_memory.py)
+    *   [`analytics.pulse_memory_audit_report`](memory/pulse_memory_audit_report.py)
+    *   [`analytics.forecast_memory`](memory/forecast_memory.py)
     *   [`trust_system.trust_engine`](trust_system/trust_engine.py)
-    *   [`simulation_engine.utils.simulation_trace_viewer`](simulation_engine/utils/simulation_trace_viewer.py)
+    *   [`engine.utils.simulation_trace_viewer`](simulation_engine/utils/simulation_trace_viewer.py)
 *   **External Library Dependencies:** `json`, `os`, `readline`, `datetime`, `typing`.
 *   **Interaction with other modules:**
     *   Retrieves paths from [`core.path_registry.PATHS`](core/path_registry.py:41).
     *   Accesses configuration from [`core.pulse_config`](core/pulse_config.py).
-    *   Performs memory audits using [`memory.pulse_memory_audit_report.audit_memory()`](memory/pulse_memory_audit_report.py:45) and [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:46).
+    *   Performs memory audits using [`analytics.pulse_memory_audit_report.audit_memory()`](memory/pulse_memory_audit_report.py:45) and [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:46).
     *   Checks forecast coherence using [`trust_system.trust_engine.TrustEngine.check_forecast_coherence()`](trust_system/trust_engine.py:164).
-    *   Views simulation traces using [`simulation_engine.utils.simulation_trace_viewer.load_trace()`](simulation_engine/utils/simulation_trace_viewer.py:181).
+    *   Views simulation traces using [`engine.utils.simulation_trace_viewer.load_trace()`](simulation_engine/utils/simulation_trace_viewer.py:181).
 *   **Input/output files:** Logs shell interactions to `logs/interactive_shell_log.jsonl` (path determined by `INTERACTIVE_LOG_PATH`).
 
 ## Function and Class Example Usages
@@ -64,9 +64,9 @@ The module defines several command handler functions, each demonstrating the int
 Significant coupling exists with:
 
 *   [`core.path_registry`](core/path_registry.py) and [`core.pulse_config`](core/pulse_config.py) for core system configuration and paths.
-*   The `memory` modules ([`memory.pulse_memory_audit_report`](memory/pulse_memory_audit_report.py), [`memory.forecast_memory`](memory/forecast_memory.py)) for memory-related operations.
+*   The `memory` modules ([`analytics.pulse_memory_audit_report`](memory/pulse_memory_audit_report.py), [`analytics.forecast_memory`](memory/forecast_memory.py)) for memory-related operations.
 *   [`trust_system.trust_engine`](trust_system/trust_engine.py) for coherence checks.
-*   [`simulation_engine.utils.simulation_trace_viewer`](simulation_engine/utils/simulation_trace_viewer.py) for trace visualization.
+*   [`engine.utils.simulation_trace_viewer`](simulation_engine/utils/simulation_trace_viewer.py) for trace visualization.
 
 ## Existing Tests
 

@@ -22,7 +22,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Imports:
--   [`simulation_engine.rules.rule_matching_utils.get_all_rule_fingerprints`](../../simulation_engine/rules/rule_matching_utils.py) ([`pulse_rule_explainer.py:16`](../../simulation_engine/rules/pulse_rule_explainer.py:16))
+-   [`engine.rules.rule_matching_utils.get_all_rule_fingerprints`](../../simulation_engine/rules/rule_matching_utils.py) ([`pulse_rule_explainer.py:16`](../../simulation_engine/rules/pulse_rule_explainer.py:16))
 
 ### External Library Dependencies:
 -   `json` (standard library) ([`pulse_rule_explainer.py:14`](../../simulation_engine/rules/pulse_rule_explainer.py:14))

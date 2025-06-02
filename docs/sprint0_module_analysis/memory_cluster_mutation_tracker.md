@@ -1,4 +1,4 @@
-# SPARC Analysis Report: memory.cluster_mutation_tracker
+# SPARC Analysis Report: analytics.cluster_mutation_tracker
 
 **File Path:** [`memory/cluster_mutation_tracker.py`](memory/cluster_mutation_tracker.py:1)
 **Analysis Date:** 2025-05-13

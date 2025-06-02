@@ -10,7 +10,7 @@ The module appears to be functional and implements a wide range of commands for 
 
 ## Implementation Gaps / Unfinished Next Steps
 
-While the CLI provides interfaces for many operations, the "NEW COMMAND" markers suggest that the features they expose might still be under active development or refinement. The module's reliance on underlying utility functions in other `iris.iris_utils` files means that any gaps or incompleteness in those modules would directly impact the full functionality exposed by this CLI. Logical next steps would involve ensuring comprehensive implementation and robustness of all subcommands and their underlying logic, potentially adding more reporting or visualization options directly accessible via the CLI.
+While the CLI provides interfaces for many operations, the "NEW COMMAND" markers suggest that the features they expose might still be under active development or refinement. The module's reliance on underlying utility functions in other `ingestion.iris_utils` files means that any gaps or incompleteness in those modules would directly impact the full functionality exposed by this CLI. Logical next steps would involve ensuring comprehensive implementation and robustness of all subcommands and their underlying logic, potentially adding more reporting or visualization options directly accessible via the CLI.
 
 ## Connections & Dependencies
 
@@ -23,13 +23,13 @@ While the CLI provides interfaces for many operations, the "NEW COMMAND" markers
     *   [`pathlib`](https://docs.python.org/3/library/pathlib.html)
     *   [`typing`](https://docs.python.org/3/library/typing.html)
 *   **Internal Imports:**
-    *   [`iris.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py)
-    *   [`iris.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py)
-    *   [`iris.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py)
-    *   [`iris.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py)
-    *   [`iris.iris_utils.world_bank_integration`](iris/iris_utils/world_bank_integration.py)
+    *   [`ingestion.iris_utils.historical_data_retriever`](iris/iris_utils/historical_data_retriever.py)
+    *   [`ingestion.iris_utils.historical_data_transformer`](iris/iris_utils/historical_data_transformer.py)
+    *   [`ingestion.iris_utils.historical_data_verification`](iris/iris_utils/historical_data_verification.py)
+    *   [`ingestion.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py)
+    *   [`ingestion.iris_utils.world_bank_integration`](iris/iris_utils/world_bank_integration.py)
     *   [`recursive_training.data.data_store.RecursiveDataStore`](recursive_training/data/data_store.py) (used in `handle_report_command`)
-*   **Interaction with other modules:** The module acts as a facade, calling functions from the imported `iris.iris_utils` modules to perform the actual data operations. It also interacts with the `RecursiveDataStore` for generating summary reports.
+*   **Interaction with other modules:** The module acts as a facade, calling functions from the imported `ingestion.iris_utils` modules to perform the actual data operations. It also interacts with the `RecursiveDataStore` for generating summary reports.
 *   **Input/output files:**
     *   Reads a variable catalog (likely a JSON file, inferred from `load_variable_catalog`).
     *   Outputs JSON reports to the `data/historical_timeline/reports` directory.
@@ -55,16 +55,16 @@ The module defines a `main()` function which serves as the CLI entry point, pars
 Example usage is provided in the module's docstring:
 ```bash
 # Retrieve raw historical data
-python -m iris.iris_utils.cli_historical_data retrieve --variable spx_close
+python -m ingestion.iris_utils.cli_historical_data retrieve --variable spx_close
 
 # Transform and store data in standardized format
-python -m iris.iris_utils.cli_historical_data transform --priority 1
+python -m ingestion.iris_utils.cli_historical_data transform --priority 1
 
 # Verify data consistency and correctness
-python -m iris.iris_utils.cli_historical_data verify --all
+python -m ingestion.iris_utils.cli_historical_data verify --all
 
 # Generate reports
-python -m iris.iris_utils.cli_historical_data report --coverage
+python -m ingestion.iris_utils.cli_historical_data report --coverage
 ```
 
 ## Hardcoding Issues
@@ -73,7 +73,7 @@ The module hardcodes the output directory for reports as `data/historical_timeli
 
 ## Coupling Points
 
-The module is tightly coupled with the other utility modules in the `iris.iris_utils` package, as it directly imports and calls their functions. It also has a dependency on the `RecursiveDataStore` from the `recursive_training` package for the summary report functionality.
+The module is tightly coupled with the other utility modules in the `ingestion.iris_utils` package, as it directly imports and calls their functions. It also has a dependency on the `RecursiveDataStore` from the `recursive_training` package for the summary report functionality.
 
 ## Existing Tests
 

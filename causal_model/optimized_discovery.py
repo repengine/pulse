@@ -190,7 +190,9 @@ class OptimizedCausalDiscovery:
 
                     # Calculate correlation of residuals
                     _corr, p_value_raw = pearsonr(X_resid, Y_resid)
-                    p_value_scalar: float = float(p_value_raw) # Extract the scalar p-value and cast to float
+                    p_value_scalar: float = float(
+                        p_value_raw
+                    )  # Extract the scalar p-value and cast to float
 
                     # If p-value is high, variables are independent given conditioning set
                     if p_value_scalar > alpha:

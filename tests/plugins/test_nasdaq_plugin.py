@@ -13,7 +13,7 @@ import os
 import json
 from datetime import datetime
 import logging
-from iris.iris_plugins_variable_ingestion.nasdaq_plugin import nasdaq_plugin
+from ingestion.iris_plugins_variable_ingestion.nasdaq_plugin import nasdaq_plugin
 
 # Configure logging
 logging.basicConfig(

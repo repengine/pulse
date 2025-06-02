@@ -89,7 +89,7 @@ def discover_plugin_variables(plugin_name):
         List of variable names provided by the plugin
     """
     variables = []
-    module_path = f"iris.iris_plugins_variable_ingestion.{plugin_name}"
+    module_path = f"ingestion.iris_plugins_variable_ingestion.{plugin_name}"
 
     try:
         # Attempt to import the plugin module
@@ -144,7 +144,9 @@ def discover_plugin_variables(plugin_name):
                             if isinstance(avail_vars, list):
                                 variables.extend(avail_vars)
                         except Exception as e:
-                            logger.warning(f"Error getting available variables from {name}: {e}")
+                            logger.warning(
+                                f"Error getting available variables from {name}: {e}"
+                            )
                 except Exception as e:
                     logger.warning(f"Could not instantiate {name}: {e}")
 

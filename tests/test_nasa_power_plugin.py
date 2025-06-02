@@ -15,7 +15,7 @@ from unittest.mock import patch
 # Add parent directory to path to allow imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from iris.iris_plugins_variable_ingestion.nasa_power_plugin import NasaPowerPlugin
+from ingestion.iris_plugins_variable_ingestion.nasa_power_plugin import NasaPowerPlugin
 
 
 class MockResponse:
@@ -57,7 +57,7 @@ class TestNasaPowerPlugin(unittest.TestCase):
         }
 
     @patch(
-        "iris.iris_plugins_variable_ingestion.nasa_power_plugin.ensure_data_directory"
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.ensure_data_directory"
     )
     def test_plugin_init(self, mock_ensure_dir):
         """Test plugin initialization."""
@@ -67,12 +67,16 @@ class TestNasaPowerPlugin(unittest.TestCase):
         self.assertEqual(plugin.concurrency, 2)
         mock_ensure_dir.assert_called_once_with("nasa_power")
 
-    @patch("iris.iris_plugins_variable_ingestion.nasa_power_plugin.requests.get")
+    @patch("ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.requests.get")
     @patch(
-        "iris.iris_plugins_variable_ingestion.nasa_power_plugin.save_request_metadata"
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.save_request_metadata"
     )
-    @patch("iris.iris_plugins_variable_ingestion.nasa_power_plugin.save_api_response")
-    @patch("iris.iris_plugins_variable_ingestion.nasa_power_plugin.save_processed_data")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.save_api_response"
+    )
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.save_processed_data"
+    )
     def test_fetch_signals(
         self, mock_save_processed, mock_save_response, mock_save_metadata, mock_get
     ):
@@ -111,11 +115,13 @@ class TestNasaPowerPlugin(unittest.TestCase):
         # Check that processed data was saved (8 calls, one per parameter)
         self.assertEqual(mock_save_processed.call_count, 8)
 
-    @patch("iris.iris_plugins_variable_ingestion.nasa_power_plugin.requests.get")
+    @patch("ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.requests.get")
     @patch(
-        "iris.iris_plugins_variable_ingestion.nasa_power_plugin.save_request_metadata"
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.save_request_metadata"
     )
-    @patch("iris.iris_plugins_variable_ingestion.nasa_power_plugin.save_api_response")
+    @patch(
+        "ingestion.iris_plugins_variable_ingestion.nasa_power_plugin.save_api_response"
+    )
     def test_failed_api_call(self, mock_save_response, mock_save_metadata, mock_get):
         """Test error handling for failed API calls."""
         # Mock a failed API response

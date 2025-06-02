@@ -1,6 +1,6 @@
-from core.pulse_learning_log import log_variable_weight_change
-from simulation_engine.rules.rule_registry import RuleRegistry
-from core.variable_registry import registry as variable_registry
+from analytics.pulse_learning_log import log_variable_weight_change
+from rules.rule_registry import RuleRegistry
+from engine.variable_registry import registry as variable_registry
 
 
 def adjust_rules_from_learning(learning_profile):

@@ -26,7 +26,7 @@ There are no obvious placeholders like "TODO" or "FIXME" comments in the provide
 
 ### Direct Imports from Other Project Modules:
 *   [`forecast_output.forecast_age_tracker.decay_confidence_and_priority`](forecast_output/forecast_age_tracker.py:0)
-*   [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:0)
+*   [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:0)
 *   [`utils.log_utils.get_logger`](utils/log_utils.py:0)
 *   [`core.pulse_config.CONFIDENCE_THRESHOLD`](core/pulse_config.py:0)
 *   [`core.path_registry.PATHS`](core/path_registry.py:0)

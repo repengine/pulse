@@ -57,7 +57,7 @@ TEMPLATE = textwrap.dedent("""\
     Set `enabled=True` when ready and fill in `fetch_signals`.
     \"\"\"
     from typing import List, Dict, Any
-    from iris.iris_plugins import IrisScraper
+    from ingestion.iris_plugins import IrisScraper
 
     class {cls}(IrisScraper):
         plugin_name = "{name}"

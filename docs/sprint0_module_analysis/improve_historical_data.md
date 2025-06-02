@@ -35,7 +35,7 @@ The primary purpose of the [`improve_historical_data.py`](../../improve_historic
 
 ### Internal Project Dependencies:
 
--   **`iris.iris_plugins_variable_ingestion.historical_ingestion_plugin`**:
+-   **`ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin`**:
     -   Dynamically imported and executed by [`execute_data_ingestion()`](../../improve_historical_data.py:329).
     -   Source code is directly modified by [`modify_historical_ingestion_plugin()`](../../improve_historical_data.py:101) (target path: [`iris/iris_plugins_variable_ingestion/historical_ingestion_plugin.py`](../../iris/iris_plugins_variable_ingestion/historical_ingestion_plugin.py:1)).
 
@@ -154,7 +154,7 @@ The module follows a sequential, procedural flow orchestrated by the [`main()`](
     -   Writes the modified content back to the plugin file.
 3.  **Execute Data Ingestion ([`execute_data_ingestion()`](../../improve_historical_data.py:322)):**
     -   Adds the project root to `sys.path`.
-    -   Dynamically imports `historical_ingestion_plugin` from `iris.iris_plugins_variable_ingestion`.
+    -   Dynamically imports `historical_ingestion_plugin` from `ingestion.iris_plugins_variable_ingestion`.
     -   Runs the plugin.
     -   Creates necessary output directories for each priority variable (raw, processed, transformations, visualizations).
     -   Parses the plugin's output, extracts data for each priority variable.

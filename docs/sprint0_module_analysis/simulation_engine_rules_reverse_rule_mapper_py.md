@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`reverse_rule_mapper.py`](simulation_engine/rules/reverse_rule_mapper.py:2) module is to map observed state changes (deltas) to candidate rules. It achieves this by utilizing partial or approximate matching techniques against a set of predefined rule fingerprints. The module is intended to provide both a Command Line Interface (CLI) and an API for this delta-to-rule mapping functionality, though the provided code primarily implements the CLI aspects. All core rule matching logic is delegated to the [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15) module.
+The primary role of the [`reverse_rule_mapper.py`](simulation_engine/rules/reverse_rule_mapper.py:2) module is to map observed state changes (deltas) to candidate rules. It achieves this by utilizing partial or approximate matching techniques against a set of predefined rule fingerprints. The module is intended to provide both a Command Line Interface (CLI) and an API for this delta-to-rule mapping functionality, though the provided code primarily implements the CLI aspects. All core rule matching logic is delegated to the [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15) module.
 
 ## 2. Operational Status/Completeness
 
@@ -20,7 +20,7 @@ There are no explicit `TODO` comments or obvious placeholders within the provide
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
-*   [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15):
+*   [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15):
     *   [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:16)
     *   [`match_rule_by_delta()`](simulation_engine/rules/rule_matching_utils.py:17)
     *   [`validate_fingerprint_schema()`](simulation_engine/rules/rule_matching_utils.py:18)
@@ -65,12 +65,12 @@ No other significant hardcoded paths, secrets, or critical magic numbers were id
 
 ## 7. Coupling Points
 
-*   **High Coupling with `rule_matching_utils`:** The module is tightly coupled to [`simulation_engine.rules.rule_matching_utils.py`](simulation_engine/rules/rule_matching_utils.py:15). All its core functionalities (getting fingerprints, matching deltas, validating schema) are delegated to functions imported from this utility module. Changes to the API or behavior of `rule_matching_utils` would directly impact `reverse_rule_mapper.py`.
+*   **High Coupling with `rule_matching_utils`:** The module is tightly coupled to [`engine.rules.rule_matching_utils.py`](simulation_engine/rules/rule_matching_utils.py:15). All its core functionalities (getting fingerprints, matching deltas, validating schema) are delegated to functions imported from this utility module. Changes to the API or behavior of `rule_matching_utils` would directly impact `reverse_rule_mapper.py`.
 
 ## 8. Existing Tests
 
 Based on the provided file list and common project structures, a dedicated test file such as `tests/simulation_engine/rules/test_reverse_rule_mapper.py` is not immediately visible.
-However, testing for the core logic likely resides within the tests for the [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15) module, or potentially within a broader integration test suite like [`tests/test_reverse_rule_engine.py`](tests/test_reverse_rule_engine.py) if this mapper plays a role in the reverse rule engine's workflow.
+However, testing for the core logic likely resides within the tests for the [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:15) module, or potentially within a broader integration test suite like [`tests/test_reverse_rule_engine.py`](tests/test_reverse_rule_engine.py) if this mapper plays a role in the reverse rule engine's workflow.
 
 Without direct visibility into the test files for `rule_matching_utils`, a precise assessment of test coverage for the logic used by this mapper is not possible from this module alone. The CLI interface itself might not be explicitly unit-tested unless specific CLI testing practices are in place.
 

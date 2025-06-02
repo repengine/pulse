@@ -8,7 +8,7 @@ and fragility estimation.
 Author: Pulse v3.5
 """
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from typing import Dict
 
 

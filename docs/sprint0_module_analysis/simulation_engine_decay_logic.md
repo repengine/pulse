@@ -1,4 +1,4 @@
-# SPARC Analysis: simulation_engine.decay_logic
+# SPARC Analysis: engine.decay_logic
 
 **Date of Analysis:** 2025-05-14
 **Analyzer:** Roo
@@ -24,7 +24,7 @@ The module appears to be operational for its current scope (linear decay).
 
 ### Direct Imports:
 - **Project Modules:**
-    - `from simulation_engine.worldstate import WorldState` ([`simulation_engine/decay_logic.py:11`](simulation_engine/decay_logic.py:11)) - Core dependency for accessing and modifying simulation state.
+    - `from engine.worldstate import WorldState` ([`simulation_engine/decay_logic.py:11`](simulation_engine/decay_logic.py:11)) - Core dependency for accessing and modifying simulation state.
     - `from core.pulse_config import config_loader` ([`simulation_engine/decay_logic.py:22`](simulation_engine/decay_logic.py:22), [`simulation_engine/decay_logic.py:35`](simulation_engine/decay_logic.py:35), [`simulation_engine/decay_logic.py:56`](simulation_engine/decay_logic.py:56)) - Used to fetch configuration values, specifically `default_decay_rate` from `core_config.yaml`.
 - **External Libraries:**
     - `typing.Optional` ([`simulation_engine/decay_logic.py:15`](simulation_engine/decay_logic.py:15)) - For type hinting.
@@ -54,7 +54,7 @@ To understand the dependencies and intent, the following project files were read
 
 **`linear_decay(value: float, rate: Optional[float] = None) -> float`**
 ```python
-from simulation_engine.decay_logic import linear_decay
+from engine.decay_logic import linear_decay
 
 initial_value = 0.8
 decay_rate = 0.05
@@ -69,8 +69,8 @@ decayed_again = linear_decay(another_value)
 
 **`apply_overlay_decay(state: WorldState, decay_rate: Optional[float] = None)`**
 ```python
-from simulation_engine.worldstate import WorldState, SymbolicOverlays
-from simulation_engine.decay_logic import apply_overlay_decay
+from engine.worldstate import WorldState, SymbolicOverlays
+from engine.decay_logic import apply_overlay_decay
 
 # Assume 'current_state' is an instance of WorldState
 current_state = WorldState()
@@ -91,8 +91,8 @@ print(f"After decay: Hope={current_state.overlays.hope}, Trust={current_state.ov
 
 **`decay_variable(state: WorldState, name: str, rate: Optional[float] = None, floor: float = 0.0)`**
 ```python
-from simulation_engine.worldstate import WorldState, Variables
-from simulation_engine.decay_logic import decay_variable
+from engine.worldstate import WorldState, Variables
+from engine.decay_logic import decay_variable
 
 # Assume 'current_state' is an instance of WorldState
 current_state = WorldState()

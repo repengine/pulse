@@ -14,7 +14,7 @@ import gzip
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple, Set, Iterator, Callable
+from typing import Any, Dict, List, Optional, Union, Tuple, Set, Iterator, Callable, cast
 from concurrent.futures import ThreadPoolExecutor
 
 try:
@@ -23,27 +23,8 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 
-# Set up default fallbacks for imports
-try:
-    import pandas as pd
-    PANDAS_AVAILABLE = True
-except ImportError:
-    PANDAS_AVAILABLE = False
-
-# Import relevant Pulse components with graceful fallbacks
-try:
-    from core.pulse_config import PulseConfig
-    PULSE_CONFIG_AVAILABLE = True
-except ImportError:
-    PULSE_CONFIG_AVAILABLE = False
-    # Define a minimal config class as fallback
-    class PulseConfig:
-        """Minimal PulseConfig implementation for fallback."""
-        def __init__(self):
-            pass
-            
-        def get(self, key, default=None):
-            return default
+# Import relevant Pulse components
+from engine.pulse_config import PulseConfig
 
 
 class RecursiveDataStore:
@@ -88,16 +69,25 @@ class RecursiveDataStore:
         """
         self.logger = logging.getLogger("RecursiveDataStore")
         
-        # Load configuration with fallback
+        self.config = config or {} # Initialize self.config first
+
+        # Attempt to initialize PulseConfig (Pydantic model from engine.pulse_config)
+        # This instance is currently local to __init__ and not stored on self.
+        # If it's meant to configure DataStore settings, further integration logic
+        # would be needed to extract values from _pulse_config_instance and apply them
+        # to self.config or other attributes.
         try:
-            if PULSE_CONFIG_AVAILABLE:
-                pulse_config = PulseConfig()
-            else:
-                pulse_config = PulseConfig()  # Fallback implementation
+            _pulse_config_instance = PulseConfig()
+            self.logger.info(
+                "Successfully instantiated PulseConfig from engine.pulse_config. "
+                "Note: This instance is not currently used to override DataStore's own config."
+            )
         except Exception as e:
-            self.logger.warning(f"Could not initialize PulseConfig: {e}")
-            pulse_config = PulseConfig()  # Fallback implementation
-        self.config = config or {}
+            self.logger.warning(
+                f"Could not initialize PulseConfig from engine.pulse_config: {e}. "
+                "DataStore will use its default/provided configuration."
+            )
+        # self.config (from argument or default {}) is used below for storage_path etc.
         
         # Set up storage paths
         base_path = self.config.get("storage_path", "./data/recursive_training")
@@ -115,7 +105,7 @@ class RecursiveDataStore:
         self.indices = self._load_indices()
         
         # Initialize storage stats
-        self.storage_stats = {
+        self.storage_stats: Dict[str, Any] = {
             "item_count": 0,
             "total_size_bytes": 0,
             "datasets": {}
@@ -145,7 +135,7 @@ class RecursiveDataStore:
         if os.path.exists(indices_file):
             try:
                 with open(indices_file, 'r') as f:
-                    return json.load(f)
+                    return cast(Dict[str, Dict[str, List[str]]], json.load(f))
             except Exception as e:
                 self.logger.error(f"Failed to load indices, creating new ones: {e}")
         
@@ -570,7 +560,7 @@ class RecursiveDataStore:
         
         try:
             with open(metadata_path, 'r') as f:
-                return json.load(f)
+                return cast(Dict[str, Any], json.load(f))
         except Exception as e:
             self.logger.error(f"Failed to retrieve metadata for {item_id}: {e}")
             return None

@@ -9,7 +9,7 @@ Author: Pulse v0.2
 
 from typing import List, Dict
 from utils.log_utils import get_logger
-from core.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
+from engine.pulse_config import CONFIDENCE_THRESHOLD, DEFAULT_FRAGILITY_THRESHOLD
 
 logger = get_logger(__name__)
 

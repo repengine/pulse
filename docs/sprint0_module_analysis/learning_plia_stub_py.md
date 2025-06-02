@@ -25,7 +25,7 @@ The module appears to be **largely complete for its stated "stub" purpose**.
 
 ## Connections & Dependencies
 *   **Direct Imports from other project modules:**
-    *   `from simulation_engine.worldstate import WorldState` ([`learning/plia_stub.py:10`](learning/plia_stub.py:10), [`learning/plia_stub.py:65`](learning/plia_stub.py:65)): Depends on the `WorldState` class to get the current state of the simulation.
+    *   `from engine.worldstate import WorldState` ([`learning/plia_stub.py:10`](learning/plia_stub.py:10), [`learning/plia_stub.py:65`](learning/plia_stub.py:65)): Depends on the `WorldState` class to get the current state of the simulation.
     *   `from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score` ([`learning/plia_stub.py:11`](learning/plia_stub.py:11)): Uses these utilities to extract symbolic information and calculate tension.
     *   `from capital_engine.capital_layer import total_exposure` ([`learning/plia_stub.py:12`](learning/plia_stub.py:12)): Uses this to get the total capital deployed.
     *   `from utils.log_utils import get_logger` ([`learning/plia_stub.py:14`](learning/plia_stub.py:14)): For logging.
@@ -48,7 +48,7 @@ The module appears to be **largely complete for its stated "stub" purpose**.
     ```
 *   **`run_plia_stub(state: WorldState) -> Dict[str, Any]` ([`learning/plia_stub.py:29`](learning/plia_stub.py:29))**:
     ```python
-    from simulation_engine.worldstate import WorldState
+    from engine.worldstate import WorldState
 
     current_world_state = WorldState()
     # ... (populate or update current_world_state) ...

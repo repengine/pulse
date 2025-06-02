@@ -1,4 +1,4 @@
-# Module Analysis: learning.engines.causal_inference
+# Module Analysis: analytics.engines.causal_inference
 
 ## Module Path
 

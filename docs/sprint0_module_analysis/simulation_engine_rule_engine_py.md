@@ -22,9 +22,9 @@ The module appears to be functionally complete for its core responsibility of it
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py): Used as the primary data structure that rules operate upon.
-*   [`simulation_engine.rules.static_rules.build_static_rules`](simulation_engine/rules/static_rules.py): Function to load the set of static rules.
-*   [`simulation_engine.rules.rule_audit_layer.audit_rule`](simulation_engine/rules/rule_audit_layer.py): Used to create detailed audit logs for triggered rules.
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py): Used as the primary data structure that rules operate upon.
+*   [`engine.rules.static_rules.build_static_rules`](simulation_engine/rules/static_rules.py): Function to load the set of static rules.
+*   [`engine.rules.rule_audit_layer.audit_rule`](simulation_engine/rules/rule_audit_layer.py): Used to create detailed audit logs for triggered rules.
 *   [`symbolic_system.symbolic_bias_tracker.SymbolicBiasTracker`](symbolic_system/symbolic_bias_tracker.py): Used to track symbolic tags associated with triggered rules.
 
 ### External Library Dependencies:
@@ -51,8 +51,8 @@ It takes the current simulation `WorldState` and an optional `verbose` flag. It 
 **Conceptual Usage:**
 
 ```python
-from simulation_engine.worldstate import WorldState
-from simulation_engine.rule_engine import run_rules
+from engine.worldstate import WorldState
+from engine.rule_engine import run_rules
 
 # Assume 'initial_state' is a properly initialized WorldState object
 initial_state = WorldState(...) # Parameters depend on WorldState's __init__

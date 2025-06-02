@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.simulation_engine
-    command: python -m simulation_engine.batch_runner
+    command: python -m engine.batch_runner
     depends_on:
       - redis
 

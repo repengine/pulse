@@ -25,7 +25,7 @@ The module is currently a **stub** and is **not operational**.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py): The [`CiaFactbookPlugin`](iris/iris_plugins_variable_ingestion/cia_factbook_plugin.py:8) class inherits from `IrisPluginManager`.
+- [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py): The [`CiaFactbookPlugin`](iris/iris_plugins_variable_ingestion/cia_factbook_plugin.py:8) class inherits from `IrisPluginManager`.
 
 ### External Library Dependencies:
 - `typing.List`, `typing.Dict`, `typing.Any` (Python standard library).
@@ -80,7 +80,7 @@ The module is currently a **stub** and is **not operational**.
 
 ## 7. Coupling Points
 
-- **`IrisPluginManager`:** The module is tightly coupled to the [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) through inheritance. Changes to the `IrisPluginManager` API could directly impact this plugin.
+- **`IrisPluginManager`:** The module is tightly coupled to the [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py) through inheritance. Changes to the `IrisPluginManager` API could directly impact this plugin.
 - **Data Source:** The implicit coupling to the CIA World Factbook's data structure and access methods will be significant once implemented.
 
 ## 8. Existing Tests

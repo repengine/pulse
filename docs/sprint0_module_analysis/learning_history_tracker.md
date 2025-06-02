@@ -27,7 +27,7 @@ There are no obvious placeholders or TODO comments in the code.
 ## 4. Connections & Dependencies
 
 *   **Direct imports from other project modules:**
-    *   None. The usage example `from learning.history_tracker import track_variable_history` implies it's designed to be imported by other modules within the `learning` package or elsewhere in the project.
+    *   None. The usage example `from analytics.history_tracker import track_variable_history` implies it's designed to be imported by other modules within the `learning` package or elsewhere in the project.
 *   **External library dependencies:**
     *   `os`: Used for path manipulation ([`os.path.basename()`](learning/history_tracker.py:31), [`os.makedirs()`](learning/history_tracker.py:32), [`os.path.join()`](learning/history_tracker.py:33)).
     *   `json`: Used for serializing dictionary records into JSON strings ([`json.dumps()`](learning/history_tracker.py:50)).
@@ -45,7 +45,7 @@ The module contains one primary function:
     *   **Purpose:** Saves the history of variables from a list of simulation state snapshots to a JSONL file.
     *   **Usage Example (from module docstring):**
         ```python
-        from learning.history_tracker import track_variable_history
+        from analytics.history_tracker import track_variable_history
         
         # Example state snapshots
         state_snapshots_data = [

@@ -15,10 +15,10 @@ from typing import Optional
 from forecast_engine.forecast_scoring import score_forecast
 from forecast_engine.forecast_memory import save_forecast_to_memory
 from forecast_engine.forecast_integrity_engine import validate_forecast
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from utils.log_utils import get_logger
-from memory.forecast_memory import ForecastMemory
-from core.path_registry import PATHS
+from analytics.forecast_memory import ForecastMemory
+from engine.path_registry import PATHS
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

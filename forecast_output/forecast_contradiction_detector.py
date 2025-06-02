@@ -24,8 +24,8 @@ import os
 from typing import List, Dict, Tuple
 from datetime import datetime
 from collections import defaultdict
-from core.path_registry import PATHS
-from core.pulse_learning_log import log_learning_event  # 🧠 Enhancement 2
+from engine.path_registry import PATHS
+from analytics.pulse_learning_log import log_learning_event  # 🧠 Enhancement 2
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

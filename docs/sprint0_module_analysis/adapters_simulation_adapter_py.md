@@ -1,7 +1,7 @@
 # Analysis of adapters/simulation_adapter.py
 
 ## Module Intent/Purpose
-This module serves as an adapter layer between the core simulation logic (found in `simulation_engine.simulator_core`) and other parts of the system that need to interact with the simulation. It implements the `SimulationInterface`, ensuring a standardized way to call simulation functionalities. This promotes loose coupling and makes it easier to swap out or modify the simulation engine implementation without affecting client code.
+This module serves as an adapter layer between the core simulation logic (found in `engine.simulator_core`) and other parts of the system that need to interact with the simulation. It implements the `SimulationInterface`, ensuring a standardized way to call simulation functionalities. This promotes loose coupling and makes it easier to swap out or modify the simulation engine implementation without affecting client code.
 
 ## Operational Status/Completeness
 The module appears to be a complete and straightforward implementation of the Adapter pattern. All methods defined in the `SimulationInterface` (presumably) are implemented here by delegating calls to the corresponding functions in `simulator_core`. There are no obvious placeholders or TODOs.
@@ -38,12 +38,12 @@ next_state = sim_adapter.simulate_turn(current_state, some_action="example_actio
 - The `step=1` default in `reverse_rule_engine` is a default parameter value, which is acceptable.
 
 ## Coupling Points
-- **High coupling** with `simulation_engine.simulator_core` as it directly delegates all calls to it. This is inherent to the adapter's role of wrapping this specific core.
+- **High coupling** with `engine.simulator_core` as it directly delegates all calls to it. This is inherent to the adapter's role of wrapping this specific core.
 - **High coupling** with `interfaces.simulation_interface.SimulationInterface` as it must conform to this interface.
 - The data structures for `state`, `trace`, etc., passed between the adapter and `simulator_core` represent significant coupling points. Changes to these structures would require updates in both modules and potentially in client code.
 
 ## Existing Tests
-- To assess existing tests, one would typically look for a corresponding test file like `tests/adapters/test_simulation_adapter.py` or `tests/test_simulation_adapter.py`. The provided file list includes `tests/test_integration_simulation_forecast.py` and `tests/test_property_based_simulation_engine.py`, which might cover this adapter's functionality indirectly or as part of integration tests.
+- To assess existing tests, one would typically look for a corresponding test file like `tests/adapters/test_simulation_adapter.py` or `tests/test_simulation_adapter.py`. The provided file list includes `tests/test_integration_simulation_forecast.py` and `tests/test_property_based_engine.py`, which might cover this adapter's functionality indirectly or as part of integration tests.
 - Direct unit tests for `SimulationAdapter` would likely involve mocking `simulator_core` and verifying that the adapter methods call the correct `simulator_core` functions with the correct arguments and return their results.
 
 ## Module Architecture and Flow

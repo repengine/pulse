@@ -1,5 +1,5 @@
-from memory.forecast_memory import ForecastMemory
-from core.path_registry import PATHS
+from analytics.forecast_memory import ForecastMemory
+from engine.path_registry import PATHS
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

@@ -2,9 +2,9 @@ from flask import Flask, jsonify, request
 from datetime import datetime
 
 from forecast_engine.forecast_memory import load_forecast_history
-from simulation_engine.simulate_backward import run_retrodiction
-from core.variable_registry import VariableRegistry
-from core.feature_store import FeatureStore
+from engine.simulate_backward import run_retrodiction
+from engine.variable_registry import VariableRegistry
+from analytics.feature_store import FeatureStore
 
 # Autopilot functions not found, leaving as placeholders
 # from intelligence.autopilot import get_autopilot_status, get_autopilot_data
@@ -301,7 +301,7 @@ def submit_forecast_for_review():
         timestamp = data.get("timestamp", datetime.now().isoformat())
 
         # Store the submission data
-        from core.training_review_store import store_training_submission
+        from analytics.training_review_store import store_training_submission
 
         metadata = data.get("metadata", {})
         metadata["submission_id"] = submission_id
@@ -368,7 +368,7 @@ def submit_retrodiction_for_review():
         timestamp = data.get("timestamp", datetime.now().isoformat())
 
         # Store the submission data
-        from core.training_review_store import store_training_submission
+        from analytics.training_review_store import store_training_submission
 
         metadata = data.get("metadata", {})
         metadata["submission_id"] = submission_id

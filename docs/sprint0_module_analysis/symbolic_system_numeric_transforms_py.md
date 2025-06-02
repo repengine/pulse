@@ -37,7 +37,7 @@ There are no obvious `TODO` comments or major placeholders for core functionalit
 - [`os`](https://docs.python.org/3/library/os.html): Standard Python library.
 - `typing` (`Dict`, `List`, `Tuple`, `Optional`, `Any`): Standard Python library.
 - `datetime` (`datetime`, `timedelta`): Standard Python library.
-- [`simulation_engine.worldstate.WorldState`](../../../simulation_engine/worldstate.py:0), [`simulation_engine.worldstate.SymbolicOverlays`](../../../simulation_engine/worldstate.py:0): For interacting with the system's state representation.
+- [`engine.worldstate.WorldState`](../../../simulation_engine/worldstate.py:0), [`engine.worldstate.SymbolicOverlays`](../../../simulation_engine/worldstate.py:0): For interacting with the system's state representation.
 - [`symbolic_system.optimization.cached_symbolic`](../../../symbolic_system/optimization.py:0): A custom decorator for caching results.
 - [`symbolic_system.config.get_symbolic_config`](../../../symbolic_system/config.py:0): For fetching configuration related to symbolic mappings.
 
@@ -60,7 +60,7 @@ There are no obvious `TODO` comments or major placeholders for core functionalit
 
 ```python
 from symbolic_system.numeric_transforms import get_numeric_transformer
-from simulation_engine.worldstate import WorldState # Assuming WorldState is properly importable
+from engine.worldstate import WorldState # Assuming WorldState is properly importable
 
 # Get the singleton transformer instance
 transformer = get_numeric_transformer()
@@ -134,7 +134,7 @@ print(f"Overall confidence for 'fear' overlay: {fear_confidence:.2f}")
 ## 7. Coupling Points
 
 - **`SymbolicNumericTransformer` and `symbolic_system.config`:** Tightly coupled for fetching variable-specific mappings. Changes in the config structure or access method would require changes here.
-- **`SymbolicNumericTransformer` and `simulation_engine.worldstate`:** The transformer directly interacts with `WorldState` and `SymbolicOverlays` objects, particularly in [`apply_numeric_to_state()`](../../../symbolic_system/numeric_transforms.py:293). Changes to the `WorldState` or `SymbolicOverlays` API could impact this module.
+- **`SymbolicNumericTransformer` and `engine.worldstate`:** The transformer directly interacts with `WorldState` and `SymbolicOverlays` objects, particularly in [`apply_numeric_to_state()`](../../../symbolic_system/numeric_transforms.py:293). Changes to the `WorldState` or `SymbolicOverlays` API could impact this module.
 - **`SymbolicNumericTransformer` and `adaptive_thresholds.json`:** The structure of this JSON file is implicitly defined by [`_load_thresholds()`](../../../symbolic_system/numeric_transforms.py:50) and [`_save_thresholds()`](../../../symbolic_system/numeric_transforms.py:62). Changes to the file format would break these methods.
 - **`cached_symbolic` decorator:** The module relies on this decorator from [`symbolic_system.optimization`](../../../symbolic_system/optimization.py:0). Its behavior (caching, TTL) influences the performance and freshness of transformations.
 

@@ -27,7 +27,7 @@ The module's docstring states, "All validation logic should be added here for co
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
--   `from simulation_engine.rules.rule_matching_utils import get_all_rule_fingerprints` (imported locally within the [`get_all_rule_fingerprints_dict()`](simulation_engine/rules/rule_coherence_checker.py:20) function).
+-   `from engine.rules.rule_matching_utils import get_all_rule_fingerprints` (imported locally within the [`get_all_rule_fingerprints_dict()`](simulation_engine/rules/rule_coherence_checker.py:20) function).
 
 ### External Library Dependencies
 -   `json`: Used for serializing rule structures to detect duplicates.
@@ -36,7 +36,7 @@ The module's docstring states, "All validation logic should be added here for co
 -   `argparse`: Used in the `if __name__ == "__main__":` block for command-line execution.
 
 ### Shared Data Interactions
--   **Rule Fingerprints:** The module heavily relies on the structure and availability of rule fingerprints. It fetches these via [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) from [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:), which likely loads them from a file (e.g., [`simulation_engine/rules/rule_fingerprints.json`](simulation_engine/rules/rule_fingerprints.json)) or an in-memory registry.
+-   **Rule Fingerprints:** The module heavily relies on the structure and availability of rule fingerprints. It fetches these via [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) from [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:), which likely loads them from a file (e.g., [`simulation_engine/rules/rule_fingerprints.json`](simulation_engine/rules/rule_fingerprints.json)) or an in-memory registry.
 
 ### Input/Output Files
 -   **Input:** Implicitly consumes rule fingerprint data, likely originating from a JSON file or a dynamically generated collection.
@@ -48,7 +48,7 @@ The primary function for external use is [`scan_rule_coherence()`](simulation_en
 
 ```python
 # Example of how other modules might use scan_rule_coherence:
-# from simulation_engine.rules.rule_coherence_checker import scan_rule_coherence
+# from engine.rules.rule_coherence_checker import scan_rule_coherence
 #
 # coherence_report = scan_rule_coherence()
 #
@@ -75,7 +75,7 @@ The primary function for external use is [`scan_rule_coherence()`](simulation_en
 ## 7. Coupling Points
 
 -   **Rule Schema:** The module is tightly coupled to the specific schema (structure and key names) of the rule fingerprints. Any modification to this schema (e.g., renaming `rule_id` or `effect`) would necessitate changes in this checker.
--   **`rule_matching_utils`:** Depends on the [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) function from the [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:) module to source its primary data.
+-   **`rule_matching_utils`:** Depends on the [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) function from the [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:) module to source its primary data.
 
 ## 8. Existing Tests
 
@@ -86,7 +86,7 @@ The primary function for external use is [`scan_rule_coherence()`](simulation_en
 
 1.  The main entry point for programmatic use is [`scan_rule_coherence()`](simulation_engine/rules/rule_coherence_checker.py:87).
 2.  This function first calls [`get_all_rule_fingerprints_dict()`](simulation_engine/rules/rule_coherence_checker.py:20) to retrieve all rule fingerprints, keyed by their ID.
-    *   [`get_all_rule_fingerprints_dict()`](simulation_engine/rules/rule_coherence_checker.py:20) internally calls [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) from [`simulation_engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:).
+    *   [`get_all_rule_fingerprints_dict()`](simulation_engine/rules/rule_coherence_checker.py:20) internally calls [`get_all_rule_fingerprints()`](simulation_engine/rules/rule_matching_utils.py:) from [`engine.rules.rule_matching_utils`](simulation_engine/rules/rule_matching_utils.py:).
 3.  The dictionary of rules is then passed sequentially to the various validation and detection functions:
     *   [`validate_rule_schema()`](simulation_engine/rules/rule_coherence_checker.py:25): Checks for ID presence/uniqueness and effect field presence.
     *   [`detect_conflicting_triggers()`](simulation_engine/rules/rule_coherence_checker.py:41): Identifies rules with identical triggers but differing effects.

@@ -12,9 +12,9 @@ Functionally complete. Determines project root, parses hardcoded JSON plugin lis
 - **Error Handling:** Basic file I/O error handling; could be more robust.
 
 ## Connections & Dependencies
-- **Direct Project Module Imports:** `from iris.iris_scraper import IrisScraper` (manages `sys.path` for this).
+- **Direct Project Module Imports:** `from ingestion.iris_scraper import IrisScraper` (manages `sys.path` for this).
 - **External Library Dependencies:** `os`, `textwrap`, `pathlib`, `json`, `sys` (standard Python).
-- **Interaction:** Generates Python files intended for the `iris.iris_plugins_variable_ingestion` namespace, subclassing `IrisScraper`.
+- **Interaction:** Generates Python files intended for the `ingestion.iris_plugins_variable_ingestion` namespace, subclassing `IrisScraper`.
 - **Input/Output Files:**
     - **Inputs:** None (internal configuration).
     - **Outputs:** `.py` files in `ROOT/iris/iris_plugins_variable_ingestion/`.
@@ -28,7 +28,7 @@ Functionally complete. Determines project root, parses hardcoded JSON plugin lis
 - `BASE_DIR` target directory name (`iris_plugins_variable_ingestion`).
 
 ## Coupling Points
-- Generated stubs coupled to `iris.iris_scraper.IrisScraper` interface.
+- Generated stubs coupled to `ingestion.iris_scraper.IrisScraper` interface.
 - Assumes specific project directory structure.
 
 ## Existing Tests

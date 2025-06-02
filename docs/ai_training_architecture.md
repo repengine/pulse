@@ -85,8 +85,8 @@ flowchart TB
 ## 3. Integration Points
 
 - `forecast_engine.ai_forecaster` & `forecast_output/pfpa_logger`  
-- `trust_system.retrodiction_engine` & `simulation_engine.simulator_core`  
-- `learning.compute_retrodiction_error` & `learning.retrodiction_curriculum`  
+- `trust_system.retrodiction_engine` & `engine.simulator_core`  
+- `analytics.compute_retrodiction_error` & `analytics.retrodiction_curriculum`  
 - GPT training hooks in `intelligence/function_router` ("train-gpt")
 
 ## 4. Training & Evaluation Loop
@@ -101,7 +101,7 @@ flowchart TB
 ## 5. Dynamic Rule Generation & Pruning
 
 1. Propose rules (GPT + symbolic planner)  
-2. Batch evaluate in `simulation_engine.rule_mutation_engine`  
+2. Batch evaluate in `engine.rule_mutation_engine`  
 3. Store in Rule Repository  
 4. Pruner discards rules below impact threshold
 

@@ -52,7 +52,7 @@ This is the main public function of the module. It orchestrates the fetching of 
 
 **Presumed Usage:**
 ```python
-from iris.variable_ingestion import ingest_live_variables
+from ingestion.variable_ingestion import ingest_live_variables
 
 live_economic_data = ingest_live_variables()
 if live_economic_data:

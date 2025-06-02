@@ -6,7 +6,7 @@ Standardizes logging format and provides log rotation support.
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

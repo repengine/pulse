@@ -1,8 +1,8 @@
-# Module Analysis: `learning.engines.feature_discovery`
+# Module Analysis: `analytics.engines.feature_discovery`
 
 ## 1. Module Intent/Purpose
 
-The primary role of the `learning.engines.feature_discovery` module is to automatically discover new symbolic tags, variable groupings, or emergent behaviors within datasets. It achieves this by employing clustering and dimensionality reduction techniques. The module is also responsible for logging these discoveries into a central learning log and is intended to provide a command-line interface (CLI) entry point for its functionalities.
+The primary role of the `analytics.engines.feature_discovery` module is to automatically discover new symbolic tags, variable groupings, or emergent behaviors within datasets. It achieves this by employing clustering and dimensionality reduction techniques. The module is also responsible for logging these discoveries into a central learning log and is intended to provide a command-line interface (CLI) entry point for its functionalities.
 
 ## 2. Operational Status/Completeness
 
@@ -48,7 +48,7 @@ The module appears to be in a relatively functional state for its core defined s
 
 -   **[`FeatureDiscoveryEngine`](learning/engines/feature_discovery.py:28) Class:**
     ```python
-    from learning.engines.feature_discovery import FeatureDiscoveryEngine
+    from analytics.engines.feature_discovery import FeatureDiscoveryEngine
     import pandas as pd
 
     # Sample DataFrame

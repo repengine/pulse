@@ -36,7 +36,7 @@ The presence of an `if __name__ == "__main__":` block ([`memory/contradiction_re
     *   `json`: Standard Python library for JSON serialization and deserialization ([`json.dumps`](memory/contradiction_resolution_tracker.py:46), [`json.loads`](memory/contradiction_resolution_tracker.py:60)).
     *   `typing`: Standard Python library for type hinting (`List`, `Dict`, `Tuple`, `Optional`).
     *   [`core.path_registry.PATHS`](core/path_registry.py): Internal project module used to retrieve the configured path for the contradiction resolution log file ([`PATHS.get`](memory/contradiction_resolution_tracker.py:16)).
-    *   [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py): Internal project module providing access to stored forecast data. Used by [`track_resolution`](memory/contradiction_resolution_tracker.py:32) to fetch forecasts by trace ID.
+    *   [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py): Internal project module providing access to stored forecast data. Used by [`track_resolution`](memory/contradiction_resolution_tracker.py:32) to fetch forecasts by trace ID.
 *   **Interactions:**
     *   **Data Source:** Relies on [`ForecastMemory`](memory/forecast_memory.py) to provide forecast data (dictionaries) containing `"arc_label"` and `"symbolic_tag"`.
     *   **File System:** Reads from and writes to a JSON Lines (`.jsonl`) log file. The default path is `logs/contradiction_resolution_log.jsonl`, configurable via `PATHS`.
@@ -73,7 +73,7 @@ The presence of an `if __name__ == "__main__":` block ([`memory/contradiction_re
 ## 7. Coupling Points
 
 *   **[`core.path_registry.PATHS`](core/path_registry.py):** The module is coupled to `PATHS` for resolving the log file location. Changes to the `PATHS` API or the specific key `"CONTRADICTION_RESOLUTION_LOG"` could impact the module.
-*   **[`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py):** There's a significant coupling with `ForecastMemory`. The [`track_resolution`](memory/contradiction_resolution_tracker.py:32) function directly depends on its `find_by_trace_id` method and the structure of the forecast dictionaries it returns (specifically, the existence and semantics of `"arc_label"` and `"symbolic_tag"` fields).
+*   **[`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py):** There's a significant coupling with `ForecastMemory`. The [`track_resolution`](memory/contradiction_resolution_tracker.py:32) function directly depends on its `find_by_trace_id` method and the structure of the forecast dictionaries it returns (specifically, the existence and semantics of `"arc_label"` and `"symbolic_tag"` fields).
 *   **Log File Format (`.jsonl`):** The module relies on a specific JSON Lines format for the `RESOLUTION_LOG`. Both [`log_resolution_outcome`](memory/contradiction_resolution_tracker.py:43) (writer) and [`summarize_resolution_outcomes`](memory/contradiction_resolution_tracker.py:53) (reader) must adhere to this implicit schema. Changes to the logged fields or format would require coordinated updates.
 
 ## 8. Existing Tests (SPARC Refinement)
@@ -126,7 +126,7 @@ The presence of an `if __name__ == "__main__":` block ([`memory/contradiction_re
 
 *   **Modularity/Architecture:**
     *   **Adherence:** Fair. The module is focused on a specific task (contradiction resolution tracking) and is organized as a set of related functions.
-    *   **Concerns:** It has direct dependencies on `core.path_registry` and `memory.forecast_memory`, making it moderately coupled. The architecture is simple and procedural.
+    *   **Concerns:** It has direct dependencies on `core.path_registry` and `analytics.forecast_memory`, making it moderately coupled. The architecture is simple and procedural.
 
 *   **Refinement Focus:**
     *   **Testability:**

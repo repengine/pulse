@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 # Assume necessary Pulse modules are available in the environment
-from simulation_engine.simulator_core import simulate_forward, WorldState
-from simulation_engine.worldstate import (
+from engine.simulator_core import simulate_forward, WorldState
+from engine.worldstate import (
     Variables,
     SymbolicOverlays,
     CapitalExposure,
@@ -13,7 +13,7 @@ from recursive_training.data.data_store import RecursiveDataStore
 from recursive_training.advanced_metrics.enhanced_metrics import (
     EnhancedRecursiveTrainingMetrics,
 )
-from learning.learning import (
+from analytics.learning import (
     LearningEngine,
 )  # Assuming LearningEngine is needed for metrics logging
 from recursive_training.parallel_trainer import run_parallel_retrodiction_training

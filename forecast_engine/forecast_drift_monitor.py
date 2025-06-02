@@ -34,7 +34,7 @@ import json
 import os
 from typing import List, Dict, Optional
 from utils.log_utils import get_logger
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 logger = get_logger(__name__)
 
@@ -136,7 +136,9 @@ def detect_adwin_drift(series, delta=0.002):
     adwin = ADWIN(delta=delta)
     drift_points = []
     for i, val in enumerate(series):
-        _ = adwin.update(val) # in_drift is not used, only the side effect of update() is needed
+        _ = adwin.update(
+            val
+        )  # in_drift is not used, only the side effect of update() is needed
         if adwin.drift_detected:
             drift_points.append(i)
     return drift_points

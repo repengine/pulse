@@ -20,7 +20,7 @@ The module appears operational for its current scope, primarily implementing lin
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
-- [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:11): Used for accessing and modifying simulation state, including overlays and variables.
+- [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:11): Used for accessing and modifying simulation state, including overlays and variables.
 - [`core.pulse_config.config_loader`](../../core/pulse_config.py): Used by all decay functions ([`linear_decay`](../../simulation_engine/decay_logic.py:17), [`apply_overlay_decay`](../../simulation_engine/decay_logic.py:29), [`decay_variable`](../../simulation_engine/decay_logic.py:45)) to fetch the `default_decay_rate` from [`core_config.yaml`](../../core/pulse_config.py) if no rate is explicitly provided.
 
 ### External Library Dependencies

@@ -5,7 +5,7 @@ Airflow DAG to schedule Pulse historical retrodiction runs.
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from simulation_engine.historical_retrodiction_runner import run_retrodiction_tests
+from engine.historical_retrodiction_runner import run_retrodiction_tests
 
 default_args = {
     "owner": "pulse",

@@ -602,7 +602,7 @@
 - test_news_api_plugin.py
 - test_openfda_plugin.py
 - test_path_registry.py
-- test_property_based_simulation_engine.py
+- test_property_based_engine.py
 - test_pulse_config.py
 - test_pulse_forecast_lineage.py
 - test_pulse_prompt_logger.py

@@ -36,7 +36,7 @@ The module appears to be functionally complete for its defined scope.
 ### `WorldstateVariables` Class
 
 ```python
-from simulation_engine.variables.worldstate_variables import WorldstateVariables
+from engine.variables.worldstate_variables import WorldstateVariables
 # Assuming core.variable_registry.get_default_variable_state() is accessible
 # and might provide some default variables.
 

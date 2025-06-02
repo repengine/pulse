@@ -10,7 +10,7 @@ The module is currently a **stub** and is **not operational**. It contains a sin
 
 - `TODO: set up GPT client and symbolic_system interfaces` ([`pipeline/rule_engine.py:14`](pipeline/rule_engine.py:14))
 - `TODO: implement rule generation logic using GPT and pulse_symbolic_revision_planner` ([`pipeline/rule_engine.py:20`](pipeline/rule_engine.py:20))
-- `TODO: implement batch rule evaluation in simulation_engine.rule_mutation_engine` ([`pipeline/rule_engine.py:27`](pipeline/rule_engine.py:27))
+- `TODO: implement batch rule evaluation in engine.rule_mutation_engine` ([`pipeline/rule_engine.py:27`](pipeline/rule_engine.py:27))
 - `TODO: implement pruning strategy` ([`pipeline/rule_engine.py:34`](pipeline/rule_engine.py:34))
 
 ## Implementation Gaps / Unfinished Next Steps
@@ -18,7 +18,7 @@ The module is currently a **stub** and is **not operational**. It contains a sin
 *   **Core Logic Implementation:** The most significant gap is the lack of implementation for the core functionalities: rule generation, evaluation, and pruning. The `TODO` comments clearly outline these missing pieces.
 *   **GPT Client Integration:** The module needs to establish a connection and interface with a GPT client, as indicated in the `__init__` method's `TODO`.
 *   **Symbolic System Integration:** Integration with the `symbolic_system` (specifically mentioning [`pulse_symbolic_revision_planner`](symbolic_system/pulse_symbolic_revision_planner.py:)) is planned but not implemented.
-*   **Simulation Engine Interaction:** Rule evaluation is intended to interact with [`simulation_engine.rule_mutation_engine`](simulation_engine/rule_mutation_engine.py:), but this link is not yet established.
+*   **Simulation Engine Interaction:** Rule evaluation is intended to interact with [`engine.rule_mutation_engine`](simulation_engine/rule_mutation_engine.py:), but this link is not yet established.
 *   **Pruning Strategy:** A strategy for how rules will be pruned based on performance metrics needs to be defined and implemented.
 
 Logical next steps involve addressing each of_the `TODO` comments, starting with setting up the necessary client interfaces and then implementing the logic for each method.

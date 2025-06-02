@@ -18,7 +18,7 @@ from operator_interface.variable_cluster_digest_formatter import (
     format_variable_cluster_digest_md,
 )
 from operator_interface.mutation_log_viewer import load_log
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 LEARNING_LOG = PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")
 DIGEST_OUT = "logs/full_mutation_digest.md"

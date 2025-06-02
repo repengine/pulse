@@ -1,8 +1,8 @@
-# Module Analysis: `learning.engines.active_experimentation`
+# Module Analysis: `analytics.engines.active_experimentation`
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`learning.engines.active_experimentation`](learning/engines/active_experimentation.py:1) module is to provide a framework for conducting active experimentation within the learning pipeline. This includes capabilities such as parameter sweeps, counterfactual analysis, and self-play experiments, as stated in its docstring: *"Provides parameter sweeps, counterfactuals, and self-play experiments for the learning pipeline."*
+The primary role of the [`analytics.engines.active_experimentation`](learning/engines/active_experimentation.py:1) module is to provide a framework for conducting active experimentation within the learning pipeline. This includes capabilities such as parameter sweeps, counterfactual analysis, and self-play experiments, as stated in its docstring: *"Provides parameter sweeps, counterfactuals, and self-play experiments for the learning pipeline."*
 
 ## 2. Operational Status/Completeness
 

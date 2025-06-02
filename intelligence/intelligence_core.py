@@ -16,7 +16,7 @@ from intelligence.worldstate_loader import load_initial_state
 from intelligence.simulation_executor import SimulationExecutor
 from intelligence.intelligence_observer import Observer
 from intelligence.upgrade_sandbox_manager import UpgradeSandboxManager
-from simulation_engine.worldstate import (
+from engine.worldstate import (
     WorldState,
 )  # Import WorldState for type hinting
 
@@ -66,9 +66,9 @@ class IntelligenceCore:
         """
         self.router.load_modules(
             {
-                "turn_engine": "simulation_engine.turn_engine",
-                "causal_rules": "simulation_engine.causal_rules",
-                "retrodiction": "simulation_engine.historical_retrodiction_runner",
+                "turn_engine": "engine.turn_engine",
+                "causal_rules": "engine.causal_rules",
+                "retrodiction": "engine.historical_retrodiction_runner",
                 "forecast_engine": "forecast_engine.forecast_generator",  # Added forecast_engine
             }
         )

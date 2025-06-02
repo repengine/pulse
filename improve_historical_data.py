@@ -364,7 +364,7 @@ def execute_data_ingestion():
         sys.path.insert(0, os.path.abspath("."))
 
         # Import the plugin
-        from iris.iris_plugins_variable_ingestion.historical_ingestion_plugin import (
+        from ingestion.iris_plugins_variable_ingestion.historical_ingestion_plugin import (
             historical_ingestion_plugin,
         )
 

@@ -23,7 +23,7 @@ The module appears to be operationally complete for its core function of receivi
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
-- [`iris.iris_scraper.IrisScraper`](../../iris/iris_scraper.py:6): For scraping functionalities (though not directly used in API handlers).
+- [`ingestion.iris_scraper.IrisScraper`](../../iris/iris_scraper.py:6): For scraping functionalities (though not directly used in API handlers).
 - [`core.celery_app.celery_app`](../../core/celery_app.py): The Celery application instance for task queuing.
 - [`core.metrics.start_metrics_server`](../../core/metrics.py): Function to start the Prometheus metrics server.
 

@@ -48,12 +48,12 @@ The module acts as the main entry point for API requests originating from the Pu
 *   `typing`: For type hints.
 
 ### Internal Pulse Modules (Optional - with fallback to simulation):
-*   [`learning.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py:1) (specifically [`run_forecast_pipeline`](learning/forecast_pipeline_runner.py:29))
-*   [`learning.recursion_audit`](learning/recursion_audit.py:1) (specifically [`generate_recursion_report`](learning/recursion_audit.py:30))
+*   [`analytics.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py:1) (specifically [`run_forecast_pipeline`](learning/forecast_pipeline_runner.py:29))
+*   [`analytics.recursion_audit`](learning/recursion_audit.py:1) (specifically [`generate_recursion_report`](learning/recursion_audit.py:30))
 *   [`dev_tools.pulse_ui_plot`](dev_tools/pulse_ui_plot.py:1) (specifically [`load_variable_trace`](dev_tools/pulse_ui_plot.py:31), [`plot_variables`](dev_tools/pulse_ui_plot.py:31))
 *   [`core.pulse_config`](core/pulse_config.py:1)
 *   [`operator_interface.learning_log_viewer`](operator_interface/learning_log_viewer.py:1) (specifically [`load_learning_events`](operator_interface/learning_log_viewer.py:33), [`summarize_learning_events`](operator_interface/learning_log_viewer.py:33))
-*   [`memory.variable_cluster_engine`](memory/variable_cluster_engine.py:1) (specifically [`summarize_clusters`](memory/variable_cluster_engine.py:34))
+*   [`analytics.variable_cluster_engine`](memory/variable_cluster_engine.py:1) (specifically [`summarize_clusters`](memory/variable_cluster_engine.py:34))
 
 The import of these Pulse modules is wrapped in a `try-except` block ([`api/server.py:28-39`](api/server.py:28-39)), allowing the server to function with simulated data if these modules are not present.
 

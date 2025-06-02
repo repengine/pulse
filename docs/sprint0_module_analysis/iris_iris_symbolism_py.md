@@ -43,7 +43,7 @@ The module appears to be operationally functional for its defined scope.
 ### Class: `IrisSymbolismTagger`
 
 ```python
-from iris.iris_symbolism import IrisSymbolismTagger
+from ingestion.iris_symbolism import IrisSymbolismTagger
 
 # Initialize the tagger
 tagger = IrisSymbolismTagger()

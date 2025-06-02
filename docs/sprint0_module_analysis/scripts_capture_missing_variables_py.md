@@ -29,8 +29,8 @@ There are no obvious `TODO` comments or incomplete critical sections.
 ## 4. Connections &amp; Dependencies
 
 *   **Direct Project Module Imports:**
-    *   `from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin` ([`scripts/capture_missing_variables.py:22`](scripts/capture_missing_variables.py:22))
-    *   `from iris.iris_utils.ingestion_persistence import ensure_data_directory, save_to_file, save_request_metadata, save_api_response, save_processed_data, save_data_point_incremental` ([`scripts/capture_missing_variables.py:23`](scripts/capture_missing_variables.py:23))
+    *   `from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin` ([`scripts/capture_missing_variables.py:22`](scripts/capture_missing_variables.py:22))
+    *   `from ingestion.iris_utils.ingestion_persistence import ensure_data_directory, save_to_file, save_request_metadata, save_api_response, save_processed_data, save_data_point_incremental` ([`scripts/capture_missing_variables.py:23`](scripts/capture_missing_variables.py:23))
 *   **External Library Dependencies:**
     *   `os`
     *   `sys`
@@ -71,7 +71,7 @@ There are no obvious `TODO` comments or incomplete critical sections.
     *   **Usage:**
         ```python
         # Conceptual example
-        # from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
+        # from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
         # av_plugin = AlphaVantagePlugin() # Assuming API key is set and plugin enables
         # if av_plugin.enabled:
         #     success = fetch_and_store_variable(av_plugin, "nonfarm_payroll")
@@ -93,8 +93,8 @@ There are no obvious `TODO` comments or incomplete critical sections.
 *   **`source_name="alpha_vantage"`:** This string is hardcoded in multiple calls to data persistence functions (e.g., [`scripts/capture_missing_variables.py:133`](scripts/capture_missing_variables.py:133)).
 ## 7. Coupling Points
 
-*   **`AlphaVantagePlugin`:** Tightly coupled to this specific plugin from `iris.iris_plugins_variable_ingestion` for all data fetching operations.
-*   **`iris.iris_utils.ingestion_persistence`:** Tightly coupled to the `save_*` and `ensure_data_directory` functions from this utility module for all file system operations.
+*   **`AlphaVantagePlugin`:** Tightly coupled to this specific plugin from `ingestion.iris_plugins_variable_ingestion` for all data fetching operations.
+*   **`ingestion.iris_utils.ingestion_persistence`:** Tightly coupled to the `save_*` and `ensure_data_directory` functions from this utility module for all file system operations.
 *   **Alpha Vantage API Response Structure:** The script expects a specific JSON structure from the Alpha Vantage API, notably a `"data"` key containing a list of date/value objects.
 *   **Environment Variable `ALPHA_VANTAGE_KEY`:** The script's operation is dependent on this environment variable being correctly set.
 *   **File System Data Structure:** The script creates and relies on a specific directory structure under `data/historical_timeline/`. Downstream consumers of this data will also depend on this structure.
@@ -158,4 +158,4 @@ There are no obvious `TODO` comments or incomplete critical sections.
 *   **Classes:** `AlphaVantagePlugin` (imported, PascalCase, PEP 8 compliant).
 *   **Logging Instance:** `logger` (standard practice).
 
-The naming conventions are generally consistent and adhere to PEP 8 guidelines. There are no apparent AI assumption errors in naming; names are descriptive and relevant to their functionality. The import path `iris.iris_plugins_variable_ingestion.alpha_vantage_plugin` ([`scripts/capture_missing_variables.py:22`](scripts/capture_missing_variables.py:22)) is used consistently, assuming it's a valid path within the `iris` module structure.
+The naming conventions are generally consistent and adhere to PEP 8 guidelines. There are no apparent AI assumption errors in naming; names are descriptive and relevant to their functionality. The import path `ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin` ([`scripts/capture_missing_variables.py:22`](scripts/capture_missing_variables.py:22)) is used consistently, assuming it's a valid path within the `iris` module structure.

@@ -16,14 +16,14 @@ import importlib
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from symbolic_system.context import (
     symbolic_context,
     is_symbolic_enabled,
     enter_retrodiction_mode,
 )
 from symbolic_system.overlays import apply_overlay_interactions
-import core.pulse_config
+import engine.pulse_config
 
 
 class TestSymbolicIsolation(unittest.TestCase):
@@ -31,19 +31,20 @@ class TestSymbolicIsolation(unittest.TestCase):
 
     def test_symbolic_disabled_globally(self):
         """Test that all symbolic operations are skipped when disabled globally"""
-        with mock.patch.object(core.pulse_config, 'ENABLE_SYMBOLIC_SYSTEM', False):
-            # Reload modules that depend on core.pulse_config to pick up the patched value
+        with mock.patch("engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", False):
+            # Reload modules that depend on engine.pulse_config to pick up the patched value
             import symbolic_system.context
-            import simulation_engine.state_mutation
+            import engine.state_mutation
+
             importlib.reload(symbolic_system.context)
-            importlib.reload(simulation_engine.state_mutation)
+            importlib.reload(engine.state_mutation)
 
             state = WorldState()
             initial_hope = 0.5
             state.overlays.hope = initial_hope  # Set a known value
 
             # These calls should be no-ops when symbolic system is disabled
-            from simulation_engine.state_mutation import adjust_overlay
+            from engine.state_mutation import adjust_overlay
 
             adjust_overlay(state, "hope", 0.1)
 
@@ -52,13 +53,15 @@ class TestSymbolicIsolation(unittest.TestCase):
 
     def test_symbolic_disabled_for_retrodiction(self):
         """Test that symbolic operations are skipped during retrodiction"""
-        with mock.patch.dict(core.pulse_config.SYMBOLIC_PROCESSING_MODES, {"retrodiction": False}):
+        with mock.patch.dict(
+            "engine.pulse_config.SYMBOLIC_PROCESSING_MODES", {"retrodiction": False}
+        ):
             state = WorldState()
             initial_hope = state.overlays.hope
 
             # Run in retrodiction context
             with enter_retrodiction_mode():
-                from simulation_engine.state_mutation import adjust_overlay
+                from engine.state_mutation import adjust_overlay
 
                 adjust_overlay(state, "hope", 0.1)
 
@@ -70,35 +73,44 @@ class TestSymbolicIsolation(unittest.TestCase):
 
     def test_context_manager(self):
         """Test that the context manager properly sets and restores modes"""
-        original_mode = core.pulse_config.CURRENT_SYSTEM_MODE
+        original_mode = engine.pulse_config.CURRENT_SYSTEM_MODE  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
 
         # Change mode within context
         with symbolic_context("retrodiction"):
-            self.assertEqual(core.pulse_config.CURRENT_SYSTEM_MODE, "retrodiction")
+            self.assertEqual(
+                engine.pulse_config.CURRENT_SYSTEM_MODE, "retrodiction"
+            )  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
 
         # Mode should be restored
-        self.assertEqual(core.pulse_config.CURRENT_SYSTEM_MODE, original_mode)
+        self.assertEqual(
+            engine.pulse_config.CURRENT_SYSTEM_MODE, original_mode
+        )  # This line is not part of the patch, but needs to be updated if pulse_config is not directly imported.
 
     def test_explicit_override(self):
         """Test explicitly enabling symbolic processing in retrodiction mode"""
         state = WorldState()
         state.overlays.hope = 0.5
 
-        with mock.patch.object(core.pulse_config, 'ENABLE_SYMBOLIC_SYSTEM', True): # Ensure symbolic system is enabled
+        with mock.patch(
+            "engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
+        ):  # Ensure symbolic system is enabled
             # Normally disabled in retrodiction
-            with mock.patch.dict(core.pulse_config.SYMBOLIC_PROCESSING_MODES, {"retrodiction": False}):
-                # Reload modules that depend on core.pulse_config to pick up the patched value
+            with mock.patch.dict(
+                "engine.pulse_config.SYMBOLIC_PROCESSING_MODES", {"retrodiction": False}
+            ):
+                # Reload modules that depend on engine.pulse_config to pick up the patched value
                 import symbolic_system.context
-                import simulation_engine.state_mutation
+                import engine.state_mutation
+
                 importlib.reload(symbolic_system.context)
-                importlib.reload(simulation_engine.state_mutation)
+                importlib.reload(engine.state_mutation)
 
                 # But we can override it
                 with enter_retrodiction_mode(enable_symbolic=True):
                     self.assertTrue(is_symbolic_enabled())
 
                     # Symbolic operations should work
-                    from simulation_engine.state_mutation import adjust_overlay
+                    from engine.state_mutation import adjust_overlay
 
                     adjust_overlay(state, "hope", 0.1)
 
@@ -111,14 +123,19 @@ class TestSymbolicIsolation(unittest.TestCase):
         state.overlays.hope = 0.8  # Set hope high
         state.overlays.trust = 0.5  # Set trust to neutral
 
-        with mock.patch.object(core.pulse_config, 'ENABLE_SYMBOLIC_SYSTEM', True): # Ensure symbolic system is enabled
+        with mock.patch(
+            "engine.pulse_config.ENABLE_SYMBOLIC_SYSTEM", True
+        ):  # Ensure symbolic system is enabled
             # Enable symbolic in retrodiction but with minimal processing
-            with mock.patch.dict(core.pulse_config.SYMBOLIC_PROCESSING_MODES, {"retrodiction": True}):
-                # Reload modules that depend on core.pulse_config to pick up the patched value
+            with mock.patch.dict(
+                "engine.pulse_config.SYMBOLIC_PROCESSING_MODES", {"retrodiction": True}
+            ):
+                # Reload modules that depend on engine.pulse_config to pick up the patched value
                 import symbolic_system.context
-                import simulation_engine.state_mutation
+                import engine.state_mutation
+
                 importlib.reload(symbolic_system.context)
-                importlib.reload(simulation_engine.state_mutation)
+                importlib.reload(engine.state_mutation)
 
                 # Set up mock for logging to check if it's called
                 state.log_event = MagicMock()

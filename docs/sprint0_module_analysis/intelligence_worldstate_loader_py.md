@@ -33,12 +33,12 @@ Development seems to have followed the initial plan for Phase-1. The "Future exp
 ## 4. Connections & Dependencies
 
 ### Direct Imports from Other Project Modules:
-*   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py) ([`intelligence/worldstate_loader.py:25`](intelligence/worldstate_loader.py:25))
-*   [`simulation_engine.worldstate.Variables`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
-*   [`simulation_engine.worldstate.SymbolicOverlays`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
-*   [`simulation_engine.worldstate.CapitalExposure`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
+*   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py) ([`intelligence/worldstate_loader.py:25`](intelligence/worldstate_loader.py:25))
+*   [`engine.worldstate.Variables`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
+*   [`engine.worldstate.SymbolicOverlays`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
+*   [`engine.worldstate.CapitalExposure`](simulation_engine/worldstate.py) (local import in functions) ([`intelligence/worldstate_loader.py:84`](intelligence/worldstate_loader.py:84), [`intelligence/worldstate_loader.py:194`](intelligence/worldstate_loader.py:194))
 *   [`core.variable_registry.registry`](core/variable_registry.py) ([`intelligence/worldstate_loader.py:26`](intelligence/worldstate_loader.py:26))
-*   [`iris.variable_ingestion.ingest_live_variables`](iris/variable_ingestion.py) ([`intelligence/worldstate_loader.py:27`](intelligence/worldstate_loader.py:27))
+*   [`ingestion.variable_ingestion.ingest_live_variables`](iris/variable_ingestion.py) ([`intelligence/worldstate_loader.py:27`](intelligence/worldstate_loader.py:27))
 *   [`intelligence.intelligence_config.WORLDSTATE_DEFAULT_SOURCE`](intelligence/intelligence_config.py) ([`intelligence/worldstate_loader.py:29`](intelligence/worldstate_loader.py:29))
 *   [`intelligence.intelligence_config.WORLDSTATE_INJECT_LIVE_DEFAULT`](intelligence/intelligence_config.py) ([`intelligence/worldstate_loader.py:30`](intelligence/worldstate_loader.py:30))
 
@@ -136,7 +136,7 @@ This function is used to load a `WorldState` as it was at a specific historical 
 *   **`WorldState` Object:** Tightly coupled to the structure and constructor of the [`WorldState`](simulation_engine/worldstate.py) class, including its internal components like `Variables`, `SymbolicOverlays`, and `CapitalExposure`. Changes to `WorldState`'s initialization or structure would likely require changes here.
 *   **`intelligence_config`:** Relies on constants like [`WORLDSTATE_DEFAULT_SOURCE`](intelligence/intelligence_config.py:29) and [`WORLDSTATE_INJECT_LIVE_DEFAULT`](intelligence/intelligence_config.py:30).
 *   **`core.variable_registry`:** Depends on the `registry` singleton and its [`flag_missing_variables()`](core/variable_registry.py) method.
-*   **`iris.variable_ingestion`:** Depends on the [`ingest_live_variables()`](iris/variable_ingestion.py) function and its behavior/return type.
+*   **`ingestion.variable_ingestion`:** Depends on the [`ingest_live_variables()`](iris/variable_ingestion.py) function and its behavior/return type.
 *   **Pandas DataFrame Structure:** Assumes a specific structure for input CSV/JSON files (first column names/keys, second column values) when creating `baseline_vars` ([`intelligence/worldstate_loader.py:65`](intelligence/worldstate_loader.py:65), [`intelligence/worldstate_loader.py:183`](intelligence/worldstate_loader.py:183)).
 *   **File System:** Directly interacts with the file system to read baseline and snapshot files. The existence and format of these files are crucial.
 
@@ -173,7 +173,7 @@ The module defines two main public functions:
     *   Handles exceptions during processing by printing a message and re-raising the exception.
     *   Returns the populated `WorldState` object.
 
-Both functions perform local imports of `Variables`, `SymbolicOverlays`, and `CapitalExposure` from `simulation_engine.worldstate` to aid type checking and construction.
+Both functions perform local imports of `Variables`, `SymbolicOverlays`, and `CapitalExposure` from `engine.worldstate` to aid type checking and construction.
 
 ## 10. Naming Conventions
 

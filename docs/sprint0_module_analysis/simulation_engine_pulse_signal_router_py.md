@@ -24,9 +24,9 @@ The module appears to be operational and functionally complete for the set of si
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.worldstate`](../../simulation_engine/worldstate.py:21): Specifically, the `WorldState` class.
-- [`simulation_engine.state_mutation`](../../simulation_engine/state_mutation.py:22): Functions [`adjust_overlay`](../../simulation_engine/state_mutation.py:) and [`adjust_capital`](../../simulation_engine/state_mutation.py:).
-- [`simulation_engine.variables.worldstate_variables`](../../simulation_engine/variables/worldstate_variables.py:23): The `WorldstateVariables` class (though an instance is accessed via `state.variables`).
+- [`engine.worldstate`](../../simulation_engine/worldstate.py:21): Specifically, the `WorldState` class.
+- [`engine.state_mutation`](../../simulation_engine/state_mutation.py:22): Functions [`adjust_overlay`](../../simulation_engine/state_mutation.py:) and [`adjust_capital`](../../simulation_engine/state_mutation.py:).
+- [`engine.variables.worldstate_variables`](../../simulation_engine/variables/worldstate_variables.py:23): The `WorldstateVariables` class (though an instance is accessed via `state.variables`).
 
 ### External Library Dependencies:
 - `logging` (Python standard library)
@@ -44,8 +44,8 @@ The module appears to be operational and functionally complete for the set of si
 - **Purpose:** The main public function of the module. It takes the current `WorldState` and a signal string as input, looks up the appropriate handler for the signal, and executes it to modify the `WorldState`.
 - **Example Usage:**
   ```python
-  from simulation_engine.worldstate import WorldState
-  from simulation_engine.pulse_signal_router import route_signal
+  from engine.worldstate import WorldState
+  from engine.pulse_signal_router import route_signal
 
   # Assume s is an initialized WorldState object
   s = WorldState()
@@ -84,7 +84,7 @@ The module appears to be operational and functionally complete for the set of si
 ## 7. Coupling Points
 
 - **`WorldState` Object:** Tightly coupled to the structure and expected attributes of the `WorldState` object, particularly its `variables` attribute (assumed to be an instance of `WorldstateVariables`).
-- **`state_mutation` Module:** Directly depends on the [`adjust_overlay`](../../simulation_engine/state_mutation.py:) and [`adjust_capital`](../../simulation_engine/state_mutation.py:) functions from the [`simulation_engine.state_mutation`](../../simulation_engine/state_mutation.py:) module. Changes to the API of these functions would break this router.
+- **`state_mutation` Module:** Directly depends on the [`adjust_overlay`](../../simulation_engine/state_mutation.py:) and [`adjust_capital`](../../simulation_engine/state_mutation.py:) functions from the [`engine.state_mutation`](../../simulation_engine/state_mutation.py:) module. Changes to the API of these functions would break this router.
 - **`WorldstateVariables` Schema:** Implicitly coupled to the expected schema (available attributes and their types) of the [`WorldstateVariables`](../../simulation_engine/variables/worldstate_variables.py:) class. The handlers expect certain variables to exist and be of a numeric type.
 
 ## 8. Existing Tests

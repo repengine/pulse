@@ -35,7 +35,7 @@ This information is intended to help users and developers validate the readiness
 
 ### Direct Project Module Imports:
 
-*   [`simulation_engine.worldstate.WorldState`](../../../simulation_engine/worldstate.py:10): Used to access the current state of the simulation.
+*   [`engine.worldstate.WorldState`](../../../simulation_engine/worldstate.py:10): Used to access the current state of the simulation.
 *   [`symbolic_system.symbolic_utils.get_overlay_snapshot`](../../../symbolic_system/symbolic_utils.py:11): To retrieve symbolic overlay data.
 *   [`symbolic_system.symbolic_utils.symbolic_fragility_index`](../../../symbolic_system/symbolic_utils.py:11): To calculate the symbolic fragility.
 *   [`capital_engine.capital_layer.summarize_exposure`](../../../capital_engine/capital_layer.py:12): To get a summary of capital exposure.
@@ -70,7 +70,7 @@ The module contains one primary function:
     *   **Purpose:** Performs the diagnostic checks and prints a summary.
     *   **Usage:** Intended to be called as a script or imported and invoked.
         ```python
-        from learning.diagnose_pulse import run_diagnostics
+        from analytics.diagnose_pulse import run_diagnostics
 
         # To run diagnostics and print to console, then get the data
         diagnostic_data = run_diagnostics()

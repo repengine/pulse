@@ -8,7 +8,7 @@ Author: Pulse v0.39
 """
 
 import os
-from memory.rule_cluster_engine import summarize_rule_clusters
+from analytics.rule_cluster_engine import summarize_rule_clusters
 
 
 def highlight_volatility(score: float) -> str:

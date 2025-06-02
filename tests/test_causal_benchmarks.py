@@ -7,8 +7,8 @@ import json
 import tempfile
 from unittest.mock import patch, MagicMock
 
-from simulation_engine.batch_runner import run_batch_from_config
-from simulation_engine.simulator_core import simulate_forward
+from engine.batch_runner import run_batch_from_config
+from engine.simulator_core import simulate_forward
 from scripts.run_causal_benchmarks import (
     load_scenarios_from_file,
     run_scenario_programmatically,
@@ -22,7 +22,7 @@ class TestCausalBenchmarks:
 
     def test_gravity_off_flag_integration(self):
         """Test that the gravity-off flag is properly passed through the simulation stack."""
-        with patch("simulation_engine.batch_runner.simulate_forward") as mock_simulate:
+        with patch("engine.batch_runner.simulate_forward") as mock_simulate:
             mock_simulate.return_value = [{"turn": 1, "deltas": {}}]
 
             # Run with gravity enabled (default)
@@ -59,9 +59,7 @@ class TestCausalBenchmarks:
             patch(
                 "symbolic_system.gravity.symbolic_gravity_fabric.create_default_fabric"
             ) as _mock_fabric_creator,
-            patch(
-                "simulation_engine.simulator_core.simulate_turn"
-            ) as mock_simulate_turn,
+            patch("engine.simulator_core.simulate_turn") as mock_simulate_turn,
         ):
             # Mock the necessary return values
             mock_simulate_turn.return_value = {"turn": 1, "deltas": {}}

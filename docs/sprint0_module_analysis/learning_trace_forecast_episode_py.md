@@ -25,7 +25,7 @@ The module appears to be a complete and functional utility for its defined scope
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- `from memory.forecast_episode_tracer import build_episode_chain, summarize_lineage_drift`:
+- `from analytics.forecast_episode_tracer import build_episode_chain, summarize_lineage_drift`:
     - [`build_episode_chain()`](memory/forecast_episode_tracer.py:1): Likely reconstructs the sequence of related forecasts.
     - [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1): Likely analyzes and summarizes changes across the forecast chain.
     (Both imported from [`memory/forecast_episode_tracer.py`](memory/forecast_episode_tracer.py))
@@ -75,22 +75,22 @@ The module appears to be a complete and functional utility for its defined scope
 
 ## 7. Coupling Points
 
-- **Data Structure:** Tightly coupled to the expected JSON structure of forecast objects within the input `.jsonl` file. Changes to the forecast object schema (e.g., field names like `trace_id`, `arc_label`, `symbolic_tag`) would likely break this script or the underlying `memory.forecast_episode_tracer` functions.
-- **`memory.forecast_episode_tracer` Module:** Highly dependent on the imported functions [`build_episode_chain()`](memory/forecast_episode_tracer.py:1) and [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1) from the [`memory.forecast_episode_tracer`](memory/forecast_episode_tracer.py) module. Any changes to the API or behavior of these functions would directly impact this script.
+- **Data Structure:** Tightly coupled to the expected JSON structure of forecast objects within the input `.jsonl` file. Changes to the forecast object schema (e.g., field names like `trace_id`, `arc_label`, `symbolic_tag`) would likely break this script or the underlying `analytics.forecast_episode_tracer` functions.
+- **`analytics.forecast_episode_tracer` Module:** Highly dependent on the imported functions [`build_episode_chain()`](memory/forecast_episode_tracer.py:1) and [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1) from the [`analytics.forecast_episode_tracer`](memory/forecast_episode_tracer.py) module. Any changes to the API or behavior of these functions would directly impact this script.
 
 ## 8. Existing Tests
 
 - No corresponding test file (e.g., `tests/learning/test_trace_forecast_episode.py` or `tests/test_trace_forecast_episode.py`) is immediately apparent from the provided file listing.
 - The core logic is delegated to [`memory/forecast_episode_tracer.py`](memory/forecast_episode_tracer.py), which may or may not have its own dedicated tests. A file named [`tests/memory/test_forecast_episode_tracer.py`](tests/memory/test_forecast_episode_tracer.py) would be the expected location for such tests, but its presence is not confirmed from the current context.
-- **Assessment:** Without visibility into tests for `memory.forecast_episode_tracer`, the test coverage for the functionality used by this CLI tool is unknown.
+- **Assessment:** Without visibility into tests for `analytics.forecast_episode_tracer`, the test coverage for the functionality used by this CLI tool is unknown.
 
 ## 9. Module Architecture and Flow
 
 The module follows a simple linear flow typical for a CLI script:
 1.  **Argument Parsing:** The [`main()`](learning/trace_forecast_episode.py:16) function initializes `argparse` to define and parse two required command-line arguments: `--batch` (path to the JSONL forecast archive) and `--root` (the `TRACE_ID` to start tracing from).
 2.  **Data Loading:** The `args.batch` path is passed to [`load_jsonl()`](learning/trace_forecast_episode.py:12), which reads the JSONL file and returns a list of forecast dictionaries.
-3.  **Episode Chain Construction:** The loaded `forecasts` and `args.root` ID are passed to [`build_episode_chain()`](memory/forecast_episode_tracer.py:1) (from [`memory.forecast_episode_tracer`](memory/forecast_episode_tracer.py)). This function presumably filters and orders the forecasts to create a chronological chain representing the episode's lineage.
-4.  **Drift Summarization:** The resulting `chain` is passed to [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1) (from [`memory.forecast_episode_tracer`](memory/forecast_episode_tracer.py)). This function analyzes the chain to identify and quantify changes or "drift" in symbolic tags or other relevant attributes.
+3.  **Episode Chain Construction:** The loaded `forecasts` and `args.root` ID are passed to [`build_episode_chain()`](memory/forecast_episode_tracer.py:1) (from [`analytics.forecast_episode_tracer`](memory/forecast_episode_tracer.py)). This function presumably filters and orders the forecasts to create a chronological chain representing the episode's lineage.
+4.  **Drift Summarization:** The resulting `chain` is passed to [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1) (from [`analytics.forecast_episode_tracer`](memory/forecast_episode_tracer.py)). This function analyzes the chain to identify and quantify changes or "drift" in symbolic tags or other relevant attributes.
 5.  **Output Generation:**
     - The script prints a header and then iterates through the `chain`, printing the index, `trace_id`, `arc_label`, and `symbolic_tag` for each forecast in the episode.
     - It then prints another header and iterates through the `summary` dictionary (output of [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py:1)), printing key-value pairs of the drift summary.

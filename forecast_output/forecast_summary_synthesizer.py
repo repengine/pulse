@@ -30,8 +30,8 @@ import json
 import os
 from typing import List, Dict, Optional
 from datetime import datetime
-from core.path_registry import PATHS
-from core.pulse_config import USE_SYMBOLIC_OVERLAYS
+from engine.path_registry import PATHS
+from engine.pulse_config import USE_SYMBOLIC_OVERLAYS
 from symbolic_system.pulse_symbolic_arc_tracker import (
     compare_arc_drift,
     compute_arc_stability,

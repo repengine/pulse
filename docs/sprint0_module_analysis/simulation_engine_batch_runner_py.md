@@ -44,10 +44,10 @@ Obvious placeholders or TODOs:
 - [`config.gravity_config`](config/gravity_config.py) (as `grav_cfg`) for default gravity engine parameters.
 - [`symbolic_system.gravity.engines.residual_gravity_engine.GravityEngineConfig`](symbolic_system/gravity/engines/residual_gravity_engine.py) for gravity engine configuration.
 - [`diagnostics.shadow_model_monitor.ShadowModelMonitor`](diagnostics/shadow_model_monitor.py) (optional import) for monitoring simulation fidelity.
-- [`simulation_engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:simulate_forward) to run the core simulation.
-- [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:WorldState), [`SymbolicOverlays`](simulation_engine/worldstate.py:SymbolicOverlays) for managing simulation state.
+- [`engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:simulate_forward) to run the core simulation.
+- [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:WorldState), [`SymbolicOverlays`](simulation_engine/worldstate.py:SymbolicOverlays) for managing simulation state.
 - [`forecast_output.forecast_generator.generate_forecast`](forecast_output/forecast_generator.py:generate_forecast) to generate forecasts.
-- [`learning.forecast_pipeline_runner.run_forecast_pipeline`](learning/forecast_pipeline_runner.py:run_forecast_pipeline) to process forecasts.
+- [`analytics.forecast_pipeline_runner.run_forecast_pipeline`](learning/forecast_pipeline_runner.py:run_forecast_pipeline) to process forecasts.
 
 **External Library Dependencies:**
 - `json`: For loading batch configurations and dumping results.
@@ -121,9 +121,9 @@ When run as a script, it executes a predefined `sample_configs_main` batch. The 
 - **`return_mode="full"` for `simulate_forward` ([`simulation_engine/batch_runner.py:134`](simulation_engine/batch_runner.py:134)):** This is hardcoded, justified by the `ShadowModelMonitor` needing detailed state. If the monitor is not used or its needs change, this might become suboptimal.
 
 ## Coupling Points
-- **[`simulation_engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:simulate_forward):** Tightly coupled for running the actual simulations. Changes in `simulate_forward`'s signature or behavior (especially regarding state management, return values, or parameters like `gravity_enabled`) would directly impact `batch_runner`.
+- **[`engine.simulator_core.simulate_forward`](simulation_engine/simulator_core.py:simulate_forward):** Tightly coupled for running the actual simulations. Changes in `simulate_forward`'s signature or behavior (especially regarding state management, return values, or parameters like `gravity_enabled`) would directly impact `batch_runner`.
 - **[`forecast_output.forecast_generator.generate_forecast`](forecast_output/forecast_generator.py:generate_forecast):** Used to generate forecasts from the final simulation state. Dependency on its input (simulation state snapshot) and output format.
-- **[`learning.forecast_pipeline_runner.run_forecast_pipeline`](learning/forecast_pipeline_runner.py:run_forecast_pipeline):** Processes the generated forecasts. Dependency on the format of forecasts it receives and the structure of results it returns.
+- **[`analytics.forecast_pipeline_runner.run_forecast_pipeline`](learning/forecast_pipeline_runner.py:run_forecast_pipeline):** Processes the generated forecasts. Dependency on the format of forecasts it receives and the structure of results it returns.
 - **`WorldState` and `SymbolicOverlays`:** The batch runner directly initializes and manipulates `WorldState` and its `overlays` based on configuration.
 - **[`diagnostics.shadow_model_monitor.ShadowModelMonitor`](diagnostics/shadow_model_monitor.py):** Optional but significant coupling if enabled. `batch_runner` initializes and passes it to `simulate_forward`.
 - **[`config.gravity_config`](config/gravity_config.py) and `GravityEngineConfig`:** Tightly coupled for configuring and enabling/disabling the gravity engine features passed to `simulate_forward`.

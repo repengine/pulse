@@ -20,7 +20,7 @@ The module appears to be operationally functional for its currently defined, lim
 
 *   **Direct Project Imports:**
     *   [`from intelligence.worldstate_loader import load_historical_snapshot`](intelligence/worldstate_loader.py:10)
-    *   [`from simulation_engine.worldstate import WorldState`](simulation_engine/worldstate.py:11)
+    *   [`from engine.worldstate import WorldState`](simulation_engine/worldstate.py:11)
 *   **Standard Library Dependencies:**
     *   `typing` (Dict, Any, List)
     *   `datetime`
@@ -38,7 +38,7 @@ The module contains one primary function: [`run_retrodiction()`](simulation_engi
 
 ```python
 from datetime import datetime
-from simulation_engine.simulate_backward import run_retrodiction
+from engine.simulate_backward import run_retrodiction
 
 # Assuming a historical snapshot exists for '2023-01-01T12:00:00'
 snapshot_datetime = datetime(2023, 1, 1, 12, 0, 0)

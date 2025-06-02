@@ -1,5 +1,5 @@
 import unittest
-from learning.learning_profile import LearningProfile
+from analytics.learning_profile import LearningProfile
 
 
 class TestLearningProfile(unittest.TestCase):

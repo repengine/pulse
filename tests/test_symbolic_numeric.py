@@ -14,7 +14,7 @@ from unittest.mock import patch
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from symbolic_system.numeric_transforms import get_numeric_transformer
 
 

@@ -26,25 +26,25 @@ FORECAST_RECORD_AVAILABLE = False
 OUTPUT_READER_AVAILABLE = False
 
 try:
-    from core.pulse_config import get_config
+    from engine.pulse_config import get_config
     PULSE_CONFIG_AVAILABLE = True
 except ImportError:
     pass  # PULSE_CONFIG_AVAILABLE remains False
 
 try:
-    from core.bayesian_trust_tracker import bayesian_trust_tracker
+    from analytics.bayesian_trust_tracker import bayesian_trust_tracker
     BAYESIAN_TRUST_AVAILABLE = True
 except ImportError:
     pass  # BAYESIAN_TRUST_AVAILABLE remains False
 
 try:
-    from core.schemas import ForecastRecord
+    from engine.schemas import ForecastRecord
     FORECAST_RECORD_AVAILABLE = True
 except ImportError:
     pass  # FORECAST_RECORD_AVAILABLE remains False
 
 try:
-    from learning.output_data_reader import OutputDataReader
+    from analytics.output_data_reader import OutputDataReader
     OUTPUT_READER_AVAILABLE = True
 except ImportError:
     pass  # OUTPUT_READER_AVAILABLE remains False

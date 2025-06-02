@@ -26,7 +26,7 @@ The module appears largely functional for its defined scope, particularly the su
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
--   [`simulation_engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):
+-   [`engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py):
     -   [`get_all_rule_fingerprints()`](../../simulation_engine/rules/rule_matching_utils.py:16)
     -   [`validate_fingerprint_schema()`](../../simulation_engine/rules/rule_matching_utils.py:16)
 

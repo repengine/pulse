@@ -33,7 +33,7 @@ There are no explicit signs of deviated development paths, but the simplicity su
 ## 4. Connections & Dependencies
 
 ### Direct Imports from Other Project Modules:
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:0): Imports [`WorldState`](simulation_engine/worldstate.py:0) (actual path to class definition needs verification).
+*   [`engine.worldstate`](simulation_engine/worldstate.py:0): Imports [`WorldState`](simulation_engine/worldstate.py:0) (actual path to class definition needs verification).
 *   [`symbolic_system.symbolic_utils`](symbolic_system/symbolic_utils.py:0): Imports [`get_overlay_snapshot`](symbolic_system/symbolic_utils.py:0) and [`symbolic_fragility_index`](symbolic_system/symbolic_utils.py:0) (actual paths need verification).
 *   [`capital_engine.capital_layer`](capital_engine/capital_layer.py:0): Imports [`summarize_exposure`](capital_engine/capital_layer.py:0) and [`exposure_percentages`](capital_engine/capital_layer.py:0) (actual paths need verification).
 *   [`utils.log_utils`](utils/log_utils.py:0): Imports [`get_logger`](utils/log_utils.py:0) (actual path needs verification).
@@ -60,12 +60,12 @@ There are no explicit signs of deviated development paths, but the simplicity su
     ```python
     # To run diagnostics and print to console:
     # This is typically done via the __main__ block when the script is executed.
-    # from learning.diagnose_pulse import run_diagnostics
+    # from analytics.diagnose_pulse import run_diagnostics
     # diagnostic_report = run_diagnostics()
     # print(diagnostic_report) # The function itself also prints to console
 
     # Example of how it's run if the script is executed directly:
-    # python -m learning.diagnose_pulse
+    # python -m analytics.diagnose_pulse
     ```
     The function initializes a [`WorldState()`](learning/diagnose_pulse.py:32), calls various utility functions from other modules to get specific metrics ([`get_overlay_snapshot()`](learning/diagnose_pulse.py:35), [`symbolic_fragility_index()`](learning/diagnose_pulse.py:36), [`summarize_exposure()`](learning/diagnose_pulse.py:37), [`exposure_percentages()`](learning/diagnose_pulse.py:38)), formats this data into a human-readable report printed to the console, and returns the raw data as a dictionary.
 

@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
+from typing import Dict, List, Any, Tuple
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ sample_variables = [
 ]
 
 @app.route('/api/logs', methods=['GET'])
-def get_logs():
+def get_logs() -> Response:
     """
     Basic endpoint to return a list of sample log entries.
     """
@@ -22,14 +23,14 @@ def get_logs():
     return jsonify(sample_logs)
 
 @app.route('/api/variables', methods=['GET'])
-def get_variables():
+def get_variables() -> Response:
     """
     Basic endpoint to return a list of sample variables.
     """
     return jsonify(sample_variables)
 
 @app.route('/api/variables/<string:variable_name>', methods=['PUT'])
-def update_variable(variable_name):
+def update_variable(variable_name: str) -> Tuple[Response, int]:
     """
     Endpoint to update a specific variable's value.
     """
@@ -69,7 +70,7 @@ def update_variable(variable_name):
 
 
 @app.route('/api/forecasts', methods=['GET'])
-def get_forecasts():
+def get_forecasts() -> Response:
     """
     Basic endpoint to return a list of sample forecasts.
     """

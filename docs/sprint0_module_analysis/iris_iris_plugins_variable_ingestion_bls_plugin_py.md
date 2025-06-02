@@ -29,7 +29,7 @@ The module appears to be partially complete and operational for basic use cases.
 ## 4. Connections & Dependencies
 
 - **Direct Imports from other project modules:**
-    - `from iris.iris_utils.ingestion_persistence import save_data_point_incremental` ([`iris/iris_utils/ingestion_persistence.py`](iris/iris_utils/ingestion_persistence.py))
+    - `from ingestion.iris_utils.ingestion_persistence import save_data_point_incremental` ([`iris/iris_utils/ingestion_persistence.py`](iris/iris_utils/ingestion_persistence.py))
 - **External library dependencies:**
     - `pandas` (as `pd`)
     - `requests`
@@ -68,7 +68,7 @@ This demonstrates how to instantiate [`BLSPlugin()`](iris/iris_plugins_variable_
 
 ## 7. Coupling Points
 
-- **`iris.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for data persistence. Any changes to the signature or behavior of [`save_data_point_incremental()`](iris/iris_utils/ingestion_persistence.py:line) would directly impact this plugin.
+- **`ingestion.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for data persistence. Any changes to the signature or behavior of [`save_data_point_incremental()`](iris/iris_utils/ingestion_persistence.py:line) would directly impact this plugin.
 - **BLS API Structure:** The plugin is highly dependent on the specific request and response structure of the BLS API (version 2). Changes in the API endpoint, data format, or status messages could break the plugin.
 - **Environment Variable for API Key:** Relies on `os.environ.get("BLS_API_KEY")` ([`iris/iris_plugins_variable_ingestion/bls_plugin.py:10`](iris/iris_plugins_variable_ingestion/bls_plugin.py:10)) for API key retrieval, coupling it to the environment setup.
 

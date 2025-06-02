@@ -12,7 +12,7 @@ from capital_engine.capital_layer import (
     summarize_exposure,
     portfolio_alignment_tags,
 )
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 
 # Dummy worldstate values for testing
 mock_vars = {

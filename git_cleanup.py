@@ -8,9 +8,10 @@ This script helps clean up a Git repository by:
 
 import os
 import subprocess
+from typing import Optional
 
 
-def run_command(command, silent=False):
+def run_command(command: str, silent: bool = False) -> Optional[str]:
     """Run a system command and print the output if not silent"""
     if not silent:
         print(f"Running: {command}")
@@ -28,7 +29,7 @@ def run_command(command, silent=False):
         return None
 
 
-def get_repo_size():
+def get_repo_size() -> Optional[float]:
     """Get the size of the Git repository in MB"""
     # Check if .git directory exists
     if not os.path.isdir(".git"):
@@ -52,7 +53,7 @@ def get_repo_size():
     return size_in_kb / 1024  # Convert to MB
 
 
-def suggest_lfs_setup():
+def suggest_lfs_setup() -> None:
     """Suggest Git LFS setup for specific file types"""
     print("\n--- GIT LFS SUGGESTIONS ---")
     print(
@@ -111,7 +112,7 @@ def suggest_lfs_setup():
     print("Linux: apt-get install git-lfs (or your distro's equivalent)")
 
 
-def cleanup_instructions():
+def cleanup_instructions() -> None:
     """Print instructions for cleaning up the repository"""
     print("\n--- REPOSITORY CLEANUP STEPS ---")
     print("Warning: These steps modify your Git history. Make sure you have a backup!")
@@ -143,8 +144,8 @@ def cleanup_instructions():
     print("\nThis should significantly reduce your repository size.")
 
 
-def main():
-    repo_size = get_repo_size()
+def main() -> None:
+    repo_size: Optional[float] = get_repo_size()
     if repo_size is None:
         return
 

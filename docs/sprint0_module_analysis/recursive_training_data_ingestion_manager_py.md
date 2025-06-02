@@ -39,9 +39,9 @@ The module appears to be substantially complete in its core data ingestion capab
     *   `core.pulse_config.get_config` (Optional)
     *   `core.bayesian_trust_tracker.bayesian_trust_tracker` (Optional)
     *   `core.schemas.ForecastRecord` (Optional)
-    *   `learning.output_data_reader.OutputDataReader` (Optional)
+    *   `analytics.output_data_reader.OutputDataReader` (Optional)
     *   [`recursive_training.config.default_config.get_config`](../../recursive_training/config/default_config.py) (For fallback configuration)
-    *   `simulation_engine.causal_rules.get_active_rules` (Optional, dynamic import)
+    *   `engine.causal_rules.get_active_rules` (Optional, dynamic import)
     *   `symbolic_system.symbolic_utils.get_active_symbolic_rules` (Optional, dynamic import)
 *   **External Libraries:**
     *   `json`, `logging`, `os`, `datetime`, `pathlib`, `typing`
@@ -143,9 +143,9 @@ The module appears to be substantially complete in its core data ingestion capab
 ## 7. Coupling Points
 
 *   **[`RecursiveDataStore`](../../recursive_training/data/data_store.py:20):** Tightly coupled for all data storage operations.
-*   **Pulse Core Modules:** Significant, though often optional, coupling with `core.pulse_config`, `core.bayesian_trust_tracker`, `core.schemas.ForecastRecord`, and `learning.output_data_reader`. Functionality degrades if these are absent.
+*   **Pulse Core Modules:** Significant, though often optional, coupling with `core.pulse_config`, `core.bayesian_trust_tracker`, `core.schemas.ForecastRecord`, and `analytics.output_data_reader`. Functionality degrades if these are absent.
 *   **Configuration Schema:** Relies on specific structures for its own JSON configuration and the default config from [`recursive_training.config`](../../recursive_training/config).
-*   **Rule Source Modules:** Depends on `simulation_engine.causal_rules` and `symbolic_system.symbolic_utils` for fetching rule data, using dynamic imports.
+*   **Rule Source Modules:** Depends on `engine.causal_rules` and `symbolic_system.symbolic_utils` for fetching rule data, using dynamic imports.
 *   **External Libraries:** `requests`, `sqlalchemy`, `pandas` are critical for their respective data source types.
 
 ## 8. Existing Tests

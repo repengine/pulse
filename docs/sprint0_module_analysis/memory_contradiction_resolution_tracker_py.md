@@ -27,7 +27,7 @@ There are no explicit signs that development started on a planned path and then 
 
 ### Direct Imports from other project modules:
 *   [`core.path_registry.PATHS`](core/path_registry.py:13): Used to get the path for the contradiction resolution log file.
-*   [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:14): Used to retrieve forecast data by trace ID.
+*   [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:14): Used to retrieve forecast data by trace ID.
 
 ### External Library Dependencies:
 *   `os`: Used for path manipulation (e.g., [`os.path.dirname()`](memory/contradiction_resolution_tracker.py:44), [`os.makedirs()`](memory/contradiction_resolution_tracker.py:44), [`os.path.exists()`](memory/contradiction_resolution_tracker.py:54)).

@@ -49,8 +49,8 @@ Key observations:
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
-*   [`simulation_engine.rules.rule_matching_utils.get_all_rule_fingerprints`](../../simulation_engine/rules/rule_matching_utils.py:21)
-*   [`simulation_engine.rules.rule_registry.RuleRegistry`](../../simulation_engine/rules/rule_registry.py:22)
+*   [`engine.rules.rule_matching_utils.get_all_rule_fingerprints`](../../simulation_engine/rules/rule_matching_utils.py:21)
+*   [`engine.rules.rule_registry.RuleRegistry`](../../simulation_engine/rules/rule_registry.py:22)
 
 ### External Library Dependencies
 *   `json` (Python standard library)
@@ -129,8 +129,8 @@ Key functions and their intended usage:
 
 *   **Data Format Dependency:** The module is tightly coupled to the specific JSONL structure of the `regret_chain.jsonl` file and the expected structure of rule fingerprints returned by `get_all_rule_fingerprints()`.
 *   **Module Dependencies:**
-    *   Strong dependency on [`simulation_engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py:) for providing rule fingerprints.
-    *   Relies on [`simulation_engine.rules.rule_registry.RuleRegistry`](../../simulation_engine/rules/rule_registry.py:) for accessing the comprehensive set of rules. Changes in these modules, especially their interfaces or data structures, could impact this expander.
+    *   Strong dependency on [`engine.rules.rule_matching_utils`](../../simulation_engine/rules/rule_matching_utils.py:) for providing rule fingerprints.
+    *   Relies on [`engine.rules.rule_registry.RuleRegistry`](../../simulation_engine/rules/rule_registry.py:) for accessing the comprehensive set of rules. Changes in these modules, especially their interfaces or data structures, could impact this expander.
 *   **Output Format:** The output format for `candidate_rules.json` is specific. Downstream processes consuming this file would depend on this structure.
 
 ---

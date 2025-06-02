@@ -10,8 +10,8 @@ import time
 from unittest.mock import patch, MagicMock
 import threading
 
-from core.trust_update_buffer import TrustUpdateBuffer, get_trust_update_buffer
-from core.optimized_trust_tracker import OptimizedBayesianTrustTracker
+from analytics.trust_update_buffer import TrustUpdateBuffer, get_trust_update_buffer
+from analytics.optimized_trust_tracker import OptimizedBayesianTrustTracker
 
 
 class TestTrustUpdateBuffer(unittest.TestCase):

@@ -29,11 +29,11 @@ It appears to be a legacy tool for evaluating and comparing different configurat
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:7): `simulate_forward`, `WorldState`
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:8): `Variables`, `SymbolicOverlays`, `CapitalExposure`
+*   [`engine.simulator_core`](simulation_engine/simulator_core.py:7): `simulate_forward`, `WorldState`
+*   [`engine.worldstate`](simulation_engine/worldstate.py:8): `Variables`, `SymbolicOverlays`, `CapitalExposure`
 *   [`recursive_training.data.data_store`](recursive_training/data/data_store.py:9): `RecursiveDataStore`
 *   [`recursive_training.advanced_metrics.enhanced_metrics`](recursive_training/advanced_metrics/enhanced_metrics.py:10): `EnhancedRecursiveTrainingMetrics`
-*   [`learning.learning`](learning/learning.py:11): `LearningEngine`
+*   [`analytics.learning`](learning/learning.py:11): `LearningEngine`
 *   [`recursive_training.parallel_trainer`](recursive_training/parallel_trainer.py:12): `ParallelTrainingCoordinator`, `run_parallel_retrodiction_training`
 *   [`core.optimized_trust_tracker`](core/optimized_trust_tracker.py:13): `optimized_bayesian_trust_tracker` (imported but not used)
 
@@ -81,9 +81,9 @@ It appears to be a legacy tool for evaluating and comparing different configurat
 
 ## 7. Coupling Points
 
-*   Strongly coupled to the data structures of `WorldState` and its components (`Variables`, `SymbolicOverlays`, `CapitalExposure`) from [`simulation_engine.worldstate`](simulation_engine/worldstate.py:8).
+*   Strongly coupled to the data structures of `WorldState` and its components (`Variables`, `SymbolicOverlays`, `CapitalExposure`) from [`engine.worldstate`](simulation_engine/worldstate.py:8).
 *   Dependent on the API and expected data format of [`RecursiveDataStore`](recursive_training/data/data_store.py:9).
-*   Relies on the specific behavior and signature of `simulate_forward` from [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:7).
+*   Relies on the specific behavior and signature of `simulate_forward` from [`engine.simulator_core`](simulation_engine/simulator_core.py:7).
 *   Depends on [`EnhancedRecursiveTrainingMetrics`](recursive_training/advanced_metrics/enhanced_metrics.py:10) and [`LearningEngine`](learning/learning.py:11), though their integration for baseline metrics seems somewhat indirect.
 *   Crucially dependent on the `run_parallel_retrodiction_training` function from [`recursive_training.parallel_trainer`](recursive_training/parallel_trainer.py:12).
 

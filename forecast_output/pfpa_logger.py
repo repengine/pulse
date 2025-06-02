@@ -8,12 +8,12 @@ Author: Pulse v3.5
 """
 
 from forecast_output.forecast_age_tracker import decay_confidence_and_priority
-from memory.forecast_memory import ForecastMemory
+from analytics.forecast_memory import ForecastMemory
 from typing import Dict, List, Optional
 import datetime
 from utils.log_utils import get_logger
-from core.pulse_config import CONFIDENCE_THRESHOLD
-from core.path_registry import PATHS
+from engine.pulse_config import CONFIDENCE_THRESHOLD
+from engine.path_registry import PATHS
 from trust_system.trust_engine import TrustEngine
 import json
 from pathlib import Path

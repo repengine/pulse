@@ -5,7 +5,7 @@ Handles registration and combination of multiple forecasting models.
 
 import logging
 from typing import Dict, List, Callable, Any
-from core.pulse_config import ENSEMBLE_WEIGHTS
+from engine.pulse_config import ENSEMBLE_WEIGHTS
 
 logger = logging.getLogger(__name__)
 

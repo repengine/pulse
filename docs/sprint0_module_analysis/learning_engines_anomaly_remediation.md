@@ -15,7 +15,7 @@ This module is intended to house the `AnomalyRemediationEngine`, responsible for
 
 ## Dependencies
 
-Based on the current code, there are no explicit imports of external or internal Pulse dependencies. However, the docstring suggests that future implementation will likely require libraries for statistical or machine learning methods (e.g., `pandas`, `numpy`, `scikit-learn`). Potential internal dependencies like `core.pulse_config`, `memory.forecast_memory`, or `simulation_engine.rule_mutation_engine` are not currently used but might be necessary depending on how remediation actions interact with other Pulse components.
+Based on the current code, there are no explicit imports of external or internal Pulse dependencies. However, the docstring suggests that future implementation will likely require libraries for statistical or machine learning methods (e.g., `pandas`, `numpy`, `scikit-learn`). Potential internal dependencies like `core.pulse_config`, `analytics.forecast_memory`, or `engine.rule_mutation_engine` are not currently used but might be necessary depending on how remediation actions interact with other Pulse components.
 
 ## SPARC Analysis
 

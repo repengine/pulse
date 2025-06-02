@@ -2,7 +2,7 @@
 
 ## 1. Document Purpose
 
-The document [`docs/historical_data_repair.md`](../../docs/historical_data_repair.md:1) serves as a comprehensive guide to the `iris.iris_utils.historical_data_repair` module within the Pulse project. Its primary purpose is to detail the functionalities and strategies employed by this module to identify, address, and rectify issues such as missing data and inconsistencies within historical time series datasets.
+The document [`docs/historical_data_repair.md`](../../docs/historical_data_repair.md:1) serves as a comprehensive guide to the `ingestion.iris_utils.historical_data_repair` module within the Pulse project. Its primary purpose is to detail the functionalities and strategies employed by this module to identify, address, and rectify issues such as missing data and inconsistencies within historical time series datasets.
 
 ## 2. Key Topics Covered
 

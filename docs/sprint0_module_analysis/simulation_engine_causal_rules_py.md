@@ -24,10 +24,10 @@ There are no explicit "TODO" comments or obvious placeholders indicating unfinis
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py)
-*   [`simulation_engine.state_mutation.adjust_overlay`](../../simulation_engine/state_mutation.py:line)
-*   [`simulation_engine.state_mutation.update_numeric_variable`](../../simulation_engine/state_mutation.py:line)
-*   [`simulation_engine.state_mutation.adjust_capital`](../../simulation_engine/state_mutation.py:line)
+*   [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py)
+*   [`engine.state_mutation.adjust_overlay`](../../simulation_engine/state_mutation.py:line)
+*   [`engine.state_mutation.update_numeric_variable`](../../simulation_engine/state_mutation.py:line)
+*   [`engine.state_mutation.adjust_capital`](../../simulation_engine/state_mutation.py:line)
 *   [`core.variable_accessor.get_variable`](../../core/variable_accessor.py:line)
 *   [`core.variable_accessor.get_overlay`](../../core/variable_accessor.py:line)
 *   [`core.pulse_config.CONFIDENCE_THRESHOLD`](../../core/pulse_config.py:line)
@@ -51,8 +51,8 @@ There are no explicit "TODO" comments or obvious placeholders indicating unfinis
 ### `apply_causal_rules(state: WorldState)`
 Executes all defined causal rules on the provided `WorldState` object, mutating it based on rule conditions and effects.
 ```python
-from simulation_engine.worldstate import WorldState
-from simulation_engine.causal_rules import apply_causal_rules
+from engine.worldstate import WorldState
+from engine.causal_rules import apply_causal_rules
 
 # Assuming 'current_world_state' is an initialized WorldState object
 # current_world_state = WorldState()
@@ -69,7 +69,7 @@ A generic internal function to apply a single rule, including condition checking
 ### `generate_rule_statistics() -> dict`
 Retrieves and returns statistics for all defined rules from the `bayesian_trust_tracker`.
 ```python
-from simulation_engine.causal_rules import generate_rule_statistics
+from engine.causal_rules import generate_rule_statistics
 
 rule_stats = generate_rule_statistics()
 for rule_id, stats in rule_stats.items():
@@ -95,7 +95,7 @@ for rule_id, stats in rule_stats.items():
 
 *   **`WorldState` Object:** Tightly coupled to the specific structure, available overlays, numeric variables, and capital assets defined within the `WorldState` class.
 *   **Internal Modules:**
-    *   [`simulation_engine.state_mutation`](../../simulation_engine/state_mutation.py): For all state modifications.
+    *   [`engine.state_mutation`](../../simulation_engine/state_mutation.py): For all state modifications.
     *   [`core.variable_accessor`](../../core/variable_accessor.py): For reading state.
     *   [`core.pulse_config`](../../core/pulse_config.py): For global simulation parameters like `CONFIDENCE_THRESHOLD`.
 *   **`bayesian_trust_tracker`:** Critically dependent on this external component for rule trust scores, which directly influence rule impact. Changes to the tracker's API or behavior would significantly affect this module.

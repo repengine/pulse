@@ -28,7 +28,7 @@ The module is **highly incomplete** and **not operational**.
 ## 4. Connections & Dependencies
 
 - **Direct Imports from other project modules:**
-    - Conditionally imports [`save_data_point_incremental`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:4) from [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) (commented out).
+    - Conditionally imports [`save_data_point_incremental`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:4) from [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py) (commented out).
 - **External Library Dependencies:**
     - `requests` ([`cboe_plugin.py:1`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:1)): For making HTTP requests to the CBOE API.
     - `datetime` from `datetime` ([`cboe_plugin.py:2`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:2)): For handling timestamps.
@@ -47,7 +47,7 @@ The module defines one class, [`CBOEPlugin`](../../iris/iris_plugins_variable_in
 
 **Intended Usage (Conceptual):**
 ```python
-# from iris.iris_plugins_variable_ingestion.cboe_plugin import CBOEPlugin # Assuming correct import path
+# from ingestion.iris_plugins_variable_ingestion.cboe_plugin import CBOEPlugin # Assuming correct import path
 
 # Instantiate the plugin
 # cboe_plugin = CBOEPlugin()
@@ -71,7 +71,7 @@ Currently, running the script directly via `if __name__ == "__main__":` ([`cboe_
 
 ## 7. Coupling Points
 
-- **`iris.iris_utils.ingestion_persistence`:** Tightly coupled if the data saving functionality ([`save_data_point_incremental()`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:79)) were active. The plugin would depend on this module for data storage.
+- **`ingestion.iris_utils.ingestion_persistence`:** Tightly coupled if the data saving functionality ([`save_data_point_incremental()`](../../iris/iris_plugins_variable_ingestion/cboe_plugin.py:79)) were active. The plugin would depend on this module for data storage.
 - **External CBOE API:** The entire functionality of the plugin hinges on the availability and specifics of a CBOE data API. Changes to the API (endpoints, data format, authentication) would directly impact this module.
 
 ## 8. Existing Tests

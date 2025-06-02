@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of [`iris/test_reddit_direct.py`](../../../iris/test_reddit_direct.py:) is to serve as a manual test script for the `RedditPlugin` located in [`iris.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:). It facilitates testing the plugin's ability to fetch signals from the Reddit API by directly setting the required API credentials (client ID, client secret, user agent) as environment variables within the script itself.
+The primary role of [`iris/test_reddit_direct.py`](../../../iris/test_reddit_direct.py:) is to serve as a manual test script for the `RedditPlugin` located in [`ingestion.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:). It facilitates testing the plugin's ability to fetch signals from the Reddit API by directly setting the required API credentials (client ID, client secret, user agent) as environment variables within the script itself.
 
 ## 2. Operational Status/Completeness
 
@@ -21,7 +21,7 @@ The module is a functional test script but requires manual intervention to be fu
 ## 4. Connections & Dependencies
 
 - **Project Modules:**
-    - Imports `RedditPlugin` from [`iris.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:).
+    - Imports `RedditPlugin` from [`ingestion.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:).
 - **External Libraries:**
     - `sys`: Used to modify the Python path ([`iris/test_reddit_direct.py:18`](../../../iris/test_reddit_direct.py:18)).
     - `os`: Used for path manipulation and setting/getting environment variables ([`iris/test_reddit_direct.py:7`](../../../iris/test_reddit_direct.py:7), [`iris/test_reddit_direct.py:18`](../../../iris/test_reddit_direct.py:18), [`iris/test_reddit_direct.py:22-24`](../../../iris/test_reddit_direct.py:22-24), [`iris/test_reddit_direct.py:35-37`](../../../iris/test_reddit_direct.py:35-37)).
@@ -45,7 +45,7 @@ os.environ["REDDIT_USER_AGENT"] = "Pulse/1.0"
 # ===============================================
 
 # Import the plugin after setting credentials
-from iris.iris_plugins_variable_ingestion.reddit_plugin import RedditPlugin
+from ingestion.iris_plugins_variable_ingestion.reddit_plugin import RedditPlugin
 
 # Initialize the plugin
 plugin = RedditPlugin()

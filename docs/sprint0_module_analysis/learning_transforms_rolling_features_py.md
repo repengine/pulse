@@ -41,7 +41,7 @@ Calculates the rolling mean for a specified column in a pandas DataFrame.
 
 ```python
 import pandas as pd
-from learning.transforms.rolling_features import rolling_mean_feature
+from analytics.transforms.rolling_features import rolling_mean_feature
 
 data = {'value': [10, 12, 15, 14, 16, 18, 20]}
 df = pd.DataFrame(data)

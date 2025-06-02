@@ -23,7 +23,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.worldstate`](simulation_engine/worldstate.py:): Imports [`WorldState`](simulation_engine/worldstate.py:1) for accessing current simulation state.
+- [`engine.worldstate`](simulation_engine/worldstate.py:): Imports [`WorldState`](simulation_engine/worldstate.py:1) for accessing current simulation state.
 - [`symbolic_system.gravity.symbolic_pillars`](symbolic_system/gravity/symbolic_pillars.py:): Imports [`SymbolicPillar`](symbolic_system/gravity/symbolic_pillars.py:1) and [`SymbolicPillarSystem`](symbolic_system/gravity/symbolic_pillars.py:1) for managing the symbolic pillars.
 - [`symbolic_system.gravity.engines.residual_gravity_engine`](symbolic_system/gravity/engines/residual_gravity_engine.py:): Imports [`ResidualGravityEngine`](symbolic_system/gravity/engines/residual_gravity_engine.py:1) and [`GravityEngineConfig`](symbolic_system/gravity/engines/residual_gravity_engine.py:1) for the core correction calculations.
 - [`symbolic_system.gravity.gravity_config`](symbolic_system/gravity/gravity_config.py:): Imports [`ResidualGravityConfig`](symbolic_system/gravity/gravity_config.py:1) and `DEFAULT_CONFIG` for configuration.
@@ -75,7 +75,7 @@ print(metrics.get_avg_correction())
 The main class for applying corrections.
 ```python
 # Conceptual Usage
-from simulation_engine.worldstate import WorldState # Assuming WorldState is defined
+from engine.worldstate import WorldState # Assuming WorldState is defined
 from symbolic_system.gravity.gravity_config import DEFAULT_CONFIG
 
 # Initialize

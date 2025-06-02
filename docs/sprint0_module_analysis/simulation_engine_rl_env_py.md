@@ -19,10 +19,10 @@ The module appears to be a core, functional component for RL integration. It cor
 ## 4. Connections & Dependencies
 
 *   **Direct Imports from Project Modules:**
-    *   [`simulation_engine.rules.static_rules.build_static_rules()`](../../simulation_engine/rules/static_rules.py:6) (also at [simulation_engine/rl_env.py:39](simulation_engine/rl_env.py:39))
-    *   [`simulation_engine.rules.rule_param_registry.RULE_PARAM_REGISTRY`](../../simulation_engine/rules/rule_param_registry.py:7)
-    *   [`simulation_engine.simulator_core.simulate_forward()`](../../simulation_engine/simulator_core.py:37) (local import within `compute_robustness_reward`)
-    *   [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:38) (local import within `compute_robustness_reward`)
+    *   [`engine.rules.static_rules.build_static_rules()`](../../simulation_engine/rules/static_rules.py:6) (also at [simulation_engine/rl_env.py:39](simulation_engine/rl_env.py:39))
+    *   [`engine.rules.rule_param_registry.RULE_PARAM_REGISTRY`](../../simulation_engine/rules/rule_param_registry.py:7)
+    *   [`engine.simulator_core.simulate_forward()`](../../simulation_engine/simulator_core.py:37) (local import within `compute_robustness_reward`)
+    *   [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:38) (local import within `compute_robustness_reward`)
 *   **External Library Dependencies:**
     *   `gym`
     *   `numpy`
@@ -35,7 +35,7 @@ The module appears to be a core, functional component for RL integration. It cor
 
 *   **`SimulationEnv` Class:**
     ```python
-    # from simulation_engine.rl_env import SimulationEnv
+    # from engine.rl_env import SimulationEnv
     # # Assumes RULE_PARAM_REGISTRY is populated correctly
     #
     # env = SimulationEnv(turns_per_episode=10)
@@ -74,8 +74,8 @@ The module appears to be a core, functional component for RL integration. It cor
 ## 7. Coupling Points
 
 *   **`RULE_PARAM_REGISTRY`:** The environment is strongly coupled to [`RULE_PARAM_REGISTRY`](../../simulation_engine/rules/rule_param_registry.py:7). Changes to the structure, content, or availability of this registry would directly impact the environment's action space, observation space, and initialization.
-*   **Simulation Core:** Tightly coupled with [`simulation_engine.simulator_core.simulate_forward()`](../../simulation_engine/simulator_core.py:37) and [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:38) for its reward computation. The behavior, inputs, and outputs of `simulate_forward` are critical.
-*   **Static Rules:** Depends on [`simulation_engine.rules.static_rules.build_static_rules()`](../../simulation_engine/rules/static_rules.py:6) to construct rules based on parameter overrides provided by the RL agent's actions.
+*   **Simulation Core:** Tightly coupled with [`engine.simulator_core.simulate_forward()`](../../simulation_engine/simulator_core.py:37) and [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:38) for its reward computation. The behavior, inputs, and outputs of `simulate_forward` are critical.
+*   **Static Rules:** Depends on [`engine.rules.static_rules.build_static_rules()`](../../simulation_engine/rules/static_rules.py:6) to construct rules based on parameter overrides provided by the RL agent's actions.
 
 ## 8. Existing Tests
 

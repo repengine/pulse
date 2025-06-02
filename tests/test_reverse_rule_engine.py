@@ -1,4 +1,4 @@
-from simulation_engine.rules.reverse_rule_engine import fuzzy_match_rule_by_delta
+from rules.reverse_rule_engine import fuzzy_match_rule_by_delta
 
 
 def test_fuzzy_match_exact():

@@ -14,7 +14,7 @@ Version: v1.0.0
 
 import json
 from typing import List, Dict, Optional
-from memory.forecast_episode_tracer import summarize_lineage_drift
+from analytics.forecast_episode_tracer import summarize_lineage_drift
 from symbolic_system.symbolic_flip_classifier import extract_transitions
 
 

@@ -16,7 +16,7 @@ from recursive_training.metrics.metrics_store import get_metrics_store
 
 # Try to import Pulse's Bayesian trust tracker with graceful fallback
 try:
-    from core.bayesian_trust_tracker import bayesian_trust_tracker
+    from analytics.bayesian_trust_tracker import bayesian_trust_tracker
 
     TRUST_TRACKER_AVAILABLE = True
 except ImportError:
@@ -26,6 +26,7 @@ except ImportError:
 
 # Define a generic trust tracker type for type hints
 TrustTrackerType = TypeVar("TrustTrackerType")
+
 
 class BayesianAdapter:
     """

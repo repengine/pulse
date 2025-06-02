@@ -10,9 +10,9 @@ import logging
 from typing import Dict, List, Tuple, NamedTuple, Optional
 from collections import defaultdict
 from symbolic_system.symbolic_utils import compute_symbolic_drift_penalty
-from core.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
+from engine.pulse_config import CONFIDENCE_THRESHOLD, USE_SYMBOLIC_OVERLAYS
 from trust_system.retrodiction_engine import run_retrodiction_simulation
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 from trust_system.services.trust_enrichment_service import TrustEnrichmentService
 from trust_system.services.trust_scoring_strategy import (
     TrustScoringStrategy,
@@ -250,6 +250,7 @@ def flag_drift_sensitive_forecasts(
         if not flagged:
             fc["drift_flag"] = "✅ Stable"
     return forecasts
+
 
 # Moved imports to the top of the file as per E402
 # from trust_system.services.trust_enrichment_service import TrustEnrichmentService # noqa E402

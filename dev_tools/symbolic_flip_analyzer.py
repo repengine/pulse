@@ -10,7 +10,7 @@ Author: Pulse AI Engine
 
 import argparse
 import json
-from memory.forecast_episode_tracer import build_episode_chain
+from analytics.forecast_episode_tracer import build_episode_chain
 from symbolic_system.symbolic_flip_classifier import (
     analyze_flip_patterns,
     detect_loops_or_cycles,

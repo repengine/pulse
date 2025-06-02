@@ -8,7 +8,7 @@ into simulation-based forecasts.
 import logging
 from typing import Dict, Optional
 
-import core.pulse_config as pulse_config
+import engine.pulse_config as pulse_config
 from forecast_engine import ai_forecaster, forecast_ensemble
 from causal_model.structural_causal_model import StructuralCausalModel
 

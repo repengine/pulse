@@ -27,7 +27,7 @@ The module appears to be operationally complete for its defined scope (v1.0.0).
 
 ### Direct Project Module Imports:
 -   [`trust_system.forecast_episode_logger.summarize_episodes`](trust_system/forecast_episode_logger.py:0) (line 16 of [`operator_interface/operator_brief_generator.py`](operator_interface/operator_brief_generator.py:16)): Used to summarize symbolic episodes from log files for drift calculation.
--   [`simulation_engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py:0) (line 19 of [`operator_interface/operator_brief_generator.py`](operator_interface/operator_brief_generator.py:19)): Used to perform drift analysis between two simulation traces.
+-   [`engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py:0) (line 19 of [`operator_interface/operator_brief_generator.py`](operator_interface/operator_brief_generator.py:19)): Used to perform drift analysis between two simulation traces.
 
 ### External Library Dependencies:
 -   `json` (standard library): For loading data from JSONL files.
@@ -88,7 +88,7 @@ The module interacts with other parts of the system primarily through files:
 
 -   **Input Data Schemas:** The module is tightly coupled to the expected structure and key names within the input JSONL files (`alignment_file`, `episode_log_file`, trace files). Any changes to these external schemas would likely require modifications to this module.
 -   **[`trust_system.forecast_episode_logger.summarize_episodes`](trust_system/forecast_episode_logger.py:0):** Dependency on the specific output structure (dictionary keys like `"arc_..."`) and functionality of this imported function.
--   **[`simulation_engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py:0):** Dependency on the output structure (dictionary keys like `"overlay_drift"`, `"rule_trigger_delta"`, `"structure_shift"`) and functionality of this imported function.
+-   **[`engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py:0):** Dependency on the output structure (dictionary keys like `"overlay_drift"`, `"rule_trigger_delta"`, `"structure_shift"`) and functionality of this imported function.
 -   **Output Format:** The module is specifically designed to produce a Markdown report. If a different output format were required (e.g., HTML, JSON summary), significant changes would be needed.
 
 ## 8. Existing Tests

@@ -42,13 +42,13 @@ However, there are aspects that suggest it might be an \"example\" or a foundati
 
 -   **Direct Imports from Other Project Modules:**
     -   From [`core.pulse_learning_log`](core/pulse_learning_log.py:1): [`log_variable_weight_change()`](core/pulse_learning_log.py:1).
-    -   From [`simulation_engine.rules.rule_registry`](simulation_engine/rules/rule_registry.py:2): [`RuleRegistry`](simulation_engine/rules/rule_registry.py:31) class.
+    -   From [`engine.rules.rule_registry`](simulation_engine/rules/rule_registry.py:2): [`RuleRegistry`](simulation_engine/rules/rule_registry.py:31) class.
     -   From [`core.variable_registry`](core/variable_registry.py:3): `registry` (imported as `variable_registry`).
 -   **External Library Dependencies:**
     -   None directly, but dependencies of imported modules apply (e.g., `RuleRegistry` uses `json`, `pathlib`, `importlib`).
 -   **Interaction with Other Modules (Implied):**
     -   **Learning System:** Depends on an upstream system to generate the `learning_profile`.
-    -   **Rule Execution Engine ([`simulation_engine.rule_engine`](simulation_engine/rule_engine.py:1)):** The adjustments made by this module to rule trust weights in `RuleRegistry` would affect how the rule engine prioritizes or uses rules in subsequent simulations.
+    -   **Rule Execution Engine ([`engine.rule_engine`](simulation_engine/rule_engine.py:1)):** The adjustments made by this module to rule trust weights in `RuleRegistry` would affect how the rule engine prioritizes or uses rules in subsequent simulations.
     -   **Variable Consumers:** Any part of the system that reads `tag_weight_*` variables from the `VariableRegistry` would be affected by the adjustments made here.
 -   **Input/Output Files:**
     -   **Input:** Implicitly reads rule definitions when `RuleRegistry().load_all_rules()` is called (from `simulation_engine/rules/static_rules.py`, `simulation_engine/rules/rule_fingerprints.json`, `data/candidate_rules.json`). It also reads the `VariableRegistry`'s persisted state (e.g., `configs/variable_registry.json`).

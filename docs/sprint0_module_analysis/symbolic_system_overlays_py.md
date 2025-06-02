@@ -31,8 +31,8 @@ The module appears to be operationally complete for its defined scope. The funct
 ## Connections & Dependencies
 
 ### Direct Project Module Imports:
--   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:) (imported as `WorldState` from [`simulation_engine.worldstate`](simulation_engine/worldstate.py:14))
--   [`simulation_engine.state_mutation.adjust_overlay`](simulation_engine/state_mutation.py:) (imported as `adjust_overlay` from [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:15))
+-   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:) (imported as `WorldState` from [`engine.worldstate`](simulation_engine/worldstate.py:14))
+-   [`engine.state_mutation.adjust_overlay`](simulation_engine/state_mutation.py:) (imported as `adjust_overlay` from [`engine.state_mutation`](simulation_engine/state_mutation.py:15))
 -   [`core.pulse_config.MODULES_ENABLED`](core/pulse_config.py:) (referenced in [`OVERLAY_NAMES`](symbolic_system/overlays.py:27) retrieval, though `MODULES_ENABLED` itself is not directly used in the provided snippet for `OVERLAY_NAMES`)
 -   [`core.pulse_config.OVERLAY_NAMES`](core/pulse_config.py:) (retrieved via `getattr(__import__('core.pulse_config'), 'OVERLAY_NAMES', ...)` at line [`symbolic_system/overlays.py:27`](symbolic_system/overlays.py:27))
 -   [`core.pulse_config.ENABLE_SYMBOLIC_SYSTEM`](core/pulse_config.py:) (imported locally within [`boost_overlay()`](symbolic_system/overlays.py:47) and [`suppress_overlay()`](symbolic_system/overlays.py:63))
@@ -109,8 +109,8 @@ The module appears to be operationally complete for its defined scope. The funct
 
 ## Coupling Points
 
--   **`WorldState` Object:** The module is tightly coupled to the [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:) object, as it's a required parameter for nearly all functions and its `overlays` attribute is directly manipulated.
--   **`adjust_overlay` Function:** Relies on [`simulation_engine.state_mutation.adjust_overlay()`](simulation_engine/state_mutation.py:) for the actual modification of overlay values.
+-   **`WorldState` Object:** The module is tightly coupled to the [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:) object, as it's a required parameter for nearly all functions and its `overlays` attribute is directly manipulated.
+-   **`adjust_overlay` Function:** Relies on [`engine.state_mutation.adjust_overlay()`](simulation_engine/state_mutation.py:) for the actual modification of overlay values.
 -   **`core.pulse_config`:** Depends on [`core.pulse_config`](core/pulse_config.py:) for the list of [`OVERLAY_NAMES`](symbolic_system/overlays.py:27) and the [`ENABLE_SYMBOLIC_SYSTEM`](symbolic_system/overlays.py:53) flag. Changes in `core.pulse_config` regarding these could directly impact the module's behavior.
 -   **`symbolic_system.optimization` Decorators:** The use of decorators ([`lazy_symbolic()`](symbolic_system/optimization.py:), [`cached_symbolic()`](symbolic_system/optimization.py:), [`training_optimized()`](symbolic_system/optimization.py:)) creates a dependency on the [`symbolic_system.optimization`](symbolic_system/optimization.py:) module.
 -   **`turn_engine.py` (Implied):** The docstring for [`apply_overlay_interactions()`](symbolic_system/overlays.py:90) mentions it's "Called once per turn in `turn_engine.py` or via rule engine," implying a coupling point for its primary execution.

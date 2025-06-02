@@ -23,7 +23,7 @@ The module aims to be robust against missing keys or malformed trace data.
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   `from memory.trace_audit_engine import load_trace`: Imports a function to load trace data from the [`memory.trace_audit_engine`](../memory/trace_audit_engine.py:1) module.
+    *   `from analytics.trace_audit_engine import load_trace`: Imports a function to load trace data from the [`analytics.trace_audit_engine`](../memory/trace_audit_engine.py:1) module.
     *   `from core.pulse_config import USE_SYMBOLIC_OVERLAYS`: Imports a configuration flag from [`core.pulse_config`](../core/pulse_config.py:1) to determine if symbolic overlays should be used.
 *   **External Library Dependencies:**
     *   `typing.Optional`: Standard Python library for type hinting.
@@ -72,7 +72,7 @@ The module aims to be robust against missing keys or malformed trace data.
 
 ## 7. Coupling Points
 
-*   **`memory.trace_audit_engine.load_trace`:** Tightly coupled to this function for retrieving trace data. Changes to `load_trace`'s signature or the structure of the data it returns could break this module.
+*   **`analytics.trace_audit_engine.load_trace`:** Tightly coupled to this function for retrieving trace data. Changes to `load_trace`'s signature or the structure of the data it returns could break this module.
 *   **`core.pulse_config.USE_SYMBOLIC_OVERLAYS`:** Coupled to this configuration flag.
 *   **Trace Data Structure:** Implicitly coupled to the expected structure of the trace data (e.g., presence and types of `output`, `overlays`, `trust`, `forks` keys).
 
@@ -84,7 +84,7 @@ The module aims to be robust against missing keys or malformed trace data.
 ## 9. Module Architecture and Flow
 
 1.  **Initialization:**
-    *   Imports `load_trace` from [`memory.trace_audit_engine`](../memory/trace_audit_engine.py:1).
+    *   Imports `load_trace` from [`analytics.trace_audit_engine`](../memory/trace_audit_engine.py:1).
     *   Imports `Optional` from `typing`.
     *   Imports `USE_SYMBOLIC_OVERLAYS` from [`core.pulse_config`](../core/pulse_config.py:1).
     *   Imports and initializes a standard `logging` logger.

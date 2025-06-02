@@ -11,7 +11,7 @@ It defines a Celery application instance ([`celery_app`](core/celery_app.py:15))
 *   **Celery Application Setup:** Initializes and configures a Celery application instance ([`celery_app`](core/celery_app.py:15)) with broker and backend URLs derived from environment variables ([`PULSE_CELERY_BROKER`](core/celery_app.py:12), [`PULSE_CELERY_BACKEND`](core/celery_app.py:13)).
 *   **Signal Ingestion and Scoring Task ([`ingest_and_score_signal`](core/celery_app.py:20)):**
     *   Takes `signal_data` (a dictionary) as input.
-    *   Uses [`IrisScraper`](core/celery_app.py:18) (from [`iris.iris_scraper`](iris/iris_scraper.py:1)) to ingest the signal.
+    *   Uses [`IrisScraper`](core/celery_app.py:18) (from [`ingestion.iris_scraper`](iris/iris_scraper.py:1)) to ingest the signal.
     *   Increments an ingestion counter metric ([`signal_ingest_counter`](core/celery_app.py:7)).
     *   If the ingested signal is a forecast (contains a 'forecast' key), it attempts to enrich it with trust metadata using [`enrich_trust_metadata`](core/celery_app.py:38) (from [`trust_system.trust_engine`](trust_system/trust_engine.py:1)).
     *   Calculates/assigns `trust_score` and `alignment_score` to the result.
@@ -30,7 +30,7 @@ This module acts as the entry point and configuration hub for distributed task p
 *   **Internal Pulse Modules:**
     *   [`core.pulse_config`](core/pulse_config.py:1): Uses [`get_config()`](core/pulse_config.py:1) (though not directly in the provided snippet, it's a common pattern for Celery configurations).
     *   [`core.metrics`](core/metrics.py:1): Imports [`signal_ingest_counter`](core/metrics.py:1) and [`signal_score_histogram`](core/metrics.py:1).
-    *   [`iris.iris_scraper`](iris/iris_scraper.py:1): Instantiates and uses `IrisScraper`.
+    *   [`ingestion.iris_scraper`](iris/iris_scraper.py:1): Instantiates and uses `IrisScraper`.
     *   [`trust_system.trust_engine`](trust_system/trust_engine.py:1): Dynamically imports [`enrich_trust_metadata`](core/celery_app.py:38) within the task.
     *   [`core.feature_store`](core/feature_store.py:1): Dynamically imports [`feature_store`](core/celery_app.py:59) within the task.
     *   [`forecast_engine.ai_forecaster`](forecast_engine/ai_forecaster.py:1): Dynamically imports `update` as [`ai_update`](core/celery_app.py:60) within the task.

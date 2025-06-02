@@ -15,7 +15,7 @@
 
 ## 3. Implementation Gaps / Unfinished Next Steps
 
-*   **Gaps:** If the `simulation_engine` package is intended to have a defined public interface accessible directly via `import simulation_engine.something`, then this `__init__.py` has an implementation gap. It currently does not import or expose any such `something`.
+*   **Gaps:** If the `simulation_engine` package is intended to have a defined public interface accessible directly via `import engine.something`, then this `__init__.py` has an implementation gap. It currently does not import or expose any such `something`.
 *   **Next Steps:**
     *   Consider if specific classes or functions from submodules within `simulation_engine` should be made available directly under the `simulation_engine` namespace (e.g., `from .submodule import MyClass`).
     *   If a public API is desired, define `__all__` to explicitly list the names to be exported when `from simulation_engine import *` is used, though this practice is generally discouraged in favor of explicit imports.

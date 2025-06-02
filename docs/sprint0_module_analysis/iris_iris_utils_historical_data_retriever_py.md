@@ -18,7 +18,7 @@ The module appears functional for its implemented data sources (FRED, Yahoo Fina
 ## Connections & Dependencies
 
 *   **Internal Modules:**
-    *   [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) - Used for saving retrieved data, raw API responses, and request metadata.
+    *   [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) - Used for saving retrieved data, raw API responses, and request metadata.
 *   **External Libraries:**
     *   `argparse` - For command-line interface parsing.
     *   `datetime` - For date and time manipulation.
@@ -48,7 +48,7 @@ The module appears functional for its implemented data sources (FRED, Yahoo Fina
     *   Retrieves data for a single variable based on its information from the catalog.
     *   Example (from docstring):
     ```python
-    from iris.iris_utils.historical_data_retriever import retrieve_historical_data
+    from ingestion.iris_utils.historical_data_retriever import retrieve_historical_data
     import datetime as dt
 
     variable_info = {
@@ -63,7 +63,7 @@ The module appears functional for its implemented data sources (FRED, Yahoo Fina
     *   Retrieves data for all variables in the catalog with a specified priority level.
     *   Example (from docstring):
     ```python
-    from iris.iris_utils.historical_data_retriever import retrieve_priority_variables
+    from ingestion.iris_utils.historical_data_retriever import retrieve_priority_variables
 
     priority_data = retrieve_priority_variables(priority=1)
     ```
@@ -71,7 +71,7 @@ The module appears functional for its implemented data sources (FRED, Yahoo Fina
     *   Generates a report summarizing the retrieval statistics for multiple variables.
     *   Example:
     ```python
-    from iris.iris_utils.historical_data_retriever import create_verification_report
+    from ingestion.iris_utils.historical_data_retriever import create_verification_report
 
     # Assuming 'retrieval_results' is a dictionary of results from retrieve_historical_data calls
     verification_report = create_verification_report(retrieval_results)

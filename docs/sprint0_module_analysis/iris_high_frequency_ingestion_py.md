@@ -22,15 +22,15 @@ The module appears to be largely functional for its defined scope of fetching in
 *   **Configuration:**
     *   The `outputsize` parameter for the API call is hardcoded to `"compact"` ([`iris/high_frequency_ingestion.py:64`](iris/high_frequency_ingestion.py:64)). This could be made configurable.
     *   While `entitlement` and `rate_limit_per_minute` are configurable during class instantiation, the stock symbols are fetched from `self.alpha_vantage_plugin.STOCK_SYMBOLS` ([`iris/high_frequency_ingestion.py:55`](iris/high_frequency_ingestion.py:55)), making the list of symbols dependent on the plugin's configuration.
-*   **Unused Import:** The function [`save_processed_data`](iris/iris_utils/ingestion_persistence.py) is imported from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) ([`iris/high_frequency_ingestion.py:12`](iris/high_frequency_ingestion.py:12)) but is not used within the module.
+*   **Unused Import:** The function [`save_processed_data`](iris/iris_utils/ingestion_persistence.py) is imported from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py) ([`iris/high_frequency_ingestion.py:12`](iris/high_frequency_ingestion.py:12)) but is not used within the module.
 *   **Extensibility:** The module is tightly coupled to Alpha Vantage. Future extensions might involve abstracting the data source to support other high-frequency data providers.
 
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-*   [`iris.iris_plugins_variable_ingestion.alpha_vantage_plugin.AlphaVantagePlugin`](iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py): Used for making API calls to Alpha Vantage. An instance is passed to the constructor.
+*   [`ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin.AlphaVantagePlugin`](iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py): Used for making API calls to Alpha Vantage. An instance is passed to the constructor.
 *   [`data.high_frequency_data_store.HighFrequencyDataStore`](data/high_frequency_data_store.py): Used for storing the processed high-frequency data. An instance is created in the constructor.
-*   [`iris.iris_utils.ingestion_persistence.save_processed_data`](iris/iris_utils/ingestion_persistence.py): Imported but currently unused.
+*   [`ingestion.iris_utils.ingestion_persistence.save_processed_data`](iris/iris_utils/ingestion_persistence.py): Imported but currently unused.
 
 ### External Library Dependencies:
 *   `time`: Used for rate limiting and timestamping requests ([`iris/high_frequency_ingestion.py:5-6`](iris/high_frequency_ingestion.py:5)). (Note: Duplicate import on lines 5 and 6).
@@ -47,8 +47,8 @@ The module appears to be largely functional for its defined scope of fetching in
 
 ### Class: `HighFrequencyIngestion`
 ```python
-from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
-from iris.high_frequency_ingestion import HighFrequencyIngestion
+from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
+from ingestion.high_frequency_ingestion import HighFrequencyIngestion
 
 # Assuming AlphaVantagePlugin is initialized, e.g.:
 # av_plugin = AlphaVantagePlugin(api_key="YOUR_API_KEY")

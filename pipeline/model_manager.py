@@ -4,7 +4,7 @@ ModelManager
 Handles training/fine-tuning jobs and model registry interactions.
 """
 
-from typing import Dict
+from typing import Dict, Any
 
 
 class ModelManager:
@@ -15,7 +15,7 @@ class ModelManager:
         self.registry_uri = registry_uri
         # TODO: set up client/connection here
 
-    def train(self, feature_path: str) -> Dict:
+    def train(self, feature_path: str) -> Dict[str, Any]:
         """
         Train or fine-tune a model on the given feature dataset.
         Returns:
@@ -25,7 +25,7 @@ class ModelManager:
         model_info = {"model_uri": "", "version": "", "metrics": {}}
         return model_info
 
-    def log_metrics(self, model_info: Dict, metrics: Dict) -> None:
+    def log_metrics(self, model_info: Dict[str, Any], metrics: Dict[str, Any]) -> None:
         """
         Log evaluation metrics back to the model registry.
         """

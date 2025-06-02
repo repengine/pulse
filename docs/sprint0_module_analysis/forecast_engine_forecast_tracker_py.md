@@ -44,9 +44,9 @@ Within the `forecast_engine/` directory, [`forecast_tracker.py`](../../forecast_
 *   [`forecast_engine.forecast_scoring`](../../forecast_engine/forecast_scoring.py:0): Specifically, the `score_forecast` function.
 *   [`forecast_engine.forecast_memory`](../../forecast_engine/forecast_memory.py:0): Specifically, the `save_forecast_to_memory` function.
 *   [`forecast_engine.forecast_integrity_engine`](../../forecast_engine/forecast_integrity_engine.py:0): Specifically, the `validate_forecast` function.
-*   [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:0): As the type for the simulation state being recorded.
+*   [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:0): As the type for the simulation state being recorded.
 *   [`utils.log_utils.get_logger`](../../utils/log_utils.py:0): For application-level logging.
-*   [`memory.forecast_memory.ForecastMemory`](../../memory/forecast_memory.py:0): For initializing a forecast memory instance (though `save_forecast_to_memory` from `forecast_engine.forecast_memory` is used for saving).
+*   [`analytics.forecast_memory.ForecastMemory`](../../memory/forecast_memory.py:0): For initializing a forecast memory instance (though `save_forecast_to_memory` from `forecast_engine.forecast_memory` is used for saving).
 *   [`core.path_registry.PATHS`](../../core/path_registry.py:0): For accessing configured directory paths for logging and forecast history.
 
 ## 5. Adherence to SPARC Principles

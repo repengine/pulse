@@ -22,7 +22,7 @@ The module appears largely complete for its defined purpose, with no obvious `TO
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-*   [`iris.iris_scraper.IrisScraper`](../../iris/iris_scraper.py:7): Imported and instantiated, but not used.
+*   [`ingestion.iris_scraper.IrisScraper`](../../iris/iris_scraper.py:7): Imported and instantiated, but not used.
 *   [`core.celery_app.celery_app`](../../core/celery_app.py:9): Used to send tasks to Celery.
 *   [`core.metrics.start_metrics_server`](../../core/metrics.py:10): Used to initiate a Prometheus metrics server.
 
@@ -71,7 +71,7 @@ The module primarily defines one function:
 *   **Celery:** Tightly coupled to Celery ([`core.celery_app`](../../core/celery_app.py:9)) for dispatching tasks. The availability and configuration of Celery are critical.
 *   **Message Contract:** Implicitly coupled to the expected structure of messages consumed from Kafka and the input requirements of the Celery task `"ingest_and_score_signal"`.
 *   **`core.metrics`:** Depends on the [`start_metrics_server`](../../core/metrics.py:10) function from this module.
-*   **`iris.iris_scraper`:** Currently imports and instantiates [`IrisScraper`](../../iris/iris_scraper.py:7), creating a dependency, though the instance is unused.
+*   **`ingestion.iris_scraper`:** Currently imports and instantiates [`IrisScraper`](../../iris/iris_scraper.py:7), creating a dependency, though the instance is unused.
 
 ## 8. Existing Tests
 

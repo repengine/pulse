@@ -66,17 +66,17 @@ The module appears to be partially complete, with a foundational structure and s
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`from memory.trace_memory import TraceMemory`](learning/learning.py:44)
-*   [`from memory.variable_performance_tracker import VariablePerformanceTracker`](learning/learning.py:45)
+*   [`from analytics.trace_memory import TraceMemory`](learning/learning.py:44)
+*   [`from analytics.variable_performance_tracker import VariablePerformanceTracker`](learning/learning.py:45)
 *   [`from core.variable_registry import VariableRegistry`](learning/learning.py:46)
 *   [`from core.bayesian_trust_tracker import bayesian_trust_tracker`](learning/learning.py:47)
 *   [`from core.optimized_trust_tracker import optimized_bayesian_trust_tracker`](learning/learning.py:48)
-*   [`from learning.output_data_reader import OutputDataReader`](learning/learning.py:78) (within `AdvancedLearningEngine.__init__`)
+*   [`from analytics.output_data_reader import OutputDataReader`](learning/learning.py:78) (within `AdvancedLearningEngine.__init__`)
 *   [`from trust_system.trust_engine import TrustEngine`](learning/learning.py:237) (within `LearningEngine.on_simulation_turn_end`)
 *   [`from core.pulse_learning_log import log_variable_weight_change, log_learning_summary`](learning/learning.py:271) (and other methods)
-*   [`from simulation_engine.rule_mutation_engine import apply_rule_mutations`](learning/learning.py:310) (within `LearningEngine.apply_rule_mutation_pressure`)
-*   [`from memory.variable_cluster_engine import summarize_clusters`](learning/learning.py:320) (within `LearningEngine.audit_cluster_volatility`)
-*   [`from memory.rule_cluster_engine import summarize_rule_clusters`](learning/learning.py:344) (within `LearningEngine.audit_rule_clusters`)
+*   [`from engine.rule_mutation_engine import apply_rule_mutations`](learning/learning.py:310) (within `LearningEngine.apply_rule_mutation_pressure`)
+*   [`from analytics.variable_cluster_engine import summarize_clusters`](learning/learning.py:320) (within `LearningEngine.audit_cluster_volatility`)
+*   [`from analytics.rule_cluster_engine import summarize_rule_clusters`](learning/learning.py:344) (within `LearningEngine.audit_rule_clusters`)
 *   [`from symbolic_system.symbolic_contradiction_cluster import cluster_symbolic_conflicts`](learning/learning.py:355) (within `LearningEngine.audit_symbolic_contradictions`)
 *   [`from operator_interface.rule_cluster_digest_formatter import format_cluster_digest_md`](learning/learning.py:375)
 *   [`from operator_interface.variable_cluster_digest_formatter import format_variable_cluster_digest_md`](learning/learning.py:384)

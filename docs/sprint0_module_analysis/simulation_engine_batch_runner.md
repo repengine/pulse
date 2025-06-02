@@ -1,4 +1,4 @@
-# SPARC Analysis: simulation_engine.batch_runner
+# SPARC Analysis: engine.batch_runner
 
 **Date of Analysis:** 2025-05-14
 **Analyst:** Roo
@@ -8,11 +8,11 @@
 
 The [`simulation_engine/batch_runner.py`](simulation_engine/batch_runner.py:1) module is designed to run batches of simulations based on configuration files or sweep inputs. For each simulation configuration in a batch, it performs the following sequence of operations:
 1.  Initializes or updates a `WorldState` object.
-2.  Runs the simulation forward for a specified number of turns using [`simulation_engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:581).
+2.  Runs the simulation forward for a specified number of turns using [`engine.simulator_core.simulate_forward()`](simulation_engine/simulator_core.py:581).
 3.  Optionally utilizes a `ShadowModelMonitor` to track critical variables.
 4.  Optionally applies gravity corrections via a `GravityEngineConfig`.
 5.  Generates forecasts based on the final simulation state using [`forecast_output.forecast_generator.generate_forecast()`](forecast_output/forecast_generator.py:28).
-6.  Processes these forecasts through the full forecast pipeline using [`learning.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:54).
+6.  Processes these forecasts through the full forecast pipeline using [`analytics.forecast_pipeline_runner.run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:54).
 7.  Collects and optionally exports the results to a JSONL file.
 
 The module can be run as a script, providing command-line arguments to control gravity correction parameters and load sample configurations.
@@ -42,10 +42,10 @@ The module can be run as a script, providing command-line arguments to control g
 *   [`config.gravity_config`](config/gravity_config.py:1) (as `grav_cfg`) - For default gravity engine parameters used in CLI help strings and default `GravityEngineConfig` values.
 *   [`symbolic_system.gravity.engines.residual_gravity_engine`](symbolic_system/gravity/engines/residual_gravity_engine.py:1) (specifically [`GravityEngineConfig`](symbolic_system/gravity/engines/residual_gravity_engine.py:26)) - For configuring the gravity engine.
 *   [`diagnostics.shadow_model_monitor`](diagnostics/shadow_model_monitor.py:1) (specifically [`ShadowModelMonitor`](diagnostics/shadow_model_monitor.py:6)) - For monitoring shadow model performance. Import is optional.
-*   [`simulation_engine.simulator_core`](simulation_engine/simulator_core.py:1) (specifically [`simulate_forward`](simulation_engine/simulator_core.py:581)) - The core function for running a single simulation.
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1) (specifically [`WorldState`](simulation_engine/worldstate.py:471), [`SymbolicOverlays`](simulation_engine/worldstate.py:31)) - For representing and manipulating the simulation state.
+*   [`engine.simulator_core`](simulation_engine/simulator_core.py:1) (specifically [`simulate_forward`](simulation_engine/simulator_core.py:581)) - The core function for running a single simulation.
+*   [`engine.worldstate`](simulation_engine/worldstate.py:1) (specifically [`WorldState`](simulation_engine/worldstate.py:471), [`SymbolicOverlays`](simulation_engine/worldstate.py:31)) - For representing and manipulating the simulation state.
 *   [`forecast_output.forecast_generator`](forecast_output/forecast_generator.py:1) (specifically [`generate_forecast`](forecast_output/forecast_generator.py:28)) - For generating forecasts from a simulation state.
-*   [`learning.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py:1) (specifically [`run_forecast_pipeline`](learning/forecast_pipeline_runner.py:54)) - For processing generated forecasts.
+*   [`analytics.forecast_pipeline_runner`](learning/forecast_pipeline_runner.py:1) (specifically [`run_forecast_pipeline`](learning/forecast_pipeline_runner.py:54)) - For processing generated forecasts.
 
 ### Direct Imports (External Libraries):
 
@@ -111,7 +111,7 @@ configs = load_batch_config("my_batch_configs.json")
 
 ### [`run_batch_from_config(configs: List[Dict[str, Any]], ...) -> List[Dict[str, Any]]`](simulation_engine/batch_runner.py:71)
 ```python
-from simulation_engine.worldstate import WorldState, SymbolicOverlays
+from engine.worldstate import WorldState, SymbolicOverlays
 from symbolic_system.gravity.engines.residual_gravity_engine import GravityEngineConfig
 
 sample_configs = [
@@ -155,9 +155,9 @@ python simulation_engine/batch_runner.py --gravity-off
 
 ## 7. Coupling Points
 
-*   **High Coupling with `simulation_engine.simulator_core`:** Directly calls [`simulate_forward()`](simulation_engine/simulator_core.py:581), relying on its specific signature and behavior.
+*   **High Coupling with `engine.simulator_core`:** Directly calls [`simulate_forward()`](simulation_engine/simulator_core.py:581), relying on its specific signature and behavior.
 *   **High Coupling with `forecast_output.forecast_generator`:** Directly calls [`generate_forecast()`](forecast_output/forecast_generator.py:28).
-*   **High Coupling with `learning.forecast_pipeline_runner`:** Directly calls [`run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:54).
+*   **High Coupling with `analytics.forecast_pipeline_runner`:** Directly calls [`run_forecast_pipeline()`](learning/forecast_pipeline_runner.py:54).
 *   **High Coupling with `WorldState` and `SymbolicOverlays`:** Directly instantiates and manipulates these objects.
 *   **Configuration Objects:** Tightly coupled to the structure of `GravityEngineConfig` and `SHADOW_MONITOR_CONFIG`.
 *   **`PATHS` dictionary:** Relies on specific keys like `"BATCH_OUTPUT"` being present in [`core/path_registry.py`](core/path_registry.py:1).

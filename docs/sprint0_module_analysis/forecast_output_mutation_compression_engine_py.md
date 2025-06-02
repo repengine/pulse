@@ -22,7 +22,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`memory.forecast_episode_tracer.summarize_lineage_drift`](memory/forecast_episode_tracer.py:17)
+- [`analytics.forecast_episode_tracer.summarize_lineage_drift`](memory/forecast_episode_tracer.py:17)
 - [`symbolic_system.symbolic_flip_classifier.extract_transitions`](symbolic_system/symbolic_flip_classifier.py:18)
 
 ### External Library Dependencies:
@@ -106,7 +106,7 @@ The module appears to be largely complete and operational for its defined scope.
 
 ## 7. Coupling Points
 
-- **`memory.forecast_episode_tracer`**: Tightly coupled for the `summarize_lineage_drift` function. Changes in the output structure of this function would directly impact [`compress_episode_chain()`](forecast_output/mutation_compression_engine.py:74).
+- **`analytics.forecast_episode_tracer`**: Tightly coupled for the `summarize_lineage_drift` function. Changes in the output structure of this function would directly impact [`compress_episode_chain()`](forecast_output/mutation_compression_engine.py:74).
 - **`symbolic_system.symbolic_flip_classifier`**: Tightly coupled for the `extract_transitions` function. Changes in its output would affect [`tag_symbolic_instability()`](forecast_output/mutation_compression_engine.py:54).
 - **Data Structure of Forecasts:** The entire module relies heavily on the specific dictionary structure of individual forecasts and forecast chains (keys like `license_status`, `alignment_score`, `confidence`, `arc_label`, `symbolic_tag`, `trace_id`, `lineage`). Any changes to this structure in other parts of the system would require updates here.
 - **`matplotlib`**: The plotting functionality is directly tied to `matplotlib`.
@@ -124,7 +124,7 @@ The module's architecture is functional, consisting of several distinct function
 **Primary Control Flow (Compression):**
 1.  Input: A `chain` (list of forecast dictionaries) is provided to [`compress_episode_chain()`](forecast_output/mutation_compression_engine.py:74).
 2.  If the chain is empty, an empty dictionary is returned.
-3.  [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py) (from `memory.forecast_episode_tracer`) is called to get drift metrics.
+3.  [`summarize_lineage_drift()`](memory/forecast_episode_tracer.py) (from `analytics.forecast_episode_tracer`) is called to get drift metrics.
 4.  [`select_best_forecast()`](forecast_output/mutation_compression_engine.py:21) is called to pick the top candidate from the chain based on license, alignment, and confidence.
 5.  [`summarize_chain_arcs()`](forecast_output/mutation_compression_engine.py:40) calculates the frequency of arc labels.
 6.  The `best` forecast dictionary is annotated with information from the chain: `mutation_compressed_from` (list of trace IDs), `arc_frequency_map`, stability scores, flip counts, and total versions from the drift summary.

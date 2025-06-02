@@ -1,5 +1,5 @@
 from interfaces.simulation_interface import SimulationInterface
-from simulation_engine import simulator_core
+from engine import simulator_core
 
 
 class SimulationAdapter(SimulationInterface):

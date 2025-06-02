@@ -19,7 +19,7 @@ The primary gap is its "stub mode" nature. The current implementation provides a
 ## Connections & Dependencies
 
 *   **Direct Imports:**
-    *   [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:1): Imports the core `WorldState` class, indicating a direct dependency on the simulation engine's state representation.
+    *   [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:1): Imports the core `WorldState` class, indicating a direct dependency on the simulation engine's state representation.
     *   [`symbolic_system.symbolic_utils.get_overlay_snapshot`](symbolic_system/symbolic_utils.py:1): Depends on a utility function from the symbolic system to get a snapshot of symbolic overlays.
     *   [`symbolic_system.symbolic_utils.symbolic_tension_score`](symbolic_system/symbolic_utils.py:1): Depends on a utility function from the symbolic system to calculate symbolic tension.
     *   [`capital_engine.capital_layer.total_exposure`](capital_engine/capital_layer.py:1): Depends on a function from the capital engine to get the total capital exposure.
@@ -37,7 +37,7 @@ The primary gap is its "stub mode" nature. The current implementation provides a
     ```
 *   [`run_plia_stub(state: WorldState) -> Dict[str, Any]`](learning/plia_stub.py:29): The main function that performs the diagnostic checks. It takes a `WorldState` instance and returns a dictionary of results.
     ```python
-    from simulation_engine.worldstate import WorldState
+    from engine.worldstate import WorldState
     state = WorldState() # Assuming WorldState can be initialized like this
     results = run_plia_stub(state)
     print(results)
@@ -57,7 +57,7 @@ No hardcoded secrets, API keys, paths, or sensitive data were found.
 ## Coupling Points
 
 The module is coupled with:
-*   `simulation_engine.worldstate.WorldState`: Directly uses `WorldState` instances.
+*   `engine.worldstate.WorldState`: Directly uses `WorldState` instances.
 *   `symbolic_system.symbolic_utils`: Calls functions from this module.
 *   `capital_engine.capital_layer`: Calls functions from this module.
 *   `utils.log_utils`: Uses the logging utility.

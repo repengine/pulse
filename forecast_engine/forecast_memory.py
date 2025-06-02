@@ -16,9 +16,9 @@ Author: Pulse v0.10
 """
 
 from typing import Dict, Any, Optional, List
-from core.pulse_config import MODULES_ENABLED
-from core.path_registry import PATHS
-from memory.forecast_memory import ForecastMemory
+from engine.pulse_config import MODULES_ENABLED
+from engine.path_registry import PATHS
+from analytics.forecast_memory import ForecastMemory
 from utils.log_utils import get_logger
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"

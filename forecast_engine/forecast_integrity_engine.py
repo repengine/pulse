@@ -13,8 +13,8 @@ Supports configuration of filtering thresholds and symbolic tag guards.
 Author: Pulse v0.10
 """
 
-from core.pulse_config import CONFIDENCE_THRESHOLD
-from core.path_registry import PATHS
+from engine.pulse_config import CONFIDENCE_THRESHOLD
+from engine.path_registry import PATHS
 
 assert isinstance(PATHS, dict), f"PATHS is not a dict, got {type(PATHS)}"
 

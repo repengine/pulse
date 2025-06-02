@@ -31,9 +31,9 @@ The module appears to be largely complete and operational for its intended scope
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`simulation_engine.turn_engine`](../../simulation_engine/turn_engine.py): For [`run_turn()`](../../pulse_desktop/ui_shell.py:33).
-*   [`simulation_engine.worldstate`](../../simulation_engine/worldstate.py): For [`WorldState`](../../pulse_desktop/ui_shell.py:34).
-*   [`simulation_engine.utils.worldstate_io`](../../simulation_engine/utils/worldstate_io.py): For worldstate loading/saving utilities.
+*   [`engine.turn_engine`](../../simulation_engine/turn_engine.py): For [`run_turn()`](../../pulse_desktop/ui_shell.py:33).
+*   [`engine.worldstate`](../../simulation_engine/worldstate.py): For [`WorldState`](../../pulse_desktop/ui_shell.py:34).
+*   [`engine.utils.worldstate_io`](../../simulation_engine/utils/worldstate_io.py): For worldstate loading/saving utilities.
 *   [`core.variable_registry`](../../core/variable_registry.py): For [`validate_variables()`](../../pulse_desktop/ui_shell.py:36) and [`VARIABLE_REGISTRY`](../../pulse_desktop/ui_shell.py:45).
 *   [`dev_tools.rule_dev_shell`](../../dev_tools/rule_dev_shell.py): For [`test_rules()`](../../pulse_desktop/ui_shell.py:37).
 *   [`forecast_engine.forecast_log_viewer`](../../forecast_engine/forecast_log_viewer.py): For [`load_and_display_forecasts()`](../../pulse_desktop/ui_shell.py:38).
@@ -43,7 +43,7 @@ The module appears to be largely complete and operational for its intended scope
 *   [`utils.log_utils`](../../utils/log_utils.py): For [`get_logger()`](../../pulse_desktop/ui_shell.py:42).
 *   [`core.path_registry`](../../core/path_registry.py): For [`PATHS`](../../pulse_desktop/ui_shell.py:43).
 *   [`core.pulse_config`](../../core/pulse_config.py): For [`MODULES_ENABLED`](../../pulse_desktop/ui_shell.py:44) and global settings like [`USE_SYMBOLIC_OVERLAYS`](../../pulse_desktop/ui_shell.py:120).
-*   [`learning.learning`](../../learning/learning.py): For [`retrospective_analysis_batch()`](../../pulse_desktop/ui_shell.py:46).
+*   [`analytics.learning`](../../learning/learning.py): For [`retrospective_analysis_batch()`](../../pulse_desktop/ui_shell.py:46).
 *   [`trust_system.trust_engine`](../../trust_system/trust_engine.py): For [`TrustEngine`](../../pulse_desktop/ui_shell.py:47).
 *   [`trust_system.license_enforcer`](../../trust_system/license_enforcer.py): Conditionally imported for license enforcement.
 *   [`forecast_output.forecast_memory_promoter`](../../forecast_output/forecast_memory_promoter.py): Conditionally imported for promoting forecasts.

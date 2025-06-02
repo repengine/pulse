@@ -1,4 +1,4 @@
-# Module Analysis: `simulation_engine.utils.pulse_variable_forecaster`
+# Module Analysis: `engine.utils.pulse_variable_forecaster`
 
 **File Path:** [`simulation_engine/utils/pulse_variable_forecaster.py`](../../simulation_engine/utils/pulse_variable_forecaster.py)
 
@@ -27,8 +27,8 @@ The primary role of this module is to forecast future value trajectories of a se
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-- [`simulation_engine.turn_engine.run_turn`](../../simulation_engine/turn_engine.py:0): Used to advance the simulation state by one step ([`simulation_engine/utils/pulse_variable_forecaster.py:17`](../../simulation_engine/utils/pulse_variable_forecaster.py:17)).
-- [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:0): Used to initialize and manage the simulation state ([`simulation_engine/utils/pulse_variable_forecaster.py:18`](../../simulation_engine/utils/pulse_variable_forecaster.py:18)). The forecaster relies on the structure of `WorldState.variables`.
+- [`engine.turn_engine.run_turn`](../../simulation_engine/turn_engine.py:0): Used to advance the simulation state by one step ([`simulation_engine/utils/pulse_variable_forecaster.py:17`](../../simulation_engine/utils/pulse_variable_forecaster.py:17)).
+- [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:0): Used to initialize and manage the simulation state ([`simulation_engine/utils/pulse_variable_forecaster.py:18`](../../simulation_engine/utils/pulse_variable_forecaster.py:18)). The forecaster relies on the structure of `WorldState.variables`.
 
 ### External Library Dependencies:
 - `argparse` ([`simulation_engine/utils/pulse_variable_forecaster.py:11`](../../simulation_engine/utils/pulse_variable_forecaster.py:11)): For command-line argument parsing.

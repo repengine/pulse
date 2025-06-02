@@ -76,7 +76,7 @@ def environment_example():
         os.environ["SPARC_ENV"] = "development"
         print("Using development mode...")
 
-        _ = Context7Client() # Instantiation is part of the example
+        _ = Context7Client()  # Instantiation is part of the example
         print("Client initialized in development mode")
 
         # Get documentation

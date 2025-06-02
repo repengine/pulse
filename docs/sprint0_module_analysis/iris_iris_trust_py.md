@@ -44,7 +44,7 @@ The module appears to be functionally complete for its defined scope. The [`Iris
 The core component is the [`IrisTrustScorer`](../../../iris/iris_trust.py:18) class.
 
 ```python
-from iris.iris_trust import IrisTrustScorer
+from ingestion.iris_trust import IrisTrustScorer
 from datetime import datetime, timedelta, timezone
 
 # Initialize the scorer
@@ -119,7 +119,7 @@ Several parameters and thresholds are hardcoded within the module:
 
 ## 8. Existing Tests
 
-Based on the file listing and the content of [`tests/test_trust_engine_risk.py`](../../../tests/test_trust_engine_risk.py:1), there do not appear to be dedicated unit tests specifically for the [`iris.iris_trust`](../../../iris/iris_trust.py:1) module or the [`IrisTrustScorer`](../../../iris/iris_trust.py:18) class. The existing test file seems to target a different `TrustEngine` in the `trust_system` package.
+Based on the file listing and the content of [`tests/test_trust_engine_risk.py`](../../../tests/test_trust_engine_risk.py:1), there do not appear to be dedicated unit tests specifically for the [`ingestion.iris_trust`](../../../iris/iris_trust.py:1) module or the [`IrisTrustScorer`](../../../iris/iris_trust.py:18) class. The existing test file seems to target a different `TrustEngine` in the `trust_system` package.
 
 This indicates a gap in test coverage for this specific module.
 

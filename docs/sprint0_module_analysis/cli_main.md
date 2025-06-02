@@ -42,9 +42,9 @@ It acts as the central entry point for users to interact with core Pulse operati
     *   Parses command-line arguments.
     *   Dispatches to appropriate functions or logic based on the specified command.
     *   Handles simulation execution, digest output, and epistemic upgrade processes.
-    *   Calls various functions from [`iris.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1) for data repair commands.
+    *   Calls various functions from [`ingestion.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1) for data repair commands.
     *   Loads configuration from [`CONFIG_PATH`](core/pulse_config.py:1).
-    *   Includes optional post-simulation tasks like retrodiction tests ([`trust_system.retrodiction_engine`](trust_system/retrodiction_engine.py:1)) and trust audits ([`learning.trust_audit`](learning/trust_audit.py:1)).
+    *   Includes optional post-simulation tasks like retrodiction tests ([`trust_system.retrodiction_engine`](trust_system/retrodiction_engine.py:1)) and trust audits ([`analytics.trust_audit`](learning/trust_audit.py:1)).
 
 ## 4. Dependencies
 
@@ -61,10 +61,10 @@ It acts as the central entry point for users to interact with core Pulse operati
 *   [`core.pulse_config`](core/pulse_config.py:1) ([`STARTUP_BANNER`](core/pulse_config.py:1), [`CONFIG_PATH`](core/pulse_config.py:1))
 *   [`forecast_output.digest_logger`](forecast_output/digest_logger.py:1) ([`save_digest_to_file()`](forecast_output/digest_logger.py:1))
 *   [`operator_interface.strategos_digest`](operator_interface/strategos_digest.py:1) ([`generate_strategos_digest()`](operator_interface/strategos_digest.py:1))
-*   [`memory.forecast_memory`](memory/forecast_memory.py:1) ([`ForecastMemory`](memory/forecast_memory.py:1))
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1) ([`WorldState`](simulation_engine/worldstate.py:1))
-*   [`simulation_engine.turn_engine`](simulation_engine/turn_engine.py:1) ([`run_turn()`](simulation_engine/turn_engine.py:1))
-*   [`simulation_engine.causal_rules`](simulation_engine/causal_rules.py:1) ([`apply_causal_rules()`](simulation_engine/causal_rules.py:1))
+*   [`analytics.forecast_memory`](memory/forecast_memory.py:1) ([`ForecastMemory`](memory/forecast_memory.py:1))
+*   [`engine.worldstate`](simulation_engine/worldstate.py:1) ([`WorldState`](simulation_engine/worldstate.py:1))
+*   [`engine.turn_engine`](simulation_engine/turn_engine.py:1) ([`run_turn()`](simulation_engine/turn_engine.py:1))
+*   [`engine.causal_rules`](simulation_engine/causal_rules.py:1) ([`apply_causal_rules()`](simulation_engine/causal_rules.py:1))
 *   [`forecast_output.forecast_generator`](forecast_output/forecast_generator.py:1) ([`generate_forecast()`](forecast_output/forecast_generator.py:1))
 *   [`forecast_output.pfpa_logger`](forecast_output/pfpa_logger.py:1) ([`log_forecast_to_pfpa()`](forecast_output/pfpa_logger.py:1))
 *   [`forecast_output.digest_exporter`](forecast_output/digest_exporter.py:1) ([`export_digest()`](forecast_output/digest_exporter.py:1), [`export_digest_json()`](forecast_output/digest_exporter.py:1))
@@ -75,9 +75,9 @@ It acts as the central entry point for users to interact with core Pulse operati
 *   [`pipeline.ingestion_service`](pipeline/ingestion_service.py:1) ([`IngestionService`](pipeline/ingestion_service.py:1))
 *   [`core.variable_registry`](core/variable_registry.py:1) ([`registry`](core/variable_registry.py:1))
 *   [`core.variable_accessor`](core/variable_accessor.py:1) ([`set_variable()`](core/variable_accessor.py:1))
-*   [`iris.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1) (multiple functions like [`repair_variable_data()`](iris/iris_utils/historical_data_repair.py:50), [`simulate_repair()`](iris/iris_utils/historical_data_repair.py:51), etc., and [`DEFAULT_REPAIR_STRATEGIES`](iris/iris_utils/historical_data_repair.py:57))
+*   [`ingestion.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1) (multiple functions like [`repair_variable_data()`](iris/iris_utils/historical_data_repair.py:50), [`simulate_repair()`](iris/iris_utils/historical_data_repair.py:51), etc., and [`DEFAULT_REPAIR_STRATEGIES`](iris/iris_utils/historical_data_repair.py:57))
 *   [`trust_system.retrodiction_engine`](trust_system/retrodiction_engine.py:1) ([`simulate_retrodiction_test()`](trust_system/retrodiction_engine.py:1) - *optional import*)
-*   [`learning.trust_audit`](learning/trust_audit.py:1) ([`audit_forecasts()`](learning/trust_audit.py:1) - *optional import*)
+*   [`analytics.trust_audit`](learning/trust_audit.py:1) ([`audit_forecasts()`](learning/trust_audit.py:1) - *optional import*)
 *   [`dev_tools/propose_epistemic_upgrades.py`](dev_tools/propose_epistemic_upgrades.py:1) (*via `subprocess`*)
 *   [`dev_tools/apply_symbolic_upgrades.py`](dev_tools/apply_symbolic_upgrades.py:1) (*via `subprocess`*)
 
@@ -91,7 +91,7 @@ It acts as the central entry point for users to interact with core Pulse operati
     *   The use of `argparse` subparsers for different commands (`simulate`, `repair`, etc.) promotes modularity at the CLI definition level.
     *   The core simulation logic is encapsulated in the [`run_pulse_simulation()`](cli/main.py:67) function, which is good.
     *   However, the main `if __name__ == "__main__":` block ([`cli/main.py:134`](cli/main.py:134)) directly handles the logic for dispatching and executing many of these commands. This makes the main block quite long and couples CLI parsing tightly with command execution logic for several sub-commands.
-    *   Data repair functionalities rely on functions imported from [`iris.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1), which shows good delegation of specific tasks.
+    *   Data repair functionalities rely on functions imported from [`ingestion.iris_utils.historical_data_repair`](iris/iris_utils/historical_data_repair.py:1), which shows good delegation of specific tasks.
 
 *   **Refinement - Testability:**
     *   The [`run_pulse_simulation()`](cli/main.py:67) function can be imported and called programmatically, facilitating its testing.

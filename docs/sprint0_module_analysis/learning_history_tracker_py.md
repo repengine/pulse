@@ -16,7 +16,7 @@ The module appears to be functionally complete for its defined scope, which is t
 
 ## 4. Connections & Dependencies
 
-*   **Direct Imports from Other Project Modules:** None are directly visible within the file itself. However, its location in the `learning` package and the usage example (`from learning.history_tracker import track_variable_history`) imply it's designed to be used by other parts of the `learning` system or the broader Pulse project.
+*   **Direct Imports from Other Project Modules:** None are directly visible within the file itself. However, its location in the `learning` package and the usage example (`from analytics.history_tracker import track_variable_history`) imply it's designed to be used by other parts of the `learning` system or the broader Pulse project.
 *   **External Library Dependencies:**
     *   [`os`](learning/history_tracker.py:14): Used for path manipulation (e.g., [`os.path.basename()`](learning/history_tracker.py:31), [`os.path.join()`](learning/history_tracker.py:33)) and directory creation ([`os.makedirs()`](learning/history_tracker.py:32)).
     *   [`json`](learning/history_tracker.py:15): Used for serializing dictionary records into JSON strings ([`json.dumps()`](learning/history_tracker.py:50)).
@@ -41,7 +41,7 @@ The module contains one primary function, [`track_variable_history()`](learning/
     *   `output_dir (str)`: The directory where the log file will be saved. Defaults to `"history_logs"`.
 *   **Usage Example (from module docstring):**
     ```python
-    from learning.history_tracker import track_variable_history
+    from analytics.history_tracker import track_variable_history
 
     # Assuming 'simulation_run_id' is a string and 'snapshots_data' is a list of dicts
     track_variable_history(run_id=simulation_run_id, state_snapshots=snapshots_data)

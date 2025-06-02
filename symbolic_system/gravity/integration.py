@@ -13,8 +13,8 @@ import logging
 from typing import Dict, Optional, Any, Callable, Tuple
 import functools
 
-from simulation_engine.worldstate import WorldState
-from simulation_engine.state_mutation import adjust_overlay
+from engine.worldstate import WorldState
+from engine.state_mutation import adjust_overlay
 
 from symbolic_system.gravity.symbolic_pillars import SymbolicPillarSystem
 from symbolic_system.gravity.engines.residual_gravity_engine import (

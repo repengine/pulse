@@ -22,7 +22,7 @@ The module appears to be operationally complete for its defined scope.
 
 *   **Extensiveness:** The module is focused and seems to fulfill its specific purpose. There are no immediate signs it was intended to be significantly more extensive *for this specific task*.
 *   **Logical Next Steps:**
-    *   The calculation of `retrodiction` relies on an external function [`compute_retrodiction_error`](trust_system/alignment_index.py:74) from [`learning.learning`](learning/learning.py). This implies a dependency and a logical workflow where retrodiction errors are computed elsewhere.
+    *   The calculation of `retrodiction` relies on an external function [`compute_retrodiction_error`](trust_system/alignment_index.py:74) from [`analytics.learning`](learning/learning.py). This implies a dependency and a logical workflow where retrodiction errors are computed elsewhere.
     *   The `memory` parameter suggests integration with a system that stores and retrieves past forecasts. The novelty calculation is basic (tag count); more sophisticated novelty detection could be a future enhancement.
     *   The `trusted_tags` set is hardcoded. A more flexible system might load these from a configuration file or a shared constants module.
 *   **Deviations/Stoppages:** There are no clear indications of development starting on a planned path and then deviating or stopping short within this module. The import for [`compute_retrodiction_error`](trust_system/alignment_index.py:74) is moved inside the function to avoid circular imports, which is a common refinement, not a stoppage.
@@ -31,7 +31,7 @@ The module appears to be operationally complete for its defined scope.
 
 *   **Direct Project Imports:**
     *   `from typing import Dict, Optional` (standard library)
-    *   Conditional local import: `from learning.learning import compute_retrodiction_error` (line 74 in [`compute_alignment_index`](trust_system/alignment_index.py:29)). This suggests a dependency on the `learning.learning` module for calculating retrodiction scores if not directly provided in the forecast object.
+    *   Conditional local import: `from analytics.learning import compute_retrodiction_error` (line 74 in [`compute_alignment_index`](trust_system/alignment_index.py:29)). This suggests a dependency on the `analytics.learning` module for calculating retrodiction scores if not directly provided in the forecast object.
 *   **External Library Dependencies:**
     *   None for the main module logic.
     *   The test file [`tests/test_alignment_index.py`](tests/test_alignment_index.py:1) uses `unittest`.
@@ -132,7 +132,7 @@ The module appears to be operationally complete for its defined scope.
 ## 7. Coupling Points
 
 *   **Input Data Structure:** The module is tightly coupled to the expected structure of the `forecast` dictionary. It relies on specific keys (`confidence`, `retrodiction_score`, `arc_volatility_score`, `symbolic_tag`, `trace_id`). Changes to these key names or data types in upstream modules would break this module.
-*   **`learning.learning` Module:** The conditional import and use of [`compute_retrodiction_error`](trust_system/alignment_index.py:74) from [`learning.learning`](learning/learning.py) creates a functional dependency. The `alignment_index` module's behavior for retrodiction scoring depends on this external function if `retrodiction_score` is not directly provided.
+*   **`analytics.learning` Module:** The conditional import and use of [`compute_retrodiction_error`](trust_system/alignment_index.py:74) from [`analytics.learning`](learning/learning.py) creates a functional dependency. The `alignment_index` module's behavior for retrodiction scoring depends on this external function if `retrodiction_score` is not directly provided.
 *   **`current_state` and `memory`:** The structure and content of `current_state` (for retrodiction) and `memory` (list of past forecasts for novelty) are implicitly defined by how they are used.
 
 ## 8. Existing Tests
@@ -173,7 +173,7 @@ The module appears to be operationally complete for its defined scope.
         *   **Confidence:** Retrieves `confidence` from the `forecast` dictionary. Defaults to 0.0 if missing or not a number.
         *   **Retrodiction:**
             *   Uses `forecast["retrodiction_score"]` if available.
-            *   Else, if `current_state` is provided, it imports and calls [`compute_retrodiction_error(forecast, current_state)`](trust_system/alignment_index.py:74) from `learning.learning` and calculates `1.0 - error`.
+            *   Else, if `current_state` is provided, it imports and calls [`compute_retrodiction_error(forecast, current_state)`](trust_system/alignment_index.py:74) from `analytics.learning` and calculates `1.0 - error`.
             *   Defaults to 0.0 otherwise or on error.
         *   **Arc Stability:**
             *   Uses `1.0 - arc_volatility` if `arc_volatility` is passed directly.

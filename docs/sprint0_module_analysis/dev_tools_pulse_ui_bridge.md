@@ -9,7 +9,7 @@ The [`dev_tools/pulse_ui_bridge.py`](dev_tools/pulse_ui_bridge.py:1) module acts
 *   **`run_trust_audit_cli(prev_path: str, curr_path: str) -> dict`**:
     *   Takes paths to two forecast cycle files (previous and current, expected in JSONL format).
     *   Reads and parses these files.
-    *   Calls [`generate_recursion_report()`](learning/recursion_audit.py:0) from the `learning.recursion_audit` module to compare the two cycles.
+    *   Calls [`generate_recursion_report()`](learning/recursion_audit.py:0) from the `analytics.recursion_audit` module to compare the two cycles.
     *   Returns a dictionary containing the audit summary or an error message.
 *   **`generate_markdown_brief(report_path: str, out_path: str = "pulse_brief.md") -> str`**:
     *   Takes the path to a JSON audit report file.
@@ -39,7 +39,7 @@ This module serves as a crucial link between backend/CLI developer tools and a p
 
 ### Internal Pulse Modules:
 
-*   [`learning.recursion_audit.generate_recursion_report`](learning/recursion_audit.py:0): For comparing forecast cycles.
+*   [`analytics.recursion_audit.generate_recursion_report`](learning/recursion_audit.py:0): For comparing forecast cycles.
 *   [`dev_tools.pulse_ui_plot.load_variable_trace`](dev_tools/pulse_ui_plot.py:0): For loading variable data from trace files.
 *   [`dev_tools.pulse_ui_plot.plot_variables`](dev_tools/pulse_ui_plot.py:0): For generating plots of variable data.
 

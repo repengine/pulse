@@ -38,7 +38,7 @@ The module appears largely complete for its defined scope.
 
 ## 4. Connections & Dependencies
 -   **Direct imports from other project modules:**
-    *   `from iris.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16))
+    *   `from ingestion.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16))
 -   **External library dependencies:**
     *   [`datetime`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:8) (as `dt`)
     *   [`logging`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:9)
@@ -56,7 +56,7 @@ The module appears largely complete for its defined scope.
     This class is intended to be instantiated and managed by the Iris plugin framework.
     ```python
     # Conceptual usage (actual instantiation handled by Iris framework)
-    # from iris.iris_plugins_variable_ingestion.hackernews_plugin import HackerNewsPlugin
+    # from ingestion.iris_plugins_variable_ingestion.hackernews_plugin import HackerNewsPlugin
     #
     # plugin_instance = HackerNewsPlugin()
     # signals = plugin_instance.fetch_signals()
@@ -98,7 +98,7 @@ The module contains several hardcoded values:
 
 ## 7. Coupling Points
 -   **Hacker News API:** The module is tightly coupled to the specific structure and endpoints of the Hacker News Firebase API (e.g., `/v0/topstories.json`, `/v0/item/{story_id}.json`). Any changes to this external API could break the plugin's functionality.
--   **`IrisPluginManager`:** Dependency on the `IrisPluginManager` base class ([`iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16)) from `iris.iris_plugins`. This implies an expected operational context within the Iris plugin system.
+-   **`IrisPluginManager`:** Dependency on the `IrisPluginManager` base class ([`iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:16)) from `ingestion.iris_plugins`. This implies an expected operational context within the Iris plugin system.
 -   **Signal Format:** The structure of the dictionaries returned by `fetch_signals()` ([`iris/iris_plugins_variable_ingestion/hackernews_plugin.py:43`](iris/iris_plugins_variable_ingestion/hackernews_plugin.py:43)) acts as an implicit contract with any consuming components within the Iris system.
 
 ## 8. Existing Tests

@@ -23,10 +23,10 @@ The module appears to be largely complete for its defined scope. It successfully
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-*   [`iris.iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py:20): Used for all trust-related calculations (recency, anomaly, STI).
-*   [`iris.iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py:21): Used to infer symbolic tags for signals.
-*   [`iris.iris_plugins.IrisPluginManager`](../../../iris/iris_plugins.py:22): Used to discover, load, and run ingestion plugins.
-*   [`iris.iris_archive.IrisArchive`](../../../iris/iris_archive.py:23): Used to append and persist signal records.
+*   [`ingestion.iris_trust.IrisTrustScorer`](../../../iris/iris_trust.py:20): Used for all trust-related calculations (recency, anomaly, STI).
+*   [`ingestion.iris_symbolism.IrisSymbolismTagger`](../../../iris/iris_symbolism.py:21): Used to infer symbolic tags for signals.
+*   [`ingestion.iris_plugins.IrisPluginManager`](../../../iris/iris_plugins.py:22): Used to discover, load, and run ingestion plugins.
+*   [`ingestion.iris_archive.IrisArchive`](../../../iris/iris_archive.py:23): Used to append and persist signal records.
 
 ### External Library Dependencies:
 *   `os`: Standard library, used for path operations and directory creation.

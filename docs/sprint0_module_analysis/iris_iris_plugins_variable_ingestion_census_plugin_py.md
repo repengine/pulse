@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`census_plugin.py`](../../iris/iris_plugins_variable_ingestion/census_plugin.py:1) module is to fetch economic data from the U.S. Census Bureau API. Specifically, it is designed to ingest data series such as retail sales, housing starts, and building permits. The module handles API communication, including pagination, parses the received data, standardizes it into a common format, and then persists these data points using an incremental saving mechanism provided by [`iris.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:5).
+The primary role of the [`census_plugin.py`](../../iris/iris_plugins_variable_ingestion/census_plugin.py:1) module is to fetch economic data from the U.S. Census Bureau API. Specifically, it is designed to ingest data series such as retail sales, housing starts, and building permits. The module handles API communication, including pagination, parses the received data, standardizes it into a common format, and then persists these data points using an incremental saving mechanism provided by [`ingestion.iris_utils.ingestion_persistence`](../../iris/iris_utils/ingestion_persistence.py:5).
 
 ## 2. Operational Status/Completeness
 
@@ -29,7 +29,7 @@ However, there are indications of incompleteness or areas needing refinement:
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   `from iris.iris_utils.ingestion_persistence import save_data_point_incremental` ([line 5](../../iris/iris_plugins_variable_ingestion/census_plugin.py:5)): Used to persist the fetched and processed data points.
+    *   `from ingestion.iris_utils.ingestion_persistence import save_data_point_incremental` ([line 5](../../iris/iris_plugins_variable_ingestion/census_plugin.py:5)): Used to persist the fetched and processed data points.
 *   **External Library Dependencies:**
     *   `requests` ([line 1](../../iris/iris_plugins_variable_ingestion/census_plugin.py:1)): For making HTTP requests to the Census API.
     *   `json` ([line 2](../../iris/iris_plugins_variable_ingestion/census_plugin.py:2)): Standard library for JSON manipulation (though `response.json()` from `requests` is primarily used).
@@ -50,7 +50,7 @@ However, there are indications of incompleteness or areas needing refinement:
 *   **`CensusPlugin` Class:**
     The main class for interacting with the Census API.
     ```python
-    from iris.iris_plugins_variable_ingestion.census_plugin import CensusPlugin
+    from ingestion.iris_plugins_variable_ingestion.census_plugin import CensusPlugin
     import os
 
     # Optional: Set the API key if required and not already in the environment
@@ -115,7 +115,7 @@ Several pieces of information are hardcoded within the module:
 
 ## 7. Coupling Points
 
-*   **`iris.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for storing data. Any changes to its API (signature, behavior, expected data structure) would require modifications in this plugin.
+*   **`ingestion.iris_utils.ingestion_persistence.save_data_point_incremental`:** The module is tightly coupled to this function for storing data. Any changes to its API (signature, behavior, expected data structure) would require modifications in this plugin.
 *   **U.S. Census Bureau API:** The plugin is highly dependent on the specific endpoints, data structures, parameter names, and authentication mechanisms of the Census Bureau API. Any changes to the external API could break the plugin.
 *   **Environment Variable `CENSUS_API_KEY`:** The plugin relies on this specific environment variable ([line 20](../../iris/iris_plugins_variable_ingestion/census_plugin.py:20)) if an API key is to be used.
 *   **Internal Data Structure for `data_point`:** The structure of the `data_point` dictionary created before saving ([lines 187-200](../../iris/iris_plugins_variable_ingestion/census_plugin.py:187-200), [285-298](../../iris/iris_plugins_variable_ingestion/census_plugin.py:285-298)) is an internal contract. While it feeds into `save_data_point_incremental`, changes here could affect how data is ultimately stored or used downstream.

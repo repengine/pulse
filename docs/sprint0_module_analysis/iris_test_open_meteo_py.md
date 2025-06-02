@@ -29,7 +29,7 @@ There are no obvious placeholders, TODO comments, or incomplete sections within 
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   [`from iris.iris_plugins_variable_ingestion.open_meteo_plugin import OpenMeteoPlugin`](../../../iris/test_open_meteo.py:21)
+    *   [`from ingestion.iris_plugins_variable_ingestion.open_meteo_plugin import OpenMeteoPlugin`](../../../iris/test_open_meteo.py:21)
 *   **External Library Dependencies:**
     *   [`sys`](https://docs.python.org/3/library/sys.html): For [`sys.path`](https://docs.python.org/3/library/sys.html#sys.path) manipulation.
     *   [`os`](https://docs.python.org/3/library/os.html): For path manipulation ([`os.path.dirname()`](https://docs.python.org/3/library/os.path.html#os.path.dirname), [`os.path.abspath()`](https://docs.python.org/3/library/os.path.html#os.path.abspath)).
@@ -97,7 +97,7 @@ This module *is* a test module.
 1.  **Setup:**
     *   Standard library imports (`sys`, `os`, `logging`, `pprint`).
     *   Logging is configured with a basic format and INFO level.
-    *   The parent directory of `iris` is added to `sys.path` to enable importing `iris.iris_plugins_variable_ingestion.open_meteo_plugin`.
+    *   The parent directory of `iris` is added to `sys.path` to enable importing `ingestion.iris_plugins_variable_ingestion.open_meteo_plugin`.
 2.  **Plugin Import:**
     *   [`OpenMeteoPlugin`](../../../iris/iris_plugins_variable_ingestion/open_meteo_plugin.py) is imported.
 3.  **Test Function (`test_open_meteo`)**:

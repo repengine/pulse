@@ -11,8 +11,8 @@ import json
 import os
 from typing import List, Dict, Optional, Any
 from collections import defaultdict
-from core.path_registry import PATHS
-from core.bayesian_trust_tracker import bayesian_trust_tracker
+from engine.path_registry import PATHS
+from analytics.bayesian_trust_tracker import bayesian_trust_tracker
 
 LOG_PATH = PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")
 

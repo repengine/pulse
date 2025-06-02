@@ -11,7 +11,7 @@ The module appears functionally complete for its defined scope (Version: v1.0.2)
 ## 3. Implementation Gaps / Unfinished Next Steps
 
 *   **Error Handling:** The error handling for [`compute_retrodiction_error()`](../../trust_system/forecast_audit_trail.py:60) (line 61-62) is generic (`except Exception as e: ret_error = None`). More specific error handling or logging could improve robustness and debuggability.
-*   **Dependency Reliance:** The completeness of the audit trail heavily relies on the outputs from its dependencies (e.g., [`trust_system.alignment_index`](../../trust_system/alignment_index.py), [`learning.learning`](../../learning/learning.py), [`trust_system.license_enforcer`](../../trust_system/license_enforcer.py)). Issues in these modules would directly impact the audit data.
+*   **Dependency Reliance:** The completeness of the audit trail heavily relies on the outputs from its dependencies (e.g., [`trust_system.alignment_index`](../../trust_system/alignment_index.py), [`analytics.learning`](../../learning/learning.py), [`trust_system.license_enforcer`](../../trust_system/license_enforcer.py)). Issues in these modules would directly impact the audit data.
 *   **Log Management:** The module currently appends to a log file without mechanisms for log rotation, size management, or advanced querying. These could be considered future enhancements.
 *   **Circular Imports:** The comments on lines 59 and 65 indicate local imports were used to avoid circular dependencies. This might suggest an area for potential architectural refactoring to reduce coupling.
 
@@ -19,7 +19,7 @@ The module appears functionally complete for its defined scope (Version: v1.0.2)
 
 *   **Direct Project Imports:**
     *   [`from trust_system.alignment_index import compute_alignment_index`](../../trust_system/forecast_audit_trail.py:23)
-    *   [`from learning.learning import compute_retrodiction_error`](../../trust_system/forecast_audit_trail.py:59) (local import)
+    *   [`from analytics.learning import compute_retrodiction_error`](../../trust_system/forecast_audit_trail.py:59) (local import)
     *   [`from trust_system.license_enforcer import annotate_forecasts`](../../trust_system/forecast_audit_trail.py:65) (local import)
 *   **External Library Dependencies:**
     *   `json`
@@ -69,7 +69,7 @@ The module appears functionally complete for its defined scope (Version: v1.0.2)
 *   **Forecast Object Schema:** The module is tightly coupled to the structure and expected keys within the `forecast` dictionary.
 *   **External Module Dependencies:**
     *   [`trust_system.alignment_index.compute_alignment_index()`](../../trust_system/alignment_index.py)
-    *   [`learning.learning.compute_retrodiction_error()`](../../learning/learning.py)
+    *   [`analytics.analytics.compute_retrodiction_error()`](../../learning/learning.py)
     *   [`trust_system.license_enforcer.annotate_forecasts()`](../../trust_system/license_enforcer.py)
 *   **Output Format/Location:** Consumers of the audit log are coupled to its JSONL format and the hardcoded file path.
 
@@ -82,7 +82,7 @@ No specific test file (e.g., `tests/trust_system/test_forecast_audit_trail.py`) 
 1.  The [`generate_forecast_audit()`](../../trust_system/forecast_audit_trail.py:28) function is the primary entry point for creating an audit record.
     *   It takes a `forecast` dictionary as input.
     *   It calls [`compute_alignment_index()`](../../trust_system/alignment_index.py:23) from [`trust_system.alignment_index`](../../trust_system/alignment_index.py).
-    *   If `current_state` is provided, it attempts to call [`compute_retrodiction_error()`](../../learning/learning.py) from [`learning.learning`](../../learning/learning.py).
+    *   If `current_state` is provided, it attempts to call [`compute_retrodiction_error()`](../../learning/learning.py) from [`analytics.learning`](../../learning/learning.py).
     *   It calls [`annotate_forecasts()`](../../trust_system/license_enforcer.py) from [`trust_system.license_enforcer`](../../trust_system/license_enforcer.py) to mutate the forecast object with license details.
     *   It then assembles a dictionary containing various details from the forecast and the computed metrics.
 2.  The [`log_forecast_audit()`](../../trust_system/forecast_audit_trail.py:84) function takes the generated audit dictionary.

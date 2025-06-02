@@ -31,8 +31,8 @@ from typing import Dict, List, Any
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.path_registry import PATHS
-from simulation_engine.batch_runner import run_batch_from_config
+from engine.path_registry import PATHS
+from engine.batch_runner import run_batch_from_config
 
 # Default paths and configuration
 DEFAULT_OUTPUT_DIR = PATHS.get(

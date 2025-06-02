@@ -10,7 +10,7 @@ import numpy as np
 
 from forecast_output.forecast_summary_synthesizer import summarize_forecasts
 from utils.log_utils import get_logger
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 from trust_system.trust_engine import compute_symbolic_attention_score
 
 

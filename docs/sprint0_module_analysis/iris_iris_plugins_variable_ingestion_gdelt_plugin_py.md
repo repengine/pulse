@@ -10,7 +10,7 @@ The module appears to be largely complete and operational. Key functionalities i
 *   Fetching data from two GDELT API endpoints: Events API ([`EVENT_API_BASE_URL`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:40)) and GKG (Global Knowledge Graph) API ([`GKG_API_BASE_URL`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:41)).
 *   Processing the retrieved data into structured signals.
 *   Implementation of error handling, request retries ([`MAX_RETRIES`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:44)), and timeout management ([`REQUEST_TIMEOUT`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:42)).
-*   Persistence of request metadata, raw API responses, and processed data using utilities from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0).
+*   Persistence of request metadata, raw API responses, and processed data using utilities from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0).
 *   A basic daily rotation mechanism ([`_get_rotation_region()`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:120), [`_get_rotation_theme()`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:126)) to distribute API load across different regions and themes.
 The module does not contain obvious placeholders like `TODO` comments or `pass` statements in critical logic sections, suggesting a finished state for its current scope.
 
@@ -27,8 +27,8 @@ While functional, several areas could be expanded or refined:
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`IrisPluginManager`](iris/iris_plugins.py:0) from [`iris.iris_plugins`](iris/iris_plugins.py:0)
-*   [`ensure_data_directory`](iris/iris_utils/ingestion_persistence.py:22), [`save_request_metadata`](iris/iris_utils/ingestion_persistence.py:23), [`save_api_response`](iris/iris_utils/ingestion_persistence.py:24), [`save_processed_data`](iris/iris_utils/ingestion_persistence.py:25) from [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0)
+*   [`IrisPluginManager`](iris/iris_plugins.py:0) from [`ingestion.iris_plugins`](iris/iris_plugins.py:0)
+*   [`ensure_data_directory`](iris/iris_utils/ingestion_persistence.py:22), [`save_request_metadata`](iris/iris_utils/ingestion_persistence.py:23), [`save_api_response`](iris/iris_utils/ingestion_persistence.py:24), [`save_processed_data`](iris/iris_utils/ingestion_persistence.py:25) from [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0)
 
 ### External Library Dependencies:
 *   `datetime` (as `dt`)
@@ -60,7 +60,7 @@ While functional, several areas could be expanded or refined:
     *   The primary method for interaction is [`fetch_signals()`](iris/iris_plugins_variable_ingestion/gdelt_plugin.py:82).
     ```python
     # Conceptual usage within a plugin management system:
-    # from iris.iris_plugins_variable_ingestion.gdelt_plugin import GdeltPlugin
+    # from ingestion.iris_plugins_variable_ingestion.gdelt_plugin import GdeltPlugin
     #
     # gdelt_plugin_instance = GdeltPlugin()
     # signals = gdelt_plugin_instance.fetch_signals()
@@ -117,8 +117,8 @@ The module contains several hardcoded values, common for API client configuratio
 ## 7. Coupling Points
 
 *   **GDELT API:** The module is tightly coupled to the GDELT v2 API's structure, query parameters, and response formats for both its Events and GKG services. Any significant changes to the GDELT API would likely require modifications to this plugin.
-*   **Iris Plugin Framework:** Dependency on [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:0) for its base class and integration into the broader Iris plugin system.
-*   **Iris Persistence Utilities:** Relies on the interface and behavior of functions within [`iris.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0) for data storage.
+*   **Iris Plugin Framework:** Dependency on [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:0) for its base class and integration into the broader Iris plugin system.
+*   **Iris Persistence Utilities:** Relies on the interface and behavior of functions within [`ingestion.iris_utils.ingestion_persistence`](iris/iris_utils/ingestion_persistence.py:0) for data storage.
 *   **Signal Structure:** The format of the generated signals (dictionaries with `name`, `value`, `source`, `timestamp`, `metadata` keys) forms a contract with any downstream modules or systems that consume these signals.
 
 ## 8. Existing Tests

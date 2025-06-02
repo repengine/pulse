@@ -22,7 +22,7 @@ The `forecast_engine/forecast_memory.py` module is responsible for archiving for
 
 ## 3. Role within `forecast_engine/`
 
-This module serves as the primary interface for other components within the `forecast_engine/` (and potentially other parts of Pulse) to interact with the long-term storage of forecast data. It abstracts the actual storage mechanism (provided by [`memory.forecast_memory.ForecastMemory`](memory/forecast_memory.py:0)) and provides simple functions for saving new forecasts and retrieving historical ones. This is crucial for learning from past performance, auditing, and providing data for more advanced analyses like divergence tracking (mentioned as a future extension).
+This module serves as the primary interface for other components within the `forecast_engine/` (and potentially other parts of Pulse) to interact with the long-term storage of forecast data. It abstracts the actual storage mechanism (provided by [`analytics.forecast_memory.ForecastMemory`](memory/forecast_memory.py:0)) and provides simple functions for saving new forecasts and retrieving historical ones. This is crucial for learning from past performance, auditing, and providing data for more advanced analyses like divergence tracking (mentioned as a future extension).
 
 ## 4. Dependencies
 
@@ -30,7 +30,7 @@ This module serves as the primary interface for other components within the `for
 
 *   [`core.pulse_config`](core/pulse_config.py:0): Imports `MODULES_ENABLED` to check if dependent systems (like `memory_guardian`) are active.
 *   [`core.path_registry`](core/path_registry.py:0): Imports `PATHS` to determine the storage directory for forecast history.
-*   [`memory.forecast_memory`](memory/forecast_memory.py:0): Imports the `ForecastMemory` class, which provides the core logic for storing and retrieving forecast data from persistent storage. This is a critical dependency.
+*   [`analytics.forecast_memory`](memory/forecast_memory.py:0): Imports the `ForecastMemory` class, which provides the core logic for storing and retrieving forecast data from persistent storage. This is a critical dependency.
 *   [`utils.log_utils`](utils/log_utils.py:0): Imports [`get_logger()`](utils/log_utils.py:0) for standardized logging.
 
 ### External Libraries:
@@ -50,7 +50,7 @@ This module serves as the primary interface for other components within the `for
     *   Type hinting is used, improving code readability and maintainability.
     *   There's a configuration check for `MODULES_ENABLED.get("memory_guardian", True)`, which is good practice for ensuring system integrity.
     *   An `assert` statement checks the type of `PATHS`.
-*   **Collaboration**: It effectively collaborates with the [`memory.forecast_memory`](memory/forecast_memory.py:0) module by instantiating and using the `ForecastMemory` class, demonstrating good modular design and separation of concerns.
+*   **Collaboration**: It effectively collaborates with the [`analytics.forecast_memory`](memory/forecast_memory.py:0) module by instantiating and using the `ForecastMemory` class, demonstrating good modular design and separation of concerns.
 
 ## 6. Overall Assessment
 

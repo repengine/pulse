@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`train_rl_agent.py`](simulation_engine/train_rl_agent.py:) module is to facilitate the training of a Reinforcement Learning (RL) agent. It utilizes the Proximal Policy Optimization (PPO) algorithm from the `stable-baselines3` library and a custom simulation environment defined in [`simulation_engine.rl_env.SimulationEnv`](simulation_engine/rl_env.py:). The module handles the training loop, model saving, and basic evaluation, while also integrating with `mlflow` for experiment tracking, logging parameters, and metrics.
+The primary role of the [`train_rl_agent.py`](simulation_engine/train_rl_agent.py:) module is to facilitate the training of a Reinforcement Learning (RL) agent. It utilizes the Proximal Policy Optimization (PPO) algorithm from the `stable-baselines3` library and a custom simulation environment defined in [`engine.rl_env.SimulationEnv`](simulation_engine/rl_env.py:). The module handles the training loop, model saving, and basic evaluation, while also integrating with `mlflow` for experiment tracking, logging parameters, and metrics.
 
 ## 2. Operational Status/Completeness
 
@@ -27,7 +27,7 @@ There are no strong indications that the module was intended to be significantly
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`simulation_engine.rl_env.SimulationEnv`](simulation_engine/rl_env.py:): This is the custom environment in which the RL agent is trained.
+- [`engine.rl_env.SimulationEnv`](simulation_engine/rl_env.py:): This is the custom environment in which the RL agent is trained.
 
 ### External Library Dependencies:
 - `os`: Used for path manipulation and directory creation ([`os.makedirs()`](simulation_engine/train_rl_agent.py:13), [`os.path.join()`](simulation_engine/train_rl_agent.py:30)).
@@ -53,7 +53,7 @@ The module primarily defines one function, [`train()`](simulation_engine/train_r
 This function orchestrates the RL agent training process.
 - **Usage:**
   ```python
-  from simulation_engine.train_rl_agent import train
+  from engine.train_rl_agent import train
 
   # Train with default parameters
   train()

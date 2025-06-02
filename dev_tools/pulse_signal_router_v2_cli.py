@@ -14,15 +14,15 @@ from datetime import datetime, timezone
 
 # Corrected imports
 try:
-    from iris.pulse_signal_router_v2 import PulseSignalRouter
-    from iris.iris_symbolism import IrisSymbolismTagger
-    from iris.iris_trust import IrisTrustScorer
-    from iris.iris_archive import IrisArchive
+    from ingestion.pulse_signal_router_v2 import PulseSignalRouter
+    from ingestion.iris_symbolism import IrisSymbolismTagger
+    from ingestion.iris_trust import IrisTrustScorer
+    from ingestion.iris_archive import IrisArchive
 except ImportError:
-    from iris.pulse_signal_router_v2 import PulseSignalRouter
-    from iris.iris_symbolism import IrisSymbolismTagger
-    from iris.iris_trust import IrisTrustScorer
-    from iris.iris_archive import IrisArchive
+    from ingestion.pulse_signal_router_v2 import PulseSignalRouter
+    from ingestion.iris_symbolism import IrisSymbolismTagger
+    from ingestion.iris_trust import IrisTrustScorer
+    from ingestion.iris_archive import IrisArchive
 
 
 def main():

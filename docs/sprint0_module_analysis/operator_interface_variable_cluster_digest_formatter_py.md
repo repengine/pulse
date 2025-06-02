@@ -17,11 +17,11 @@ The module appears to be operationally complete for its defined scope. It contai
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   [`memory.variable_cluster_engine.summarize_clusters`](memory/variable_cluster_engine.py:0): This function is crucial as it provides the raw data (variable clusters) that this module formats.
+    *   [`analytics.variable_cluster_engine.summarize_clusters`](memory/variable_cluster_engine.py:0): This function is crucial as it provides the raw data (variable clusters) that this module formats.
 *   **External Library Dependencies:**
     *   `os`: Used for path manipulation (e.g., creating directories, getting directory names) when exporting the digest file.
 *   **Shared Data Interaction:**
-    *   The module implicitly interacts with the data source used by [`summarize_clusters()`](memory/variable_cluster_engine.py:21) from the [`memory.variable_cluster_engine`](memory/variable_cluster_engine.py) module. The nature of this shared data (e.g., in-memory state, database, files) is not detailed within this formatter module itself.
+    *   The module implicitly interacts with the data source used by [`summarize_clusters()`](memory/variable_cluster_engine.py:21) from the [`analytics.variable_cluster_engine`](memory/variable_cluster_engine.py) module. The nature of this shared data (e.g., in-memory state, database, files) is not detailed within this formatter module itself.
 *   **Input/Output Files:**
     *   **Output:** The module exports a Markdown file, by default to [`logs/variable_cluster_digest.md`](logs/variable_cluster_digest.md). The output path is configurable.
 
@@ -48,7 +48,7 @@ The module appears to be operationally complete for its defined scope. It contai
 
 ## 7. Coupling Points
 
-*   The module is significantly coupled to the [`memory.variable_cluster_engine.summarize_clusters()`](memory/variable_cluster_engine.py:21) function. Any changes to the structure of the data returned by [`summarize_clusters()`](memory/variable_cluster_engine.py:21) would likely require modifications in this formatter module.
+*   The module is significantly coupled to the [`analytics.variable_cluster_engine.summarize_clusters()`](memory/variable_cluster_engine.py:21) function. Any changes to the structure of the data returned by [`summarize_clusters()`](memory/variable_cluster_engine.py:21) would likely require modifications in this formatter module.
 *   The expected dictionary keys from `summarize_clusters` (e.g., `"volatility_score"`, `"cluster"`, `"size"`, `"variables"`) create a structural coupling.
 
 ## 8. Existing Tests
@@ -60,7 +60,7 @@ The module appears to be operationally complete for its defined scope. It contai
 
 1.  The primary entry points for external use are [`format_variable_cluster_digest_md()`](operator_interface/variable_cluster_digest_formatter.py:20) and [`export_variable_cluster_digest_md()`](operator_interface/variable_cluster_digest_formatter.py:33).
 2.  [`format_variable_cluster_digest_md()`](operator_interface/variable_cluster_digest_formatter.py:20):
-    *   Calls [`summarize_clusters()`](memory/variable_cluster_engine.py:21) from [`memory.variable_cluster_engine`](memory/variable_cluster_engine.py) to obtain the cluster data.
+    *   Calls [`summarize_clusters()`](memory/variable_cluster_engine.py:21) from [`analytics.variable_cluster_engine`](memory/variable_cluster_engine.py) to obtain the cluster data.
     *   Initializes a list of strings with a main Markdown heading.
     *   Iterates through the retrieved clusters (up to the specified `limit`).
     *   For each cluster:

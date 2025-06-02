@@ -1,4 +1,4 @@
-# Module Analysis: `simulation_engine.utils.worldstate_io`
+# Module Analysis: `engine.utils.worldstate_io`
 
 **File Path:** [`simulation_engine/utils/worldstate_io.py`](../../simulation_engine/utils/worldstate_io.py)
 
@@ -27,7 +27,7 @@ There are no explicit signs within the current module that it was intended to be
 ## 4. Connections & Dependencies
 
 ### Internal Project Dependencies:
-*   [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:14): This is the core dependency. The module is designed specifically to serialize and deserialize instances of this class. It relies on the `WorldState` class providing `to_dict()` and `from_dict()` methods for this purpose.
+*   [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:14): This is the core dependency. The module is designed specifically to serialize and deserialize instances of this class. It relies on the `WorldState` class providing `to_dict()` and `from_dict()` methods for this purpose.
 
 ### External Library Dependencies:
 *   [`os`](https://docs.python.org/3/library/os.html): Used for file system operations such as creating directories ([`os.makedirs()`](https://docs.python.org/3/library/os.html#os.makedirs)) and joining path components ([`os.path.join()`](https://docs.python.org/3/library/os.path.html#os.path.join)).
@@ -46,8 +46,8 @@ There are no explicit signs within the current module that it was intended to be
 Saves a `WorldState` object to a JSON file.
 
 ```python
-from simulation_engine.worldstate import WorldState # Assuming WorldState can be instantiated
-from simulation_engine.utils.worldstate_io import save_worldstate_to_file
+from engine.worldstate import WorldState # Assuming WorldState can be instantiated
+from engine.utils.worldstate_io import save_worldstate_to_file
 
 # Create a dummy WorldState object (replace with actual instantiation)
 # world_state_instance = WorldState(turn=1, variables={"key": "value"}, ...)
@@ -67,7 +67,7 @@ from simulation_engine.utils.worldstate_io import save_worldstate_to_file
 Loads a `WorldState` object from a JSON file.
 
 ```python
-from simulation_engine.utils.worldstate_io import load_worldstate_from_file
+from engine.utils.worldstate_io import load_worldstate_from_file
 
 # file_to_load = "data/simulation_logs/worldstate_turn_1_snapshot.json" # Path to a saved file
 
@@ -88,7 +88,7 @@ from simulation_engine.utils.worldstate_io import load_worldstate_from_file
 
 ## 7. Coupling Points
 
-*   **`WorldState` Class:** The module is tightly coupled to the [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:14) class. It specifically relies on the `WorldState` class implementing `to_dict()` for serialization and `from_dict()` for deserialization. Changes to these methods or the internal structure of `WorldState` that are not reflected in these methods could break the I/O functionality.
+*   **`WorldState` Class:** The module is tightly coupled to the [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:14) class. It specifically relies on the `WorldState` class implementing `to_dict()` for serialization and `from_dict()` for deserialization. Changes to these methods or the internal structure of `WorldState` that are not reflected in these methods could break the I/O functionality.
 *   **File System:** The module directly interacts with the file system for reading and writing files. This creates a dependency on file system availability, permissions, and path structures.
 *   **JSON Format:** The choice of JSON as the serialization format means the module is dependent on the `json` library and the limitations/features of the JSON standard.
 

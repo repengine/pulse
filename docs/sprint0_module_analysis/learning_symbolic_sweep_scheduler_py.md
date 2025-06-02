@@ -24,7 +24,7 @@ The module appears to be functionally complete for its defined scope. It provide
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-- [`memory.memory_repair_queue`](memory/memory_repair_queue.py):
+- [`analytics.memory_repair_queue`](memory/memory_repair_queue.py):
     - [`load_blocked_memory()`](memory/memory_repair_queue.py)
     - [`retry_licensing()`](memory/memory_repair_queue.py)
     - [`export_recovered()`](memory/memory_repair_queue.py)
@@ -55,7 +55,7 @@ The module interacts with other parts of the system through JSONL log files:
 This function executes the symbolic sweep process. It loads blocked forecasts, attempts to recover them by retrying the licensing process, scores them, flags unstable ones, summarizes the repair quality, and exports various results to log files.
 ```python
 # Example Usage:
-# from learning.symbolic_sweep_scheduler import run_sweep_now
+# from analytics.symbolic_sweep_scheduler import run_sweep_now
 
 # Run sweep with default output path
 results = run_sweep_now()
@@ -71,7 +71,7 @@ print(f"Sweep completed. Output at: {results_custom.get('output_path')}")
 This function reads the sweep log file and prints a summary of the last few sweep operations, showing timestamps and recovery counts.
 ```python
 # Example Usage:
-# from learning.symbolic_sweep_scheduler import summarize_sweep_log
+# from analytics.symbolic_sweep_scheduler import summarize_sweep_log
 
 # Summarize the default sweep log
 summarize_sweep_log()
@@ -93,7 +93,7 @@ summarize_sweep_log()
 
 ## 7. Coupling Points
 
-- **High Coupling with `memory.memory_repair_queue`:** The module heavily relies on functions from [`memory.memory_repair_queue`](memory/memory_repair_queue.py) for core operations like loading blocked memory, retrying licensing, and exporting results. Changes to the API or data structures in `memory_repair_queue` would directly necessitate changes in this scheduler.
+- **High Coupling with `analytics.memory_repair_queue`:** The module heavily relies on functions from [`analytics.memory_repair_queue`](memory/memory_repair_queue.py) for core operations like loading blocked memory, retrying licensing, and exporting results. Changes to the API or data structures in `memory_repair_queue` would directly necessitate changes in this scheduler.
 - **High Coupling with `trust_system.recovered_forecast_scorer`:** Similarly, the module is tightly coupled with [`trust_system.recovered_forecast_scorer`](trust_system/recovered_forecast_scorer.py) for scoring, flagging, and summarizing the quality of recovered forecasts.
 - **File-Based Data Exchange:** The reliance on specific JSONL file paths and formats for input and output creates coupling with any other processes that produce or consume these files.
 

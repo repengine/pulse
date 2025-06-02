@@ -24,8 +24,8 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   `from iris.iris_plugins import IrisPluginManager` ([`iris/iris_plugins.py`](../../../iris/iris_plugins.py:18))
-*   `from iris.iris_utils.ingestion_persistence import ensure_data_directory, save_to_file, save_request_metadata, save_api_response, save_processed_data, save_data_point_incremental` ([`iris/iris_utils/ingestion_persistence.py`](../../../iris/iris_utils/ingestion_persistence.py:19))
+*   `from ingestion.iris_plugins import IrisPluginManager` ([`iris/iris_plugins.py`](../../../iris/iris_plugins.py:18))
+*   `from ingestion.iris_utils.ingestion_persistence import ensure_data_directory, save_to_file, save_request_metadata, save_api_response, save_processed_data, save_data_point_incremental` ([`iris/iris_utils/ingestion_persistence.py`](../../../iris/iris_utils/ingestion_persistence.py:19))
 
 ### External Library Dependencies:
 *   `datetime` (imported as `dt`)
@@ -55,7 +55,7 @@ The module appears to be largely complete and operational for its defined scope.
     *   This class is intended to be instantiated and managed by the Iris plugin system. Its `fetch_signals()` method is the main entry point for data retrieval.
     ```python
     # Hypothetical usage within Iris plugin management
-    # from iris.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
+    # from ingestion.iris_plugins_variable_ingestion.alpha_vantage_plugin import AlphaVantagePlugin
     #
     # alpha_plugin = AlphaVantagePlugin()
     # if alpha_plugin.enabled:
@@ -114,7 +114,7 @@ The module contains several hardcoded values:
 ## 7. Coupling Points
 
 *   **`IrisPluginManager`:** The [`AlphaVantagePlugin`](../../../iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py:33) class inherits from [`IrisPluginManager`](../../../iris/iris_plugins.py:18), making it dependent on this base class for its structure and integration into the Iris plugin framework.
-*   **`iris.iris_utils.ingestion_persistence`:** The module is tightly coupled with the functions provided by [`ingestion_persistence.py`](../../../iris/iris_utils/ingestion_persistence.py:19) for all its data and metadata saving operations. Changes to the API of `ingestion_persistence` would likely require updates in this plugin.
+*   **`ingestion.iris_utils.ingestion_persistence`:** The module is tightly coupled with the functions provided by [`ingestion_persistence.py`](../../../iris/iris_utils/ingestion_persistence.py:19) for all its data and metadata saving operations. Changes to the API of `ingestion_persistence` would likely require updates in this plugin.
 *   **Alpha Vantage API Structure:** The plugin's parsing logic is specific to the JSON response structures of the Alpha Vantage API. Any changes to the API's output format would necessitate modifications to the data extraction logic in methods like [`_fetch_stock_data()`](../../../iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py:180), etc.
 *   **Environment Variable:** Relies on the `ALPHA_VANTAGE_KEY` environment variable for API authentication.
 

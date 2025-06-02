@@ -81,7 +81,7 @@ class RecursiveDataIngestionManager:
 ```
 
 **Interfaces with Pulse components:**
-- `iris.ingestion_api`: Sources live market/social/political data
+- `ingestion.ingestion_api`: Sources live market/social/political data
 - `forecast_output.pfpa_logger`: Captures forecast outputs
 - `trust_system.retrodiction_engine`: Sources retrodiction results
 
@@ -447,7 +447,7 @@ class RecursiveTrainingOrchestrator:
 ```
 
 **Interfaces with Pulse components:**
-- `learning.retrodiction_curriculum` for scenario selection
+- `analytics.retrodiction_curriculum` for scenario selection
 - `core.pulse_config` for configuration
 
 **Dependencies:**
@@ -1182,7 +1182,7 @@ class RecursiveRuleEvaluator:
 ```
 
 **Interfaces with Pulse components:**
-- `simulation_engine.simulator_core`
+- `engine.simulator_core`
 - `trust_system.retrodiction_engine`
 
 **Dependencies:**
@@ -1943,8 +1943,8 @@ class EnhancedRetrodictionCurriculum:
 ```
 
 **Interfaces with Pulse components:**
-- `learning.retrodiction_curriculum`
-- `learning.compute_retrodiction_error`
+- `analytics.retrodiction_curriculum`
+- `analytics.compute_retrodiction_error`
 
 **Dependencies:**
 - Machine learning: scikit-learn

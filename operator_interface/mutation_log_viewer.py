@@ -10,7 +10,7 @@ Author: Pulse v0.36
 import os
 import json
 from typing import List, Dict
-from core.path_registry import PATHS
+from engine.path_registry import PATHS
 
 LEARNING_LOG = PATHS.get("LEARNING_LOG", "logs/pulse_learning_log.jsonl")
 RULE_LOG = PATHS.get("RULE_MUTATION_LOG", "logs/rule_mutation_log.jsonl")

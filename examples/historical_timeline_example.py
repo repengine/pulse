@@ -60,7 +60,7 @@ def main():
         [
             "python",
             "-m",
-            "iris.iris_utils.cli_historical_data",
+            "ingestion.iris_utils.cli_historical_data",
             "retrieve",
             "--priority",
             "1",
@@ -77,7 +77,7 @@ def main():
         [
             "python",
             "-m",
-            "iris.iris_utils.cli_historical_data",
+            "ingestion.iris_utils.cli_historical_data",
             "transform",
             "--priority",
             "1",
@@ -90,7 +90,7 @@ def main():
     # Step 3: Verify data consistency for all variables
     logger.info("\n=== Step 3: Verifying Data Consistency ===")
     if not run_command(
-        ["python", "-m", "iris.iris_utils.cli_historical_data", "verify", "--all"]
+        ["python", "-m", "ingestion.iris_utils.cli_historical_data", "verify", "--all"]
     ):
         logger.warning("Verification completed with warnings")
 
@@ -99,14 +99,26 @@ def main():
     # Step 4: Generate coverage report
     logger.info("\n=== Step 4: Generating Data Coverage Report ===")
     if not run_command(
-        ["python", "-m", "iris.iris_utils.cli_historical_data", "report", "--coverage"]
+        [
+            "python",
+            "-m",
+            "ingestion.iris_utils.cli_historical_data",
+            "report",
+            "--coverage",
+        ]
     ):
         return 1
 
     # Step 5: Generate summary report
     logger.info("\n=== Step 5: Generating Summary Report ===")
     if not run_command(
-        ["python", "-m", "iris.iris_utils.cli_historical_data", "report", "--summary"]
+        [
+            "python",
+            "-m",
+            "ingestion.iris_utils.cli_historical_data",
+            "report",
+            "--summary",
+        ]
     ):
         return 1
 
@@ -122,7 +134,7 @@ def main():
         [
             "python",
             "-m",
-            "iris.iris_utils.cli_historical_data",
+            "ingestion.iris_utils.cli_historical_data",
             "retrieve",
             "--variable",
             "spx_close",
@@ -134,7 +146,7 @@ def main():
         [
             "python",
             "-m",
-            "iris.iris_utils.cli_historical_data",
+            "ingestion.iris_utils.cli_historical_data",
             "transform",
             "--variable",
             "spx_close",
@@ -146,7 +158,7 @@ def main():
         [
             "python",
             "-m",
-            "iris.iris_utils.cli_historical_data",
+            "ingestion.iris_utils.cli_historical_data",
             "verify",
             "--variable",
             "spx_close",

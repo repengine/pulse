@@ -20,7 +20,7 @@ The module appears to be functionally complete for its defined scope of detectin
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
--   `from simulation_engine.worldstate import WorldState` ([`symbolic_system/symbolic_drift.py:11`](symbolic_system/symbolic_drift.py:11)): Imports the [`WorldState`](simulation_engine/worldstate.py:0) class, which is central to its operation as it processes these objects.
+-   `from engine.worldstate import WorldState` ([`symbolic_system/symbolic_drift.py:11`](symbolic_system/symbolic_drift.py:11)): Imports the [`WorldState`](simulation_engine/worldstate.py:0) class, which is central to its operation as it processes these objects.
 -   `from symbolic_system.symbolic_utils import get_overlay_snapshot, symbolic_tension_score` ([`symbolic_system/symbolic_drift.py:12`](symbolic_system/symbolic_drift.py:12)): Imports utility functions for extracting overlay data and calculating tension scores.
 
 ### External Library Dependencies:
@@ -71,7 +71,7 @@ The module appears to be functionally complete for its defined scope of detectin
 
 ## 7. Coupling Points
 
--   **`WorldState` Object:** The module is tightly coupled to the [`simulation_engine.worldstate.WorldState`](simulation_engine/worldstate.py:0) class, as it directly takes instances of this class as input and calls its `log_event` method.
+-   **`WorldState` Object:** The module is tightly coupled to the [`engine.worldstate.WorldState`](simulation_engine/worldstate.py:0) class, as it directly takes instances of this class as input and calls its `log_event` method.
 -   **`symbolic_utils` Module:** It depends on [`get_overlay_snapshot()`](symbolic_system/symbolic_utils.py:0) and [`symbolic_tension_score()`](symbolic_system/symbolic_utils.py:0) from [`symbolic_system.symbolic_utils`](symbolic_system/symbolic_utils.py:0). Changes to the signature or behavior of these utility functions would directly impact this module.
 -   **Overlay Data Structure:** The module assumes overlays are represented as dictionaries of string keys to float values, as processed by [`compute_overlay_deltas()`](symbolic_system/symbolic_drift.py:16) and returned by [`get_overlay_snapshot()`](symbolic_system/symbolic_utils.py:0).
 

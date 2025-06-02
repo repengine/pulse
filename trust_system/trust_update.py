@@ -8,7 +8,7 @@ Author: Pulse v0.3
 """
 
 from forecast_output.pfpa_logger import PFPA_ARCHIVE
-from memory.forecast_memory import ForecastMemory
+from analytics.forecast_memory import ForecastMemory
 from typing import Dict, List, Callable
 import logging
 

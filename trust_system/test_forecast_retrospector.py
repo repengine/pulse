@@ -1,7 +1,7 @@
 # test_forecast_retrospector.py
 
 import unittest
-from learning.learning import (
+from analytics.learning import (
     reconstruct_past_state,
     retrodict_error_score,
     retrospective_analysis_batch,

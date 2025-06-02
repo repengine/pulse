@@ -7,7 +7,7 @@ The [`dev_tools/symbolic_flip_analyzer.py`](../../../dev_tools/symbolic_flip_ana
 ## 2. Key Functionalities
 
 *   **Load Forecast Data:** Reads a forecast archive file (JSONL format) containing symbolic data using the [`load_forecasts()`](../../../dev_tools/symbolic_flip_analyzer.py:16) function.
-*   **Build Forecast Chains:** Constructs forecast episode chains from the loaded data using the [`build_chains()`](../../../dev_tools/symbolic_flip_analyzer.py:20) function, which utilizes [`memory.forecast_episode_tracer.build_episode_chain()`](../../../memory/forecast_episode_tracer.py:1).
+*   **Build Forecast Chains:** Constructs forecast episode chains from the loaded data using the [`build_chains()`](../../../dev_tools/symbolic_flip_analyzer.py:20) function, which utilizes [`analytics.forecast_episode_tracer.build_episode_chain()`](../../../memory/forecast_episode_tracer.py:1).
 *   **Analyze Flip Patterns:** Identifies and counts symbolic state transitions (flips) using the [`analyze_flip_patterns()`](../../../symbolic_system/symbolic_flip_classifier.py:1) function from the [`symbolic_system.symbolic_flip_classifier`](../../../symbolic_system/symbolic_flip_classifier.py:1) module.
 *   **Detect Loops/Cycles:** Identifies sequences of flips that form loops or cycles within the symbolic transitions using [`detect_loops_or_cycles()`](../../../symbolic_system/symbolic_flip_classifier.py:1) from the [`symbolic_system.symbolic_flip_classifier`](../../../symbolic_system/symbolic_flip_classifier.py:1) module.
 *   **Report Results:** Prints the most frequent symbolic flips and any detected loops to the console.
@@ -23,7 +23,7 @@ This module serves as a diagnostic and analytical tool within the `dev_tools/` d
 *   `json`: Used for loading forecast data from JSONL files.
 
 ### Internal Pulse Modules:
-*   [`memory.forecast_episode_tracer`](../../../memory/forecast_episode_tracer.py:1): Specifically, the [`build_episode_chain()`](../../../memory/forecast_episode_tracer.py:1) function is used to construct forecast chains.
+*   [`analytics.forecast_episode_tracer`](../../../memory/forecast_episode_tracer.py:1): Specifically, the [`build_episode_chain()`](../../../memory/forecast_episode_tracer.py:1) function is used to construct forecast chains.
 *   [`symbolic_system.symbolic_flip_classifier`](../../../symbolic_system/symbolic_flip_classifier.py:1):
     *   [`analyze_flip_patterns()`](../../../symbolic_system/symbolic_flip_classifier.py:1): Used to analyze transition patterns.
     *   [`detect_loops_or_cycles()`](../../../symbolic_system/symbolic_flip_classifier.py:1): Used to find loops in transitions.
@@ -68,4 +68,4 @@ The [`dev_tools/symbolic_flip_analyzer.py`](../../../dev_tools/symbolic_flip_ana
 ---
 
 **Note for Main Report:**
-The [`dev_tools/symbolic_flip_analyzer.py`](../../../dev_tools/symbolic_flip_analyzer.py:1) module is a CLI tool for analyzing symbolic state transition patterns and loops within forecast episodes, depending on [`memory.forecast_episode_tracer`](../../../memory/forecast_episode_tracer.py:1) and [`symbolic_system.symbolic_flip_classifier`](../../../symbolic_system/symbolic_flip_classifier.py:1).
+The [`dev_tools/symbolic_flip_analyzer.py`](../../../dev_tools/symbolic_flip_analyzer.py:1) module is a CLI tool for analyzing symbolic state transition patterns and loops within forecast episodes, depending on [`analytics.forecast_episode_tracer`](../../../memory/forecast_episode_tracer.py:1) and [`symbolic_system.symbolic_flip_classifier`](../../../symbolic_system/symbolic_flip_classifier.py:1).

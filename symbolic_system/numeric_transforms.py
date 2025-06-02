@@ -17,7 +17,7 @@ import json
 import os
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
-from simulation_engine.worldstate import WorldState
+from engine.worldstate import WorldState
 
 from symbolic_system.optimization import cached_symbolic
 from symbolic_system.config import get_symbolic_config

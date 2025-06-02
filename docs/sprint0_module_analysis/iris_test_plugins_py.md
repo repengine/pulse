@@ -27,7 +27,7 @@ The primary role of [`iris/test_plugins.py`](iris/test_plugins.py:1) is to serve
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports:
-*   [`iris.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:0) (conditional import, with a mock fallback if not found).
+*   [`ingestion.iris_plugins.IrisPluginManager`](iris/iris_plugins.py:0) (conditional import, with a mock fallback if not found).
 *   Dynamically imports plugin modules from the [`iris/iris_plugins_variable_ingestion/`](iris/iris_plugins_variable_ingestion/) directory:
     *   [`alpha_vantage_plugin`](iris/iris_plugins_variable_ingestion/alpha_vantage_plugin.py:0)
     *   [`open_meteo_plugin`](iris/iris_plugins_variable_ingestion/open_meteo_plugin.py:0)

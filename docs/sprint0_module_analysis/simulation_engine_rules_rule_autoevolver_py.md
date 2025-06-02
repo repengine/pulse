@@ -27,13 +27,13 @@ Key observations:
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   [`simulation_engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py)
-    *   [`simulation_engine.rule_mutation_engine.propose_rule_mutations`](simulation_engine/rule_mutation_engine.py)
-    *   [`simulation_engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py)
-    *   [`simulation_engine.rules.rule_coherence_checker.scan_rule_coherence`](simulation_engine/rules/rule_coherence_checker.py)
-    *   [`simulation_engine.rules.pulse_rule_expander.get_all_rule_fingerprints`](simulation_engine/rules/pulse_rule_expander.py)
-    *   [`simulation_engine.rules.pulse_rule_explainer.explain_forecast`](simulation_engine/rules/pulse_rule_explainer.py)
-    *   [`memory.rule_cluster_engine.summarize_rule_clusters`](memory/rule_cluster_engine.py)
+    *   [`engine.rules.rule_registry.RuleRegistry`](simulation_engine/rules/rule_registry.py)
+    *   [`engine.rule_mutation_engine.propose_rule_mutations`](simulation_engine/rule_mutation_engine.py)
+    *   [`engine.simulation_drift_detector.run_simulation_drift_analysis`](simulation_engine/simulation_drift_detector.py)
+    *   [`engine.rules.rule_coherence_checker.scan_rule_coherence`](simulation_engine/rules/rule_coherence_checker.py)
+    *   [`engine.rules.pulse_rule_expander.get_all_rule_fingerprints`](simulation_engine/rules/pulse_rule_expander.py)
+    *   [`engine.rules.pulse_rule_explainer.explain_forecast`](simulation_engine/rules/pulse_rule_explainer.py)
+    *   [`analytics.rule_cluster_engine.summarize_rule_clusters`](memory/rule_cluster_engine.py)
 *   **External Library Dependencies:**
     *   `json`
     *   `logging`
@@ -112,8 +112,8 @@ Key observations:
 ## 7. Coupling Points
 
 *   **[`RuleRegistry`](simulation_engine/rules/rule_registry.py):** Tightly coupled. The module instantiates and directly manipulates a `_registry` object for all rule access, loading, and state modifications (promotion, enabling/disabling).
-*   **[`simulation_engine.rule_mutation_engine`](simulation_engine/rule_mutation_engine.py):** High coupling. The core mutation logic relies entirely on the external [`propose_rule_mutations()`](simulation_engine/rule_mutation_engine.py:) function.
-*   **[`simulation_engine.simulation_drift_detector`](simulation_engine/simulation_drift_detector.py):** Dependency for drift analysis via [`run_simulation_drift_analysis()`](simulation_engine/simulation_drift_detector.py:).
+*   **[`engine.rule_mutation_engine`](simulation_engine/rule_mutation_engine.py):** High coupling. The core mutation logic relies entirely on the external [`propose_rule_mutations()`](simulation_engine/rule_mutation_engine.py:) function.
+*   **[`engine.simulation_drift_detector`](simulation_engine/simulation_drift_detector.py):** Dependency for drift analysis via [`run_simulation_drift_analysis()`](simulation_engine/simulation_drift_detector.py:).
 *   **Log Files:** The hardcoded log file paths create an implicit coupling if other system components need to consume or be aware of these specific log files.
 *   **Forecast File Schema:** Assumes a specific JSON structure for forecast files in [`batch_score_rules()`](simulation_engine/rules/rule_autoevolver.py:111) and the CLI scoring mechanism. Changes to this schema would break functionality.
 

@@ -7,7 +7,7 @@ Used in trust diagnostics, mutation targeting, and symbolic system overview.
 Author: Pulse v0.38
 """
 
-from memory.rule_cluster_engine import summarize_rule_clusters
+from analytics.rule_cluster_engine import summarize_rule_clusters
 
 
 def render_cluster_digest(limit: int = 10, volatility_threshold: float = 0.0):

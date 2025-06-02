@@ -20,7 +20,7 @@ Example usage:
 from symbolic_system.symbolic_utils import symbolic_tension_score
 from typing import Dict
 import logging
-from core.pulse_config import DEFAULT_FRAGILITY_THRESHOLD
+from engine.pulse_config import DEFAULT_FRAGILITY_THRESHOLD
 
 logger = logging.getLogger(__name__)
 

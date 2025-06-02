@@ -42,7 +42,7 @@ The module appears to be largely functional and complete for its core responsibi
 ### `IrisPluginManager` Class
 
 ```python
-from iris.iris_plugins import IrisPluginManager
+from ingestion.iris_plugins import IrisPluginManager
 
 # Initialize the plugin manager
 manager = IrisPluginManager()

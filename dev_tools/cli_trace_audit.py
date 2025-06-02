@@ -4,13 +4,13 @@
 CLI for trace_audit_engine
 
 Usage:
-  python -m memory.trace_audit_engine --replay <trace_id>
-  python -m memory.trace_audit_engine --summarize <trace_id>
-  python -m memory.trace_audit_engine --audit-all
+  python -m analytics.trace_audit_engine --replay <trace_id>
+  python -m analytics.trace_audit_engine --summarize <trace_id>
+  python -m analytics.trace_audit_engine --audit-all
 """
 
 import sys
-from memory.trace_audit_engine import replay_trace, summarize_trace, audit_all_traces
+from analytics.trace_audit_engine import replay_trace, summarize_trace, audit_all_traces
 
 if __name__ == "__main__":
     args = sys.argv[1:]
@@ -25,6 +25,6 @@ if __name__ == "__main__":
         audit_all_traces()
     else:
         print("Usage:")
-        print("  python -m memory.trace_audit_engine --replay <trace_id>")
-        print("  python -m memory.trace_audit_engine --summarize <trace_id>")
-        print("  python -m memory.trace_audit_engine --audit-all")
+        print("  python -m analytics.trace_audit_engine --replay <trace_id>")
+        print("  python -m analytics.trace_audit_engine --summarize <trace_id>")
+        print("  python -m analytics.trace_audit_engine --audit-all")

@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from learning.transforms.rolling_features import rolling_mean_feature
+from analytics.transforms.rolling_features import rolling_mean_feature
 
 
 class TestRollingFeatures(unittest.TestCase):

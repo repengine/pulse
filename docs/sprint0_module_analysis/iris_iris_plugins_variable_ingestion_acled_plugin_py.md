@@ -26,7 +26,7 @@ The module is currently a **stub** and is **not operational**.
 ## 4. Connections & Dependencies
 
 - **Direct Project Imports:**
-    - `from iris.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/acled_plugin.py:6`](iris/iris_plugins_variable_ingestion/acled_plugin.py:6)): The [`AcledPlugin`](iris/iris_plugins_variable_ingestion/acled_plugin.py:8) class inherits from [`IrisPluginManager`](iris/iris_plugins.py:0), integrating it into the Iris plugin framework.
+    - `from ingestion.iris_plugins import IrisPluginManager` ([`iris/iris_plugins_variable_ingestion/acled_plugin.py:6`](iris/iris_plugins_variable_ingestion/acled_plugin.py:6)): The [`AcledPlugin`](iris/iris_plugins_variable_ingestion/acled_plugin.py:8) class inherits from [`IrisPluginManager`](iris/iris_plugins.py:0), integrating it into the Iris plugin framework.
 - **External Library Dependencies:**
     - `typing` (Python standard library): Used for type hinting (`List`, `Dict`, `Any`).
     - **Implicit Future Dependencies:** An HTTP client library (e.g., `requests`, `httpx`, or `aiohttp`) will be required to interact with the ACLED API once implemented.
@@ -42,7 +42,7 @@ The module is currently a **stub** and is **not operational**.
     - This class would be discovered, instantiated, and managed by the Iris plugin framework. The framework would then interact with its methods.
     ```python
     # Conceptual usage by an Iris plugin manager
-    # from iris.iris_plugins_variable_ingestion.acled_plugin import AcledPlugin
+    # from ingestion.iris_plugins_variable_ingestion.acled_plugin import AcledPlugin
     #
     # acled_instance = AcledPlugin()
     #
@@ -75,7 +75,7 @@ The module is currently a **stub** and is **not operational**.
 
 ## 7. Coupling Points
 
-- **Inheritance:** Tightly coupled to the [`IrisPluginManager`](iris/iris_plugins.py:0) class from the [`iris.iris_plugins`](iris/iris_plugins.py) module through class inheritance. Changes in the base class could directly impact this plugin.
+- **Inheritance:** Tightly coupled to the [`IrisPluginManager`](iris/iris_plugins.py:0) class from the [`ingestion.iris_plugins`](iris/iris_plugins.py) module through class inheritance. Changes in the base class could directly impact this plugin.
 - **API Dependency (Future):** Once implemented, it will be tightly coupled to the ACLED API's contract (endpoint, request/response format, authentication).
 - **Data Contract:** The data structure `List[Dict[str, Any]]` returned by [`fetch_signals()`](iris/iris_plugins_variable_ingestion/acled_plugin.py:13) creates a data contract. Downstream consumers within the Iris system will depend on this structure.
 

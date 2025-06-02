@@ -1,7 +1,7 @@
 Pulse API Reference
 ===================
 
-.. automodule:: simulation_engine.module_0000
+.. automodule:: engine.module_0000
     :members:
     :undoc-members:
     :show-inheritance:
@@ -15,52 +15,52 @@ Pulse API Reference
     :members:
     :undoc-members:
     :show-inheritance:
-.. automodule:: simulation_engine.module_0000
+.. automodule:: engine.module_0000
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0001
+.. automodule:: engine.module_0001
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0002
+.. automodule:: engine.module_0002
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0003
+.. automodule:: engine.module_0003
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0004
+.. automodule:: engine.module_0004
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0005
+.. automodule:: engine.module_0005
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0006
+.. automodule:: engine.module_0006
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0007
+.. automodule:: engine.module_0007
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0008
+.. automodule:: engine.module_0008
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0009
+.. automodule:: engine.module_0009
     :members:
     :undoc-members:
     :show-inheritance:
@@ -315,52 +315,52 @@ Pulse API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0060
+.. automodule:: analytics.module_0060
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0061
+.. automodule:: analytics.module_0061
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0062
+.. automodule:: analytics.module_0062
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0063
+.. automodule:: analytics.module_0063
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0064
+.. automodule:: analytics.module_0064
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0065
+.. automodule:: analytics.module_0065
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0066
+.. automodule:: analytics.module_0066
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0067
+.. automodule:: analytics.module_0067
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0068
+.. automodule:: analytics.module_0068
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: memory.module_0069
+.. automodule:: analytics.module_0069
     :members:
     :undoc-members:
     :show-inheritance:
@@ -465,52 +465,52 @@ Pulse API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0090
+.. automodule:: engine.module_0090
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0091
+.. automodule:: engine.module_0091
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0092
+.. automodule:: engine.module_0092
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0093
+.. automodule:: engine.module_0093
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0094
+.. automodule:: engine.module_0094
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0095
+.. automodule:: engine.module_0095
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0096
+.. automodule:: engine.module_0096
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0097
+.. automodule:: engine.module_0097
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0098
+.. automodule:: engine.module_0098
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: simulation_engine.module_0099
+.. automodule:: engine.module_0099
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,6 +1,6 @@
 import os
 import ast
-from typing import Set, Optional, Any
+from typing import Set, Optional
 
 
 class FullPhantomScanner:
@@ -46,7 +46,9 @@ class FullPhantomScanner:
         print(f"Total Functions Called: {len(self.called_functions)}")
         if missing:
             print("\n❌ Potential Phantoms (no local definition or import seen):")
-            for name in sorted(list(missing)): # Ensure sorted takes an iterable like list
+            for name in sorted(
+                list(missing)
+            ):  # Ensure sorted takes an iterable like list
                 print(f" - {name}()")
         else:
             print("\n✅ No phantom calls detected (locally).")

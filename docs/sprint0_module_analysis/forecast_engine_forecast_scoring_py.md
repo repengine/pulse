@@ -21,7 +21,7 @@ The [`forecast_engine/forecast_scoring.py`](../../forecast_engine/forecast_scori
 *   [`datetime`](https://docs.python.org/3/library/datetime.html) (from `datetime`): Used to timestamp the learning event log.
 
 ### Internal Pulse Modules:
-*   [`simulation_engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:1): The `state` argument is typed as `WorldState`, although it's not directly used in the current logic of [`score_forecast`](../../forecast_engine/forecast_scoring.py:17). This suggests a potential for future enhancements where the world state itself might influence scoring.
+*   [`engine.worldstate.WorldState`](../../simulation_engine/worldstate.py:1): The `state` argument is typed as `WorldState`, although it's not directly used in the current logic of [`score_forecast`](../../forecast_engine/forecast_scoring.py:17). This suggests a potential for future enhancements where the world state itself might influence scoring.
 *   [`core.pulse_learning_log.log_learning_event`](../../core/pulse_learning_log.py:15): Used to log the outcome of the forecast scoring process.
 
 ## 4. Adherence to SPARC Principles

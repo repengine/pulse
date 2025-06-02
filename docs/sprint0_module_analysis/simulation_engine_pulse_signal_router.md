@@ -23,9 +23,9 @@ The module appears to be operational and relatively complete for its defined pur
 ## Connections & Dependencies
 
 ### Direct Imports (Project Modules):
-- [`simulation_engine.worldstate`](simulation_engine/pulse_signal_router.py:21): Specifically, the `WorldState` class is imported and used as the primary data structure being mutated.
-- [`simulation_engine.state_mutation`](simulation_engine/pulse_signal_router.py:22): Functions `adjust_overlay` and `adjust_capital` are used to modify the `WorldState`.
-- [`simulation_engine.variables.worldstate_variables`](simulation_engine/pulse_signal_router.py:23): The `WorldstateVariables` class is imported, likely for type hinting or direct interaction, although direct usage within `pulse_signal_router.py` itself is primarily through `state.variables`.
+- [`engine.worldstate`](simulation_engine/pulse_signal_router.py:21): Specifically, the `WorldState` class is imported and used as the primary data structure being mutated.
+- [`engine.state_mutation`](simulation_engine/pulse_signal_router.py:22): Functions `adjust_overlay` and `adjust_capital` are used to modify the `WorldState`.
+- [`engine.variables.worldstate_variables`](simulation_engine/pulse_signal_router.py:23): The `WorldstateVariables` class is imported, likely for type hinting or direct interaction, although direct usage within `pulse_signal_router.py` itself is primarily through `state.variables`.
 
 ### Direct Imports (External Libraries):
 - `logging` (Python Standard Library): Used for logging errors, warnings, and informational messages.
@@ -58,8 +58,8 @@ To understand the full context and dependencies, the following project files wer
 ### Function: [`route_signal(state: WorldState, signal: str) -> bool`](simulation_engine/pulse_signal_router.py:87)
 This is the main public function of the module.
 ```python
-from simulation_engine.worldstate import WorldState
-from simulation_engine.pulse_signal_router import route_signal
+from engine.worldstate import WorldState
+from engine.pulse_signal_router import route_signal
 
 # Initialize a WorldState object (potentially with some default variables set)
 sim_state = WorldState()
@@ -92,8 +92,8 @@ if not handled:
 These are private helper functions, invoked by [`route_signal()`](simulation_engine/pulse_signal_router.py:87) based on the `_signal_handlers` mapping.
 ```python
 # Conceptual usage (not called directly from outside the module)
-# from simulation_engine.state_mutation import adjust_overlay, adjust_capital
-# from simulation_engine.worldstate import WorldState
+# from engine.state_mutation import adjust_overlay, adjust_capital
+# from engine.worldstate import WorldState
 
 # def _ai_panic_example(state: WorldState):
 #     adjust_overlay(state, "despair", +0.02)
@@ -131,7 +131,7 @@ Several instances of hardcoding are present, primarily concerning the magnitude 
 ## Coupling Points
 
 - **`WorldState` Object Structure:** The module is tightly coupled to the structure of the `WorldState` object, including its `overlays`, `capital`, and `variables` attributes, and the specific names of attributes within them (e.g., `state.variables.ai_policy_risk`). Changes to `WorldState`'s structure would likely require changes in this module.
-- **`state_mutation` Module:** Strong coupling with [`adjust_overlay()`](simulation_engine/state_mutation.py:94) and [`adjust_capital()`](simulation_engine/state_mutation.py:151) functions from the [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:1) module. The behavior of `pulse_signal_router.py` depends on the correct implementation of these mutation functions.
+- **`state_mutation` Module:** Strong coupling with [`adjust_overlay()`](simulation_engine/state_mutation.py:94) and [`adjust_capital()`](simulation_engine/state_mutation.py:151) functions from the [`engine.state_mutation`](simulation_engine/state_mutation.py:1) module. The behavior of `pulse_signal_router.py` depends on the correct implementation of these mutation functions.
 - **`_signal_handlers` Dictionary:** The core routing logic depends entirely on this internal dictionary. Adding or modifying signal handling requires direct modification of this dictionary and associated handler functions.
 
 ## Existing Tests (SPARC Refinement)
@@ -163,7 +163,7 @@ Several instances of hardcoding are present, primarily concerning the magnitude 
     5.  Logging of the outcome (handled, unknown, or error during handling).
 - **State Modification Delegation:** The actual modification of `WorldState` attributes (overlays, capital, variables) is delegated to:
     - Direct attribute assignment on `state.variables` (e.g., `state.variables.ai_policy_risk = ...`).
-    - Functions from the [`simulation_engine.state_mutation`](simulation_engine/state_mutation.py:1) module (`adjust_overlay`, `adjust_capital`).
+    - Functions from the [`engine.state_mutation`](simulation_engine/state_mutation.py:1) module (`adjust_overlay`, `adjust_capital`).
 - **Error Handling:** Handler functions include `try-except AttributeError` blocks to gracefully handle cases where expected variables might be missing from the `WorldState`. The main [`route_signal()`](simulation_engine/pulse_signal_router.py:87) function also has a general `try-except Exception` to catch errors during handler execution.
 
 **Modularity:**

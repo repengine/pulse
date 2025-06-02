@@ -34,8 +34,8 @@ This module acts as a high-level orchestrator and entry point for generating and
 
 ### Internal Pulse Modules:
 
-*   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:1) (specifically `WorldState` class)
-*   [`simulation_engine.turn_engine`](simulation_engine/turn_engine.py:1) (specifically [`run_turn()`](simulation_engine/turn_engine.py:1) function)
+*   [`engine.worldstate`](simulation_engine/worldstate.py:1) (specifically `WorldState` class)
+*   [`engine.turn_engine`](simulation_engine/turn_engine.py:1) (specifically [`run_turn()`](simulation_engine/turn_engine.py:1) function)
 *   [`forecast_engine.forecast_tracker`](forecast_engine/forecast_tracker.py:1) (specifically `ForecastTracker` class)
 *   [`forecast_engine.forecast_scoring`](forecast_engine/forecast_scoring.py:1) (specifically [`score_forecast()`](forecast_engine/forecast_scoring.py:1) function)
 *   [`forecast_engine.forecast_integrity_engine`](forecast_engine/forecast_integrity_engine.py:1) (specifically [`validate_forecast()`](forecast_engine/forecast_integrity_engine.py:1) function)
@@ -43,7 +43,7 @@ This module acts as a high-level orchestrator and entry point for generating and
 *   [`utils.log_utils`](utils/log_utils.py:1) (specifically [`get_logger()`](utils/log_utils.py:1) function)
 *   [`core.path_registry`](core/path_registry.py:1) (specifically `PATHS` dictionary)
 *   [`core.pulse_config`](core/pulse_config.py:1) (specifically `CONFIDENCE_THRESHOLD`)
-*   [`learning.recursion_audit`](learning/recursion_audit.py:1) (specifically [`generate_recursion_report()`](learning/recursion_audit.py:1) function)
+*   [`analytics.recursion_audit`](learning/recursion_audit.py:1) (specifically [`generate_recursion_report()`](learning/recursion_audit.py:1) function)
 *   [`trust_system.license_enforcer`](trust_system/license_enforcer.py:1) (conditionally imports [`annotate_forecasts()`](trust_system/license_enforcer.py:1) and [`filter_licensed()`](trust_system/license_enforcer.py:1))
 
 ### External Libraries:

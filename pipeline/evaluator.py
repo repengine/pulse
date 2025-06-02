@@ -5,7 +5,7 @@ Runs model evaluation benchmarks against the Pulse simulation outputs.
 """
 
 from typing import Dict, List
-from GPT.gpt_symbolic_convergence_loss import (
+from adapters.gpt_symbolic_convergence_loss import (
     compute_symbolic_convergence_loss,
     decompose_loss_components,
 )
@@ -126,7 +126,7 @@ class Evaluator:
                 json.dump(all_proposed_changes, f, indent=4)
             print(f"\nSaved proposed rule changes to {output_path}")
 
-            # TODO: implement evaluation logic calling simulation_engine.simulate_forward
+            # TODO: implement evaluation logic calling engine.simulate_forward
             # TODO: Incorporate historical forecast data for evaluation and training
 
         except FileNotFoundError:

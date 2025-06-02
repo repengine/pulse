@@ -11,57 +11,13 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 # Try to import Pulse components with graceful fallbacks
-try:
-    from core.pulse_config import PulseConfig
-
-    PULSE_CONFIG_AVAILABLE = True
-except ImportError:
-    PULSE_CONFIG_AVAILABLE = False
-
-    class PulseConfig:
-        """Minimal PulseConfig implementation for fallback."""
-
-        def __init__(self):
-            pass
-
-        def get(self, key, default=None):
-            return default
+from engine.pulse_config import PulseConfig
 
 
-try:
-    from core.event_system import PulseEventSystem
-
-    EVENT_SYSTEM_AVAILABLE = True
-except ImportError:
-    EVENT_SYSTEM_AVAILABLE = False
-
-    class PulseEventSystem:
-        """Minimal PulseEventSystem implementation for fallback."""
-
-        @classmethod
-        def emit(cls, event_type, data=None):
-            pass
-
-        @classmethod
-        def subscribe(cls, event_type, callback):
-            pass
-
-
-try:
-    from symbolic_system.symbolic_executor import SymbolicExecutor
-
-    SYMBOLIC_EXECUTOR_AVAILABLE = True
-except ImportError:
-    SYMBOLIC_EXECUTOR_AVAILABLE = False
-
-    class SymbolicExecutor:
-        """Minimal SymbolicExecutor implementation for fallback."""
-
-        def __init__(self):
-            pass
-
-        def execute_rule(self, rule):
-            return {"status": "error", "message": "SymbolicExecutor not available"}
+from engine.event_bus import event_bus, EventBus  # Import the instance and class
+# SymbolicExecutor class is not defined in symbolic_system.symbolic_executor,
+# that module provides functions. So, we remove this import.
+# from symbolic_system.symbolic_executor import SymbolicExecutor
 
 
 # Import from recursive training
@@ -110,6 +66,12 @@ class PulseAdapter:
         self.config = config or {}
 
         # Initialize Pulse components
+        self.pulse_config: Optional[PulseConfig] = None
+        self.event_system: Optional[EventBus] = None
+        self.symbolic_executor: Optional[Any] = (
+            None  # Placeholder for actual symbolic executor type
+        )
+
         self._init_pulse_config()
         self._init_event_system()
         self._init_symbolic_system()
@@ -129,69 +91,91 @@ class PulseAdapter:
 
         self.logger.info(f"PulseAdapter initialized (version {self.version})")
 
-    def _init_pulse_config(self):
+    def _init_pulse_config(self) -> None:
         """Initialize connection to Pulse's configuration system."""
         try:
-            if PULSE_CONFIG_AVAILABLE:
-                self.pulse_config = PulseConfig()
+            self.pulse_config = PulseConfig()
+            integration_config = self.pulse_config.recursive_training
 
-                # Get integration-specific configuration
-                integration_config = self.pulse_config.get("recursive_training", {})
-
-                # Merge with local config (local takes precedence)
+            # Merge with local config (local takes precedence)
+            if isinstance(integration_config, dict):
                 for key, value in integration_config.items():
                     if key not in self.config:
                         self.config[key] = value
-
-                self.logger.info("Connected to Pulse configuration system")
-                self.pulse_connected = True
-            else:
-                self.pulse_config = PulseConfig()  # Fallback
+            elif integration_config is not None:  # Handle if not a dict but not None
                 self.logger.warning(
-                    "Pulse configuration system not available, using fallback"
+                    f"recursive_training config is not a dict: {integration_config}"
                 )
-        except Exception as e:
-            self.logger.error(f"Error connecting to Pulse configuration: {e}")
-            self.pulse_config = PulseConfig()  # Fallback
 
-    def _init_event_system(self):
+            self.logger.info(
+                "Initialized PulseConfig and merged recursive_training settings"
+            )
+            self.pulse_connected = True
+        except Exception as e:
+            self.logger.error(
+                f"Error initializing PulseConfig or merging settings: {e}"
+            )
+            self.pulse_config = None
+            self.pulse_connected = False
+
+    def _init_event_system(self) -> None:
         """Initialize connection to Pulse's event system."""
         try:
-            if EVENT_SYSTEM_AVAILABLE:
-                self.event_system = PulseEventSystem
-                self.logger.info("Connected to Pulse event system")
-
-                # Register event handlers
+            # Attempt to assign the imported event_bus instance
+            self.event_system = event_bus
+            if self.event_system:
+                self.logger.info(
+                    "Successfully assigned event_bus to self.event_system."
+                )
+                # Now that event_system is confirmed to be assigned, register handlers
                 self._register_event_handlers()
             else:
-                self.event_system = PulseEventSystem  # Fallback
-                self.logger.warning("Pulse event system not available, using fallback")
+                # This case implies 'event_bus' itself was None or evaluated to False
+                self.logger.error(
+                    "Failed to initialize event system: imported 'event_bus' is None or evaluates to False."
+                )
+                self.event_system = None  # Ensure it's None
+        except ImportError:
+            self.logger.error(
+                "ImportError: Failed to import 'event_bus' from 'engine.event_bus'. Event system not available."
+            )
+            self.event_system = None
         except Exception as e:
-            self.logger.error(f"Error connecting to Pulse event system: {e}")
-            self.event_system = PulseEventSystem  # Fallback
+            # Catch any other unexpected errors during assignment or the call to _register_event_handlers
+            self.logger.error(
+                f"An unexpected error occurred during event system initialization: {e}"
+            )
+            self.event_system = None
 
-    def _init_symbolic_system(self):
+    def _init_symbolic_system(self) -> None:
         """Initialize connection to Pulse's symbolic system."""
         try:
-            if SYMBOLIC_EXECUTOR_AVAILABLE:
-                self.symbolic_executor = SymbolicExecutor()
-                self.logger.info("Connected to Pulse symbolic executor")
-            else:
-                self.symbolic_executor = SymbolicExecutor()  # Fallback
-                self.logger.warning(
-                    "Pulse symbolic executor not available, using fallback"
-                )
-        except Exception as e:
-            self.logger.error(f"Error connecting to Pulse symbolic executor: {e}")
-            self.symbolic_executor = SymbolicExecutor()  # Fallback
+            # SymbolicExecutor class is not available as previously designed.
+            # The module symbolic_system.symbolic_executor provides functions.
+            # Setting to None as there's no direct class instance to create.
+            self.symbolic_executor = None
+            self.logger.info(
+                "SymbolicExecutor class not found; symbolic execution via adapter method will be limited."
+            )
+        except Exception as e:  # Should not happen if we are just setting to None
+            self.logger.error(f"Error during _init_symbolic_system: {e}")
+            self.symbolic_executor = None
 
-    def _register_event_handlers(self):
+    def _register_event_handlers(self) -> None:
         """Register handlers for Pulse events."""
         if self.event_handlers_registered:
+            self.logger.debug("Event handlers already registered.")
+            return
+
+        if not self.event_system:
+            self.logger.warning(
+                "Cannot register event handlers: self.event_system is not initialized (None)."
+            )
             return
 
         try:
             # Register for training-related events
+            self.logger.debug("Attempting to subscribe to Pulse events.")
             self.event_system.subscribe(
                 "pulse.model.trained", self._handle_model_trained_event
             )
@@ -203,11 +187,22 @@ class PulseAdapter:
             )
 
             self.event_handlers_registered = True
-            self.logger.info("Event handlers registered with Pulse event system")
+            self.logger.info(
+                "Successfully registered event handlers with Pulse event system."
+            )
+        except AttributeError as ae:
+            self.logger.error(
+                f"AttributeError while registering event handlers: Does 'event_system' have 'subscribe'? Error: {ae}"
+            )
+            # Potentially self.event_system became None between check and use, or event_bus is malformed.
         except Exception as e:
-            self.logger.error(f"Error registering event handlers: {e}")
+            self.logger.error(
+                f"An unexpected error occurred while registering event handlers: {e}"
+            )
+            # Do not set self.event_handlers_registered = False here, as it might lead to re-registration attempts.
+            # The fact it's not True indicates failure.
 
-    def _handle_model_trained_event(self, data):
+    def _handle_model_trained_event(self, data: Dict[str, Any]) -> None:
         """
         Handle Pulse model trained event.
 
@@ -235,7 +230,7 @@ class PulseAdapter:
             self.event_counts["errors"] += 1
             self.logger.error(f"Error handling model trained event: {e}")
 
-    def _handle_rule_updated_event(self, data):
+    def _handle_rule_updated_event(self, data: Dict[str, Any]) -> None:
         """
         Handle Pulse rule updated event.
 
@@ -266,7 +261,7 @@ class PulseAdapter:
             self.event_counts["errors"] += 1
             self.logger.error(f"Error handling rule updated event: {e}")
 
-    def _handle_metrics_request_event(self, data):
+    def _handle_metrics_request_event(self, data: Dict[str, Any]) -> None:
         """
         Handle Pulse metrics request event.
 
@@ -303,7 +298,7 @@ class PulseAdapter:
             self.event_counts["errors"] += 1
             self.logger.error(f"Error handling metrics request event: {e}")
 
-    def _emit_event(self, event_type, data):
+    def _emit_event(self, event_type: str, data: Dict[str, Any]) -> bool:
         """
         Emit an event to Pulse's event system.
 
@@ -312,7 +307,12 @@ class PulseAdapter:
             data: Event data
         """
         try:
-            self.event_system.emit(event_type, data)
+            if self.event_system:
+                self.event_system.publish(event_type, data)  # Changed emit to publish
+            else:
+                self.logger.error(
+                    f"Event system not available, cannot publish event {event_type}"
+                )
             self.event_counts["sent"] += 1
             return True
         except Exception as e:
@@ -320,7 +320,7 @@ class PulseAdapter:
             self.logger.error(f"Error emitting event {event_type}: {e}")
             return False
 
-    def execute_rule(self, rule_data):
+    def execute_rule(self, rule_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute a rule using Pulse's symbolic executor.
 
@@ -331,29 +331,24 @@ class PulseAdapter:
             Execution result
         """
         try:
-            if not SYMBOLIC_EXECUTOR_AVAILABLE:
-                return {"status": "error", "message": "Symbolic executor not available"}
-
-            result = self.symbolic_executor.execute_rule(rule_data)
-
-            # Track execution in metrics
-            timestamp = datetime.now(timezone.utc).isoformat()
-            self.metrics_store.store_metric(
-                {
-                    "timestamp": timestamp,
-                    "metric_type": "rule_execution",
-                    "rule_id": rule_data.get("id", "unknown"),
-                    "execution_status": result.get("status", "unknown"),
-                    "tags": ["rule_execution"],
-                }
+            # The SymbolicExecutor class as previously used is not available.
+            # The symbolic_system.symbolic_executor module contains functions.
+            # This method needs to be re-evaluated or call specific functions from that module if applicable.
+            # For now, returning an error as the direct class method call is not possible.
+            self.logger.warning(
+                "SymbolicExecutor class interface is not available. "
+                "Rule execution via PulseAdapter.execute_rule is not supported in its current form."
             )
+            return {
+                "status": "error",
+                "message": "Symbolic execution via adapter's execute_rule method is not currently available.",
+            }
 
-            return result
         except Exception as e:
             self.logger.error(f"Error executing rule: {e}")
             return {"status": "error", "message": str(e)}
 
-    def get_connection_status(self):
+    def get_connection_status(self) -> Dict[str, Any]:
         """
         Get the current connection status with Pulse.
 
@@ -370,7 +365,7 @@ class PulseAdapter:
             "integration_timestamp": self.integration_timestamp,
         }
 
-    def convert_pulse_data_format(self, data, target_format):
+    def convert_pulse_data_format(self, data: Any, target_format: str) -> Any:
         """
         Convert data between Pulse and Recursive Training formats.
 

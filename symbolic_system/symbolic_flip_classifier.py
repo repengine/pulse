@@ -12,11 +12,11 @@ Author: Pulse AI Engine
 Version: v1.0.0
 """
 
-from typing import List, Dict
+from typing import List, Dict, Any, Tuple
 from collections import Counter
 
 
-def extract_transitions(chain: List[Dict]) -> List[tuple]:
+def extract_transitions(chain: List[Dict[str, Any]]) -> List[Tuple[str, str]]:
     """
     Extract arc and tag transitions from a forecast episode chain.
 
@@ -38,7 +38,7 @@ def extract_transitions(chain: List[Dict]) -> List[tuple]:
     return transitions
 
 
-def analyze_flip_patterns(chains: List[List[Dict]]) -> Dict:
+def analyze_flip_patterns(chains: List[List[Dict[str, Any]]]) -> Dict[str, Any]:
     """
     Analyze all chains to find symbolic transitions and most common shifts.
 
@@ -62,7 +62,7 @@ def analyze_flip_patterns(chains: List[List[Dict]]) -> Dict:
     }
 
 
-def detect_loops_or_cycles(flips: Dict[tuple, int]) -> List[str]:
+def detect_loops_or_cycles(flips: Dict[Tuple[str, str], int]) -> List[str]:
     """
     Detect arcs or tags that commonly flip back to prior state.
 

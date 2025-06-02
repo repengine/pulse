@@ -1,4 +1,4 @@
-# Module Analysis: learning.engines.external_integration
+# Module Analysis: analytics.engines.external_integration
 
 ## 1. Module Path
 

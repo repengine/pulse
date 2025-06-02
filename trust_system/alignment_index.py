@@ -71,7 +71,7 @@ def compute_alignment_index(
         if "retrodiction_score" in forecast:
             retrodiction = forecast["retrodiction_score"]
         elif current_state is not None:
-            from learning.learning import (
+            from analytics.learning import (
                 compute_retrodiction_error,
             )  # moved import here to avoid circular import
 

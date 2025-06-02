@@ -23,7 +23,7 @@ The module appears to be largely complete and functional for its intended bridgi
 
 ### 4.1. Direct Project Module Imports
 
--   [`simulation_engine.worldstate`](simulation_engine/worldstate.py:0): Specifically, the `WorldState` class is imported and used as a parameter in several functions to access legacy overlay data.
+-   [`engine.worldstate`](simulation_engine/worldstate.py:0): Specifically, the `WorldState` class is imported and used as a parameter in several functions to access legacy overlay data.
 -   [`symbolic_system.symbolic_utils`](symbolic_system/symbolic_utils.py:0): Imported as `legacy_utils` and used for fallback mechanisms to the old overlay system's functions (e.g., [`legacy_utils.get_overlay_snapshot()`](symbolic_system/symbolic_utils.py:0), [`legacy_utils.symbolic_tension_score()`](symbolic_system/symbolic_utils.py:0)).
 -   [`symbolic_system.gravity.symbolic_pillars`](symbolic_system/gravity/symbolic_pillars.py:0): The `SymbolicPillarSystem` class is imported and is central to the new architecture this bridge interacts with.
 -   [`symbolic_system.gravity.integration`](symbolic_system/gravity/integration.py:0): Several functions are imported:

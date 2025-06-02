@@ -12,9 +12,9 @@ Robust to missing keys and malformed trace data.
 Note: Overlays may contain sensitive or verbose data. Consider filtering/redacting if needed.
 """
 
-from memory.trace_audit_engine import load_trace
+from analytics.trace_audit_engine import load_trace
 from typing import Optional
-from core.pulse_config import USE_SYMBOLIC_OVERLAYS
+from engine.pulse_config import USE_SYMBOLIC_OVERLAYS
 import logging
 
 logger = logging.getLogger(__name__)

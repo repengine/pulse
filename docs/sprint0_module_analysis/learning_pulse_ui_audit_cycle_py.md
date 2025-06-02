@@ -6,11 +6,11 @@ The primary role of [`learning/pulse_ui_audit_cycle.py`](learning/pulse_ui_audit
 
 ## 2. Operational Status/Completeness
 
-The module appears to be operationally complete for its defined scope as a CLI tool. It handles argument parsing, loading input files, delegating the core report generation to another module ([`learning.recursion_audit`](learning/recursion_audit.py:16)), and then outputting the results to the console and optionally to a specified file. There are no obvious TODOs or placeholders within the provided code that suggest incompleteness for its role as an interface.
+The module appears to be operationally complete for its defined scope as a CLI tool. It handles argument parsing, loading input files, delegating the core report generation to another module ([`analytics.recursion_audit`](learning/recursion_audit.py:16)), and then outputting the results to the console and optionally to a specified file. There are no obvious TODOs or placeholders within the provided code that suggest incompleteness for its role as an interface.
 
 ## 3. Implementation Gaps / Unfinished Next Steps
 
-*   **Core Logic Externalized:** The actual audit logic (computation of metrics, comparisons) is handled by the imported [`generate_recursion_report`](learning/recursion_audit.py:16) function from the [`learning.recursion_audit`](learning/recursion_audit.py:16) module. This module itself is primarily an interface or wrapper for that functionality.
+*   **Core Logic Externalized:** The actual audit logic (computation of metrics, comparisons) is handled by the imported [`generate_recursion_report`](learning/recursion_audit.py:16) function from the [`analytics.recursion_audit`](learning/recursion_audit.py:16) module. This module itself is primarily an interface or wrapper for that functionality.
 *   **Potential Enhancements (Implied):**
     *   More sophisticated statistical analysis or visualizations could be added.
     *   Integration into a broader automated auditing or reporting framework.
@@ -20,7 +20,7 @@ The module appears to be operationally complete for its defined scope as a CLI t
 ## 4. Connections & Dependencies
 
 *   **Direct Project Module Imports:**
-    *   `from learning.recursion_audit import generate_recursion_report` ([`learning/recursion_audit.py:16`](learning/recursion_audit.py:16))
+    *   `from analytics.recursion_audit import generate_recursion_report` ([`learning/recursion_audit.py:16`](learning/recursion_audit.py:16))
 *   **External Library Dependencies:**
     *   `argparse` (Python standard library)
     *   `json` (Python standard library)
@@ -56,7 +56,7 @@ The module appears to be operationally complete for its defined scope as a CLI t
 ## 7. Coupling Points
 
 *   **Input Data Format:** The module is tightly coupled to the specific JSONL format expected for the forecast batch files. Any deviation in this format would likely cause [`load_forecast_batch()`](learning/pulse_ui_audit_cycle.py:19) or the downstream [`generate_recursion_report()`](learning/recursion_audit.py:16) to fail.
-*   **[`learning.recursion_audit`](learning/recursion_audit.py:16) Module:** The module heavily relies on the [`generate_recursion_report()`](learning/recursion_audit.py:16) function from the [`learning.recursion_audit`](learning/recursion_audit.py:16) module. Changes to the signature, behavior, or output format of this function would directly impact [`pulse_ui_audit_cycle.py`](learning/pulse_ui_audit_cycle.py:).
+*   **[`analytics.recursion_audit`](learning/recursion_audit.py:16) Module:** The module heavily relies on the [`generate_recursion_report()`](learning/recursion_audit.py:16) function from the [`analytics.recursion_audit`](learning/recursion_audit.py:16) module. Changes to the signature, behavior, or output format of this function would directly impact [`pulse_ui_audit_cycle.py`](learning/pulse_ui_audit_cycle.py:).
 
 ## 8. Existing Tests
 
@@ -69,7 +69,7 @@ The module follows a straightforward procedural flow typical for a CLI applicati
 1.  **Initialization:** The script defines an argument parser to accept input file paths (`--prev`, `--curr`) and an optional output file path (`--output`).
 2.  **Argument Parsing:** When executed, the [`main()`](learning/pulse_ui_audit_cycle.py:35) function parses the provided command-line arguments.
 3.  **Data Loading:** It calls the [`load_forecast_batch()`](learning/pulse_ui_audit_cycle.py:19) function twice to read and parse the "previous" and "current" forecast data from the specified JSONL files. This function includes a basic check for file existence.
-4.  **Report Generation:** The loaded forecast data is passed to the [`generate_recursion_report()`](learning/recursion_audit.py:16) function (imported from [`learning.recursion_audit`](learning/recursion_audit.py:16)), which performs the core audit and comparison logic.
+4.  **Report Generation:** The loaded forecast data is passed to the [`generate_recursion_report()`](learning/recursion_audit.py:16) function (imported from [`analytics.recursion_audit`](learning/recursion_audit.py:16)), which performs the core audit and comparison logic.
 5.  **Output:**
     *   The generated report (a Python dictionary) is then formatted as a JSON string and printed to the standard output.
     *   If an output file path was provided via the `--output` argument, the report is also written to this file in JSON format.

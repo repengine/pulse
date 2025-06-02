@@ -18,8 +18,8 @@ Largely operational. Functions for simulating capital forks, portfolio summariza
 
 ## Connections & Dependencies
 - **Direct Project Module Imports:**
-    - `simulation_engine.worldstate.WorldState`
-    - `simulation_engine.state_mutation.adjust_capital`
+    - `engine.worldstate.WorldState`
+    - `engine.state_mutation.adjust_capital`
     - `core.variable_accessor.get_overlay`
     - `core.pulse_config` (for constants like `CONFIDENCE_THRESHOLD`)
     - `symbolic_system.symbolic_utils.symbolic_fragility_index`

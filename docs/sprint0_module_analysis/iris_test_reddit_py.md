@@ -2,7 +2,7 @@
 
 ## 1. Module Intent/Purpose
 
-The primary role of the [`iris/test_reddit.py`](../../../iris/test_reddit.py:1) module is to serve as a test script for the `RedditPlugin` (located in [`iris.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21)). Its main responsibility is to verify that the `RedditPlugin` can successfully connect to the Reddit API using configured credentials and fetch social sentiment data.
+The primary role of the [`iris/test_reddit.py`](../../../iris/test_reddit.py:1) module is to serve as a test script for the `RedditPlugin` (located in [`ingestion.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21)). Its main responsibility is to verify that the `RedditPlugin` can successfully connect to the Reddit API using configured credentials and fetch social sentiment data.
 
 ## 2. Operational Status/Completeness
 
@@ -25,7 +25,7 @@ The module appears to be operational and largely complete for its stated purpose
 ## 4. Connections & Dependencies
 
 ### Direct Project Module Imports
--   `from iris.iris_plugins_variable_ingestion.reddit_plugin import RedditPlugin` ([`iris/test_reddit.py:21`](../../../iris/test_reddit.py:21)): Imports the plugin class that is the subject of the test.
+-   `from ingestion.iris_plugins_variable_ingestion.reddit_plugin import RedditPlugin` ([`iris/test_reddit.py:21`](../../../iris/test_reddit.py:21)): Imports the plugin class that is the subject of the test.
 
 ### External Library Dependencies
 -   `sys` (Python Standard Library): Used for path manipulation ([`iris/test_reddit.py:6`](../../../iris/test_reddit.py:6), [`iris/test_reddit.py:18`](../../../iris/test_reddit.py:18)).
@@ -58,7 +58,7 @@ The module appears to be operational and largely complete for its stated purpose
         4.  Performs assertions on the results.
         5.  Prints a sample of the fetched data.
 
--   **`RedditPlugin` Class (imported from [`iris.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21)):**
+-   **`RedditPlugin` Class (imported from [`ingestion.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21)):**
     -   `plugin = RedditPlugin()` ([`iris/test_reddit.py:28`](../../../iris/test_reddit.py:28)): Instantiation of the plugin.
     -   `assert plugin.enabled, ...` ([`iris/test_reddit.py:31`](../../../iris/test_reddit.py:31)): Accesses the `enabled` property (likely checking if API credentials are configured).
     -   `signals = plugin.fetch_signals()` ([`iris/test_reddit.py:37`](../../../iris/test_reddit.py:37)): Calls the primary method of the plugin to get data from Reddit.
@@ -71,7 +71,7 @@ The module appears to be operational and largely complete for its stated purpose
 
 ## 7. Coupling Points
 
--   **`RedditPlugin`:** The module is tightly coupled to the `RedditPlugin` class from [`iris.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21), which is expected as it is designed to test this specific plugin.
+-   **`RedditPlugin`:** The module is tightly coupled to the `RedditPlugin` class from [`ingestion.iris_plugins_variable_ingestion.reddit_plugin`](../../../iris/iris_plugins_variable_ingestion/reddit_plugin.py:21), which is expected as it is designed to test this specific plugin.
 -   **Environment Variables:** The test's success, particularly the `plugin.enabled` check, is dependent on the presence and correctness of `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, and `REDDIT_USER_AGENT` environment variables.
 
 ## 8. Existing Tests

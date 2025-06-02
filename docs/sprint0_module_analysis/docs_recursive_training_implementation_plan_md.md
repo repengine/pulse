@@ -19,7 +19,7 @@ The primary audience includes software developers, system architects, and projec
 *   **Component-Level Details:** For each component within the phases, the document provides:
     *   Specific purpose and functionality.
     *   Core class and function definitions (often with Python code examples).
-    *   Interfaces with other Pulse components (e.g., [`iris.ingestion_api`](iris/ingest_api.py:1), `forecast_output.pfpa_logger`, [`symbolic_system.pulse_symbolic_revision_planner`](symbolic_system/pulse_symbolic_revision_planner.py:1)).
+    *   Interfaces with other Pulse components (e.g., [`ingestion.ingestion_api`](iris/ingest_api.py:1), `forecast_output.pfpa_logger`, [`symbolic_system.pulse_symbolic_revision_planner`](symbolic_system/pulse_symbolic_revision_planner.py:1)).
     *   Key dependencies (e.g., `pydantic`, `mlflow`, `apache-airflow`, `openai`).
     *   Sample code snippets illustrating implementation aspects.
 *   **Technical Challenges:** Identifies potential challenges such as data consistency, training stability, resource scaling, rule validation, and integration, along with proposed mitigation strategies.

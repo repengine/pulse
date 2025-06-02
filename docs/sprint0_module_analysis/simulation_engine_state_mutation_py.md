@@ -22,7 +22,7 @@ The module appears to be largely complete and operational for its defined scope.
 ## 4. Connections & Dependencies
 
 ### Direct Imports from Other Project Modules:
-- [`simulation_engine.worldstate`](simulation_engine/worldstate.py) (specifically the `WorldState` class)
+- [`engine.worldstate`](simulation_engine/worldstate.py) (specifically the `WorldState` class)
 - [`core.pulse_learning_log`](core/pulse_learning_log.py) (specifically the [`log_learning_event()`](core/pulse_learning_log.py) function)
 - [`symbolic_system.context`](symbolic_system/context.py) (specifically the [`is_symbolic_enabled()`](symbolic_system/context.py) function, though the comment in [`adjust_overlay()`](simulation_engine/state_mutation.py:113) indicates a direct import of config values is preferred for freshness)
 - [`core.pulse_config`](core/pulse_config.py) (imports `ENABLE_SYMBOLIC_SYSTEM`, `CURRENT_SYSTEM_MODE`, `SYMBOLIC_PROCESSING_MODES` directly within [`adjust_overlay()`](simulation_engine/state_mutation.py:114))
