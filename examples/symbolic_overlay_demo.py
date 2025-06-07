@@ -11,19 +11,23 @@ Demonstration of the enhanced symbolic overlay system showing the key improvemen
 This script demonstrates a complete workflow using the improved symbolic overlay system.
 """
 
-from typing import Optional
-from symbolic_system.optimization import get_symbolic_cache
-from symbolic_system.numeric_transforms import get_numeric_transformer
-from symbolic_system.config import get_symbolic_config
-from symbolic_system.overlays import apply_overlay_interactions
-from symbolic_system.context import enter_retrodiction_mode, enter_simulation_mode
-from engine.worldstate import WorldState
 import os
 import sys
 import time
 
 # Add parent directory to path to import Pulse modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from typing import Optional  # noqa: E402
+from symbolic_system.optimization import get_symbolic_cache  # noqa: E402
+from symbolic_system.numeric_transforms import get_numeric_transformer  # noqa: E402
+from symbolic_system.config import get_symbolic_config  # noqa: E402
+from symbolic_system.overlays import apply_overlay_interactions  # noqa: E402
+from symbolic_system.context import (  # noqa: E402
+    enter_retrodiction_mode,
+    enter_simulation_mode
+)
+from engine.worldstate import WorldState  # noqa: E402
 
 
 def print_divider(title: str) -> None:
@@ -127,8 +131,8 @@ def demo_performance_optimization() -> None:
     print(f"Time taken: {second_call_time:.5f} seconds")
 
     # Should be faster using cache
-    print(f"Speed improvement: {first_call_time /
-                                max(second_call_time, 0.0001):.1f}x faster")
+    speed_improvement = first_call_time / max(second_call_time, 0.0001)
+    print(f"Speed improvement: {speed_improvement:.1f}x faster")
 
     print("\nCache statistics:")
     print(f"  Cache size: {len(cache.cache)} entries")
@@ -156,10 +160,10 @@ def demo_enhanced_configurability() -> None:
     # Show default profile settings
     config.set_active_profile("default")
     print("\nDefault profile settings:")
-    print(f"  Dominance threshold: {config.get_value('overlay_thresholds.dominance')}")
-    print(
-        f"  Hope->Trust interaction: {config.get_value('interaction_strengths.hope->trust')}"
-    )
+    dominance_threshold = config.get_value('overlay_thresholds.dominance')
+    print(f"  Dominance threshold: {dominance_threshold}")
+    hope_trust_interaction = config.get_value('interaction_strengths.hope->trust')
+    print(f"  Hope->Trust interaction: {hope_trust_interaction}")
 
     # Create a new profile
     print("\nCreating new 'bear_market' profile...")
@@ -169,10 +173,12 @@ def demo_enhanced_configurability() -> None:
     config.set_value("interaction_strengths.despair->fatigue", 0.05)
 
     print("Bear market profile settings:")
-    print(f"  Dominance threshold: {config.get_value('overlay_thresholds.dominance')}")
-    print(
-        f"  Despair->Fatigue interaction: {config.get_value('interaction_strengths.despair->fatigue')}"
+    dominance_threshold = config.get_value('overlay_thresholds.dominance')
+    print(f"  Dominance threshold: {dominance_threshold}")
+    despair_fatigue_interaction = config.get_value(
+        'interaction_strengths.despair->fatigue'
     )
+    print(f"  Despair->Fatigue interaction: {despair_fatigue_interaction}")
 
     # Auto-select profile based on market conditions
     print("\nAuto-selecting profile based on market conditions:")
@@ -270,32 +276,26 @@ def demo_overlay_sophistication() -> None:
 
     # Set up relationships between overlays
     print("\nSetting relationships between overlays...")
-    state.overlays.set_relationship(
-        "optimism", "boosts", "confidence", 0.5
-    )  # optimism boosts confidence
-    state.overlays.set_relationship(
-        "anxiety", "boosts", "uncertainty", 0.7
-    )  # anxiety strongly boosts uncertainty
-    state.overlays.set_relationship(
-        "confidence", "reduces", "anxiety", -0.6
-    )  # confidence reduces anxiety
+    # optimism boosts confidence
+    state.overlays.set_relationship("optimism", "boosts", "confidence", 0.5)
+    # anxiety strongly boosts uncertainty
+    state.overlays.set_relationship("anxiety", "boosts", "uncertainty", 0.7)
+    # confidence reduces anxiety
+    state.overlays.set_relationship("confidence", "reduces", "anxiety", -0.6)
 
     print("Relationship strengths:")
-    print(
-        f"  optimism → confidence: {
-            state.overlays.get_relationship(
-                'optimism',
-                'confidence'):.2f}")
-    print(
-        f"  anxiety → uncertainty: {
-            state.overlays.get_relationship(
-                'anxiety',
-                'uncertainty'):.2f}")
-    print(
-        f"  confidence → anxiety: {
-            state.overlays.get_relationship(
-                'confidence',
-                'anxiety'):.2f}")
+    optimism_confidence = state.overlays.get_relationship(
+        'optimism', 'confidence'
+    )
+    print(f"  optimism → confidence: {optimism_confidence:.2f}")
+    anxiety_uncertainty = state.overlays.get_relationship(
+        'anxiety', 'uncertainty'
+    )
+    print(f"  anxiety → uncertainty: {anxiety_uncertainty:.2f}")
+    confidence_anxiety = state.overlays.get_relationship(
+        'confidence', 'anxiety'
+    )
+    print(f"  confidence → anxiety: {confidence_anxiety:.2f}")
 
 
 def demo_symbolic_numeric_integration() -> None:
@@ -333,13 +333,14 @@ def demo_symbolic_numeric_integration() -> None:
 
     print("Applied transformations:")
     for t in transformations:
-        print(
-            f"  {
-                t['indicator']:<15} → {
-                t['overlay']:<10}: {
-                t['from_value']:.2f} → {
-                    t['to_value']:.2f} " f"(confidence: {
-                        t['confidence']:.2f})")
+        indicator = t['indicator']
+        overlay = t['overlay']
+        from_value = t['from_value']
+        to_value = t['to_value']
+        confidence = t['confidence']
+        print(f"  {indicator:<15} → {overlay:<10}: "
+              f"{from_value:.2f} → {to_value:.2f} "
+              f"(confidence: {confidence:.2f})")
 
     print_overlays(state, "After applying market indicators")
 
@@ -370,10 +371,12 @@ def full_demonstration() -> None:
 
     # Add custom overlays for additional emotional nuance
     state.overlays.add_overlay(
-        "concentration", 0.5, "secondary", "trust", "Focus on specific market segments"
+        "concentration", 0.5, "secondary", "trust",
+        "Focus on specific market segments"
     )
     state.overlays.add_overlay(
-        "anticipation", 0.7, "secondary", "hope", "Expectation of upcoming catalysts"
+        "anticipation", 0.7, "secondary", "hope",
+        "Expectation of upcoming catalysts"
     )
 
     print("Initial state:")
@@ -428,7 +431,8 @@ def full_demonstration() -> None:
 
         # Get impacts on numeric variables from current emotional state
         print("\nExpected market impacts from current emotional state:")
-        for name, value in state.overlays.get_primary_overlays().items():
+        primary_overlays = state.overlays.get_primary_overlays()
+        for name, value in primary_overlays.items():
             if value > 0.6:  # Only show dominant overlays
                 impacts = transformer.symbolic_to_numeric(name, value)
                 if impacts:
@@ -452,13 +456,11 @@ def full_demonstration() -> None:
         print_overlays(state)
 
         # Verify values didn't change
-        if (
-            state.overlays.hope == original_hope
-            and state.overlays.despair == original_despair
-        ):
-            print(
-                "\nConfirmed: Symbolic operations properly isolated during retrodiction!"
-            )
+        hope_unchanged = state.overlays.hope == original_hope
+        despair_unchanged = state.overlays.despair == original_despair
+        if hope_unchanged and despair_unchanged:
+            print("\nConfirmed: Symbolic operations properly isolated "
+                  "during retrodiction!")
         else:
             print("\nWarning: Symbolic values changed during retrodiction mode!")
 

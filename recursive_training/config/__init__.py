@@ -1,6 +1,7 @@
 """
-Configuration Module for Recursive Training
-
-This module provides configuration utilities and default settings for the recursive
-training system, including cost control mechanisms and system parameters.
+Configuration management for recursive training system.
 """
+
+from recursive_training.config.training_config import TrainingConfig, create_training_config
+
+__all__ = ["TrainingConfig", "create_training_config"]

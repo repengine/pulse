@@ -18,8 +18,33 @@ NUMPY_AVAILABLE = True
 
 
 def get_data_store():
+    """Get a data store instance for retrodiction curriculum.
+
+    Returns:
+        DummyDataStore: A dummy data store implementation for testing.
+
+    Example:
+        Basic usage:
+        >>> store = get_data_store()
+        >>> data = store.get_all_data()
+        >>> len(data)
+        0
+        >>> isinstance(data, list)
+        True
+
+        Verify store type:
+        >>> store.__class__.__name__
+        'DummyDataStore'
+    """
     class DummyDataStore:
+        """Dummy data store implementation for testing purposes."""
+
         def get_all_data(self):
+            """Get all available data.
+
+            Returns:
+                List[Any]: Empty list for dummy implementation.
+            """
             return []
 
     return DummyDataStore()
@@ -29,14 +54,85 @@ class EnhancedRetrodictionCurriculum:
     """
     An enhanced retrodiction curriculum that dynamically selects training data
     based on model uncertainty and performance metrics.
+
+    This curriculum implementation uses uncertainty-driven data selection to improve
+    training efficiency by focusing on data points where the model exhibits high
+    uncertainty or where recent performance metrics indicate degradation.
+
+    Attributes:
+        logger: Logger instance for curriculum operations.
+        metrics_tracker: Enhanced metrics tracker for performance monitoring.
+        data_store: Data store instance for accessing training data.
+        cost_controller: Cost controller for tracking operation costs.
+        uncertainty_threshold_multiplier: Multiplier for uncertainty threshold.
+        performance_degradation_threshold: Threshold for performance degradation.
+        uncertainty_sampling_ratio: Ratio of uncertain data to sample.
+
+    Example:
+        Basic initialization:
+        >>> curriculum = EnhancedRetrodictionCurriculum()
+        >>> curriculum.uncertainty_threshold_multiplier
+        1.5
+        >>> curriculum.uncertainty_sampling_ratio
+        0.3
+
+        Custom configuration:
+        >>> config = {
+        ...     "uncertainty_threshold_multiplier": 2.0,
+        ...     "performance_degradation_threshold": 0.15,
+        ...     "uncertainty_sampling_ratio": 0.4
+        ... }
+        >>> custom_curriculum = EnhancedRetrodictionCurriculum(config)
+        >>> custom_curriculum.uncertainty_threshold_multiplier
+        2.0
+        >>> custom_curriculum.uncertainty_sampling_ratio
+        0.4
+
+        Complete workflow:
+        >>> curriculum = EnhancedRetrodictionCurriculum()
+        >>> selected_data = curriculum.select_data_for_training(current_iteration=1)
+        >>> isinstance(selected_data, list)
+        True
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize the EnhancedRetrodictionCurriculum.
 
         Args:
-            config: Optional configuration dictionary.
+            config: Optional configuration dictionary containing:
+                - uncertainty_threshold_multiplier (float): Multiplier for
+                  uncertainty
+                  threshold calculation. Defaults to 1.5.
+                - performance_degradation_threshold (float): Threshold for detecting
+                  performance degradation. Defaults to 0.1 (10%).
+                - uncertainty_sampling_ratio (float): Percentage of data to sample
+                  based on uncertainty. Defaults to 0.3 (30%).
+                - cost_control (Dict[str, Any]): Cost control configuration.
+
+        Example:
+            Default initialization:
+            >>> curriculum = EnhancedRetrodictionCurriculum()
+            >>> curriculum.uncertainty_threshold_multiplier
+            1.5
+            >>> curriculum.performance_degradation_threshold
+            0.1
+
+            Custom configuration:
+            >>> config = {"uncertainty_threshold_multiplier": 2.0}
+            >>> curriculum = EnhancedRetrodictionCurriculum(config)
+            >>> curriculum.uncertainty_threshold_multiplier
+            2.0
+
+            Full configuration:
+            >>> full_config = {
+            ...     "uncertainty_threshold_multiplier": 1.8,
+            ...     "performance_degradation_threshold": 0.12,
+            ...     "uncertainty_sampling_ratio": 0.35
+            ... }
+            >>> full_curriculum = EnhancedRetrodictionCurriculum(full_config)
+            >>> full_curriculum.uncertainty_sampling_ratio
+            0.35
         """
         self.logger = logging.getLogger("EnhancedRetrodictionCurriculum")
         self.metrics_tracker = EnhancedRecursiveTrainingMetrics(config)
@@ -67,18 +163,54 @@ class EnhancedRetrodictionCurriculum:
         Selects data points for the next training iteration based on enhanced criteria.
 
         This implementation prioritizes data points where the model exhibits high
-        uncertainty or where recent performance metrics indicate degradation.
+        uncertainty or where recent performance metrics indicate degradation. The
+        selection process uses uncertainty scoring and adaptive sampling ratios.
 
         Args:
-            current_iteration: The current training iteration number.
-            recent_metrics: Dictionary of recent performance metrics.
-            model: The current model being trained.
+            current_iteration: The current training iteration number (0-based).
+            recent_metrics: Optional dictionary of recent performance metrics
+                containing keys like 'mse', 'rule_type', etc.
+            model: Optional current model being trained. Must have 'predict' and
+                'predict_proba' methods for uncertainty calculation.
 
         Returns:
-            A list of data points (dictionaries) selected for the next training iteration.
+            List of data point dictionaries selected for training. Returns empty
+            list if no data is available in the data store.
+
+        Raises:
+            Exception: Re-raises any exceptions from model prediction with context.
+
+        Example:
+            Basic data selection without model:
+            >>> curriculum = EnhancedRetrodictionCurriculum()
+            >>> selected = curriculum.select_data_for_training(current_iteration=0)
+            >>> isinstance(selected, list)
+            True
+
+            Data selection with metrics:
+            >>> metrics = {"mse": 0.1, "rule_type": "hybrid"}
+            >>> selected = curriculum.select_data_for_training(
+            ...     current_iteration=1,
+            ...     recent_metrics=metrics
+            ... )
+            >>> isinstance(selected, list)
+            True
+
+            Data selection with mock model:
+            >>> class MockModel:
+            ...     def predict(self, data): return [0.5] * len(data)
+            ...     def predict_proba(self, data): return [[0.3, 0.7]] * len(data)
+            >>> model = MockModel()
+            >>> selected = curriculum.select_data_for_training(
+            ...     current_iteration=1,
+            ...     recent_metrics={"mse": 0.1},
+            ...     model=model
+            ... )
+            >>> isinstance(selected, list)
+            True
         """
         self.logger.info(
-            f"Selecting data for iteration {current_iteration} using enhanced curriculum.")
+            f"Selecting data for iteration {current_iteration} using enhanced curriculum.")  # noqa: E501
         self.cost_controller.track_operation(
             operation_type="curriculum_data_selection", cost=0.01
         )  # Track cost
@@ -107,7 +239,7 @@ class EnhancedRetrodictionCurriculum:
                 # Predict and get uncertainty for each data point
                 # This is a simplified example; a real implementation might use
                 # more sophisticated uncertainty estimation per data point.
-                _predictions = model.predict(all_data)
+                model.predict(all_data)  # Get predictions for uncertainty calc
                 predicted_probs = model.predict_proba(all_data)
 
                 for i, data_point in enumerate(all_data):
@@ -201,10 +333,37 @@ class EnhancedRetrodictionCurriculum:
         """
         Updates the curriculum strategy based on recent training performance.
 
+        This method adjusts curriculum parameters dynamically based on performance
+        degradation detection. When degradation is detected, it increases focus on
+        uncertain data points. When performance is stable, it gradually reduces
+        the uncertainty focus.
+
         Args:
-            current_iteration: The current training iteration number.
-            recent_metrics: Dictionary of recent performance metrics.
-            model: The current model being trained.
+            current_iteration: The current training iteration number (0-based).
+            recent_metrics: Dictionary of recent performance metrics containing
+                keys like 'mse', 'rule_type', 'drift', etc.
+            model: The current model being trained (used for future extensions).
+
+        Example:
+            Basic curriculum update:
+            >>> curriculum = EnhancedRetrodictionCurriculum()
+            >>> initial_ratio = curriculum.uncertainty_sampling_ratio
+            >>> metrics = {"mse": 0.15, "rule_type": "hybrid"}
+            >>> curriculum.update_curriculum(
+            ...     current_iteration=5,
+            ...     recent_metrics=metrics,
+            ...     model=None
+            ... )
+            >>> curriculum.uncertainty_sampling_ratio >= 0.1
+            True
+
+            Multiple updates simulation:
+            >>> curriculum = EnhancedRetrodictionCurriculum()
+            >>> for i in range(3):
+            ...     metrics = {"mse": 0.1 + i * 0.05, "rule_type": "hybrid"}
+            ...     curriculum.update_curriculum(i, metrics, None)
+            >>> curriculum.uncertainty_sampling_ratio >= 0.1
+            True
         """
         self.logger.info(
             f"Updating enhanced curriculum for iteration {current_iteration}."
@@ -220,7 +379,7 @@ class EnhancedRetrodictionCurriculum:
         # Adjust curriculum parameters based on degradation
         if is_degrading:
             self.logger.warning(
-                "Performance degradation detected. Adjusting curriculum to focus more on uncertain data."
+                "Performance degradation detected. Adjusting curriculum to focus more on uncertain data."  # noqa: E501
             )
             # Increase the ratio of uncertain data sampled
             self.uncertainty_sampling_ratio = min(
@@ -242,15 +401,53 @@ class EnhancedRetrodictionCurriculum:
 
         self.logger.info(
             f"Curriculum updated: uncertainty_sampling_ratio={
-                self.uncertainty_sampling_ratio:.2f}, " f"uncertainty_threshold_multiplier={
-                self.uncertainty_threshold_multiplier:.2f}")
+                self.uncertainty_sampling_ratio:.2f}, " f"uncertainty_threshold_multiplier={  # noqa: E501
+                self.uncertainty_threshold_multiplier:.2f}")  # noqa: E501
 
     def get_curriculum_state(self) -> Dict[str, Any]:
         """
         Gets the current state of the enhanced curriculum.
 
+        This method returns a snapshot of all curriculum parameters that can be
+        used for monitoring, debugging, or state persistence.
+
         Returns:
-            A dictionary representing the current curriculum state.
+            Dict[str, Any]: Dictionary containing current curriculum state with keys:
+                - uncertainty_threshold_multiplier (float): Current uncertainty
+                  threshold multiplier
+                - performance_degradation_threshold (float): Performance
+                  degradation threshold
+                - uncertainty_sampling_ratio (float): Current uncertainty
+                  sampling ratio
+                - base_curriculum_state (Dict): Reserved for base curriculum state (empty)  # noqa: E501
+
+        Example:
+            Get default state:
+            >>> curriculum = EnhancedRetrodictionCurriculum()
+            >>> state = curriculum.get_curriculum_state()
+            >>> state["uncertainty_threshold_multiplier"]
+            1.5
+            >>> state["uncertainty_sampling_ratio"]
+            0.3
+            >>> "performance_degradation_threshold" in state
+            True
+
+            State after configuration:
+            >>> config = {"uncertainty_threshold_multiplier": 2.5}
+            >>> curriculum = EnhancedRetrodictionCurriculum(config)
+            >>> state = curriculum.get_curriculum_state()
+            >>> state["uncertainty_threshold_multiplier"]
+            2.5
+
+            Verify all expected keys:
+            >>> expected_keys = {
+            ...     "uncertainty_threshold_multiplier",
+            ...     "performance_degradation_threshold",
+            ...     "uncertainty_sampling_ratio",
+            ...     "base_curriculum_state"
+            ... }
+            >>> set(state.keys()) == expected_keys
+            True
         """
         return {
             "uncertainty_threshold_multiplier": self.uncertainty_threshold_multiplier,

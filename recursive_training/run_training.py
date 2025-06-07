@@ -2,40 +2,39 @@
 Retrodiction Training Runner
 
 This script provides the main entry point for running the Pulse retrodiction training
-process in a containerized environment. It configures the ParallelTrainingCoordinator
-and handles AWS-specific setup when running in AWS Batch.
+process in a containerized environment. It uses a modular pipeline architecture
+with the Command pattern for improved maintainability and testability.
 """
 
+import argparse
+import logging
 import os
 import sys
-import logging
-import argparse
-from datetime import datetime
-import boto3
-import memory_profiler  # Added for memory profiling
+
+from recursive_training.config.training_config import TrainingConfig
+from recursive_training.stages import TrainingPipeline
 
 # Add the project root to the Python path to allow importing recursive_training
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# Configure logging
-logging.basicConfig(
-    level=os.environ.get("LOG_LEVEL", "INFO"),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(
-            os.path.join(os.environ.get("LOG_DIR", "logs"), "retrodiction_training.log")
-        ),
-    ],
-)
+__all__ = ["parse_args", "create_config_from_args", "main"]
 
-logger = logging.getLogger("retrodiction_training")
+logger = logging.getLogger(__name__)
 
 
-def parse_args():
-    """Parse command line arguments."""
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments.
+
+    Returns:
+        Parsed command line arguments.
+
+    Example:
+        >>> args = parse_args()
+        >>> print(args.variables)
+        ['spx_close', 'us_10y_yield']
+    """
     parser = argparse.ArgumentParser(
         description="Run Pulse retrodiction training in AWS Batch"
     )
@@ -71,6 +70,12 @@ def parse_args():
         type=int,
         default=None,
         help="Maximum number of worker processes to use",
+    )
+    parser.add_argument(
+        "--batch-limit",
+        type=int,
+        default=None,
+        help="Limit number of batches for debugging",
     )
 
     # AWS configuration
@@ -142,187 +147,151 @@ def parse_args():
         help="S3 path to save training results JSON (s3://bucket/key)",
     )
 
+    # Logging configuration
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default=os.environ.get("LOG_LEVEL", "INFO"),
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging level",
+    )
+    parser.add_argument(
+        "--log-dir",
+        type=str,
+        default=os.environ.get("LOG_DIR", "logs"),
+        help="Directory for log files",
+    )
+
     return parser.parse_args()
 
 
-def setup_s3_data_store(args):
-    """
-    Set up the S3DataStore with appropriate configuration for AWS.
+def create_config_from_args(args: argparse.Namespace) -> TrainingConfig:
+    """Create a TrainingConfig from command line arguments.
 
     Args:
-        args: Command line arguments
+        args: Parsed command line arguments.
 
     Returns:
-        An instance of S3DataStore configured for AWS
+        TrainingConfig instance with values from arguments.
+
+    Example:
+        >>> args = parse_args()
+        >>> config = create_config_from_args(args)
+        >>> print(config.variables)
+        ['spx_close', 'us_10y_yield']
     """
-    from recursive_training.data.s3_data_store import S3DataStore
+    return TrainingConfig(
+        # Basic configuration
+        variables=args.variables,
+        start_date=args.start_date,
+        end_date=args.end_date,
+        batch_size_days=args.batch_size_days,
+        max_workers=args.max_workers,
+        batch_limit=args.batch_limit,
+        # AWS configuration
+        aws_region=args.aws_region,
+        s3_data_bucket=args.s3_data_bucket,
+        s3_results_bucket=args.s3_results_bucket,
+        s3_data_prefix=args.s3_data_prefix,
+        s3_results_prefix=args.s3_results_prefix,
+        # Dask configuration
+        use_dask=args.use_dask,
+        dask_scheduler_address=args.dask_scheduler_address,
+        dask_dashboard_port=args.dask_dashboard_port,
+        dask_threads_per_worker=args.dask_threads_per_worker,
+        # Output configuration
+        output_file=args.output_file,
+        s3_output_file=args.s3_output_file,
+        # Logging configuration
+        log_level=args.log_level,
+        log_dir=args.log_dir,
+    )
 
-    # Configure S3 data store
-    config = {
-        "s3_data_bucket": args.s3_data_bucket,
-        "s3_results_bucket": args.s3_results_bucket,
-        "s3_prefix": args.s3_data_prefix,
-        "s3_region": args.aws_region,
-        "max_s3_workers": 4,
-        "s3_retry_attempts": 3,
-        "cache_expiration_hours": 1,  # Short cache for container environment
-    }
 
-    # Initialize and return the S3DataStore
-    return S3DataStore.get_instance(config)
+def setup_logging(config: TrainingConfig) -> None:
+    """Set up logging configuration for the training process.
 
-
-def setup_dask_client(args):
-    """
-    Set up a Dask client for distributed computing if enabled.
+    Configures both console and file logging with the specified log level
+    and creates the log directory if it doesn't exist.
 
     Args:
-        args: Command line arguments
+        config: Training configuration with logging settings including
+            log_level and log_dir.
 
     Returns:
-        Dask client or None if not enabled
+        None.
+
+    Example:
+        >>> config = TrainingConfig(log_level="DEBUG", log_dir="logs")
+        >>> setup_logging(config)
+        >>> # Logging is now configured for both console and file output
     """
-    if not args.use_dask:
-        return None
+    # Create log directory if it doesn't exist
+    os.makedirs(config.log_dir, exist_ok=True)
 
-    try:
-        from dask.distributed import Client
-
-        logger.info(f"Connecting to Dask scheduler at {args.dask_scheduler_address}")
-        client = Client(args.dask_scheduler_address)
-        logger.info(
-            f"Connected to Dask cluster with {len(client.scheduler_info()['workers'])} workers"
-        )
-        logger.info(f"Dask dashboard available at {client.dashboard_link}")
-        return client
-    except Exception as e:
-        logger.error(f"Failed to connect to Dask scheduler: {e}")
-        logger.warning("Continuing without Dask support")
-        return None
+    # Configure logging
+    logging.basicConfig(
+        level=getattr(logging, config.log_level.upper()),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(
+                os.path.join(config.log_dir, "retrodiction_training.log")
+            ),
+        ],
+    )
 
 
-def is_running_in_aws_batch():
-    """Check if we're running in AWS Batch environment."""
-    return bool(os.environ.get("AWS_BATCH_JOB_ID"))
-
-
-def configure_aws_batch_environment():
-    """
-    Configure environment based on AWS Batch environment variables.
+def main() -> int:
+    """Main entry point for the retrodiction training runner.
 
     Returns:
-        Dict with environment configuration
+        Exit code (0 for success, 1 for failure).
+
+    Example:
+        >>> exit_code = main()
+        >>> print(f"Training completed with exit code: {exit_code}")
     """
-    env_config = {}
-
-    # Check AWS Batch environment variables
-    if os.environ.get("AWS_BATCH_JOB_ID"):
-        logger.info(f"Running in AWS Batch job {os.environ.get('AWS_BATCH_JOB_ID')}")
-
-        # Set AWS region from environment if available
-        if os.environ.get("AWS_REGION"):
-            env_config["aws_region"] = os.environ.get("AWS_REGION")
-
-        # Configure job-specific output path using job ID
-        job_id = os.environ.get("AWS_BATCH_JOB_ID")
-        env_config["output_path"] = f"batch_jobs/{job_id}/"
-
-    return env_config
-
-
-@memory_profiler.profile  # Added for memory profiling
-def main():
-    """Main entry point for the retrodiction training runner."""
-    args = parse_args()
-    logger.info("Starting Pulse retrodiction training")
-
-    # Configure environment if running in AWS Batch
-    _env_config = configure_aws_batch_environment() if is_running_in_aws_batch() else {}
-
-    # Set up S3 data store if we're using S3
-    if args.s3_data_bucket:
-        logger.info(f"Setting up S3 data store with bucket {args.s3_data_bucket}")
-        _s3_data_store = setup_s3_data_store(args)
-
-    # Set up Dask client if enabled
-    dask_client = setup_dask_client(args)
-
-    # Setup for ParallelTrainingCoordinator
-    from recursive_training.parallel_trainer import run_parallel_retrodiction_training
-
-    # Determine training date range
-    start_date = datetime.strptime(args.start_date, "%Y-%m-%d")
-    if args.end_date:
-        end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
-    else:
-        end_date = datetime.now()
-
-    logger.info(f"Training period: {start_date} to {end_date}")
-    logger.info(f"Variables: {args.variables}")
-
-    # Configure output file path
-    output_file = args.output_file
-    if not output_file and is_running_in_aws_batch():
-        # In AWS Batch, use a predictable output location
-        job_id = os.environ.get("AWS_BATCH_JOB_ID", "unknown")
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_file = f"results/batch_{job_id}_{timestamp}.json"
-
-    logger.info(f"Training output will be saved to: {output_file}")
-
     try:
-        # Run the parallel training
-        _results = run_parallel_retrodiction_training(
-            variables=args.variables,
-            start_time=start_date,
-            end_time=end_date,
-            max_workers=args.max_workers,
-            batch_size_days=args.batch_size_days,
-            output_file=output_file,
-            dask_scheduler_port=args.dask_dashboard_port,
-            dask_dashboard_port=args.dask_dashboard_port,
-            dask_threads_per_worker=args.dask_threads_per_worker,
-            batch_limit=3,  # Temporarily limit batches for debugging
-        )
+        # Parse command line arguments
+        args = parse_args()
 
-        logger.info("Training completed successfully")
+        # Create configuration from arguments
+        config = create_config_from_args(args)
 
-        # Upload results to S3 if requested
-        if args.s3_output_file or (
-            is_running_in_aws_batch() and args.s3_results_bucket
-        ):
-            s3_path = args.s3_output_file
-            if not s3_path:
-                # Generate S3 path if not provided
-                job_id = os.environ.get("AWS_BATCH_JOB_ID", "unknown")
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                s3_key = f"{args.s3_results_prefix}batch_{job_id}_{timestamp}.json"
-                s3_path = f"s3://{args.s3_results_bucket}/{s3_key}"
+        # Set up logging
+        setup_logging(config)
 
-            # Extract bucket and key from S3 path
-            s3_path = s3_path.replace("s3://", "")
-            bucket_name = s3_path.split("/")[0]
-            s3_key = "/".join(s3_path.split("/")[1:])
+        logger.info("Starting Pulse retrodiction training")
+        logger.info(f"Configuration: {config}")
 
-            logger.info(f"Uploading results to S3: {s3_path}")
+        # Create and execute the training pipeline
+        pipeline = TrainingPipeline()
+        results = pipeline.execute(config)
 
-            # Initialize S3 client and upload results
-            s3_client = boto3.client("s3", region_name=args.aws_region)
-            s3_client.upload_file(output_file, bucket_name, s3_key)
+        # Check if training was successful
+        if results.get("training_success", False):
+            logger.info("Training pipeline completed successfully")
 
-            logger.info(f"Results uploaded to S3: s3://{bucket_name}/{s3_key}")
+            # Log S3 upload status if applicable
+            if results.get("s3_upload_success"):
+                s3_path = results.get("s3_upload_path")
+                logger.info(f"Results uploaded to S3: {s3_path}")
+            elif results.get("s3_upload_success") is False:
+                logger.warning(f"S3 upload failed: {results.get('s3_upload_error')}")
 
-        return 0
+            return 0
+        else:
+            error_msg = results.get("training_error", "Unknown error")
+            logger.error(f"Training pipeline failed: {error_msg}")
+            return 1
 
-    except Exception as e:
-        logger.exception(f"Error in retrodiction training: {e}")
+    except KeyboardInterrupt:
+        logger.info("Training interrupted by user")
         return 1
-
-    finally:
-        # Clean up resources
-        if dask_client:
-            logger.info("Shutting down Dask client")
-            dask_client.close()
+    except Exception as e:
+        logger.exception(f"Unexpected error in training pipeline: {e}")
+        return 1
 
 
 if __name__ == "__main__":

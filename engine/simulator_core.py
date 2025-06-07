@@ -20,7 +20,7 @@ Features:
 - Prepares trust layer for future expansion
 - Supports extended return mode ("summary", "full")
 - Type annotations and input validation
-- Extensible logger/callback support
+- Extensible module_logger/callback support
 
 Expected WorldState structure:
 - overlays: Dict[str, float] (e.g., {"hope": 0.5, "despair": 0.2, ...})
@@ -28,15 +28,16 @@ Expected WorldState structure:
 - turn: int
 - events: List[str]
 
-TODO:
-- Add checkpointing (save/load state mid-run)
-- Add schema validation for overlays/variables
-- Add simulation hooks (pre/post turn, pre/post simulation)
-- Add batch/parallel simulation support
-- Add CLI entry point for simulation runs
-- Add unit tests and validation utilities
-- Add support for simulation seeding/reproducibility
-- Add overlay/variable schema documentation and enforcement
+Future Enhancements:
+The following features are planned for future releases and tracked in the project roadmap:
+- Checkpointing capabilities for mid-simulation state persistence
+- Schema validation for overlays and variables
+- Simulation lifecycle hooks (pre/post turn, pre/post simulation)
+- Batch and parallel simulation support
+- CLI entry point for simulation runs
+- Enhanced validation utilities
+- Simulation seeding for reproducibility
+- Comprehensive overlay/variable schema documentation
 
 Author: Pulse AI Engine
 """
@@ -80,7 +81,7 @@ except ImportError:
     # print("Warning: ShadowModelMonitor could not be imported.") # Optional warning
 
 # Create a logger for this module
-logger_module = logging.getLogger(__name__)  # Added
+module_logger = logging.getLogger(__name__)
 
 from datetime import datetime, timezone  # noqa E402
 import json  # noqa E402
@@ -93,7 +94,7 @@ try:
     from symbolic_system.symbolic_state_tagger import tag_symbolic_state  # noqa E402
 except ImportError:
     tag_symbolic_state = None
-    logger_module.warning(
+    module_logger.warning(
         "Symbolic tagging module not found. Symbolic tagging will be disabled."
     )
 
@@ -150,7 +151,7 @@ def _get_dict_from_vars(variables_accessor: Any) -> Dict[str, float]:
         try:
             raw_dict = variables_accessor.as_dict()
         except Exception as e:
-            logger_module.error(
+            module_logger.error(
                 f"Error calling as_dict() on {type(variables_accessor)}: {e}"
             )
             return {}  # Return empty on error to prevent further issues
@@ -165,11 +166,11 @@ def _get_dict_from_vars(variables_accessor: Any) -> Dict[str, float]:
             try:
                 processed_dict[str(k)] = float(v)
             except (ValueError, TypeError) as e:
-                logger_module.warning(
+                module_logger.warning(
                     f"Could not convert key '{k}' or value '{v}' to str/float in _get_dict_from_vars: {e}")
         return processed_dict
 
-    logger_module.debug(
+    module_logger.debug(
         f"Variables accessor type {
             type(variables_accessor)} not directly convertible to Dict[str, float]. Evaluated to raw_dict type {
             type(raw_dict)}. Returning empty for safety.")
@@ -181,7 +182,7 @@ def simulate_turn(
     state: WorldState,
     use_symbolism: bool = True,
     return_mode: Literal["summary", "full"] = "summary",
-    logger: Optional[Callable[[str], None]] = None,
+    module_logger: Optional[Callable[[str], None]] = None,
     learning_engine=None,
     shadow_monitor_instance: Optional["_SMM_TypeForHint"] = None,
     gravity_enabled: bool = True,
@@ -194,7 +195,7 @@ def simulate_turn(
         state: The current world state to simulate
         use_symbolism: Whether to apply symbolic tagging to the output
         return_mode: Level of detail in the return object ('summary' or 'full')
-        logger: Optional logging function
+        module_logger: Optional logging function
         learning_engine: Optional learning engine to apply
         shadow_monitor_instance: Optional ShadowModelMonitor instance
         gravity_enabled (bool): Whether gravity correction is enabled (default: True)
@@ -208,22 +209,22 @@ def simulate_turn(
     """
     if not isinstance(state, WorldState):
         error_msg = f"Expected WorldState, got {type(state)}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         raise ValueError(error_msg)
 
     if return_mode not in ["summary", "full"]:
         error_msg = f"Invalid return_mode: {return_mode}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         raise ValueError(error_msg)
 
     # Validate state before simulation
     validation_errors = state.validate()
     if validation_errors:
         error_msg = f"Invalid world state: {validation_errors}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         state.log_event(f"Warning: {error_msg}")
 
     # Store initial overlay state for comparison
@@ -233,8 +234,8 @@ def simulate_turn(
         pre_overlay = _copy_overlay(dict_for_pre_overlay)
     except Exception as e:
         error_msg = f"[SIM] Failed to copy initial overlays: {e}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         state.log_event(error_msg)
         pre_overlay = {}
 
@@ -251,11 +252,11 @@ def simulate_turn(
                     for var in shadow_monitor_instance.critical_variables
                 }
             else:
-                logger_module.debug(
+                module_logger.debug(
                     "Shadow Monitor: Could not get initial_vars_dict for pre_variables_critical."
                 )
         except Exception as e:
-            logger_module.error(
+            module_logger.error(
                 f"Shadow Monitor: Error capturing pre_variables_critical: {e}"
             )
 
@@ -265,8 +266,8 @@ def simulate_turn(
             decay_overlay(state, overlay_name)
     except Exception as e:
         error_msg = f"[SIM] Decay error: {str(e)}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         state.log_event(error_msg)
 
     # Run simulation rules
@@ -274,8 +275,8 @@ def simulate_turn(
         run_rules(state)
     except Exception as e:
         error_msg = f"[SIM] Rule engine error: {str(e)}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         state.log_event(error_msg)
 
     # Apply symbolic gravity correction if available and enabled
@@ -328,7 +329,7 @@ def simulate_turn(
                 if (
                     not symbolic_vec_dict and symbolic_vec
                 ):  # If helper failed but symbolic_vec exists
-                    logger_module.warning(
+                    module_logger.warning(
                         f"Could not convert symbolic_vec of type {
                             type(symbolic_vec)} to dict for shadow monitor.")
 
@@ -368,7 +369,7 @@ def simulate_turn(
                         for var in shadow_monitor_instance.critical_variables
                     }
                 except Exception as e:
-                    logger_module.error(
+                    module_logger.error(
                         f"Shadow Monitor: Error capturing vars_before_gravity_critical or calculating causal_deltas_monitor: {e}")
 
             # Get or create the gravity fabric with specified config if provided
@@ -378,8 +379,8 @@ def simulate_turn(
                         config=gravity_config)  # type: ignore
                 else:
                     state._gravity_fabric = create_default_fabric()  # type: ignore
-                if logger:
-                    logger("[SIM] Created new symbolic gravity fabric")
+                if module_logger:
+                    module_logger("[SIM] Created new symbolic gravity fabric")
 
             # Apply corrections to variables using the gravity fabric if not disabled
             # Use type ignore for dynamic property access
@@ -485,8 +486,8 @@ def simulate_turn(
                                         }
                                     )
                             except Exception as e:
-                                if logger:
-                                    logger(
+                                if module_logger:
+                                    module_logger(
                                         f"[SIM] Error getting gravity contributor details: {e}")
 
                         # Add details for this variable to the gravity correction
@@ -507,8 +508,8 @@ def simulate_turn(
                 # Step the fabric forward to update state
                 state._gravity_fabric.step(state)  # type: ignore
 
-                if logger:
-                    logger("[SIM] Applied symbolic gravity corrections")
+                if module_logger:
+                    module_logger("[SIM] Applied symbolic gravity corrections")
 
                 # --- Shadow Monitor: Record step and check trigger ---
                 if (
@@ -548,36 +549,36 @@ def simulate_turn(
                             shadow_monitor_instance.check_trigger()
                         )
                         if triggered:
-                            logger_module.warning(
+                            module_logger.warning(
                                 f"ShadowModelMonitor TRIGGERED at turn {getattr(state, 'turn', -1)}. "
                                 f"Problematic variables: {problematic_vars}. Gravity influence exceeded threshold."
                             )
                     except Exception as e:
-                        logger_module.error(
+                        module_logger.error(
                             f"Shadow Monitor: Error during record_step or check_trigger: {e}")
 
                 # Store pre-simulation values for next turn
                 setattr(state, "_pre_simulation_vars", vars_before_gravity.copy())
         except ImportError as e:
             # Gravity fabric module not available, skip correction
-            if logger:
-                logger(f"[SIM] Symbolic gravity not available: {e}")
+            if module_logger:
+                module_logger(f"[SIM] Symbolic gravity not available: {e}")
         except Exception as e:
             error_msg = f"[SIM] Symbolic gravity error: {str(e)}"
-            if logger:
-                logger(error_msg)
+            if module_logger:
+                module_logger(error_msg)
             state.log_event(error_msg)
 
     # Apply learning engine if provided
     if learning_engine is not None:
         try:
             learning_engine.process_turn(state)
-            if logger:
-                logger("[SIM] Applied learning engine processing")
+            if module_logger:
+                module_logger("[SIM] Applied learning engine processing")
         except Exception as e:
             error_msg = f"[SIM] Learning engine error: {str(e)}"
-            if logger:
-                logger(error_msg)
+            if module_logger:
+                module_logger(error_msg)
             state.log_event(error_msg)
 
     # Get current overlay state
@@ -587,24 +588,24 @@ def simulate_turn(
         overlays_now = _copy_overlay(dict_for_overlays_now)
     except Exception as e:
         error_msg = f"[SIM] Failed to copy final overlays: {e}"
-        if logger:
-            logger(error_msg)
+        if module_logger:
+            module_logger(error_msg)
         state.log_event(error_msg)
         overlays_now = {}
 
     # Validate overlay structure
     if not _validate_overlay(overlays_now):
         msg = "[SIM] Warning: overlays structure invalid after turn."
-        if logger:
-            logger(msg)
+        if module_logger:
+            module_logger(msg)
         state.log_event(msg)
 
     # Check for missing overlay keys
     missing_keys = set(pre_overlay) - set(overlays_now)
     if missing_keys:
         msg = f"[SIM] Warning: overlays missing keys after turn: {missing_keys}"
-        if logger:
-            logger(msg)
+        if module_logger:
+            module_logger(msg)
         state.log_event(msg)
 
     # Compute overlay deltas for each key in pre_overlay
@@ -639,16 +640,16 @@ def simulate_turn(
             output.update(tag_result)
         except Exception as e:
             error_msg = f"[SIM] Symbolic tagging error: {str(e)}"
-            if logger:
-                logger(error_msg)
+            if module_logger:
+                module_logger(error_msg)
             state.log_event(error_msg)
             output["symbolic_tag"] = "error"
             output["symbolic_score"] = 0.0
     elif use_symbolism and tag_symbolic_state is None:
         # Log that symbolic tagging is skipped due to missing module
         warning_msg = "[SIM] Symbolic tagging skipped: module not available."
-        if logger:
-            logger(warning_msg)
+        if module_logger:
+            module_logger(warning_msg)
         state.log_event(warning_msg)
         output["symbolic_tag"] = "disabled"
         output["symbolic_score"] = 0.0
@@ -688,13 +689,13 @@ def simulate_turn(
 
     # Warn if trust_label or confidence missing
     if "trust_label" not in output or "confidence" not in output:
-        if logger:
-            logger(
+        if module_logger:
+            module_logger(
                 "[TRUST] Warning: trust_label or confidence missing from simulation output."
             )
-    if logger:  # Ensure logger is available
+    if module_logger:  # Ensure module_logger is available
         if "gravity_correction_details" in output:
-            logger(
+            module_logger(
                 f"[DEBUG_GCD] Key 'gravity_correction_details' IS IN output. Value: {
                     type(
                         output['gravity_correction_details'])}")
@@ -702,13 +703,13 @@ def simulate_turn(
                 isinstance(output["gravity_correction_details"], dict)
                 and not output["gravity_correction_details"]
             ):
-                logger("[DEBUG_GCD] Value is an EMPTY DICT.")
+                module_logger("[DEBUG_GCD] Value is an EMPTY DICT.")
             elif output["gravity_correction_details"] is None:
-                logger("[DEBUG_GCD] Value is None.")
+                module_logger("[DEBUG_GCD] Value is None.")
             else:
-                logger("[DEBUG_GCD] Value is present and not empty/None.")
+                module_logger("[DEBUG_GCD] Value is present and not empty/None.")
         else:
-            logger("[DEBUG_GCD] Key 'gravity_correction_details' IS NOT IN output.")
+            module_logger("[DEBUG_GCD] Key 'gravity_correction_details' IS NOT IN output.")
     return output
 
 
@@ -717,7 +718,7 @@ def simulate_forward(
     turns: int = 5,
     use_symbolism: bool = True,
     return_mode: Literal["summary", "full"] = "summary",
-    logger: Optional[Callable[[str], None]] = None,
+    module_logger: Optional[Callable[[str], None]] = None,
     progress_callback: Optional[Callable[[int, int], None]] = None,
     learning_engine=None,
     checkpoint_every: Optional[int] = None,
@@ -738,7 +739,7 @@ def simulate_forward(
         turns (int): number of steps (must be positive)
         use_symbolism (bool): enable tag/memory tracking
         return_mode (str): summary/full return format
-        logger (callable): optional logger for messages
+        module_logger (callable): optional module_logger for messages
         progress_callback (callable): optional progress reporter (step, total)
         learning_engine: optional learning engine for hooks
         checkpoint_every: Optional interval for saving checkpoints
@@ -821,13 +822,13 @@ def simulate_forward(
                                         ):
                                             gravity_fabric_instance.gravity_engine.update_weights(
                                                 residual, sym_vec)
-                                            if logger:
-                                                logger(
+                                            if module_logger:
+                                                module_logger(
                                                     f"[SIM] Updated gravity weights (residual={
                                                         residual:.4f}) for var '{var}'")
                                     except Exception as e:
-                                        if logger:
-                                            logger(
+                                        if module_logger:
+                                            module_logger(
                                                 f"[SIM] Gravity weight update error for var '{var}': {
                                                     str(e)}")
 
@@ -838,14 +839,14 @@ def simulate_forward(
                         )  # Default to 0.0 if new
                         value_change = val - current_value_in_state
                         update_numeric_variable(state, var, value_change)
-                if logger:
-                    logger(f"[RETRO] Injected ground truth variables for turn {i}")
+                if module_logger:
+                    module_logger(f"[RETRO] Injected ground truth variables for turn {i}")
         # Simulate one turn, passing the shadow_monitor_instance and gravity_enabled
         turn_data = simulate_turn(
             state,
             use_symbolism=use_symbolism,
             return_mode=return_mode,
-            logger=logger,
+            module_logger=module_logger,
             learning_engine=learning_engine,
             shadow_monitor_instance=shadow_monitor_instance,
             gravity_enabled=gravity_enabled,
@@ -880,7 +881,7 @@ def simulate_forward(
                         for k in ground_truth_snapshot
                     },
                 }
-                # Log comparison to learning engine or episode logger
+                # Log comparison to learning engine or episode module_logger
                 if learning_engine:
                     try:
                         learning_engine.log_comparison(comparison)
@@ -890,8 +891,8 @@ def simulate_forward(
                     log_episode_event("retrodiction_comparison", comparison)
                 except Exception:
                     pass
-                if logger:
-                    logger(
+                if module_logger:
+                    module_logger(
                         f"[RETRO] Compared simulated state to ground truth for turn {i}"
                     )
                 # 4 BayesianTrustTracker Hook: batch update after retrodiction
@@ -916,11 +917,11 @@ def simulate_forward(
                 filepath = f"{checkpoint_path}_turn_{i + 1}.json"
                 with open(filepath, "w", encoding="utf-8") as f:
                     json.dump(snapshot, f)
-                if logger:
-                    logger(f"[SIM] Checkpoint saved to {filepath}")
+                if module_logger:
+                    module_logger(f"[SIM] Checkpoint saved to {filepath}")
             except Exception as e:
-                if logger:
-                    logger(f"[SIM] Checkpoint error: {e}")
+                if module_logger:
+                    module_logger(f"[SIM] Checkpoint error: {e}")
         if progress_callback:
             progress_callback(i + 1, turns)
     # --- Batch trust enrichment (redundant if already done in simulate_turn, but ensures all are processed) ---
@@ -930,8 +931,8 @@ def simulate_forward(
     # Warn if any result missing trust_label/confidence
     for r in results:
         if "trust_label" not in r or "confidence" not in r:
-            if logger:
-                logger(
+            if module_logger:
+                module_logger(
                     "[TRUST] Warning: trust_label or confidence missing from simulation batch output."
                 )
     return results
@@ -953,7 +954,7 @@ def validate_variable_trace(
     state: WorldState,
     decay_rate: float = 0.01,
     atol: float = 1e-2,  # Absolute tolerance for float comparison
-    logger: Optional[Callable[[str], None]] = None,
+    module_logger: Optional[Callable[[str], None]] = None,
 ) -> Dict[str, Any]:
     """
     Validates a known historical trace for a single variable by reconstructing
@@ -968,7 +969,7 @@ def validate_variable_trace(
                             for var_name will be taken as the starting point for backward reconstruction.
         decay_rate (float): The assumed decay rate for inverse_decay.
         atol (float): Absolute tolerance for comparing reconstructed and known values.
-        logger (Optional[Callable[[str], None]]): Optional logger.
+        module_logger (Optional[Callable[[str], None]]): Optional module_logger.
 
     Returns:
         Dict[str, Any]: Validation results including expected (known_trace),
@@ -990,16 +991,16 @@ def validate_variable_trace(
             msg = f"Overlays type {
                 type(
                     state.overlays)} not convertible to dict for trace validation: {e}"
-            if logger:
-                logger(msg)
+            if module_logger:
+                module_logger(msg)
             raise ValueError(msg) from e
 
     if var_name not in current_overlays:
         msg = (
             f"Variable '{var_name}' not found in current overlays for trace validation."
         )
-        if logger:
-            logger(msg)
+        if module_logger:
+            module_logger(msg)
         raise ValueError(msg)
 
     current_val_in_state = current_overlays[var_name]  # This is value at T0
@@ -1043,12 +1044,12 @@ def validate_variable_trace(
         "error": error,
         "match_percent": round(match_percent, 2),
     }
-    if logger:
+    if module_logger:
         log_message = (
             f"[VALIDATE_TRACE] {var_name}: {match_percent:.1f}% match. "
             f"Expected: {known_trace}, Reconstructed: {reconstructed_chronological}, Error: {error}"
         )
-        logger(log_message)
+        module_logger(log_message)
     return result
 
 
@@ -1057,7 +1058,7 @@ def simulate_backward(
     steps: int = 1,
     use_symbolism: bool = True,
     decay_rate: float = 0.01,  # Retain for signature compatibility
-    logger: Optional[Callable[[str], None]] = None,
+    module_logger: Optional[Callable[[str], None]] = None,
     variable_names: Optional[List[str]] = None,  # Retain for signature
 ) -> Dict[str, Any]:
     """
@@ -1071,7 +1072,7 @@ def simulate_backward(
         steps (int): how many steps to reconstruct backward
         use_symbolism (bool): whether to log symbolic tags/arcs
         decay_rate (float): assumed decay rate per overlay per step
-        logger (callable): optional logger
+        module_logger (callable): optional module_logger
         variable_names (list): variables to track (default: all overlays)
 
     Returns:
@@ -1081,8 +1082,8 @@ def simulate_backward(
             - volatility_score: volatility/integrity score for the arc
             - arc_certainty: certainty/confidence in the arc label
     """
-    if logger:
-        logger(
+    if module_logger:
+        module_logger(
             f"[SIMULATE_BACKWARD] Placeholder function called for {steps} steps. Full implementation pending."
         )
 
@@ -1140,7 +1141,7 @@ def simulate_counterfactual(
     fork_vars: Dict[str, Any],
     turns: int,
     use_symbolism: bool = True,
-    logger: Optional[Callable[[str], None]] = None,
+    module_logger: Optional[Callable[[str], None]] = None,
     return_mode: Literal["summary", "full"] = "summary",
     **kwargs,  # Pass other arguments to simulate_forward
 ) -> Dict[str, Any]:
@@ -1154,7 +1155,7 @@ def simulate_counterfactual(
                                      Keys are variable names, values are their new initial values.
         turns (int): Number of turns to simulate for both base and fork.
         use_symbolism (bool): Whether to apply symbolic tagging.
-        logger (Optional[Callable[[str], None]]): Optional logging function.
+        module_logger (Optional[Callable[[str], None]]): Optional logging function.
         return_mode (Literal["summary", "full"]): Detail level for simulate_forward.
         **kwargs: Additional keyword arguments to pass to simulate_forward.
 
@@ -1168,14 +1169,14 @@ def simulate_counterfactual(
     """
     if not isinstance(initial_state, WorldState):
         err_msg = f"Expected initial_state to be WorldState, got {type(initial_state)}"
-        if logger:
-            logger(err_msg)
+        if module_logger:
+            module_logger(err_msg)
         raise ValueError(err_msg)
 
     if not isinstance(fork_vars, dict):
         err_msg = f"Expected fork_vars to be a dict, got {type(fork_vars)}"
-        if logger:
-            logger(err_msg)
+        if module_logger:
+            module_logger(err_msg)
         raise ValueError(err_msg)
 
     # Base Trace
@@ -1185,7 +1186,7 @@ def simulate_counterfactual(
         turns=turns,
         use_symbolism=use_symbolism,
         return_mode=return_mode,
-        logger=logger,
+        module_logger=module_logger,
         **kwargs,
     )
 
@@ -1197,11 +1198,11 @@ def simulate_counterfactual(
         if hasattr(fork_run_state.overlays, key):
             try:
                 setattr(fork_run_state.overlays, key, float(value))
-                if logger:
-                    logger(f"[COUNTERFACTUAL] Forked overlay '{key}' to {value}")
+                if module_logger:
+                    module_logger(f"[COUNTERFACTUAL] Forked overlay '{key}' to {value}")
             except (ValueError, TypeError) as e:
-                if logger:
-                    logger(
+                if module_logger:
+                    module_logger(
                         f"[COUNTERFACTUAL] Error setting overlay '{key}' to {value}: {e}")
         # Then attempt to set in variables.data
         elif hasattr(fork_run_state.variables, "data") and isinstance(
@@ -1209,15 +1210,15 @@ def simulate_counterfactual(
         ):
             try:
                 fork_run_state.variables.data[key] = float(value)
-                if logger:
-                    logger(f"[COUNTERFACTUAL] Forked variable '{key}' to {value}")
+                if module_logger:
+                    module_logger(f"[COUNTERFACTUAL] Forked variable '{key}' to {value}")
             except (ValueError, TypeError) as e:
-                if logger:
-                    logger(
+                if module_logger:
+                    module_logger(
                         f"[COUNTERFACTUAL] Error setting variable '{key}' to {value}: {e}")
         else:
-            if logger:
-                logger(
+            if module_logger:
+                module_logger(
                     f"[COUNTERFACTUAL] Warning: Could not find where to set fork_var '{key}' in WorldState.")
 
     fork_trace = simulate_forward(
@@ -1225,7 +1226,7 @@ def simulate_counterfactual(
         turns=turns,
         use_symbolism=use_symbolism,
         return_mode=return_mode,
-        logger=logger,
+        module_logger=module_logger,
         **kwargs,
     )
 
@@ -1276,15 +1277,15 @@ def simulate_counterfactual(
         try:
             base_arc = score_symbolic_trace(base_trace)
         except Exception as e:
-            if logger:
-                logger(f"[COUNTERFACTUAL] Error scoring base trace: {e}")
+            if module_logger:
+                module_logger(f"[COUNTERFACTUAL] Error scoring base trace: {e}")
         try:
             fork_arc = score_symbolic_trace(fork_trace)
         except Exception as e:
-            if logger:
-                logger(f"[COUNTERFACTUAL] Error scoring fork trace: {e}")
-    elif logger:
-        logger(
+            if module_logger:
+                module_logger(f"[COUNTERFACTUAL] Error scoring fork trace: {e}")
+    elif module_logger:
+        module_logger(
             "[COUNTERFACTUAL] score_symbolic_trace not available. Skipping trace scoring."
         )
 
@@ -1293,15 +1294,15 @@ def simulate_counterfactual(
         try:
             log_simulation_trace(base_trace, tag=f"counterfactual_base_{sim_id_base}")
         except Exception as e:
-            if logger:
-                logger(f"[COUNTERFACTUAL] Error logging base trace: {e}")
+            if module_logger:
+                module_logger(f"[COUNTERFACTUAL] Error logging base trace: {e}")
         try:
             log_simulation_trace(fork_trace, tag=f"counterfactual_fork_{sim_id_fork}")
         except Exception as e:
-            if logger:
-                logger(f"[COUNTERFACTUAL] Error logging fork trace: {e}")
-    elif logger:
-        logger(
+            if module_logger:
+                module_logger(f"[COUNTERFACTUAL] Error logging fork trace: {e}")
+    elif module_logger:
+        module_logger(
             "[COUNTERFACTUAL] log_simulation_trace not available. Skipping trace logging."
         )
 

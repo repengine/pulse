@@ -3,6 +3,8 @@
 All notable changes to the Pulse project will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- **fix(debug)**: Resolved memory balloon issues in recursive training test suite by correcting mock decorator paths in `tests/recursive_training/stages/test_training_stages.py`. Fixed 3 previously skipped tests (`test_execute_success`, `test_execute_failure`, `test_execute_aws_batch_output_path`) that were causing infinite hangs due to incorrect mock paths calling real functions instead of mocks.
 
 ## [0.10.0] - 2025-06-01
 

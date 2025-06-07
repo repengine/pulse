@@ -25,6 +25,32 @@ import memory_profiler  # Added for memory profiling
 
 
 class TrainingBatch:
+    """Represents a single training batch for parallel processing.
+    
+    A training batch encapsulates a time period and set of variables for
+    retrodiction training, along with processing metadata and results.
+    
+    Attributes:
+        batch_id: Unique identifier for the batch.
+        start_time: Start datetime for the training period.
+        end_time: End datetime for the training period.
+        variables: List of variable names to process.
+        processed: Whether the batch has been processed.
+        processing_time: Time taken to process the batch in seconds.
+        results: Processing results dictionary, if available.
+    
+    Example:
+        >>> from datetime import datetime
+        >>> batch = TrainingBatch(
+        ...     batch_id="batch_001",
+        ...     start_time=datetime(2023, 1, 1),
+        ...     end_time=datetime(2023, 1, 31),
+        ...     variables=["spx_close", "us_10y_yield"]
+        ... )
+        >>> print(batch.batch_id)
+        batch_001
+    """
+    
     def __init__(
         self,
         batch_id: str,
@@ -32,6 +58,14 @@ class TrainingBatch:
         end_time: datetime,
         variables: List[str],
     ):
+        """Initialize a training batch.
+        
+        Args:
+            batch_id: Unique identifier for the batch.
+            start_time: Start datetime for the training period.
+            end_time: End datetime for the training period.
+            variables: List of variable names to process.
+        """
         self.batch_id = batch_id
         self.start_time = start_time
         self.end_time = end_time
@@ -73,9 +107,37 @@ def _dask_process_batch_task(
     # all_batches_for_upcoming_data: List[Dict[str, Any]] # Removed for
     # simplicity for now
 ) -> Tuple[str, Dict[str, Any]]:
-    """
-    Processes a single training batch in a Dask worker.
-    This function is designed to be top-level to avoid Dask serialization issues with instance methods.
+    """Process a single training batch in a Dask worker process.
+    
+    This function is designed to be top-level to avoid Dask serialization
+    issues with instance methods. It handles data loading, retrodiction
+    training, and metrics collection for a single batch.
+    
+    Args:
+        batch_data: Dictionary containing batch information including
+            batch_id, start_time, end_time, and variables.
+        data_store_class_name: Name of the DataStore class to use
+            ('StreamingDataStore', 'OptimizedDataStore', or 'RecursiveDataStore').
+        data_store_base_config: Configuration for DataStore.get_instance().
+        async_metrics_reinit_config: Configuration for async metrics collector.
+        trust_buffer_reinit_config: Configuration for trust update buffer.
+    
+    Returns:
+        Tuple containing the batch_id and results dictionary with processing
+        metrics, success status, and training outcomes.
+    
+    Example:
+        >>> batch_data = {
+        ...     "batch_id": "batch_001",
+        ...     "start_time": "2023-01-01T00:00:00",
+        ...     "end_time": "2023-01-31T23:59:59",
+        ...     "variables": ["spx_close", "us_10y_yield"]
+        ... }
+        >>> batch_id, results = _dask_process_batch_task(
+        ...     batch_data, "RecursiveDataStore", {}, {}, {}
+        ... )
+        >>> print(results["success"])
+        True
     """
     # Re-initialize logger for the Dask worker process
     # Ensure worker logger name is unique or well-defined
@@ -284,6 +346,35 @@ def _dask_process_batch_task(
 
 
 class ParallelTrainingCoordinator:
+    """Coordinates parallel retrodiction training across multiple workers.
+    
+    This class manages the distribution of training batches across multiple
+    CPU cores using Dask for improved performance. It handles batch creation,
+    worker coordination, progress tracking, and result aggregation.
+    
+    Attributes:
+        config: Configuration dictionary for the coordinator.
+        max_workers: Maximum number of worker processes.
+        dask_scheduler_port: Port for Dask scheduler.
+        dask_dashboard_port: Port for Dask dashboard.
+        dask_threads_per_worker: Number of threads per worker.
+        batches: List of training batches to process.
+        batch_results: Dictionary of batch processing results.
+        performance_metrics: Performance tracking metrics.
+        is_training: Whether training is currently in progress.
+    
+    Example:
+        >>> coordinator = ParallelTrainingCoordinator(max_workers=4)
+        >>> coordinator.prepare_training_batches(
+        ...     variables=["spx_close", "us_10y_yield"],
+        ...     start_time=datetime(2023, 1, 1),
+        ...     end_time=datetime(2023, 12, 31),
+        ...     batch_size_days=30
+        ... )
+        >>> coordinator.start_training()
+        >>> results = coordinator.get_results_summary()
+    """
+    
     def __init__(
         self,
         config: Optional[Dict[str, Any]] = None,
@@ -292,6 +383,16 @@ class ParallelTrainingCoordinator:
         dask_dashboard_port: Optional[int] = None,
         dask_threads_per_worker: int = 1,
     ):
+        """Initialize the parallel training coordinator.
+        
+        Args:
+            config: Configuration dictionary for data stores and metrics.
+            max_workers: Maximum number of worker processes. Defaults to
+                CPU count minus 1.
+            dask_scheduler_port: Port for Dask scheduler connection.
+            dask_dashboard_port: Port for Dask dashboard interface.
+            dask_threads_per_worker: Number of threads per Dask worker.
+        """
         self.config = config or {}
         self.max_workers = max_workers or max(1, (os.cpu_count() or 4) - 1)
         self.dask_scheduler_port = dask_scheduler_port
@@ -713,6 +814,39 @@ def run_parallel_retrodiction_training(  # Same as before
     dask_threads_per_worker: int = 1,
     batch_limit: Optional[int] = None,
 ) -> Dict[str, Any]:
+    """Run parallel retrodiction training with the specified parameters.
+    
+    This is a convenience function that creates a ParallelTrainingCoordinator,
+    prepares training batches, executes the training, and returns results.
+    
+    Args:
+        variables: List of variable names to train on.
+        start_time: Start datetime for the training period.
+        end_time: End datetime for the training period.
+        max_workers: Maximum number of worker processes. Defaults to CPU count - 1.
+        batch_size_days: Size of each training batch in days.
+        output_file: Optional file path to save results.
+        dask_scheduler_port: Port for Dask scheduler.
+        dask_dashboard_port: Port for Dask dashboard.
+        dask_threads_per_worker: Number of threads per Dask worker.
+        batch_limit: Optional limit on number of batches for testing.
+    
+    Returns:
+        Dictionary containing training results, performance metrics,
+        and batch processing statistics.
+    
+    Example:
+        >>> from datetime import datetime
+        >>> results = run_parallel_retrodiction_training(
+        ...     variables=["spx_close", "us_10y_yield"],
+        ...     start_time=datetime(2023, 1, 1),
+        ...     end_time=datetime(2023, 12, 31),
+        ...     max_workers=4,
+        ...     batch_size_days=30,
+        ...     output_file="training_results.json"
+        ... )
+        >>> print(f"Success rate: {results['batches']['success_rate']:.2%}")
+    """
     coord = ParallelTrainingCoordinator(
         max_workers=max_workers,
         dask_scheduler_port=dask_scheduler_port,

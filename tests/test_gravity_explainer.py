@@ -343,7 +343,7 @@ def test_simulation_trace_contains_gravity_details():
 
             # Run the simulation for two turns
             output = simulate_forward(
-                ws, turns=2, gravity_enabled=True, logger=test_logger.info
+                ws, turns=2, gravity_enabled=True, module_logger=test_logger.info
             )
 
             # Check that gravity_correction_details is in the output for all turns
